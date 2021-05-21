@@ -1,0 +1,29 @@
+{
+  "name": "Client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:no-serve": "webpack --mode=development",
+    "dev": "webpack serve --mode=development",
+    "pub": "webpack --mode=production"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "alasql": "^1.7.2",
+    "circular-dependency-plugin": "^5.2.2",
+    "copy-webpack-plugin": "^8.1.1",
+    "ignore-loader": "^0.1.2",
+    "npm": "^7.13.0",
+    "reflect-metadata": "^0.1.13",
+    "ts-loader": "^9.1.2",
+    "tsyringe": "^4.5.0",
+    "typescript": "^4.2.4",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^5.37.0",
+    "webpack-cli": "^4.7.0",
+    "webpack-dev-server": "^4.0.0-beta.3"
+  }
+}
