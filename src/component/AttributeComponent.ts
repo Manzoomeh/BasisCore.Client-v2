@@ -4,7 +4,7 @@ import IToken from "../token/IToken";
 import Util from "../Util";
 import Component from "./Component";
 
-export class AttributeComponent extends Component {
+export class AttributeComponent extends Component<Element> {
   readonly Attribute: Attr;
   readonly token: IToken<string>;
   readonly relatedSource: Array<string>;

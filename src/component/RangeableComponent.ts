@@ -1,12 +1,14 @@
 import IContext from "../context/IContext";
 import Component from "./Component";
 
-export default abstract class RangeableComponent extends Component {
+export default abstract class RangeableComponent<
+  TNode extends Node
+> extends Component<TNode> {
   readonly range: Range;
   readonly content: DocumentFragment;
 
   constructor(
-    node: Node,
+    node: TNode,
     context: IContext,
     start: number = -1,
     end: number = -1

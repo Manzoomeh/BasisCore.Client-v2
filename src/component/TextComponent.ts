@@ -4,7 +4,7 @@ import IToken from "../token/IToken";
 import Util from "../Util";
 import RangeableComponent from "./RangeableComponent";
 
-export default class TextComponent extends RangeableComponent {
+export default class TextComponent extends RangeableComponent<Node> {
   readonly token: IToken<string>;
   readonly relatedSource: Array<string>;
 
@@ -15,10 +15,6 @@ export default class TextComponent extends RangeableComponent {
     this.token
       .getValueAsync(context, false)
       .then((defaultVal) => this.render(defaultVal ?? ""));
-    // var defaultVal = this.token.getDefault();
-    // if (Util.HasValue(defaultVal)) {
-    //   this.render(defaultVal);
-    // }
   }
 
   onDataSourceAdded(dataSource: IDataSource): void {
