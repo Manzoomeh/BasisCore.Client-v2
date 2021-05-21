@@ -4,5 +4,6 @@ import RangeableComponent from "./RangeableComponent";
 export default abstract class CommandComponnect extends RangeableComponent {
   constructor(node: Element, context: IContext) {
     super(node, context);
+    console.log("r");
   }
 }

@@ -1,6 +1,5 @@
 ﻿import IContext from "../../context/IContext";
 import IToken from "../IToken";
-import Util from "../../Util";
 import SourceTokenElement from "../token-element/SourceTokenElement";
 import { ValueTokenElement } from "../token-element/ValueTokenElement";
 import ITokenElement from "../token-element/ITokenElement";
@@ -28,6 +27,9 @@ export default abstract class ObjectToken<T> implements IToken<T> {
       .filter((x) => x instanceof SourceTokenElement)
       .map((x: SourceTokenElement) => x.sourceName);
   }
+  private static HasValue(data: any): boolean {
+    return data !== undefined && data != null;
+  }
   async getValueAsync(context: IContext, wait: boolean = true): Promise<T> {
     var retVal: T = null;
     for (var i = 0; i < this.params.length; i++) {
@@ -36,10 +38,10 @@ export default abstract class ObjectToken<T> implements IToken<T> {
       if (item instanceof ValueTokenElement) {
         retVal = item.value;
       } else if (item instanceof SourceTokenElement) {
-        if (Util.HasValue(item.member)) {
+        if (ObjectToken.HasValue(item.member)) {
           const sourceName = item.sourceName;
           var dataSource = context.TryGetDataSource(sourceName);
-          if (Util.HasValue(item.column)) {
+          if (ObjectToken.HasValue(item.column)) {
             if (dataSource == null) {
               if (isLastItem) {
                 if (sourceName.startsWith("cms.")) {
@@ -72,7 +74,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
               } catch {
                 /*Nothing*/
               }
-              if (!Util.HasValue(columnRawValue) || columnValue === "") {
+              if (!ObjectToken.HasValue(columnRawValue) || columnValue === "") {
                 //if value in source is null or blank,process next source
                 if (!isLastItem) {
                   continue;
@@ -85,7 +87,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
               try {
                 var sb = "";
                 var data = dataSource.Data.Rows.filter((x) =>
-                  Util.HasValue(x[columnName])
+                  ObjectToken.HasValue(x[columnName])
                 ).map((x) => x[columnName]);
                 data.forEach((item) => {
                   if (sb.length > 0) {
@@ -100,7 +102,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
               }
             }
           } else {
-            var result = Util.HasValue(dataSource);
+            var result = ObjectToken.HasValue(dataSource);
             retVal = this.tryParse(result.toString());
             break;
           }
