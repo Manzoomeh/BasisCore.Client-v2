@@ -1,5 +1,5 @@
-import IContext from "../context/IContext";
+// import IContext from "../context/IContext";
 
-export default interface ICommand {
-  ExecuteAsync(context: IContext): Promise<void>;
-}
+// export default interface ICommand {
+//   ExecuteAsync(context: IContext): Promise<void>;
+// }

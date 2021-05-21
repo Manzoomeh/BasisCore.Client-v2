@@ -1,24 +1,19 @@
-// import IContext from "../intrface/IContext";
-// import IDataSource from "../intrface/IDataSource";
-// import CommandBase from "./CommandBase";
+import IContext from "../context/IContext";
+//import ICommand from "./ICommand";
 
-// export default abstract class Command extends CommandBase {
-//   constructor(element: Element) {
-//     super(element);
-//   }
-//   async ExecuteCommandAsync(context: IContext): Promise<void> {
-//     var dataSourceId = await this.GetAttributeValueAsync(
-//       "datamembername",
-//       context
-//     );
-//     var source: IDataSource = null;
-//     if (dataSourceId) {
-//       source = await context.WaitToGetDataSourceAsync(dataSourceId);
-//     }
-//     return await this.ExecuteAsyncEx(source, context);
-//   }
-//   abstract ExecuteAsyncEx(
-//     dataSource: IDataSource,
-//     context: IContext
-//   ): Promise<void>;
-// }
+export default abstract class Command {
+  readonly Element: Element;
+  constructor(element: Element) {
+    this.Element = element;
+  }
+  //abstract ExecuteAsync(context: IContext): Promise<void>;
+
+  protected async getAttributeValueAsync(
+    attributeName: string,
+    context: IContext,
+    defaultValue: string = null
+  ): Promise<string> {
+    var token = this.Element.GetStringToken(attributeName);
+    return (await token?.getValueAsync(context)) ?? defaultValue;
+  }
+}

@@ -19,8 +19,8 @@ export default class Repository implements IRepository {
   }
 
   public setSource(source: IDataSource) {
-    this.repository.set(source.Data.Name?.toLowerCase(), source);
-    this.logger.LogInformation(`${source.Data.Name} Added.`);
+    this.repository.set(source.data.Name?.toLowerCase(), source);
+    this.logger.LogInformation(`${source.data.Name} Added.`);
     this.eventManager.Trigger(source);
   }
 

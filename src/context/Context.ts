@@ -1,4 +1,3 @@
-import { inject } from "tsyringe";
 import IDataSource from "../data/IDataSource";
 import Util from "../data/Utility";
 import { EventHandler } from "../event/EventHandler";
@@ -22,8 +21,8 @@ export default abstract class Context implements IContext {
     throw new Error("Method not implemented.");
   }
 
-  addAsSource(sourecName: string, value: any) {
-    var source = Util.ToDataSource(sourecName, value);
+  addAsSource(sourecName: string, value: any, replace: boolean = true) {
+    var source = Util.ToDataSource(sourecName, value, replace);
     this.AddSource(source);
   }
   AddSource(source: IDataSource): void {

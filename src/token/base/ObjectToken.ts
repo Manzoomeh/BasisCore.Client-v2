@@ -59,15 +59,15 @@ export default abstract class ObjectToken<T> implements IToken<T> {
               }
             }
             var columnName = item.column.toLowerCase();
-            if (dataSource.Data.Columns.indexOf(columnName) == -1) {
+            if (dataSource.data.Columns.indexOf(columnName) == -1) {
               if (isLastItem) {
                 break;
               } else {
                 continue;
               }
             }
-            if (dataSource.Data.Rows.length == 1) {
-              var columnRawValue = dataSource.Data.Rows[0][columnName];
+            if (dataSource.data.Rows.length == 1) {
+              var columnRawValue = dataSource.data.Rows[0][columnName];
               var columnValue = "";
               try {
                 columnValue = columnRawValue.toString();
@@ -83,10 +83,10 @@ export default abstract class ObjectToken<T> implements IToken<T> {
                 retVal = this.tryParse(columnValue);
                 break;
               }
-            } else if (dataSource.Data.Rows.length > 1) {
+            } else if (dataSource.data.Rows.length > 1) {
               try {
                 var sb = "";
-                var data = dataSource.Data.Rows.filter((x) =>
+                var data = dataSource.data.Rows.filter((x) =>
                   ObjectToken.HasValue(x[columnName])
                 ).map((x) => x[columnName]);
                 data.forEach((item) => {

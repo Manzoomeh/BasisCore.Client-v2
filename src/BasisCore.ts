@@ -25,8 +25,8 @@ export default class BasisCore implements IBasisCore {
     this.HostOptions = hostOptions;
     this.context = context;
   }
-  addSource(sourecName: string, data: any) {
-    this.context.addAsSource(sourecName, data);
+  addSource(sourecName: string, data: any, replace: boolean = true) {
+    this.context.addAsSource(sourecName, data, replace);
   }
 
   public f(): void {

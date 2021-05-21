@@ -9,5 +9,5 @@ export default interface IBasisCore {
 
   GetOrLoadDbLibAsync(): Promise<any>;
 
-  addSource(sourecName: string, data: any);
+  addSource(sourecName: string, data: any, replace: boolean);
 }

@@ -25,8 +25,18 @@ export default abstract class RangeableComponent<
     this.content = this.range.extractContents();
   }
 
-  render(content: string): void {
-    const fragment = this.range.createContextualFragment(content);
+  preContent: string = "";
+  protected async applyResult(
+    content: string,
+    replace: boolean = true
+  ): Promise<void> {
+    if (replace) {
+      this.preContent = "";
+    } else {
+      this.preContent += content;
+      content = this.preContent;
+    }
+    let fragment = this.range.createContextualFragment(content);
     this.range.deleteContents();
     this.range.insertNode(fragment);
   }

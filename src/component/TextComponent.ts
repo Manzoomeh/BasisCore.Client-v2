@@ -14,13 +14,13 @@ export default class TextComponent extends RangeableComponent<Node> {
     this.relatedSource = this.token.getSourceNames();
     this.token
       .getValueAsync(context, false)
-      .then((defaultVal) => this.render(defaultVal ?? ""));
+      .then((defaultVal) => this.applyResult(defaultVal ?? ""));
   }
 
   onDataSourceAdded(dataSource: IDataSource): void {
-    if (this.relatedSource.indexOf(dataSource.Data.Name) != -1) {
+    if (this.relatedSource.indexOf(dataSource.data.Name) != -1) {
       this.token.getValueAsync(this.context).then((x) => {
-        this.render(x);
+        this.applyResult(x);
       });
     }
   }

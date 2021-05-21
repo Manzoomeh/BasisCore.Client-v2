@@ -4,5 +4,5 @@ import { EventHandler } from "../event/EventHandler";
 export default interface IRepository {
   setSource(source: IDataSource);
   addHandler(handler: EventHandler<IDataSource>);
-  get(key: string): IDataSource;
+  get(dataSourceId: string): IDataSource;
 }

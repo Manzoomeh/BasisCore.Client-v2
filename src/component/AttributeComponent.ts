@@ -21,7 +21,7 @@ export class AttributeComponent extends Component<Element> {
   }
 
   onDataSourceAdded(dataSource: IDataSource): void {
-    if (this.relatedSource.indexOf(dataSource.Data.Name) != -1) {
+    if (this.relatedSource.indexOf(dataSource.data.Name) != -1) {
       this.token.getValueAsync(this.context).then((x) => {
         this.render(x);
       });
