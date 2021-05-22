@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import BasisCore from "./BasisCore";
+import Cookie from "./command/management/Cookie";
 import List from "./command/renderable/List";
 import Print from "./command/renderable/Print";
 import Tree from "./command/renderable/Tree";
@@ -33,3 +34,4 @@ container.register("print", { useToken: Print });
 container.register("tree", { useToken: Tree });
 container.register("view", { useToken: View });
 container.register("list", { useToken: List });
+container.register("cookie", { useToken: Cookie });
