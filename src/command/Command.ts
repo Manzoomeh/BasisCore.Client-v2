@@ -13,7 +13,7 @@ export default abstract class Command {
     context: IContext,
     defaultValue: string = null
   ): Promise<string> {
-    var token = this.Element.GetStringToken(attributeName);
+    var token = this.Element.GetStringToken(attributeName, context);
     return (await token?.getValueAsync(context)) ?? defaultValue;
   }
 }

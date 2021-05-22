@@ -3,7 +3,7 @@ import DataSource from "./DataSource";
 import IData from "./IData";
 import IDataSource from "./IDataSource";
 
-export default class Util {
+export default class DataUtil {
   public static ToDataTable(tblName: string, data: any): IData {
     var rows = null;
     if (Array.isArray(data)) {
@@ -21,7 +21,18 @@ export default class Util {
     data: any,
     replace: boolean = true
   ): IDataSource {
-    const tbl = Util.ToDataTable(tblName, data);
+    const tbl = DataUtil.ToDataTable(tblName, data);
     return new DataSource(tbl, replace);
+  }
+
+  static ApplySimpleFilter(data: any[], columnName: string, columnValue: any) {
+    var retVal: any[];
+
+    if (typeof columnValue === "string" && columnValue.isEqual("null")) {
+      retVal = data.filter((x) => x[columnName] === null);
+    } else {
+      retVal = data.filter((x) => x[columnName] == columnValue);
+    }
+    return retVal;
   }
 }

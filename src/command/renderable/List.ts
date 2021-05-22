@@ -2,7 +2,7 @@ import { injectable } from "tsyringe";
 import RenderableBase from "../../renderable/RenderableBase";
 
 @injectable()
-export default class Print extends RenderableBase {
+export default class List extends RenderableBase {
   constructor(element: Element) {
     super(element);
   }

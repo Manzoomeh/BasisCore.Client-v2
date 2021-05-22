@@ -1,14 +1,12 @@
 import TextComponent from "./component/TextComponent";
 import IComponent from "./component/IComponent";
-import UnknoneCommand from "./component/UnknoneCommand";
+import RenderableComponent from "./component/RenderableComponent";
 import ClientException from "./exception/ClientException";
 import { AttributeComponent } from "./component/AttributeComponent";
 import IBasisCore from "./IBasisCore";
 import Util from "./Util";
-
 import { inject, singleton } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
-import { HostOptions } from "./options/HostOptions";
 
 declare var alasql: any;
 
@@ -17,33 +15,14 @@ export default class BasisCore implements IBasisCore {
   readonly componnet: Array<IComponent>;
   readonly regex: string;
   readonly context: GlobalContext;
-  public readonly HostOptions: HostOptions;
 
-  constructor(hostOptions: HostOptions, context: GlobalContext) {
-    this.regex = this.GetDefault("binding.regex");
-    this.componnet = new Array<IComponent>();
-    this.HostOptions = hostOptions;
+  constructor(context: GlobalContext) {
     this.context = context;
+    this.componnet = new Array<IComponent>();
+    this.regex = this.context.options.getDefault("binding.regex");
   }
   addSource(sourecName: string, data: any, replace: boolean = true) {
     this.context.addAsSource(sourecName, data, replace);
-  }
-
-  public f(): void {
-    console.log("hi");
-  }
-
-  public GetDefault(key: string, defaultValue: string = null): string {
-    let retVal = defaultValue;
-    switch (key) {
-      case "binding.regex":
-        retVal = "\\[##([^#]*)##\\]";
-        break;
-
-      default:
-        break;
-    }
-    return retVal;
   }
 
   AddArea(selector: string): void;
@@ -65,14 +44,14 @@ export default class BasisCore implements IBasisCore {
   async GetOrLoadDbLibAsync(): Promise<any> {
     var retVal;
     if (typeof alasql === "undefined") {
-      if (Util.IsNullOrEmpty(this.HostOptions.DbLibPath)) {
+      if (Util.IsNullOrEmpty(this.context.options.DbLibPath)) {
         throw new ClientException(
           `Error in load 'alasql'. 'DbLibPath' Not Configure Properly In Host Object.`
         );
       }
-      retVal = await this.GetOrLoadObjectAsync(
+      retVal = await this.getOrLoadObjectAsync(
         "alasql",
-        this.HostOptions.DbLibPath
+        this.context.options.DbLibPath
       );
     } else {
       retVal = alasql;
@@ -80,7 +59,7 @@ export default class BasisCore implements IBasisCore {
     return retVal;
   }
 
-  public GetOrLoadObjectAsync(object: string, url: string): Promise<any> {
+  public getOrLoadObjectAsync(object: string, url: string): Promise<any> {
     return new Promise((resolve, reject) => {
       if (eval(`typeof(${object})`) === "undefined") {
         var script = document.createElement("script");
@@ -102,7 +81,7 @@ export default class BasisCore implements IBasisCore {
   private ExtratcBasisCommands(element: Element) {
     const elements = Array.from(element.getElementsByTagName("basis"));
     for (const item of elements) {
-      this.componnet.push(new UnknoneCommand(item, this.context));
+      this.componnet.push(new RenderableComponent(item, this.context));
     }
   }
   private getTextComponent(element: Node) {

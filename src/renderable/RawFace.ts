@@ -1,4 +1,5 @@
-﻿import IToken from "../token/IToken";
+﻿import IContext from "../context/IContext";
+import IToken from "../token/IToken";
 
 export default class RawFace {
   readonly ApplyReplace: IToken<boolean>;
@@ -8,12 +9,12 @@ export default class RawFace {
   readonly Filter: IToken<string>;
   readonly Template: IToken<string>;
 
-  constructor(element: Element) {
-    this.ApplyReplace = element.GetBooleanToken("replace");
-    this.ApplyFunction = element.GetBooleanToken("function");
-    this.Level = element.GetStringToken("level");
-    this.RowType = element.GetStringToken("rowtype");
-    this.Filter = element.GetStringToken("filter");
-    this.Template = element.GetTemplateToken();
+  constructor(element: Element, context: IContext) {
+    this.ApplyReplace = element.GetBooleanToken("replace", context);
+    this.ApplyFunction = element.GetBooleanToken("function", context);
+    this.Level = element.GetStringToken("level", context);
+    this.RowType = element.GetStringToken("rowtype", context);
+    this.Filter = element.GetStringToken("filter", context);
+    this.Template = element.GetTemplateToken(context);
   }
 }

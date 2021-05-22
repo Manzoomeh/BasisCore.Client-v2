@@ -1,7 +1,6 @@
 import IContext from "../context/IContext";
 import IDataSource from "../data/IDataSource";
 import IToken from "../token/IToken";
-import Util from "../Util";
 import Component from "./Component";
 
 export class AttributeComponent extends Component<Element> {
@@ -11,7 +10,7 @@ export class AttributeComponent extends Component<Element> {
   constructor(element: Element, context: IContext, attribute: Attr) {
     super(element, context);
     this.Attribute = attribute;
-    this.token = this.Attribute.value.ToStringToken();
+    this.token = this.Attribute.value.ToStringToken(context);
     this.relatedSource = this.token.getSourceNames();
     this.token
       .getValueAsync(context, false)

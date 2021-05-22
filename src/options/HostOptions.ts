@@ -1,6 +1,8 @@
 import { inject, singleton } from "tsyringe";
+import ConfigNotFoundException from "../exception/ConfigNotFoundException";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
+import Util from "../Util";
 import IHostOptions from "./IHostOptions";
 
 declare var host: IHostOptions;
@@ -26,25 +28,36 @@ export class HostOptions implements IHostOptions {
   }
 
   private setDefaults() {
-    this.Debug = false;
-    this.AutoRender = true;
-    this.ServiceWorker = false;
-    this.Settings = {
-      "defaults.binding.regex": "\\[##([^#]*)##\\]",
+    var defaultSettings = {
+      Debug: true,
+      AutoRender: true,
+      ServiceWorker: false,
+      DbLibPath: "alasql.min.js",
+      Settings: {
+        "default.binding.regex": "\\[##([^#]*)##\\]",
+      },
+      OnRendered: null,
+      OnRendering: null,
+      Sources: {},
     };
-    this.DbLibPath = "alasql.min.js";
-    this.Sources = {};
+    Object.assign(this, defaultSettings);
   }
 
-  public GetDefault(key: string, defaultValue: string = null): string {
-    let retVal = defaultValue;
-    switch (key) {
-      case "binding.regex":
-        retVal = "\\[##([^#]*)##\\]";
-        break;
+  public getDefault(key: string, defaultValue: string = null): string {
+    return this.getSetting(`default.${key}`, defaultValue);
+  }
 
-      default:
-        break;
+  public getSetting(key: string, defaultValue: string): any {
+    var find = Object.getOwnPropertyNames(this.Settings).filter((x) =>
+      Util.isEqual(x, key)
+    );
+    var retVal = find.length == 1 ? this.Settings[find[0]] : null;
+    if (!retVal) {
+      if (defaultValue !== undefined) {
+        retVal = defaultValue;
+      } else {
+        throw new ConfigNotFoundException("host.settings", key);
+      }
     }
     return retVal;
   }

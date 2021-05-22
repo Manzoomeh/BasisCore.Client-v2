@@ -1,6 +1,7 @@
 import { inject, singleton } from "tsyringe";
 import IDataSource from "../data/IDataSource";
 import ILogger from "../logger/ILogger";
+import { HostOptions } from "../options/HostOptions";
 import IRepository from "../repository/IRepository";
 import Context from "./Context";
 
@@ -8,9 +9,10 @@ import Context from "./Context";
 export default class GlobalContext extends Context {
   constructor(
     @inject("IRepository") repository: IRepository,
-    @inject("ILogger") logger: ILogger
+    @inject("ILogger") logger: ILogger,
+    options: HostOptions
   ) {
-    super(repository, logger);
+    super(repository, options, logger);
   }
 
   TryGetDataSource(dataSourceId: string): IDataSource {

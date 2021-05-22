@@ -1,21 +1,23 @@
-﻿import ClientException from "../exception/ClientException";
+﻿import IContext from "../context/IContext";
+import ClientException from "../exception/ClientException";
 import IToken from "../token/IToken";
+import TokenUtil from "../token/TokenUtil";
 import Util from "../Util";
 
 declare global {
   interface String {
     Evaluating(): boolean;
-    ToStringToken(): IToken<string>;
-    ToIntegerToken(): IToken<number>;
-    ToBooleanToken(): IToken<boolean>;
-    IsEqual(value: string);
+    ToStringToken(context: IContext): IToken<string>;
+    ToIntegerToken(context: IContext): IToken<number>;
+    ToBooleanToken(context: IContext): IToken<boolean>;
+    isEqual(value: string);
   }
 }
 
 Object.defineProperty(String.prototype, "Evaluating", {
   value: function Evaluating() {
     try {
-      return Util.IsEqual(eval(this.toString())?.toString(), "true");
+      return Util.isEqual(eval(this.toString())?.toString(), "true");
     } catch (er) {
       throw new ClientException(
         `Error In Evaluating '${this.toString()}': ${er}`
@@ -26,28 +28,28 @@ Object.defineProperty(String.prototype, "Evaluating", {
   configurable: true,
 });
 Object.defineProperty(String.prototype, "ToStringToken", {
-  value: function ToStringToken() {
-    return Util.ToStringToken(this.toString());
+  value: function ToStringToken(context: IContext) {
+    return TokenUtil.ToStringToken(this.toString(), context);
   },
   writable: true,
   configurable: true,
 });
 Object.defineProperty(String.prototype, "ToIntegerToken", {
-  value: function ToIntegerToken() {
-    return Util.ToIntegerToken(this.toString());
+  value: function ToIntegerToken(context: IContext) {
+    return TokenUtil.ToIntegerToken(this.toString(), context);
   },
   writable: true,
   configurable: true,
 });
 Object.defineProperty(String.prototype, "ToBooleanToken", {
-  value: function ToBooleanToken() {
-    return Util.ToBooleanToken(this.toString());
+  value: function ToBooleanToken(context: IContext) {
+    return TokenUtil.ToBooleanToken(this.toString(), context);
   },
   writable: true,
   configurable: true,
 });
-Object.defineProperty(String.prototype, "IsEqual", {
-  value: function IsEqual(value: string) {
+Object.defineProperty(String.prototype, "isEqual", {
+  value: function isEqual(value: string) {
     var stringA = this.toString();
     return (
       stringA.localeCompare(value ?? "", undefined, {

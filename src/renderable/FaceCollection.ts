@@ -7,6 +7,7 @@ import RenderParam from "./RenderParam";
 export default class FaceCollection extends Array<Face> {
   constructor(...faces: Face[]) {
     super(...faces);
+    console.log("f", faces);
     (<any>Object).setPrototypeOf(this, FaceCollection.prototype);
   }
   Render(param: RenderParam, context: IContext): string {

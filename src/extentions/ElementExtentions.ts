@@ -1,21 +1,22 @@
-﻿import IToken from "../token/IToken";
+﻿import IContext from "../context/IContext";
+import IToken from "../token/IToken";
 import Util from "../Util";
 
 declare global {
   interface Element {
-    GetStringToken(attributeName: string): IToken<string>;
-    GetIntegerToken(attributeName: string): IToken<number>;
-    GetBooleanToken(attributeName: string): IToken<boolean>;
-    GetTemplateToken(): IToken<string>;
+    GetStringToken(attributeName: string, context: IContext): IToken<string>;
+    GetIntegerToken(attributeName: string, context: IContext): IToken<number>;
+    GetBooleanToken(attributeName: string, context: IContext): IToken<boolean>;
+    GetTemplateToken(context: IContext): IToken<string>;
     IsBasisCore(): boolean;
   }
 }
 Object.defineProperty(Element.prototype, "GetStringToken", {
-  value: function GetStringToken(attributeName: string) {
+  value: function GetStringToken(attributeName: string, context: IContext) {
     var retVal: IToken<String>;
     var tmp = <string>this.getAttribute(attributeName);
     if (tmp) {
-      retVal = tmp.ToStringToken();
+      retVal = tmp.ToStringToken(context);
     }
     return retVal;
   },
@@ -23,11 +24,11 @@ Object.defineProperty(Element.prototype, "GetStringToken", {
   configurable: true,
 });
 Object.defineProperty(Element.prototype, "GetIntegerToken", {
-  value: function GetIntegerToken(attributeName: string) {
+  value: function GetIntegerToken(attributeName: string, context: IContext) {
     var retVal: IToken<number>;
     var tmp = <string>this.getAttribute(attributeName);
     if (tmp) {
-      retVal = tmp.ToIntegerToken();
+      retVal = tmp.ToIntegerToken(context);
     }
     return retVal;
   },
@@ -35,11 +36,11 @@ Object.defineProperty(Element.prototype, "GetIntegerToken", {
   configurable: true,
 });
 Object.defineProperty(Element.prototype, "GetBooleanToken", {
-  value: function GetBooleanToken(attributeName: string) {
+  value: function GetBooleanToken(attributeName: string, context: IContext) {
     var retVal: IToken<boolean>;
     var tmp = <string>this.getAttribute(attributeName);
     if (tmp) {
-      retVal = tmp.ToBooleanToken();
+      retVal = tmp.ToBooleanToken(context);
     }
     return retVal;
   },
@@ -47,16 +48,16 @@ Object.defineProperty(Element.prototype, "GetBooleanToken", {
   configurable: true,
 });
 Object.defineProperty(Element.prototype, "GetTemplateToken", {
-  value: function GetTemplateToken() {
+  value: function GetTemplateToken(context: IContext) {
     var retVal: IToken<string>;
     if (
       this.children.length == 1 &&
-      Util.IsEqual(this.children[0].nodeName, "script") &&
-      Util.IsEqual(this.children[0].getAttribute("type"), "text/template")
+      Util.isEqual(this.children[0].nodeName, "script") &&
+      Util.isEqual(this.children[0].getAttribute("type"), "text/template")
     ) {
-      retVal = this.textContent.ToStringToken();
+      retVal = this.textContent.ToStringToken(context);
     } else {
-      retVal = this.innerHTML.ToStringToken();
+      retVal = this.innerHTML.ToStringToken(context);
     }
     return retVal;
   },
@@ -69,7 +70,7 @@ Object.defineProperty(Element.prototype, "IsBasisCore", {
       return (
         this.nodeType == Node.ELEMENT_NODE &&
         this.nodeName == "BASIS" &&
-        Util.IsEqual(this.getAttribute("run"), "atclient")
+        Util.isEqual(this.getAttribute("run"), "atclient")
       );
     } catch {
       return false;

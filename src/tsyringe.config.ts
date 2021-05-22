@@ -1,6 +1,10 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import BasisCore from "./BasisCore";
+import List from "./command/renderable/List";
+import Print from "./command/renderable/Print";
+import Tree from "./command/renderable/Tree";
+import View from "./command/renderable/View";
 import IBasisCore from "./IBasisCore";
 import ConsoleLogger from "./logger/ConsoleLogger";
 import ILogger from "./logger/ILogger";
@@ -24,3 +28,8 @@ container.register<ILogger>("ILogger", {
 container.register<IRepository>("IRepository", {
   useToken: Repository,
 });
+
+container.register("print", { useToken: Print });
+container.register("tree", { useToken: Tree });
+container.register("view", { useToken: View });
+container.register("list", { useToken: List });
