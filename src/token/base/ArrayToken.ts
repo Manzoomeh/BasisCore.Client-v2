@@ -5,8 +5,10 @@ export default abstract class ArrayToken<T>
   extends Array<IToken<string>>
   implements IToken<T>
 {
-  constructor(...data: Array<IToken<string>>) {
+  readonly context: IContext;
+  constructor(context: IContext, ...data: Array<IToken<string>>) {
     super(...data);
+    this.context = context;
   }
   getDefault(): T {
     const value = this.reduce((r, x) => (r += x.getDefault() ?? ""), "");
@@ -18,9 +20,9 @@ export default abstract class ArrayToken<T>
       new Array<string>()
     );
   }
-  async getValueAsync(context: IContext, wait: boolean = true): Promise<T> {
+  async getValueAsync(wait: boolean = true): Promise<T> {
     var tasks = new Array<Promise<string>>();
-    this.forEach((token) => tasks.push(token.getValueAsync(context, wait)));
+    this.forEach((token) => tasks.push(token.getValueAsync(wait)));
     var result = await Promise.all(tasks);
     var retVal = this.tryParse(result.join(""));
     return retVal;

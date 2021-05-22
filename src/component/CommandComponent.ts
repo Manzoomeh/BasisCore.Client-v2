@@ -10,7 +10,7 @@ export default abstract class CommandComponent extends RangeableComponent<Elemen
 
   async canRenderCommandAsync(context: IContext): Promise<boolean> {
     var token = this.node.GetBooleanToken("if", context);
-    var value = await token?.getValueAsync(this.context);
+    var value = await token?.getValueAsync();
     return value ?? true;
   }
 
@@ -20,6 +20,6 @@ export default abstract class CommandComponent extends RangeableComponent<Elemen
     defaultValue: string = null
   ): Promise<string> {
     var token = this.node.GetStringToken(attributeName, context);
-    return (await token?.getValueAsync(context)) ?? defaultValue;
+    return (await token?.getValueAsync()) ?? defaultValue;
   }
 }

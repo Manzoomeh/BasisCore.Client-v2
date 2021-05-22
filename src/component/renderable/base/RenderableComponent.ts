@@ -32,19 +32,9 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
 
       var faces = await rawFaces.ProcessAsync(dataSource.data, this.context);
       var replaces = await rawReplaces.ProcessAsync(this.context);
-      var dividerRowcount = await TokenUtil.GetValueOrDefaultAsync(
-        rawDividerRowcount,
-        this.context,
-        0
-      );
-      var dividerTemplate = await TokenUtil.GetValueOrDefaultAsync<string>(
-        rawDividerTemplate,
-        this.context
-      );
-      var incompleteTemplate = await TokenUtil.GetValueOrDefaultAsync<string>(
-        rawIncompleteTemplate,
-        this.context
-      );
+      var dividerRowcount = (await rawDividerRowcount?.getValueAsync()) ?? 0; // TokenUtil.GetValueOrDefaultAsync(        rawDividerRowcount,        0      );
+      var dividerTemplate = await rawDividerTemplate?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync<string>(        rawDividerTemplate      );
+      var incompleteTemplate = await rawIncompleteTemplate?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync<string>(        rawIncompleteTemplate      );
       result = await this.RenderAsync(
         dataSource.data,
         faces,
@@ -61,21 +51,13 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var rawLayout = this.node
         .querySelector("layout")
         ?.GetTemplateToken(this.context);
-      var layout = await TokenUtil.GetValueOrDefaultAsync(
-        rawLayout,
-        this.context,
-        "@child"
-      );
+      var layout = (await rawLayout?.getValueAsync()) ?? "@child"; //TokenUtil.GetValueOrDefaultAsync(rawLayout, "@child");
       result = Util.ReplaceEx(layout, "@child", result ?? "");
     } else {
       var rawElseLayout = this.node
         .querySelector("else-layout")
         ?.GetTemplateToken(this.context);
-      result = await TokenUtil.GetValueOrDefaultAsync(
-        rawElseLayout,
-        this.context,
-        ""
-      );
+      result = (await rawElseLayout?.getValueAsync()) ?? ""; //  await TokenUtil.GetValueOrDefaultAsync(rawElseLayout, "");
     }
     return result;
   }

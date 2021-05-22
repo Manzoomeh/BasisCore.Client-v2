@@ -1,5 +1,6 @@
 ﻿import IToken from "../IToken";
 import ArrayToken from "../base/ArrayToken";
+import IContext from "../../context/IContext";
 
 export default class IntegerArray extends ArrayToken<number> {
   tryParse(value: string): number {
@@ -10,7 +11,7 @@ export default class IntegerArray extends ArrayToken<number> {
     }
     return 0;
   }
-  constructor(...collection: Array<IToken<string>>) {
-    super(...collection);
+  constructor(context: IContext, ...collection: Array<IToken<string>>) {
+    super(context, ...collection);
   }
 }

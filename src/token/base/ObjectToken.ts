@@ -6,7 +6,9 @@ import ITokenElement from "../token-element/ITokenElement";
 
 export default abstract class ObjectToken<T> implements IToken<T> {
   readonly params: Array<ITokenElement>;
-  constructor(rawValue: string) {
+  readonly context: IContext;
+  constructor(rawValue: string, context: IContext) {
+    this.context = context;
     this.params = rawValue.split("|").map((part) => {
       var parts = part.toLowerCase().split(".");
       const matchValue = parts[0].match(/^\s*\((.*)\)\s*$/);
@@ -14,9 +16,6 @@ export default abstract class ObjectToken<T> implements IToken<T> {
         ? new ValueTokenElement<T>(this.tryParse(matchValue[1]))
         : new SourceTokenElement(parts);
     });
-  }
-  tryGetValue(context: IContext): T {
-    throw new Error("Method not implemented.");
   }
   getDefault(): T {
     var t = this.params.filter((x) => x instanceof ValueTokenElement);
@@ -30,7 +29,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
   private static HasValue(data: any): boolean {
     return data !== undefined && data != null;
   }
-  async getValueAsync(context: IContext, wait: boolean = true): Promise<T> {
+  async getValueAsync(wait: boolean = true): Promise<T> {
     var retVal: T = null;
     for (var i = 0; i < this.params.length; i++) {
       var item = this.params[i];
@@ -40,7 +39,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
       } else if (item instanceof SourceTokenElement) {
         if (ObjectToken.HasValue(item.member)) {
           const sourceName = item.sourceName;
-          var dataSource = context.TryGetDataSource(sourceName);
+          var dataSource = this.context.TryGetDataSource(sourceName);
           if (ObjectToken.HasValue(item.column)) {
             if (dataSource == null) {
               if (isLastItem) {
@@ -48,7 +47,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
                   break;
                 }
                 if (wait) {
-                  dataSource = await context.WaitToGetDataSourceAsync(
+                  dataSource = await this.context.WaitToGetDataSourceAsync(
                     sourceName
                   );
                 } else {
@@ -107,7 +106,9 @@ export default abstract class ObjectToken<T> implements IToken<T> {
             break;
           }
         } else {
-          var result = await context.CheckSourceHeartbeatAsync(item.source);
+          var result = await this.context.CheckSourceHeartbeatAsync(
+            item.source
+          );
           retVal = this.tryParse(result.toString());
           break;
         }

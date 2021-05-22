@@ -13,13 +13,13 @@ export class AttributeComponent extends Component<Element> {
     this.token = this.Attribute.value.ToStringToken(context);
     this.relatedSource = this.token.getSourceNames();
     this.token
-      .getValueAsync(context, false)
+      .getValueAsync(false)
       .then((defaultVal) => this.render(defaultVal ?? ""));
   }
 
   onDataSourceAdded(dataSource: IDataSource): void {
     if (this.relatedSource.indexOf(dataSource.data.Name) != -1) {
-      this.token.getValueAsync(this.context).then((x) => {
+      this.token.getValueAsync().then((x) => {
         this.render(x);
       });
     }

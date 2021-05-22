@@ -2,7 +2,6 @@
 import IData from "../../../data/IData";
 import { FaceRowType } from "../../../enum";
 import IToken from "../../../token/IToken";
-import TokenUtil from "../../../token/TokenUtil";
 import Util from "../../../Util";
 import Face from "./Face";
 import FaceCollection from "./FaceCollection";
@@ -22,30 +21,15 @@ export default class RawFaceCollection extends Array<RawFace> {
     context: IContext
   ) /*: Promise<FaceCollection>*/ {
     var facesTask = this.map(async (x) => {
-      var applyReplace = await TokenUtil.GetValueOrDefaultAsync(
-        x.ApplyReplace,
-        context,
-        false
-      );
-      var applyFunction = await TokenUtil.GetValueOrDefaultAsync(
-        x.ApplyFunction,
-        context,
-        false
-      );
+      var applyReplace = (await x.ApplyReplace?.getValueAsync()) ?? faces; // TokenUtil.GetValueOrDefaultAsync(        x.ApplyReplace,        false      );
+      var applyFunction = (await x.ApplyFunction?.getValueAsync()) ?? false; // TokenUtil.GetValueOrDefaultAsync(        x.ApplyFunction,        false      );
       var rowType = await this.GetRowTypeAsync(x.RowType, context);
-      var levels =
-        (await TokenUtil.GetValueOrDefaultAsync(x.Level, context))?.split(
-          "|"
-        ) ?? null;
-      var filter = await TokenUtil.GetValueOrDefaultAsync(x.Filter, context);
+      var levels = (await x.Level?.getValueAsync())?.split("|") ?? null;
+      var filter = await x.Filter?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync(x.Filter);
       var relatedRows = Util.IsNullOrEmpty(filter)
         ? dataSource.Rows
         : await Util.ApplyFilterAsync(dataSource, filter);
-      var template = await TokenUtil.GetValueOrDefaultAsync(
-        x.Template,
-        context,
-        ""
-      );
+      var template = (await x.Template?.getValueAsync()) ?? ""; // TokenUtil.GetValueOrDefaultAsync(x.Template, "");
       dataSource.Columns.forEach((col, index) => {
         if (col.length > 0) {
           template = Util.ReplaceEx(template, `@${col}`, `@col${index + 1}`);
@@ -70,7 +54,7 @@ export default class RawFaceCollection extends Array<RawFace> {
     context: IContext
   ): Promise<FaceRowType> {
     var retVal = FaceRowType.NotSet;
-    var value = await TokenUtil.GetValueOrDefaultAsync(token, context);
+    var value = await token?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync(token);
     if (value) {
       var list = Object.getOwnPropertyNames(FaceRowType).filter((x) =>
         Util.isEqual(x, value)

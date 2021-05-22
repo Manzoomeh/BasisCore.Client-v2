@@ -1,5 +1,5 @@
 //https://github.com/microsoft/tsyringe#example-with-interfaces
-
+import "reflect-metadata";
 import { container } from "tsyringe";
 import BasisCore from "./BasisCore";
 import CookieComponent from "./component/management/CookieComponent";

@@ -3,7 +3,9 @@ import IToken from "../IToken";
 
 export default abstract class ValueToken<T> implements IToken<T> {
   readonly value: T;
-  constructor(value: T) {
+  readonly context: IContext;
+  constructor(value: T, context: IContext) {
+    this.context = context;
     this.value = value;
   }
   getDefault(): T {
@@ -13,7 +15,7 @@ export default abstract class ValueToken<T> implements IToken<T> {
     return new Array<string>();
   }
 
-  getValueAsync(context: IContext, wait: boolean = true): Promise<T> {
+  getValueAsync(wait: boolean = true): Promise<T> {
     return new Promise((resolve) => resolve(this.value));
   }
 }

@@ -1,8 +1,9 @@
-﻿import ObjectToken from "../base/ObjectToken";
+﻿import IContext from "../../context/IContext";
+import ObjectToken from "../base/ObjectToken";
 
 export default class BooleanObject extends ObjectToken<boolean> {
-  constructor(rawValue: string) {
-    super(rawValue);
+  constructor(rawValue: string, context: IContext) {
+    super(rawValue, context);
   }
 
   public static tryParse(value: string) {

@@ -19,9 +19,9 @@ export default class TokenUtil {
     return TokenUtil.ToToken<string>(
       data,
       context,
-      (x) => new StringValue(x),
-      (x) => new StringObject(x),
-      (...x) => new StringArray(...x)
+      (x) => new StringValue(x, context),
+      (x) => new StringObject(x, context),
+      (...x) => new StringArray(context, ...x)
     );
   }
   public static ToIntegerToken(
@@ -31,9 +31,9 @@ export default class TokenUtil {
     return TokenUtil.ToToken<number>(
       data,
       context,
-      (x) => new IntegerValue(parseInt(x)),
-      (x) => new IntegerObject(x),
-      (...x) => new IntegerArray(...x)
+      (x) => new IntegerValue(parseInt(x), context),
+      (x) => new IntegerObject(x, context),
+      (...x) => new IntegerArray(context, ...x)
     );
   }
   public static ToBooleanToken(
@@ -43,9 +43,9 @@ export default class TokenUtil {
     return TokenUtil.ToToken<boolean>(
       data,
       context,
-      (x) => new BooleanValue(Util.isEqual(x, "true")),
-      (x) => new BooleanObject(x),
-      (...x) => new BooleanArray(...x)
+      (x) => new BooleanValue(Util.isEqual(x, "true"), context),
+      (x) => new BooleanObject(x, context),
+      (...x) => new BooleanArray(context, ...x)
     );
   }
 
@@ -86,13 +86,12 @@ export default class TokenUtil {
     return retVal;
   }
 
-  public static async GetValueOrDefaultAsync<T>(
-    token: IToken<T>,
-    context: IContext,
-    defaultValue: T = null
-  ): Promise<T> {
-    return (await token?.getValueAsync(context)) || defaultValue;
-  }
+  // public static async GetValueOrDefaultAsync<T>(
+  //   token: IToken<T>,
+  //   defaultValue: T = null
+  // ): Promise<T> {
+  //   return (await token?.getValueAsync()) || defaultValue;
+  // }
 
   static async GetValueOrSystemDefaultAsync<T>(
     token: IToken<string>,
@@ -101,7 +100,7 @@ export default class TokenUtil {
   ): Promise<string> {
     var retVal: string;
     if (Util.HasValue(token)) {
-      retVal = await token.getValueAsync(context);
+      retVal = await token.getValueAsync();
     } else {
       retVal = context.options.getDefault(key);
     }
