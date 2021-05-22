@@ -1,4 +1,4 @@
-﻿import { FaceRowType } from "../enum";
+﻿import { FaceRowType } from "../../../enum";
 import ReplaceCollection from "./ReplaceCollection";
 
 export default class RenderParam {

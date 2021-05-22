@@ -1,12 +1,13 @@
 import TextComponent from "./component/TextComponent";
 import IComponent from "./component/IComponent";
-import RenderableComponent from "./component/RenderableComponent";
 import ClientException from "./exception/ClientException";
 import { AttributeComponent } from "./component/AttributeComponent";
 import IBasisCore from "./IBasisCore";
 import Util from "./Util";
-import { inject, singleton } from "tsyringe";
+import { container, singleton } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
+import CommandComponent from "./component/CommandComponent";
+import Context from "./context/Context";
 
 declare var alasql: any;
 
@@ -73,7 +74,13 @@ export default class BasisCore implements IBasisCore {
       }
     });
   }
-
+  private createCommandComponent(element: Element): CommandComponent {
+    const childContainer = container.createChildContainer();
+    const core = element.getAttribute("core");
+    childContainer.register(Element, { useValue: element });
+    childContainer.register("IContext", { useValue: this.context });
+    return childContainer.resolve<CommandComponent>(core);
+  }
   private extractComponnect(containner: Element) {
     this.ExtratcBasisCommands(containner);
     this.extractBindingComponents(containner);
@@ -81,7 +88,7 @@ export default class BasisCore implements IBasisCore {
   private ExtratcBasisCommands(element: Element) {
     const elements = Array.from(element.getElementsByTagName("basis"));
     for (const item of elements) {
-      this.componnet.push(new RenderableComponent(item, this.context));
+      this.componnet.push(this.createCommandComponent(item));
     }
   }
   private getTextComponent(element: Node) {

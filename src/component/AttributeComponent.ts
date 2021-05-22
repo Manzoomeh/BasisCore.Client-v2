@@ -15,8 +15,6 @@ export class AttributeComponent extends Component<Element> {
     this.token
       .getValueAsync(context, false)
       .then((defaultVal) => this.render(defaultVal ?? ""));
-    //var defaultVal = this.token.getDefault();
-    //this.render(defaultVal || "");
   }
 
   onDataSourceAdded(dataSource: IDataSource): void {

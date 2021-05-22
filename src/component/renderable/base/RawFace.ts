@@ -1,5 +1,5 @@
-﻿import IContext from "../context/IContext";
-import IToken from "../token/IToken";
+﻿import IContext from "../../../context/IContext";
+import IToken from "../../../token/IToken";
 
 export default class RawFace {
   readonly ApplyReplace: IToken<boolean>;

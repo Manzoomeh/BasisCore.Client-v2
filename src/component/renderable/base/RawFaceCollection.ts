@@ -1,12 +1,12 @@
-﻿import { FaceRowType } from "../enum";
-import IContext from "../context/IContext";
-import IData from "../data/IData";
-import IToken from "../token/IToken";
-import Util from "../Util";
+﻿import IContext from "../../../context/IContext";
+import IData from "../../../data/IData";
+import { FaceRowType } from "../../../enum";
+import IToken from "../../../token/IToken";
+import TokenUtil from "../../../token/TokenUtil";
+import Util from "../../../Util";
 import Face from "./Face";
 import FaceCollection from "./FaceCollection";
 import RawFace from "./RawFace";
-import TokenUtil from "../token/TokenUtil";
 
 export default class RawFaceCollection extends Array<RawFace> {
   static Create(element: Element, context: IContext): RawFaceCollection {

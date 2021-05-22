@@ -1,21 +1,20 @@
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
 import IData from "../../data/IData";
-import FaceCollection from "../../renderable/FaceCollection";
-import RenderableBase from "../../renderable/RenderableBase";
-import RenderParam from "../../renderable/RenderParam";
-import ReplaceCollection from "../../renderable/ReplaceCollection";
+import FaceCollection from "./base/FaceCollection";
+import RenderableComponent from "./base/RenderableComponent";
+import RenderParam from "./base/RenderParam";
+import ReplaceCollection from "./base/ReplaceCollection";
 
 @injectable()
-export default class Tree extends RenderableBase {
-  constructor(element: Element) {
-    super(element);
+export default class TreeComponent extends RenderableComponent {
+  constructor(element: Element, @inject("IContext") context: IContext) {
+    super(element, context);
   }
 
   async RenderAsync(
     dataSource: IData,
-    context: IContext,
     faces: FaceCollection,
     replaces: ReplaceCollection,
     dividerRowcount: number,
@@ -27,17 +26,17 @@ export default class Tree extends RenderableBase {
     if (dataSource.Rows.length != 0) {
       var foreignKey = await this.getAttributeValueAsync(
         "parentidcol",
-        context,
+        this.context,
         "parentid"
       );
       var principalKey = await this.getAttributeValueAsync(
         "idcol",
-        context,
+        this.context,
         "id"
       );
       var nullValue = await this.getAttributeValueAsync(
         "nullvalue",
-        context,
+        this.context,
         "0"
       );
       var rootRecords = DataUtil.ApplySimpleFilter(
@@ -65,7 +64,6 @@ export default class Tree extends RenderableBase {
           1,
           faces,
           replaces,
-          context,
           dividerRowcount,
           dividerTemplate,
           incompleteTemplate,
@@ -83,7 +81,6 @@ export default class Tree extends RenderableBase {
     level: number,
     faces: FaceCollection,
     replaces: ReplaceCollection,
-    context: IContext,
     dividerRowcount: number,
     dividerTemplate: string,
     incompleteTemplate: string,
@@ -117,7 +114,6 @@ export default class Tree extends RenderableBase {
           newLevel,
           faces,
           replaces,
-          context,
           dividerRowcount,
           dividerTemplate,
           incompleteTemplate,
@@ -132,7 +128,7 @@ export default class Tree extends RenderableBase {
       groups[""] = "";
       parentRenderParam.SetLevel([`${level}`, "end"]);
     }
-    retVal = faces.Render(parentRenderParam, context);
+    retVal = faces.Render(parentRenderParam, this.context);
     if (retVal) {
       Object.getOwnPropertyNames(groups).forEach(
         (key) =>

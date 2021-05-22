@@ -1,4 +1,4 @@
-﻿import { FaceRowType } from "../enum";
+﻿import { FaceRowType } from "../../../enum";
 
 export default class Face {
   Name: string;
