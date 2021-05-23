@@ -1,15 +1,14 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import IDataSource from "../../data/IDataSource";
-import CommandComponent from "../CommandComponent";
+import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 
 @injectable()
-export default class Call extends CommandComponent {
+export default class Call extends NonSourceBaseComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
   }
 
-  protected async renderAsync(dataSource: IDataSource): Promise<string> {
+  public async runAsync(): Promise<string> {
     var filename = await this.getAttributeValueAsync("file");
     var pagesize = await this.getAttributeValueAsync("pagesize");
     // var commnad = await TokenUtil.GetValueOrDefaultAsync(

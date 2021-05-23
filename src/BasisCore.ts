@@ -1,34 +1,27 @@
-import TextComponent from "./component/text/TextComponent";
-import IComponent from "./component/IComponent";
 import ClientException from "./exception/ClientException";
-import { AttributeComponent } from "./component/text/AttributeComponent";
 import IBasisCore from "./IBasisCore";
 import Util from "./Util";
-import { container, singleton } from "tsyringe";
+import { singleton } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
-import CommandComponent from "./component/CommandComponent";
-import Context from "./context/Context";
+import GroupComponent from "./component/collection/GroupComponent";
 
 declare var alasql: any;
 
 @singleton()
 export default class BasisCore implements IBasisCore {
-  readonly componnet: Array<IComponent>;
-  readonly regex: string;
+  readonly componnet: Array<GroupComponent> = new Array<GroupComponent>();
   readonly context: GlobalContext;
 
   constructor(context: GlobalContext) {
     this.context = context;
-    this.componnet = new Array<IComponent>();
-    this.regex = this.context.options.getDefault("binding.regex");
   }
   addSource(sourecName: string, data: any, replace: boolean = true) {
     this.context.addAsSource(sourecName, data, replace);
   }
 
-  AddArea(selector: string): void;
-  AddArea(element?: Element): void;
-  AddArea(param?: any): void {
+  setArea(selector: string): void;
+  setArea(element?: Element): void;
+  setArea(param?: any): void {
     var element: Element;
     if (typeof param === "string") {
       element = document.querySelector(param);
@@ -37,7 +30,9 @@ export default class BasisCore implements IBasisCore {
     } else {
       throw new ClientException("Invalid Argument");
     }
-    this.extractComponnect(element);
+    const group = new GroupComponent(element, this.context);
+    this.componnet.push(group);
+    group.runAsync();
   }
 
   public UpdateData() {}
@@ -73,65 +68,5 @@ export default class BasisCore implements IBasisCore {
         resolve(eval(object));
       }
     });
-  }
-  private createCommandComponent(element: Element): CommandComponent {
-    const childContainer = container.createChildContainer();
-    const core = element.getAttribute("core")?.toLowerCase();
-    childContainer.register(Element, { useValue: element });
-    childContainer.register("IContext", { useValue: this.context });
-    return childContainer.resolve<CommandComponent>(core);
-  }
-  private extractComponnect(containner: Element) {
-    this.ExtratcBasisCommands(containner);
-    this.extractBindingComponents(containner);
-  }
-  private ExtratcBasisCommands(element: Element) {
-    const elements = Array.from(element.getElementsByTagName("basis"));
-    for (const item of elements) {
-      this.componnet.push(this.createCommandComponent(item));
-    }
-  }
-  private getTextComponent(element: Node) {
-    var content = element.textContent;
-    if (content.trim().length != 0) {
-      var match = content.match(this.regex);
-      if (match) {
-        var com = new TextComponent(
-          element,
-          this.context,
-          match.index,
-          match.index + match[0].length
-        );
-        this.componnet.push(com);
-      }
-    }
-  }
-  private extractAttributeComponent(element: Element) {
-    for (const pair of Array.from(element.attributes)) {
-      if (pair.value.trim().length != 0) {
-        var match = pair.value.match(this.regex);
-        if (match) {
-          const com = new AttributeComponent(element, this.context, pair);
-          this.componnet.push(com);
-        }
-      }
-    }
-  }
-  private extractBindingComponents(element: Node) {
-    if (element.nodeType == Node.TEXT_NODE) {
-      this.getTextComponent(element);
-    } else {
-      if (element instanceof Element)
-        if (element.tagName != "BASIS") {
-          this.extractAttributeComponent(element);
-          if (element.hasChildNodes()) {
-            for (const child of Array.from(element.childNodes)) {
-              this.extractBindingComponents(child);
-            }
-          } else {
-            this.getTextComponent(element);
-          }
-        }
-    }
   }
 }

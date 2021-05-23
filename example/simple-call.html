@@ -9,13 +9,8 @@
   </head>
   <body>
     <h1 data-attr=" kk ll">In the name of god</h1>
-    <Basis core="print" datamembername="local.print" run="atclient" if="">
-      <face filter="id % 2 == 0">
-        <li>
-          <span>@ID( @NAME ) </span>
-        </li>
-      </face>
-    </Basis>
+    <basis core="call" file="call.html" pagesize="" run="atclient"></basis>
+
     <script>
       var i = 0;
       setTimeout(() => {

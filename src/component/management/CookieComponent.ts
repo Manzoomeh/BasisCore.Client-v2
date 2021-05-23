@@ -11,6 +11,7 @@ import IDataSource from "../../data/IDataSource";
 export default class CookieComponent extends NonSourceBaseComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
+    console.log("ffff");
   }
   public async runAsync(): Promise<string> {
     var name = await this.getAttributeValueAsync("name");
@@ -26,6 +27,8 @@ export default class CookieComponent extends NonSourceBaseComponent {
       str += `;path=${path.trim()}`;
     }
     document.cookie = str;
+
+    console.log(333);
     return "";
   }
 }

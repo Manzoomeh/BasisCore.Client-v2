@@ -1,7 +1,7 @@
 export default interface IBasisCore {
-  AddArea(selector: string): void;
-  AddArea(element?: Element): void;
-  AddArea(param?: any): void;
+  setArea(selector: string): void;
+  setArea(element?: Element): void;
+  setArea(param?: any): void;
 
   // GetDefault(key: string): string;
   // GetDefault(key: string, defaultValue: string): string;
