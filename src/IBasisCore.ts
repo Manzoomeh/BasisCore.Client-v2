@@ -1,3 +1,5 @@
+import { SourceId } from "./type-alias";
+
 export default interface IBasisCore {
   setArea(selector: string): void;
   setArea(element?: Element): void;
@@ -7,7 +9,8 @@ export default interface IBasisCore {
   // GetDefault(key: string, defaultValue: string): string;
   // GetDefault(key: any, defaultValue?: any);
 
-  GetOrLoadDbLibAsync(): Promise<any>;
+  getOrLoadDbLibAsync(): Promise<any>;
+  getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
-  addSource(sourecName: string, data: any, replace: boolean);
+  addSource(sourecId: SourceId, data: any, replace: boolean);
 }

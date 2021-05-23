@@ -2,6 +2,8 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import BasisCore from "./BasisCore";
+import CallComponent from "./component/collection/CallComponent";
+import GroupComponent from "./component/collection/GroupComponent";
 import CookieComponent from "./component/management/CookieComponent";
 import ListComponent from "./component/renderable/ListComponent";
 import PrintComponent from "./component/renderable/PrintComponent";
@@ -21,3 +23,5 @@ container.register("tree", { useToken: TreeComponent });
 container.register("view", { useToken: ViewComponent });
 container.register("list", { useToken: ListComponent });
 container.register("cookie", { useToken: CookieComponent });
+container.register("call", { useToken: CallComponent });
+container.register("group", { useToken: GroupComponent });

@@ -37,7 +37,7 @@ export default class BasisCore implements IBasisCore {
 
   public UpdateData() {}
 
-  async GetOrLoadDbLibAsync(): Promise<any> {
+  async getOrLoadDbLibAsync(): Promise<any> {
     var retVal;
     if (typeof alasql === "undefined") {
       if (Util.IsNullOrEmpty(this.context.options.DbLibPath)) {

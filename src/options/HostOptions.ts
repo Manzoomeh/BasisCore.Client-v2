@@ -35,6 +35,7 @@ export class HostOptions implements IHostOptions {
       DbLibPath: "alasql.min.js",
       Settings: {
         "default.binding.regex": "\\[##([^#]*)##\\]",
+        "default.call.verb": "post",
       },
       OnRendered: null,
       OnRendering: null,

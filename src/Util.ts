@@ -51,7 +51,7 @@ export default class Util {
     if (Util.IsNullOrEmpty(filter)) {
       retVal = source.Rows;
     } else {
-      var lib = await $bc.GetOrLoadDbLibAsync();
+      var lib = await $bc.getOrLoadDbLibAsync();
       retVal = lib(`SELECT * FROM ? where ${filter}`, [source.Rows]);
     }
     return retVal;
