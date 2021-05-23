@@ -1,7 +1,6 @@
 import IContext from "../../../context/IContext";
 import IData from "../../../data/IData";
 import IDataSource from "../../../data/IDataSource";
-import TokenUtil from "../../../token/TokenUtil";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
@@ -30,11 +29,11 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var rawReplaces = RawReplaceCollection.Create(this.node, this.context);
       var rawFaces = RawFaceCollection.Create(this.node, this.context);
 
-      var faces = await rawFaces.ProcessAsync(dataSource.data, this.context);
+      var faces = await rawFaces.ProcessAsync(dataSource.data);
       var replaces = await rawReplaces.ProcessAsync(this.context);
-      var dividerRowcount = (await rawDividerRowcount?.getValueAsync()) ?? 0; // TokenUtil.GetValueOrDefaultAsync(        rawDividerRowcount,        0      );
-      var dividerTemplate = await rawDividerTemplate?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync<string>(        rawDividerTemplate      );
-      var incompleteTemplate = await rawIncompleteTemplate?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync<string>(        rawIncompleteTemplate      );
+      var dividerRowcount = (await rawDividerRowcount?.getValueAsync()) ?? 0;
+      var dividerTemplate = await rawDividerTemplate?.getValueAsync();
+      var incompleteTemplate = await rawIncompleteTemplate?.getValueAsync();
       result = await this.RenderAsync(
         dataSource.data,
         faces,
@@ -51,13 +50,13 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var rawLayout = this.node
         .querySelector("layout")
         ?.GetTemplateToken(this.context);
-      var layout = (await rawLayout?.getValueAsync()) ?? "@child"; //TokenUtil.GetValueOrDefaultAsync(rawLayout, "@child");
+      var layout = (await rawLayout?.getValueAsync()) ?? "@child";
       result = Util.ReplaceEx(layout, "@child", result ?? "");
     } else {
       var rawElseLayout = this.node
         .querySelector("else-layout")
         ?.GetTemplateToken(this.context);
-      result = (await rawElseLayout?.getValueAsync()) ?? ""; //  await TokenUtil.GetValueOrDefaultAsync(rawElseLayout, "");
+      result = (await rawElseLayout?.getValueAsync()) ?? "";
     }
     return result;
   }
@@ -84,20 +83,6 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
         result += faces.Render(param, this.context);
       });
       resolve(result);
-    });
-  }
-
-  onDataSourceAdded(dataSource: IDataSource): void {
-    this.canRenderCommandAsync(this.context).then((x) => {
-      if (x) {
-        this.getSourceNamesAsync().then((sources) => {
-          if (sources.indexOf(dataSource.data.Name) != -1) {
-            this.renderAsync(dataSource).then((renderResult) => {
-              this.applyResult(renderResult, dataSource.replace);
-            });
-          }
-        });
-      }
     });
   }
 }

@@ -3,33 +3,46 @@ import IDataSource from "../data/IDataSource";
 import { EventHandler } from "../event/EventHandler";
 import EventManager from "../event/EventManager";
 import ILogger from "../logger/ILogger";
+import { SourceId, SourceHandler } from "../type-alias";
 import IRepository from "./IRepository";
 
 @injectable()
 export default class Repository implements IRepository {
-  readonly repository: Map<string, IDataSource> = new Map();
-  readonly eventManager: EventManager<IDataSource> =
-    new EventManager<IDataSource>();
+  readonly repository: Map<SourceId, IDataSource> = new Map();
+  readonly eventManager: Map<SourceId, EventManager<IDataSource>> = new Map<
+    SourceId,
+    EventManager<IDataSource>
+  >();
   readonly logger: ILogger;
   constructor(@inject("ILogger") logger: ILogger) {
     this.logger = logger;
   }
-  get(key: string): IDataSource {
-    return this.repository.get(key?.toLowerCase());
+  get(sourceId: SourceId): IDataSource {
+    return this.repository.get(sourceId?.toLowerCase());
   }
 
   public setSource(source: IDataSource) {
-    this.repository.set(source.data.Name?.toLowerCase(), source);
-    this.logger.LogInformation(`${source.data.Name} Added.`);
-    this.eventManager.Trigger(source);
+    const key = source.data.Id?.toLowerCase();
+    this.repository.set(key, source);
+    this.eventManager.get(key)?.Trigger(source);
+    this.logger.LogInformation(`${source.data.Id} Added.`);
   }
 
-  public addHandler(handler: EventHandler<IDataSource>) {
-    this.logger.LogInformation(`handler Added.`);
-    this.eventManager.Add(handler);
+  public addHandler(sourceId: SourceId, handler: SourceHandler) {
+    const key = sourceId?.toLowerCase();
+    let handlers = this.eventManager.get(key);
+    if (!handlers) {
+      handlers = new EventManager<IDataSource>();
+      this.eventManager.set(key, handlers);
+    }
+    const added = handlers.Add(handler);
+    if (added) {
+      this.logger.LogInformation(`handler Added for ${sourceId}.`);
+    }
+    return added;
   }
 
-  public RemoveHandler(handler: EventHandler<IDataSource>) {
-    this.eventManager.Remove(handler);
+  public RemoveHandler(sourceId: SourceId, handler: SourceHandler) {
+    this.eventManager[sourceId?.toLowerCase()]?.Remove(handler);
   }
 }

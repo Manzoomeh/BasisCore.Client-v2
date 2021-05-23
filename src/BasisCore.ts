@@ -1,7 +1,7 @@
-import TextComponent from "./component/TextComponent";
+import TextComponent from "./component/text/TextComponent";
 import IComponent from "./component/IComponent";
 import ClientException from "./exception/ClientException";
-import { AttributeComponent } from "./component/AttributeComponent";
+import { AttributeComponent } from "./component/text/AttributeComponent";
 import IBasisCore from "./IBasisCore";
 import Util from "./Util";
 import { container, singleton } from "tsyringe";
@@ -76,7 +76,7 @@ export default class BasisCore implements IBasisCore {
   }
   private createCommandComponent(element: Element): CommandComponent {
     const childContainer = container.createChildContainer();
-    const core = element.getAttribute("core");
+    const core = element.getAttribute("core")?.toLowerCase();
     childContainer.register(Element, { useValue: element });
     childContainer.register("IContext", { useValue: this.context });
     return childContainer.resolve<CommandComponent>(core);

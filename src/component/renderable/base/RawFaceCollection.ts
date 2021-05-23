@@ -16,20 +16,17 @@ export default class RawFaceCollection extends Array<RawFace> {
     return retVal;
   }
 
-  async ProcessAsync(
-    dataSource: IData,
-    context: IContext
-  ) /*: Promise<FaceCollection>*/ {
+  async ProcessAsync(dataSource: IData) /*: Promise<FaceCollection>*/ {
     var facesTask = this.map(async (x) => {
-      var applyReplace = (await x.ApplyReplace?.getValueAsync()) ?? faces; // TokenUtil.GetValueOrDefaultAsync(        x.ApplyReplace,        false      );
-      var applyFunction = (await x.ApplyFunction?.getValueAsync()) ?? false; // TokenUtil.GetValueOrDefaultAsync(        x.ApplyFunction,        false      );
-      var rowType = await this.GetRowTypeAsync(x.RowType, context);
+      var applyReplace = (await x.ApplyReplace?.getValueAsync()) ?? faces;
+      var applyFunction = (await x.ApplyFunction?.getValueAsync()) ?? false;
+      var rowType = await this.GetRowTypeAsync(x.RowType);
       var levels = (await x.Level?.getValueAsync())?.split("|") ?? null;
-      var filter = await x.Filter?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync(x.Filter);
+      var filter = await x.Filter?.getValueAsync();
       var relatedRows = Util.IsNullOrEmpty(filter)
         ? dataSource.Rows
         : await Util.ApplyFilterAsync(dataSource, filter);
-      var template = (await x.Template?.getValueAsync()) ?? ""; // TokenUtil.GetValueOrDefaultAsync(x.Template, "");
+      var template = (await x.Template?.getValueAsync()) ?? "";
       dataSource.Columns.forEach((col, index) => {
         if (col.length > 0) {
           template = Util.ReplaceEx(template, `@${col}`, `@col${index + 1}`);
@@ -49,12 +46,9 @@ export default class RawFaceCollection extends Array<RawFace> {
     return new FaceCollection(...faces);
   }
 
-  async GetRowTypeAsync(
-    token: IToken<string>,
-    context: IContext
-  ): Promise<FaceRowType> {
+  async GetRowTypeAsync(token: IToken<string>): Promise<FaceRowType> {
     var retVal = FaceRowType.NotSet;
-    var value = await token?.getValueAsync(); //TokenUtil.GetValueOrDefaultAsync(token);
+    var value = await token?.getValueAsync();
     if (value) {
       var list = Object.getOwnPropertyNames(FaceRowType).filter((x) =>
         Util.isEqual(x, value)

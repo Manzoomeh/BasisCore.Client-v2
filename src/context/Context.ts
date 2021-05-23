@@ -30,7 +30,7 @@ export default abstract class Context implements IContext {
       } else {
         dataSourceId = dataSourceId?.toLowerCase();
         this.Logger.LogInformation(`wait for ${dataSourceId}`);
-        var handler = this.Resolves.get(dataSourceId);
+        let handler = this.Resolves.get(dataSourceId);
         if (!handler) {
           handler = new EventManager<IDataSource>();
           this.Resolves.set(dataSourceId, handler);
@@ -53,15 +53,11 @@ export default abstract class Context implements IContext {
   }
 
   private OnDataSourceAddedHandler(source: IDataSource) {
-    var handler = this.Resolves.get(source.data.Name);
+    var handler = this.Resolves.get(source.data.Id);
     if (handler) {
       handler.Trigger(source);
-      this.Resolves.delete(source.data.Name);
+      this.Resolves.delete(source.data.Id);
     }
     this.OnDataSourceAdded.Trigger(source);
-  }
-
-  AddSibscriber(callback: EventHandler<IDataSource>) {
-    this.Repository.addHandler(callback);
   }
 }
