@@ -1,7 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import IContext from "../../context/IContext";
-import IDataSource from "../../data/IDataSource";
 
 //https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
 //https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie
@@ -11,9 +10,9 @@ import IDataSource from "../../data/IDataSource";
 export default class CookieComponent extends NonSourceBaseComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
-    console.log("ffff");
   }
   public async runAsync(): Promise<string> {
+    console.log("ffff");
     var name = await this.getAttributeValueAsync("name");
     var value = await this.getAttributeValueAsync("value");
     var maxAge = await this.getAttributeValueAsync("max-age");

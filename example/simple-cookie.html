@@ -11,10 +11,21 @@
     <basis
       core="cookie"
       name="lid"
-      value="ali"
+      value="[##local.cookie-1.value|()##]"
       max-age="55"
       path=""
       run="atclient"
+      data-trigger-on="local.cookie-1"
     ></basis>
+    <br />
+    Now coocki is : [##local.cookie-1.value|()##]
+
+    <script>
+      var i = 0;
+      setTimeout(() => {
+        $bc.addSource("local.cookie-1", `${i}`, false);
+        i += 1;
+      }, 3000);
+    </script>
   </body>
 </html>

@@ -8,6 +8,7 @@ export abstract class NonSourceBaseComponent extends CommandComponnect {
   }
 
   protected renderAsync(_: IDataSource): Promise<string> {
+    console.log(_);
     return this.runAsync();
   }
   public abstract runAsync(): Promise<string>;

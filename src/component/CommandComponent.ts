@@ -7,8 +7,17 @@ export default abstract class CommandComponent extends RangeableComponent<Elemen
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.core = this.node.getAttribute("core");
+    this.addTriggers();
   }
 
+  private async addTriggers() {
+    const triggerKeys = (
+      await this.getAttributeValueAsync("data-trigger-on")
+    )?.split("|");
+    if (triggerKeys) {
+      this.addDataSourceToWatchList(triggerKeys);
+    }
+  }
   protected async canRenderCommandAsync(context: IContext): Promise<boolean> {
     const token = this.node.GetBooleanToken("if", context);
     const value = await token?.getValueAsync();
