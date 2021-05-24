@@ -14,7 +14,6 @@ export default abstract class RangeableComponent<
     end: number = -1
   ) {
     super(node, context);
-
     this.range = document.createRange();
     if (start != -1) {
       this.range.setStart(node, start);
@@ -26,17 +25,12 @@ export default abstract class RangeableComponent<
   }
 
   preContent: string = "";
-  protected async applyResult(
-    content: string,
-    replace: boolean = true
-  ): Promise<void> {
+  protected async setContent(content: string, replace: boolean = true) {
     if (replace) {
       this.preContent = "";
-    } else {
-      this.preContent += content;
-      content = this.preContent;
     }
-    let fragment = this.range.createContextualFragment(content);
+    this.preContent += content;
+    let fragment = this.range.createContextualFragment(this.preContent);
     this.range.deleteContents();
     this.range.insertNode(fragment);
   }

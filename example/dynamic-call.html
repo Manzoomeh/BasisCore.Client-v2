@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Call</title>
+    <title>Dynamic Call</title>
     <script>
       const host = {
         Settings: {
@@ -18,14 +18,28 @@
   <body>
     <h1 data-attr=" kk ll">In the name of god</h1>
     [##local.data.id##]
-    <basis core="call" file="call-1.html" pagesize="" run="atclient"></basis>
+    <basis
+      core="call"
+      file="[##local.call.filename##]"
+      pagesize=""
+      run="atclient"
+      data-trigger-on="local.call"
+    ></basis>
     <hr />
-    <basis core="call" file="call-3.html" pagesize="" run="atclient"></basis>
     <script>
-      var i = 0;
-      setInterval(() => {
-        $bc.addSource("local.data", { id: `${i}` });
+      var i = 1;
+      const h = setInterval(() => {
+        console.log(`interval ${i}`);
+        $bc.addSource("local.call", { filename: `call-${i}.html` });
         i += 1;
+        if (i == 4) {
+          clearInterval(h);
+        }
+      }, 4000);
+      var j = 0;
+      setInterval(() => {
+        $bc.addSource("local.data", { id: `${j}` });
+        j += 1;
       }, 2000);
     </script>
   </body>

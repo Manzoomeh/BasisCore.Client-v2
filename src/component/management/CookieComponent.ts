@@ -11,8 +11,7 @@ export default class CookieComponent extends NonSourceBaseComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
   }
-  public async runAsync(): Promise<string> {
-    console.log("ffff");
+  protected async runAsync(): Promise<void> {
     var name = await this.getAttributeValueAsync("name");
     var value = await this.getAttributeValueAsync("value");
     var maxAge = await this.getAttributeValueAsync("max-age");
@@ -26,8 +25,5 @@ export default class CookieComponent extends NonSourceBaseComponent {
       str += `;path=${path.trim()}`;
     }
     document.cookie = str;
-
-    console.log(333);
-    return "";
   }
 }

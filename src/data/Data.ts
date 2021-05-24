@@ -12,8 +12,8 @@ export default class Data implements IData {
     this._rows = value;
     this.updateColumnList();
   }
-  constructor(name: string, rows: Array<any> = []) {
-    this.Id = name.toLowerCase();
+  constructor(sourceId: SourceId, rows: Array<any> = []) {
+    this.Id = sourceId.toLowerCase();
     this.Rows = rows;
   }
 

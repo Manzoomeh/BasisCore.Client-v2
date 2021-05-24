@@ -9,15 +9,15 @@ export default class TextComponent extends RangeableComponent<Node> {
   constructor(node: Node, context: IContext, start: number, end: number) {
     super(node, context, start, end);
     this.token = this.content.textContent.ToStringToken(context);
-    this.addDataSourceToWatchList(this.token.getSourceNames());
+    this.addTrigger(this.token.getSourceNames());
     this.token
       .getValueAsync(false)
-      .then((defaultVal) => this.applyResult(defaultVal ?? ""));
+      .then((defaultVal) => this.setContent(defaultVal ?? ""));
   }
 
-  onDataSourceAdded(dataSource: IDataSource): void {
+  protected onTrigger(): void {
     this.token.getValueAsync().then((x) => {
-      this.applyResult(x);
+      this.setContent(x);
     });
   }
 }

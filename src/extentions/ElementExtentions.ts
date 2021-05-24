@@ -8,7 +8,7 @@ declare global {
     GetIntegerToken(attributeName: string, context: IContext): IToken<number>;
     GetBooleanToken(attributeName: string, context: IContext): IToken<boolean>;
     GetTemplateToken(context: IContext): IToken<string>;
-    IsBasisCore(): boolean;
+    isBasisCore(): boolean;
   }
 }
 Object.defineProperty(Element.prototype, "GetStringToken", {
@@ -64,8 +64,8 @@ Object.defineProperty(Element.prototype, "GetTemplateToken", {
   writable: true,
   configurable: true,
 });
-Object.defineProperty(Element.prototype, "IsBasisCore", {
-  value: function IsBasisCore() {
+Object.defineProperty(Element.prototype, "isBasisCore", {
+  value: function isBasisCore() {
     try {
       return (
         this.nodeType == Node.ELEMENT_NODE &&

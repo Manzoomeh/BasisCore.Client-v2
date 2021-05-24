@@ -1,11 +1,11 @@
 import IDataSource from "../data/IDataSource";
 import DataUtil from "../data/DataUtil";
-import { EventHandler } from "../event/EventHandler";
 import ILogger from "../logger/ILogger";
 import IHostOptions from "../options/IHostOptions";
 import IRepository from "../repository/IRepository";
 import IContext from "./IContext";
 import EventManager from "../event/EventManager";
+import { SourceId } from "../type-alias";
 
 export default abstract class Context implements IContext {
   readonly Repository: IRepository;
@@ -20,20 +20,26 @@ export default abstract class Context implements IContext {
     this.options = options;
     this.OnDataSourceAdded = new EventManager<IDataSource>();
   }
+  public abstract loadPageAsync(
+    pageName: string,
+    rawCommand: string,
+    pageSize: string,
+    callDepth: number
+  ): Promise<string>;
 
-  abstract TryGetDataSource(dataSourceId: string): IDataSource;
-  WaitToGetDataSourceAsync(dataSourceId: string): Promise<IDataSource> {
+  abstract TryGetDataSource(sourceId: SourceId): IDataSource;
+  WaitToGetDataSourceAsync(sourceId: SourceId): Promise<IDataSource> {
     return new Promise<IDataSource>((resolve) => {
-      var retVal = this.TryGetDataSource(dataSourceId);
+      var retVal = this.TryGetDataSource(sourceId);
       if (retVal) {
         resolve(retVal);
       } else {
-        dataSourceId = dataSourceId?.toLowerCase();
-        this.Logger.LogInformation(`wait for ${dataSourceId}`);
-        let handler = this.Resolves.get(dataSourceId);
+        sourceId = sourceId?.toLowerCase();
+        this.Logger.LogInformation(`wait for ${sourceId}`);
+        let handler = this.Resolves.get(sourceId);
         if (!handler) {
           handler = new EventManager<IDataSource>();
-          this.Resolves.set(dataSourceId, handler);
+          this.Resolves.set(sourceId, handler);
         }
         handler.Add(resolve);
       }
@@ -43,8 +49,8 @@ export default abstract class Context implements IContext {
     throw new Error("Method not implemented.");
   }
 
-  addAsSource(sourecName: string, value: any, replace: boolean = true) {
-    var source = DataUtil.ToDataSource(sourecName, value, replace);
+  addAsSource(sourecId: SourceId, value: any, replace: boolean = true) {
+    var source = DataUtil.ToDataSource(sourecId, value, replace);
     this.AddSource(source);
   }
   AddSource(source: IDataSource): void {

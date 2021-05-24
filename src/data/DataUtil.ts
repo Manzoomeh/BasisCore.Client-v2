@@ -1,10 +1,11 @@
+import { SourceId } from "../type-alias";
 import Data from "./Data";
 import DataSource from "./DataSource";
 import IData from "./IData";
 import IDataSource from "./IDataSource";
 
 export default class DataUtil {
-  public static ToDataTable(tblName: string, data: any): IData {
+  public static ToDataTable(sourceId: SourceId, data: any): IData {
     var rows = null;
     if (Array.isArray(data)) {
       rows = data;
@@ -13,15 +14,15 @@ export default class DataUtil {
     } else {
       rows = [{ value: data }];
     }
-    return new Data(tblName, rows);
+    return new Data(sourceId, rows);
   }
 
   public static ToDataSource(
-    tblName: string,
+    sourceId: SourceId,
     data: any,
     replace: boolean = true
   ): IDataSource {
-    const tbl = DataUtil.ToDataTable(tblName, data);
+    const tbl = DataUtil.ToDataTable(sourceId, data);
     return new DataSource(tbl, replace);
   }
 

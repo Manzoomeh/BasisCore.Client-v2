@@ -56,4 +56,17 @@ export default class Util {
     }
     return retVal;
   }
+
+  public static findElementRootCommandNode(rootElement: Node): Array<Element> {
+    var retVal: Array<Element> = [];
+    var prodcess = (child: ChildNode) => {
+      if (child instanceof Element && (<Element>child).isBasisCore()) {
+        retVal.push(<any>child);
+      } else {
+        child.childNodes.forEach(prodcess);
+      }
+    };
+    rootElement.childNodes.forEach(prodcess);
+    return retVal;
+  }
 }

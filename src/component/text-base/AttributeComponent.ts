@@ -10,13 +10,13 @@ export class AttributeComponent extends Component<Element> {
     super(element, context);
     this.Attribute = attribute;
     this.token = this.Attribute.value.ToStringToken(context);
-    this.addDataSourceToWatchList(this.token.getSourceNames());
+    this.addTrigger(this.token.getSourceNames());
     this.token
       .getValueAsync(false)
       .then((defaultVal) => this.render(defaultVal ?? ""));
   }
 
-  onDataSourceAdded(dataSource: IDataSource): void {
+  protected onTrigger(): void {
     this.token.getValueAsync().then((x) => {
       this.render(x);
     });

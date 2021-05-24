@@ -36,6 +36,7 @@ export class HostOptions implements IHostOptions {
       Settings: {
         "default.binding.regex": "\\[##([^#]*)##\\]",
         "default.call.verb": "post",
+        "default.dmnid": "",
       },
       OnRendered: null,
       OnRendering: null,

@@ -14,24 +14,11 @@ export default abstract class Component<TNode extends Node>
     this.context = context;
   }
 
-  protected addDataSourceToWatchList(sourceIds: SourceId | Array<SourceId>) {
-    if (typeof sourceIds === "string") {
-      // this.context.Repository.addHandler(sourceIds, (x) =>
-      //   this.onDataSourceAdded(x)
-      // );
-      this.context.Repository.addHandler(
-        sourceIds,
-        this.onDataSourceAdded.bind(this)
-      );
-    } else {
-      sourceIds.forEach((sourceId) =>
-        this.context.Repository.addHandler(
-          sourceId,
-          this.onDataSourceAdded.bind(this)
-        )
-      );
-    }
+  protected addTrigger(sourceIds: Array<SourceId>) {
+    sourceIds.forEach((sourceId) =>
+      this.context.Repository.addHandler(sourceId, (x) => this.onTrigger())
+    );
   }
 
-  protected onDataSourceAdded(dataSource: IDataSource): void {}
+  protected onTrigger(): void {}
 }

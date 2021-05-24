@@ -9,8 +9,9 @@ declare var alasql: any;
 
 @singleton()
 export default class BasisCore implements IBasisCore {
-  readonly componnet: Array<GroupComponent> = new Array<GroupComponent>();
+  //readonly componnet: Array<GroupComponent> = new Array<GroupComponent>();
   readonly context: GlobalContext;
+  private content: GroupComponent;
 
   constructor(context: GlobalContext) {
     this.context = context;
@@ -30,12 +31,15 @@ export default class BasisCore implements IBasisCore {
     } else {
       throw new ClientException("Invalid Argument");
     }
-    const group = new GroupComponent(element, this.context);
-    this.componnet.push(group);
-    group.runAsync();
+    this.content = new GroupComponent(element, this.context);
+    //this.componnet.push(group);
+    this.content.runAsync();
   }
 
-  public UpdateData() {}
+  public runAsync() {
+    console.log("runAsync");
+    this.content.runAsync();
+  }
 
   async getOrLoadDbLibAsync(): Promise<any> {
     var retVal;
