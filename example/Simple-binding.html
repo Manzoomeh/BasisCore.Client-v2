@@ -26,21 +26,10 @@
       onclick="$bc.addSource('style.div', { class: 'btn-t', color:document.getElementById('color').value });"
     />
     <script>
-      //console.log("eghgh");
-      const host1 = {
-        Settings: {
-          ttt: "y",
-        },
-      };
-      // setInterval(() => {
-      //   $bc.addStringAsSource("cms.data", `${Date.now()}`);
-      // }, 1000);
-      setTimeout(() => {
-        $bc.addSource("l.b", "test");
-        $bc.addSource("l.number", 125);
-        $bc.addSource("l.float", 3.56);
-        $bc.addSource("style.div", { class: "btn-t" });
-      }, 1000);
+      $bc.addSource("l.b", "test");
+      $bc.addSource("l.number", 125);
+      $bc.addSource("l.float", 3.56);
+      $bc.addSource("style.div", { class: "btn-t" });
     </script>
   </body>
 </html>

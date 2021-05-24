@@ -17,8 +17,8 @@ export default class RawReplaceCollection extends Array<RawReplace> {
     var taskList = this.map(
       async (x) =>
         new Replace(
-          await x.TagName?.getValueAsync(), // TokenUtil.GetValueOrDefaultAsync(x.TagName),
-          await x.Content?.getValueAsync() // TokenUtil.GetValueOrDefaultAsync(x.Content)
+          await x.TagName?.getValueAsync(),
+          await x.Content?.getValueAsync()
         )
     );
 

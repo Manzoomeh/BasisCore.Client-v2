@@ -16,7 +16,7 @@ import Repository from "./repository/Repository";
 container.register("IHostOptions", { useToken: HostOptions });
 container.register("IBasisCore", { useToken: BasisCore });
 container.register("ILogger", { useToken: ConsoleLogger });
-container.register("IRepository", { useToken: Repository });
+container.register("IContextRepository", { useToken: Repository });
 
 container.register("print", { useToken: PrintComponent });
 container.register("tree", { useToken: TreeComponent });

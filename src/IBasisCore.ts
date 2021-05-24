@@ -13,6 +13,4 @@ export default interface IBasisCore {
   getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
   addSource(sourecId: SourceId, data: any, replace: boolean);
-
-  runAsync();
 }

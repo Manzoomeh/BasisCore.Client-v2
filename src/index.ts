@@ -7,8 +7,6 @@ import IBasisCore from "./IBasisCore";
 const basisCore = container.resolve<IBasisCore>("IBasisCore");
 
 (global as any).$bc = basisCore;
-window.onload = () => {
-  (global as any).$bc.setArea(document.documentElement);
-  // console.log(container.resolve("IHostOptions"));
-  // console.log(container.resolve("IHostOptions"));
-};
+window.addEventListener("DOMContentLoaded", (e) => {
+  basisCore.setArea(document.documentElement);
+});

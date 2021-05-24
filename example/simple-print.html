@@ -18,18 +18,17 @@
     </Basis>
     <script>
       var i = 0;
-      setTimeout(() => {
-        $bc.addSource(
-          "local.print",
-          [
-            { id: 1 + i, name: "btn-t=1" },
-            { id: 2 + i, name: "btn-t=2" },
-            { id: 3 + i, name: "btn-t=3" },
-          ],
-          false
-        );
-        i += 3;
-      }, 1000);
+
+      $bc.addSource(
+        "local.print",
+        [
+          { id: 1 + i, name: "btn-t=1" },
+          { id: 2 + i, name: "btn-t=2" },
+          { id: 3 + i, name: "btn-t=3" },
+        ],
+        false
+      );
+      i += 3;
     </script>
   </body>
 </html>

@@ -5,9 +5,13 @@ import CommandComponnect from "./CommandComponent";
 export default abstract class SourceBaseComponent extends CommandComponnect {
   constructor(element: Element, context: IContext) {
     super(element, context);
-    this.getAttributeValueAsync("datamembername").then((x) =>
-      this.context.Repository.addHandler(x, this.onDataSourceAdded.bind(this))
-    );
+    this.getAttributeValueAsync("datamembername").then((x) => {
+      var source = this.context.repository.tryToGet(x);
+      this.context.repository.addHandler(x, this.onDataSourceAdded.bind(this));
+      if (source) {
+        this.onDataSourceAdded(source);
+      }
+    });
   }
 
   protected abstract renderAsync(dataSource: IDataSource): Promise<string>;

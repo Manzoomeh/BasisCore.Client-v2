@@ -53,15 +53,14 @@
     <script src="./basiscore.min.js"></script>
 
     <script>
-      setTimeout(() => {
-        $bc.addSource("local.tree", [
-          { id: 1, name: "ali", pid: null },
-          { id: 2, name: "amir", pid: 1 },
-          { id: 3, name: "hassan", pid: 1 },
-          { id: 4, name: "javad", pid: 2 },
-          { id: 5, name: "reza", pid: 4 },
-        ]);
-      }, 1000);
+      $bc.addSource("local.tree", [
+        { id: 1, name: "ali", pid: null },
+        { id: 2, name: "amir", pid: 1 },
+        { id: 3, name: "hassan", pid: 1 },
+        { id: 4, name: "javad", pid: 2 },
+        { id: 5, name: "reza", pid: 4 },
+      ]);
+
       setTimeout(() => {
         $bc.addSource("local.print", { id: 1356.3, name: "ali", pid: null });
       }, 3000);

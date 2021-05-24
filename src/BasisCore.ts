@@ -9,7 +9,6 @@ declare var alasql: any;
 
 @singleton()
 export default class BasisCore implements IBasisCore {
-  //readonly componnet: Array<GroupComponent> = new Array<GroupComponent>();
   readonly context: GlobalContext;
   private content: GroupComponent;
 
@@ -32,12 +31,6 @@ export default class BasisCore implements IBasisCore {
       throw new ClientException("Invalid Argument");
     }
     this.content = new GroupComponent(element, this.context);
-    //this.componnet.push(group);
-    this.content.runAsync();
-  }
-
-  public runAsync() {
-    console.log("runAsync");
     this.content.runAsync();
   }
 

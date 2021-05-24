@@ -1,5 +1,4 @@
 import IContext from "../context/IContext";
-import IDataSource from "../data/IDataSource";
 import { SourceId } from "../type-alias";
 import IComponent from "./IComponent";
 
@@ -16,7 +15,7 @@ export default abstract class Component<TNode extends Node>
 
   protected addTrigger(sourceIds: Array<SourceId>) {
     sourceIds.forEach((sourceId) =>
-      this.context.Repository.addHandler(sourceId, (x) => this.onTrigger())
+      this.context.repository.addHandler(sourceId, (x) => this.onTrigger())
     );
   }
 
