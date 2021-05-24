@@ -15,9 +15,13 @@ export abstract class NonSourceBaseComponent extends CommandComponnect {
     });
   }
 
-  public async renderAsync(): Promise<void> {
+  public renderAsync(): Promise<void> {
     if (!this.TriggerBase) {
-      await this.runAsync();
+      return this.canRenderCommandAsync(this.context).then((x) => {
+        if (x) {
+          this.runAsync();
+        }
+      });
     }
   }
   protected abstract runAsync(): Promise<void>;

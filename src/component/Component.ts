@@ -21,3 +21,13 @@ export default abstract class Component<TNode extends Node>
 
   protected onTrigger(): void {}
 }
+
+export class ComponentList {
+  readonly node: NodeListOf<ChildNode>;
+  readonly context: IContext;
+
+  constructor(nodeList: NodeListOf<ChildNode>, context: IContext) {
+    this.node = nodeList;
+    this.context = context;
+  }
+}
