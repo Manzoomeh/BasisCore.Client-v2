@@ -4,6 +4,7 @@
         "Renderable",
         "alasql",
         "atclient",
+        "datamembername",
         "tsyringe"
     ]
 }

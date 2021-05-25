@@ -1,20 +1,20 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import { NonRangeableComponent } from "../collection/NonRangeableComponent";
+import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 
 //https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
 //https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie
 //https://www.w3schools.com/js/js_cookies.asp
 
 @injectable()
-export default class CookieComponent extends NonRangeableComponent {
+export default class CookieComponent extends NonSourceBaseComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
   }
   public initializeAsync(): Promise<void> {
     return Promise.resolve();
   }
-  public async renderAsync(): Promise<void> {
+  public async runAsync(): Promise<void> {
     var name = await this.getAttributeValueAsync("name");
     var value = await this.getAttributeValueAsync("value");
     var maxAge = await this.getAttributeValueAsync("max-age");

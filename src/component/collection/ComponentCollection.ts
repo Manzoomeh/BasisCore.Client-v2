@@ -2,9 +2,10 @@ import { container } from "tsyringe";
 import IContext from "../../context/IContext";
 import CommandComponent from "../CommandComponent";
 import IComponent from "../IComponent";
+import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import { AttributeComponent } from "../text-base/AttributeComponent";
 import TextComponent from "../text-base/TextComponent";
-import { NonRangeableComponent } from "./NonRangeableComponent";
+import { NonRangeableComponent } from "../NonRangeableComponent";
 
 export default class ComponentCollection {
   private readonly initializeTask: Promise<void>;
@@ -27,10 +28,10 @@ export default class ComponentCollection {
 
   public async runAsync(): Promise<void> {
     var tasks = this.components
-      .filter((x) => x instanceof NonRangeableComponent)
+      .filter((x) => x instanceof NonSourceBaseComponent)
       .map((x) => {
         console.log("nosourcable", x);
-        return (x as any).renderAsync();
+        return (x as NonSourceBaseComponent).renderAsync();
       });
 
     await Promise.all(tasks);

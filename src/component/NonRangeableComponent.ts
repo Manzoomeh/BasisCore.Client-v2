@@ -1,5 +1,5 @@
-import IContext from "../../context/IContext";
-import Component from "../Component";
+import IContext from "../context/IContext";
+import Component from "./Component";
 
 export abstract class NonRangeableComponent extends Component<Element> {
   constructor(element: Element, context: IContext) {

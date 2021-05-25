@@ -1,10 +1,10 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
+import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
-import { NonRangeableComponent } from "./NonRangeableComponent";
 
 @injectable()
-export default class CallComponent extends NonRangeableComponent {
+export default class CallComponent extends NonSourceBaseComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
   }
@@ -12,7 +12,7 @@ export default class CallComponent extends NonRangeableComponent {
     return Promise.resolve();
   }
 
-  public async renderAsync(): Promise<void> {
+  protected async runAsync(): Promise<void> {
     var filename = await this.getAttributeValueAsync("file");
     var pagesize = await this.getAttributeValueAsync("pagesize");
     var command = await this.node.outerHTML

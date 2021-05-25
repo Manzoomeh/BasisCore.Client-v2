@@ -14,7 +14,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     super(element, context);
   }
 
-  async renderAsync(dataSource: IDataSource): Promise<string> {
+  async renderSourceAsync(dataSource: IDataSource): Promise<string> {
     var result: string = null;
     if (dataSource.data) {
       var rawIncompleteTemplate = this.node
@@ -34,7 +34,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var dividerRowCount = (await rawDividerRowCount?.getValueAsync()) ?? 0;
       var dividerTemplate = await rawDividerTemplate?.getValueAsync();
       var incompleteTemplate = await rawIncompleteTemplate?.getValueAsync();
-      result = await this.RenderAsync(
+      result = await this.renderDataPartAsync(
         dataSource.data,
         faces,
         replaces,
@@ -61,7 +61,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     return result;
   }
 
-  RenderAsync(
+  renderDataPartAsync(
     dataSource: IData,
     faces: FaceCollection,
     replaces: ReplaceCollection,

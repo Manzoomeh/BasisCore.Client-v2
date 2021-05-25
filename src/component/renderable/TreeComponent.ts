@@ -13,11 +13,11 @@ export default class TreeComponent extends RenderableComponent {
     super(element, context);
   }
 
-  async RenderAsync(
+  async renderDataPartAsync(
     dataSource: IData,
     faces: FaceCollection,
     replaces: ReplaceCollection,
-    dividerRowcount: number,
+    dividerRowCount: number,
     dividerTemplate: string,
     incompleteTemplate: string
   ): Promise<string> {
@@ -42,19 +42,19 @@ export default class TreeComponent extends RenderableComponent {
       var rootRenderParam = new RenderParam(
         replaces,
         rootRecords.length,
-        dividerRowcount,
+        dividerRowCount,
         dividerTemplate,
         incompleteTemplate
       );
       rootRecords.forEach((row) => {
         rootRenderParam.Data = row;
-        retVal += this.RenderLevel(
+        retVal += this.renderLevel(
           dataSource,
           rootRenderParam,
           1,
           faces,
           replaces,
-          dividerRowcount,
+          dividerRowCount,
           dividerTemplate,
           incompleteTemplate,
           principalKey,
@@ -65,13 +65,13 @@ export default class TreeComponent extends RenderableComponent {
     return retVal;
   }
 
-  RenderLevel(
+  private renderLevel(
     dataSource: IData,
     parentRenderParam: RenderParam,
     level: number,
     faces: FaceCollection,
     replaces: ReplaceCollection,
-    dividerRowcount: number,
+    dividerRowCount: number,
     dividerTemplate: string,
     incompleteTemplate: string,
     principalKey: string,
@@ -91,20 +91,20 @@ export default class TreeComponent extends RenderableComponent {
       var childRenderParam = new RenderParam(
         replaces,
         childRows.length,
-        dividerRowcount,
+        dividerRowCount,
         dividerTemplate,
         incompleteTemplate
       );
 
       childRows.forEach((row) => {
         childRenderParam.Data = row;
-        childRenderResult += this.RenderLevel(
+        childRenderResult += this.renderLevel(
           dataSource,
           childRenderParam,
           newLevel,
           faces,
           replaces,
-          dividerRowcount,
+          dividerRowCount,
           dividerTemplate,
           incompleteTemplate,
           principalKey,

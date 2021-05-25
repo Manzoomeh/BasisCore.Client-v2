@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>print</title>
-    <script src="./basiscore.min.js"></script>
-  </head>
-  <body>
-    <h1 data-attr=" kk ll">In the name of god</h1>
-    <Basis core="print" datamembername="local.print" run="atclient" if="">
-      <face filter="id % 2 == 0">
-        <li>
-          <span>@ID( @NAME ) </span>
-        </li>
-      </face>
-    </Basis>
-    <script>
-      var i = 0;
 
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>print</title>
+  <script src="./basiscore.min.js"></script>
+</head>
+
+<body>
+  <h1 data-attr=" kk ll">In the name of god</h1>
+  <Basis core="print" datamembername="local.print" run="atclient" if="">
+    <face filter="id % 2 == 0">
+      <li>
+        <span>@ID( @NAME ) </span>
+      </li>
+    </face>
+  </Basis>
+  <script>
+    var i = 0;
+    setInterval(() => {
       $bc.addSource(
         "local.print",
         [
@@ -29,6 +31,8 @@
         false
       );
       i += 3;
-    </script>
-  </body>
+    }, 1000);
+  </script>
+</body>
+
 </html>

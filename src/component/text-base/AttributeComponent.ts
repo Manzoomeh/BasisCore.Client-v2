@@ -1,8 +1,6 @@
 import IContext from "../../context/IContext";
-import IDataSource from "../../data/IDataSource";
 import IToken from "../../token/IToken";
-import { NonRangeableComponent } from "../collection/NonRangeableComponent";
-import Component from "../Component";
+import { NonRangeableComponent } from "../NonRangeableComponent";
 
 export class AttributeComponent extends NonRangeableComponent {
   readonly Attribute: Attr;

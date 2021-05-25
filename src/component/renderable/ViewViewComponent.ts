@@ -14,7 +14,7 @@ export default class ViewComponent extends RenderableComponent {
     super(element, context);
   }
 
-  async RenderAsync(
+  async renderDataPartAsync(
     dataSource: IData,
     faces: FaceCollection,
     replaces: ReplaceCollection,
