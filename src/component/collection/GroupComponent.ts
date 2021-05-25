@@ -1,15 +1,15 @@
 import { injectable, inject } from "tsyringe";
 import IContext from "../../context/IContext";
-import Component from "../Component";
 import ComponentCollection from "./ComponentCollection";
+import { NonRangeableComponent } from "./NonRangeableComponent";
 
 @injectable()
-export default class GroupComponent extends Component<Node> {
+export default class GroupComponent extends NonRangeableComponent {
   private collection: ComponentCollection;
   private readonly initializeTask: Promise<void>;
   readonly range: Range;
   readonly content: DocumentFragment;
-  protected renderAsync(): Promise<void> {
+  public renderAsync(): Promise<void> {
     return this.collection.runAsync();
   }
   constructor(element: Element, @inject("IContext") context: IContext) {

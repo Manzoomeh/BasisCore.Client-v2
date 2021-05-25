@@ -1,9 +1,10 @@
 import IContext from "../../context/IContext";
 import IDataSource from "../../data/IDataSource";
 import IToken from "../../token/IToken";
+import { NonRangeableComponent } from "../collection/NonRangeableComponent";
 import Component from "../Component";
 
-export class AttributeComponent extends Component<Element> {
+export class AttributeComponent extends NonRangeableComponent {
   readonly Attribute: Attr;
   readonly token: IToken<string>;
   private readonly initializeTask: Promise<void>;
@@ -18,13 +19,17 @@ export class AttributeComponent extends Component<Element> {
   }
 
   protected onTrigger(): void {
-    this.token.getValueAsync().then((x) => {
-      this.render(x);
-    });
+    this.renderAsync();
   }
 
   public initializeAsync(): Promise<void> {
     return this.initializeTask;
+  }
+
+  renderAsync(): Promise<void> {
+    return this.token.getValueAsync().then((x) => {
+      this.render(x);
+    });
   }
 
   render(content: string): void {

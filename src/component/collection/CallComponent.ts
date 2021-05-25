@@ -1,31 +1,15 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
-import { pp } from "./pp";
+import { NonRangeableComponent } from "./NonRangeableComponent";
 
 @injectable()
-export default class CallComponent extends pp {
-  // private collection: ComponentCollection;
-  // private loadedFragment: DocumentFragment;
-  // private observer: MutationObserver;
-
-  //private collection: ComponentCollection;
-  //private range: Range;
-  //private content: DocumentFragment;
+export default class CallComponent extends NonRangeableComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
   }
   public initializeAsync(): Promise<void> {
     return Promise.resolve();
-  }
-
-  protected async getAttributeValueAsync(
-    attributeName: string,
-    defaultValue: string = null
-  ): Promise<string> {
-    const token = this.node.GetStringToken(attributeName, this.context);
-    return (await token?.getValueAsync()) ?? defaultValue;
   }
 
   public async renderAsync(): Promise<void> {
