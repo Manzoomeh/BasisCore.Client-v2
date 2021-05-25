@@ -44,7 +44,7 @@ export default abstract class Context implements IContext {
   }
 
   protected onDataSourceAddedHandler(source: IDataSource) {
-    console.log(`add ${source.data.Id} `, this);
+    console.log(`add ${source.data.Id} `);
     var handler = this.repository.Resolves.get(source.data.Id);
     if (handler) {
       handler.Trigger(source);
