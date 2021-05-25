@@ -27,13 +27,8 @@ export default class TextComponent extends RangeableComponent<Node> {
     });
   }
 
-  preContent: string = "";
-  protected async setContent(content: string, replace: boolean = true) {
-    if (replace) {
-      this.preContent = "";
-    }
-    this.preContent += content;
-    let fragment = this.range.createContextualFragment(this.preContent);
+  protected async setContent(content: string) {
+    let fragment = this.range.createContextualFragment(content);
     this.range.deleteContents();
     this.range.insertNode(fragment);
   }

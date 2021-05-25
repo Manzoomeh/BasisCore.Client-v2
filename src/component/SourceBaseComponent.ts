@@ -11,6 +11,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     super(element, context);
     this.range = document.createRange();
     this.range.selectNode(element);
+    this.range.deleteContents();
     this.initializeTask = this.addDataHandler();
   }
 
@@ -49,14 +50,15 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     });
   }
 
-  preContent: string = "";
   protected async setContent(content: string, replace: boolean = true) {
+    let fragment = this.range.createContextualFragment(content);
     if (replace) {
-      this.preContent = "";
+      this.range.deleteContents();
+      this.range.insertNode(fragment);
+    } else {
+      const preFragment = this.range.extractContents();
+      preFragment.appendChild(fragment);
+      this.range.insertNode(preFragment);
     }
-    this.preContent += content;
-    let fragment = this.range.createContextualFragment(this.preContent);
-    this.range.deleteContents();
-    this.range.insertNode(fragment);
   }
 }
