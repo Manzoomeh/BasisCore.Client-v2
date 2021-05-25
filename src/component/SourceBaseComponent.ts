@@ -41,7 +41,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   }
 
   private onDataSourceAdded(dataSource: IDataSource): void {
-    this.canRenderCommandAsync(this.context).then((x) => {
+    this.getCanRenderAsync(this.context).then((x) => {
       if (x) {
         this.renderSourceAsync(dataSource).then((renderResult) => {
           this.setContent(renderResult, dataSource.replace);

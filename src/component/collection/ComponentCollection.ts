@@ -15,7 +15,7 @@ export default class ComponentCollection {
   readonly regex: string;
 
   constructor(nodeList: Array<Node>, context: IContext) {
-    console.log("collection", nodeList);
+    //console.log("collection", nodeList);
     this.nodes = nodeList;
     this.context = context;
     this.regex = this.context.options.getDefault("binding.regex");
@@ -30,7 +30,7 @@ export default class ComponentCollection {
     var tasks = this.components
       .filter((x) => x instanceof NonSourceBaseComponent)
       .map((x) => {
-        console.log("nosourcable", x);
+        //console.log("nosourcable", x);
         return (x as NonSourceBaseComponent).renderAsync();
       });
 
@@ -43,12 +43,12 @@ export default class ComponentCollection {
       this.extractBasisCommands(node);
     });
 
-    console.log("components", this.components, this.nodes);
+    //console.log("components", this.components, this.nodes);
     await Promise.all(this.components.map((x) => x.initializeAsync()));
   }
   private extractBasisCommands(node: Node) {
     const nodes = this.findRootLevelComponentNode(node);
-    console.log("Root Command nodes", nodes, node);
+    //console.log("Root Command nodes", nodes, node);
     for (const item of nodes) {
       this.components.push(this.createCommandComponent(item));
     }

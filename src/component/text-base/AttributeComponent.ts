@@ -3,13 +3,13 @@ import IToken from "../../token/IToken";
 import { NonRangeableComponent } from "../NonRangeableComponent";
 
 export class AttributeComponent extends NonRangeableComponent {
-  readonly Attribute: Attr;
+  readonly attribute: Attr;
   readonly token: IToken<string>;
   private readonly initializeTask: Promise<void>;
   constructor(element: Element, context: IContext, attribute: Attr) {
     super(element, context);
-    this.Attribute = attribute;
-    this.token = this.Attribute.value.ToStringToken(context);
+    this.attribute = attribute;
+    this.token = this.attribute.value.ToStringToken(context);
     this.addTrigger(this.token.getSourceNames());
     this.initializeTask = this.token
       .getValueAsync(false)
@@ -31,6 +31,6 @@ export class AttributeComponent extends NonRangeableComponent {
   }
 
   render(content: string): void {
-    this.Attribute.value = content;
+    this.attribute.value = content;
   }
 }

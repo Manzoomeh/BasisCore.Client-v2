@@ -5,8 +5,11 @@ import ComponentCollection from "./ComponentCollection";
 
 @injectable()
 export default class CallComponent extends NonSourceBaseComponent {
+  readonly range: Range;
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
+    this.range = document.createRange();
+    this.range.selectNode(element);
   }
   public initializeAsync(): Promise<void> {
     return Promise.resolve();
@@ -26,61 +29,18 @@ export default class CallComponent extends NonSourceBaseComponent {
       0
     );
 
-    const range = document.createRange();
-    const element = range.createContextualFragment(result);
-
-    //this.content = document.createDocumentFragment();
+    const newContent = this.range.createContextualFragment(result);
     const content = document.createDocumentFragment();
     const childList = new Array<ChildNode>();
-    console.log("el", element);
-    while (element.hasChildNodes()) {
-      var t = content.appendChild(element.firstChild);
-      childList.push(t);
+    while (newContent.hasChildNodes()) {
+      var child = content.appendChild(newContent.firstChild);
+      childList.push(child);
     }
 
-    range.selectNode(this.node);
-
-    range.extractContents();
-    range.insertNode(content);
-    console.log(`call ${filename}`, childList);
+    this.range.extractContents();
+    this.range.insertNode(content);
     const collection = new ComponentCollection(childList, this.context);
     await collection.initializeAsync();
     await collection.runAsync();
   }
-
-  // protected async runAsync(): Promise<void> {
-  //   var filename = await this.getAttributeValueAsync("file");
-  //   var pagesize = await this.getAttributeValueAsync("pagesize");
-  //   var command = await this.node.outerHTML
-  //     .ToStringToken(this.context)
-  //     .getValueAsync();
-
-  //   var result = await this.context.loadPageAsync(
-  //     filename,
-  //     command,
-  //     pagesize,
-  //     0
-  //   );
-  //   this.observer?.disconnect();
-  //   this.loadedFragment = this.range.createContextualFragment(result);
-  //   this.collection = new ComponentCollection(
-  //     Array.from(this.loadedFragment.childNodes),
-  //     this.context
-  //   );
-
-  //   //https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-  //   const config = { attributes: true, childList: true, subtree: true };
-  //   this.observer = new MutationObserver(() =>
-  //     this.setContentEx(this.loadedFragment)
-  //   );
-  //   this.observer.observe(this.loadedFragment, config);
-
-  //   await this.collection.runAsync();
-  //   this.setContentEx(this.loadedFragment);
-  // }
-
-  // private async setContentEx(content: DocumentFragment) {
-  //   this.range.deleteContents();
-  //   this.range.insertNode(content.cloneNode(true));
-  // }
 }

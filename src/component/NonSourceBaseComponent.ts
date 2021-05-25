@@ -7,7 +7,7 @@ export abstract class NonSourceBaseComponent extends CommandComponent {
   }
 
   protected onTrigger(): void {
-    this.canRenderCommandAsync(this.context).then((x) => {
+    this.getCanRenderAsync(this.context).then((x) => {
       if (x) {
         this.runAsync();
       }
@@ -16,7 +16,7 @@ export abstract class NonSourceBaseComponent extends CommandComponent {
 
   public renderAsync(): Promise<void> {
     if (!this.TriggerBase) {
-      return this.canRenderCommandAsync(this.context).then((x) => {
+      return this.getCanRenderAsync(this.context).then((x) => {
         if (x) {
           this.runAsync();
         }

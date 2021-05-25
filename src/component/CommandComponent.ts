@@ -15,17 +15,9 @@ export default abstract class CommandComponent extends NonRangeableComponent {
     }
   }
 
-  protected async canRenderCommandAsync(context: IContext): Promise<boolean> {
+  protected async getCanRenderAsync(context: IContext): Promise<boolean> {
     const token = this.node.GetBooleanToken("if", context);
     const value = await token?.getValueAsync();
     return value ?? true;
-  }
-
-  protected async getAttributeValueAsync(
-    attributeName: string,
-    defaultValue: string = null
-  ): Promise<string> {
-    const token = this.node.GetStringToken(attributeName, this.context);
-    return (await token?.getValueAsync()) ?? defaultValue;
   }
 }

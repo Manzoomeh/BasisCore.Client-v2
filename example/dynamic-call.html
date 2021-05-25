@@ -19,24 +19,24 @@
 
 <body>
   <h1 data-attr=" kk ll">In the name of god</h1>
-  [##local.data.id##]
+  Load [##local.call.filename##]...
   <basis core="call" file="[##local.call.filename##]" pagesize="" run="atclient" data-trigger-on="local.call"></basis>
   <hr />
   <script>
-      // var i = 1;
-      // const h = setInterval(() => {
-      //   console.log(`interval ${i}`);
-      //   $bc.addSource("local.call", { filename: `call-${i}.html` });
-      //   i += 1;
-      //   if (i == 4) {
-      //     clearInterval(h);
-      //   }
-      // }, 4000);
-      // var j = 0;
-      // setInterval(() => {
-      //   $bc.addSource("local.data", { id: `${j}` });
-      //   j += 1;
-      // }, 2000);
+    var i = 1;
+    const h = setInterval(() => {
+      console.log(`interval ${i}`);
+      $bc.addSource("local.call", { filename: `call-${i}.html` });
+      i += 1;
+      if (i == 4) {
+        clearInterval(h);
+      }
+    }, 4000);
+    var j = 0;
+    setInterval(() => {
+      $bc.addSource("local.data", { id: `${j}` });
+      j += 1;
+    }, 2000);
   </script>
 </body>
 
