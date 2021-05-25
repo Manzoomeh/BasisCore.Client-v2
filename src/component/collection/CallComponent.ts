@@ -10,36 +10,31 @@ export default class CallComponent extends NonSourceBaseComponent {
     super(element, context);
     this.range = document.createRange();
     this.range.selectNode(element);
+    this.range.deleteContents();
   }
   public initializeAsync(): Promise<void> {
     return Promise.resolve();
   }
 
   protected async runAsync(): Promise<void> {
-    var filename = await this.getAttributeValueAsync("file");
-    var pagesize = await this.getAttributeValueAsync("pagesize");
-    var command = await this.node.outerHTML
+    const filename = await this.getAttributeValueAsync("file");
+    const pagesize = await this.getAttributeValueAsync("pagesize");
+    const command = await this.node.outerHTML
       .ToStringToken(this.context)
       .getValueAsync();
 
-    var result = await this.context.loadPageAsync(
+    const result = await this.context.loadPageAsync(
       filename,
       command,
       pagesize,
       0
     );
 
-    const newContent = this.range.createContextualFragment(result);
-    const content = document.createDocumentFragment();
-    const childList = new Array<ChildNode>();
-    while (newContent.hasChildNodes()) {
-      var child = content.appendChild(newContent.firstChild);
-      childList.push(child);
-    }
-
+    const content = this.range.createContextualFragment(result);
+    const childNodes = [...content.childNodes];
     this.range.deleteContents();
     this.range.insertNode(content);
-    const collection = new ComponentCollection(childList, this.context);
+    const collection = new ComponentCollection(childNodes, this.context);
     await collection.initializeAsync();
     await collection.runAsync();
   }

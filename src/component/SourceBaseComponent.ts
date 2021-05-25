@@ -32,9 +32,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     return this.initializeTask;
   }
 
-  protected abstract renderSourceAsync(
-    dataSource: IDataSource
-  ): Promise<DocumentFragment>;
+  protected abstract renderSourceAsync(dataSource: IDataSource): Promise<Node>;
 
   public async renderAsync(): Promise<void> {
     var source = await this.context.repository.waitToGetAsync(this.sourceId);
@@ -45,16 +43,15 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     this.getCanRenderAsync(this.context).then((x) => {
       if (x) {
         this.renderSourceAsync(dataSource).then((renderResult) => {
-          this.setContent(renderResult, dataSource.replace);
+          if (renderResult) {
+            this.setContent(renderResult, dataSource.replace);
+          }
         });
       }
     });
   }
 
-  protected async setContent(
-    newContent: DocumentFragment,
-    replace: boolean = true
-  ) {
+  protected async setContent(newContent: Node, replace: boolean = true) {
     if (replace) {
       this.range.deleteContents();
       this.range.insertNode(newContent);

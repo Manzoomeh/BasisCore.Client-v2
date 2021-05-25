@@ -5,7 +5,6 @@ import IComponent from "../IComponent";
 import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import { AttributeComponent } from "../text-base/AttributeComponent";
 import TextComponent from "../text-base/TextComponent";
-import { NonRangeableComponent } from "../NonRangeableComponent";
 
 export default class ComponentCollection {
   private readonly initializeTask: Promise<void>;

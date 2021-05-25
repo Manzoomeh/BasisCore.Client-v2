@@ -6,48 +6,20 @@ import ComponentCollection from "./ComponentCollection";
 
 @injectable()
 export default class RepeaterComponent extends SourceBaseComponent {
-  readonly template: DocumentFragment;
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
   }
 
-  protected async renderSourceAsync(
-    dataSource: IDataSource
-  ): Promise<DocumentFragment> {
-    const retVal = document.createDocumentFragment();
+  protected async renderSourceAsync(dataSource: IDataSource): Promise<Node> {
     for (let index = 0; index < dataSource.data.Rows.length; index++) {
       const row = dataSource.data.Rows[index];
-      const newContent = this.content.firstChild.cloneNode(true);
-      const childList = [...newContent.childNodes];
-      retVal.appendChild(newContent);
-      const collection = new ComponentCollection(childList, this.context);
+      const template = this.content.firstChild.cloneNode(true);
+      const childNodes = [...template.childNodes];
+      childNodes.forEach((node) => this.setContent(node, false));
+      const collection = new ComponentCollection(childNodes, this.context);
       await collection.initializeAsync();
       await collection.runAsync();
     }
-    return retVal;
+    return null;
   }
 }
-
-//   protected async renderSourceAsync(
-//     dataSource: IDataSource
-//   ): Promise<DocumentFragment> {
-//     const retVal = document.createDocumentFragment();
-//     for (let index = 0; index < dataSource.data.Rows.length; index++) {
-//       const row = dataSource.data.Rows[index];
-//       const newContent = this.content.firstChild.cloneNode(true);
-//       const content = document.createDocumentFragment();
-
-//       const childList = new Array<ChildNode>();
-//       while (newContent.hasChildNodes()) {
-//         var child = content.appendChild(newContent.firstChild);
-//         childList.push(child);
-//       }
-//       const collection = new ComponentCollection(childList, this.context);
-//       await collection.initializeAsync();
-//       await collection.runAsync();
-//       retVal.appendChild(content);
-//     }
-//     console.log(dataSource, retVal);
-//     return retVal;
-//   }
-// }

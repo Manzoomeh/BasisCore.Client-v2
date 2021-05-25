@@ -7,21 +7,16 @@ import ComponentCollection from "./ComponentCollection";
 export default class GroupComponent extends NonSourceBaseComponent {
   private collection: ComponentCollection;
   private readonly initializeTask: Promise<void>;
-  readonly range: Range;
-  readonly content: DocumentFragment;
 
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
-    this.content = document.createDocumentFragment();
-    const childList = new Array<ChildNode>();
-    while (element.hasChildNodes()) {
-      var child = this.content.appendChild(element.firstChild);
-      childList.push(child);
-    }
-    this.range = document.createRange();
-    this.range.selectNode(element);
-    this.range.extractContents();
-    this.range.insertNode(this.content);
+    const content = document.createDocumentFragment();
+    const childList = [...element.childNodes];
+    childList.forEach((node) => content.appendChild(node));
+    const range = document.createRange();
+    range.selectNode(element);
+    range.deleteContents();
+    range.insertNode(content);
     this.collection = new ComponentCollection(childList, this.context);
     this.initializeTask = this.collection.initializeAsync();
   }
