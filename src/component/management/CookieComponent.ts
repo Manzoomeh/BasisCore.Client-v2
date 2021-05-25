@@ -11,6 +11,9 @@ export default class CookieComponent extends NonSourceBaseComponent {
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
   }
+  public initializeAsync(): Promise<void> {
+    return Promise.resolve();
+  }
   protected async runAsync(): Promise<void> {
     var name = await this.getAttributeValueAsync("name");
     var value = await this.getAttributeValueAsync("value");

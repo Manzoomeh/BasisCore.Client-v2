@@ -1,8 +1,7 @@
 import IContext from "../context/IContext";
-import IDataSource from "../data/IDataSource";
-import CommandComponnect from "./CommandComponent";
+import CommandComponent from "./CommandComponent";
 
-export abstract class NonSourceBaseComponent extends CommandComponnect {
+export abstract class NonSourceBaseComponent extends CommandComponent {
   constructor(element: Element, context: IContext) {
     super(element, context);
   }

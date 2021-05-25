@@ -4,6 +4,7 @@ import Util from "./Util";
 import { singleton } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
 import ComponentCollection from "./component/collection/ComponentCollection";
+import { SourceId } from "./type-alias";
 
 declare var alasql: any;
 
@@ -15,8 +16,8 @@ export default class BasisCore implements IBasisCore {
   constructor(context: GlobalContext) {
     this.context = context;
   }
-  addSource(sourecName: string, data: any, replace: boolean = true) {
-    this.context.addAsSource(sourecName, data, replace);
+  addSource(sourceId: SourceId, data: any, replace: boolean = true) {
+    this.context.addAsSource(sourceId, data, replace);
   }
 
   setArea(selector: string): void;
@@ -31,7 +32,7 @@ export default class BasisCore implements IBasisCore {
       throw new ClientException("Invalid Argument");
     }
     this.content = new ComponentCollection(element, this.context);
-    this.content.runAsync();
+    this.content.initializeAsync().then((_) => this.content.runAsync());
   }
 
   async getOrLoadDbLibAsync(): Promise<any> {

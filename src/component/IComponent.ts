@@ -1,1 +1,3 @@
-export default interface IComponent {}
+export default interface IComponent {
+  initializeAsync(): Promise<void>;
+}

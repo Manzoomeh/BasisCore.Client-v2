@@ -1,45 +1,37 @@
 import { injectable, inject } from "tsyringe";
 import IContext from "../../context/IContext";
 import Component from "../Component";
-import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
 @injectable()
-export default class GroupComponent extends Component<Element> {
+export default class GroupComponent extends Component<Node> {
   private collection: ComponentCollection;
-  private observer: MutationObserver;
+  private readonly initializeTask: Promise<void>;
   readonly range: Range;
   readonly content: DocumentFragment;
-  protected runAsync(): Promise<void> {
+  protected renderAsync(): Promise<void> {
     return this.collection.runAsync();
   }
   constructor(element: Element, @inject("IContext") context: IContext) {
     super(element, context);
-
+    console.log("group", element);
     this.content = document.createDocumentFragment();
+    const childList = new Array<ChildNode>();
     while (element.hasChildNodes()) {
-      this.content.appendChild(element.firstChild);
+      var t = this.content.appendChild(element.firstChild);
+      childList.push(t);
     }
     this.range = document.createRange();
     this.range.selectNode(element);
-
-    console.log("gg", this.content);
-    const config = { attributes: true, childList: true, subtree: true };
-    this.observer = new MutationObserver(() => {
-      console.log("t");
-      this.setContentEx(this.content);
-    });
-    this.observer.observe(this.content, config);
-    this.collection = new ComponentCollection(
-      Array.from(this.content.childNodes),
-      this.context
-    );
-
-    //this.collection.runAsync().then((x) => this.setContentEx(this.content));
+    this.range.extractContents();
+    this.range.insertNode(this.content);
+    console.log("group elements", childList);
+    this.collection = new ComponentCollection(childList, this.context);
+    this.initializeTask = this.collection.initializeAsync();
   }
-  private async setContentEx(content: DocumentFragment) {
-    this.range.deleteContents();
-    this.range.insertNode(content.cloneNode(true));
+
+  public initializeAsync(): Promise<void> {
+    return this.initializeTask;
   }
 }
 

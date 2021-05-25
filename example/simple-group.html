@@ -1,49 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Group</title>
-    <script src="./basiscore.min.js"></script>
-  </head>
-  <body>
-    <h1>Start</h1>
-    <basis core="group" run="atclient" if="false">
-      <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
-      <div>Binding is - [##l.b.value|(wewewew)##]</div>
-      <div>Binding is - [##l.b.value##]</div>
-      <div>Binding is - [##l.number.value##]</div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group</title>
+  <script src="./basiscore.min.js"></script>
+</head>
+
+<body>
+  <div h="[##p.l.k##]">1</div>
+  <h1>Start</h1>
+  <basis core="group" run="atclient">
+    <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
+    <div>Binding is - [##l.float.value##]</div>
+    <div h="[##p.l.k##]">1</div>
+
+    <basis core="group" run="atclient">
+      <h1>inner</h1>
       <div>Binding is - [##l.float.value##]</div>
-      <div
-        class="class1 [##style.div.class##]"
-        style="color: [##style.div.color|(red) ##]"
-      >
+      <div class="class1 [##style.div.class##]" style="color: [##style.div.color|(red) ##]">
         hi
       </div>
       <input id="color" />
-      <input
-        type="button"
-        value="Color"
-        onclick="$bc.addSource('style.div', { class: 'btn-t', color:document.getElementById('color').value });"
-      />
-    </basis>
-    <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
-    <div>Binding is - [##l.b.value|(wewewew)##]</div>
-    <div>Binding is - [##l.b.value##]</div>
-    <div>Binding is - [##l.number.value##]</div>
-    <div>Binding is - [##l.float.value##]</div>
-    <h1>end</h1>
-    <script>
-      let i = 0;
-      $bc.addSource("style.div", { class: "btn-t" });
-      setInterval(() => {
-        $bc.addSource("l.b", "test");
-        $bc.addSource("l.number", 125 + i);
-        $bc.addSource("l.float", 3.56 + i);
 
-        i++;
-      }, 2000);
-    </script>
-  </body>
+      <input type="button" value="Color"
+        onclick="$bc.addSource('style.div', { class: 'btn-t', color:document.getElementById('color').value });" />
+    </basis>
+  </basis>
+
+  </basis>
+  <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
+  <div>Binding is - [##l.b.value|(wewewew)##]</div>
+  <div>Binding is - [##l.b.value##]</div>
+  <div>Binding is - [##l.number.value##]</div>
+  <div>Binding is - [##l.float.value##]</div>
+  <h1>end</h1>
+  <script>
+    let i = 0;
+    $bc.addSource("style.div", { class: "btn-t" });
+    $bc.addSource("l.b", "test");
+    $bc.addSource("l.number", 125 + i);
+    $bc.addSource("l.float", 3.56 + i);
+    // setInterval(() => {
+    //   $bc.addSource("l.b", "test");
+    //   $bc.addSource("l.number", 125 + i);
+    //   $bc.addSource("l.float", 3.56 + i);
+
+    //   i++;
+    // }, 2000);
+  </script>
+</body>
+
 </html>

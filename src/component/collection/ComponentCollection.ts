@@ -5,39 +5,53 @@ import IComponent from "../IComponent";
 import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import { AttributeComponent } from "../text-base/AttributeComponent";
 import TextComponent from "../text-base/TextComponent";
+import GroupComponent from "./GroupComponent";
+import { pp } from "./pp";
 
 export default class ComponentCollection {
-  //extends Component<Node> {
+  private readonly initializeTask: Promise<void>;
   readonly nodes: Array<Node>;
   readonly context: IContext;
+  readonly components: Array<IComponent> = new Array<IComponent>();
+  readonly regex: string;
 
   constructor(nodeList: Array<Node>, context: IContext) {
+    console.log("collection", nodeList);
     this.nodes = nodeList;
     this.context = context;
     this.regex = this.context.options.getDefault("binding.regex");
-    this.extractComponent();
+    this.initializeTask = this.extractComponentAsync();
   }
-  readonly componnets: Array<IComponent> = new Array<IComponent>();
-  readonly regex: string;
+
+  public async initializeAsync(): Promise<void> {
+    return this.initializeTask;
+  }
 
   public async runAsync(): Promise<void> {
-    var tasks = this.componnets
-      .filter((x) => x instanceof NonSourceBaseComponent)
-      .map((x) => (x as NonSourceBaseComponent).renderAsync());
+    var tasks = this.components
+      .filter((x) => x instanceof pp || x instanceof GroupComponent)
+      .map((x) => {
+        console.log("nosourcable", x);
+        return (x as any).renderAsync();
+      });
 
     await Promise.all(tasks);
   }
 
-  private extractComponent() {
+  private async extractComponentAsync(): Promise<void> {
     this.nodes.forEach((node) => {
-      this.ExtratcBasisCommands(node);
       this.extractTextBaseComponents(node);
+      this.extractBasisCommands(node);
     });
+
+    console.log("components", this.components, this.nodes);
+    await Promise.all(this.components.map((x) => x.initializeAsync()));
   }
-  private ExtratcBasisCommands(node: Node) {
-    const elements = this.findElementRootCommandNode(node);
-    for (const item of elements) {
-      this.componnets.push(this.createCommandComponent(item));
+  private extractBasisCommands(node: Node) {
+    const nodes = this.findRootLevelComponentNode(node);
+    console.log("Root Command nodes", nodes, node);
+    for (const item of nodes) {
+      this.components.push(this.createCommandComponent(item));
     }
   }
   private extractTextComponent(node: Node) {
@@ -51,17 +65,18 @@ export default class ComponentCollection {
           match.index,
           match.index + match[0].length
         );
-        this.componnets.push(com);
+
+        this.components.push(com);
       }
     }
   }
-  private extractAttributeComponent(element: Element) {
+  private async extractAttributeComponent(element: Element) {
     for (const pair of element.attributes) {
       if (pair.value.trim().length != 0) {
         var match = pair.value.match(this.regex);
         if (match) {
           const com = new AttributeComponent(element, this.context, pair);
-          this.componnets.push(com);
+          this.components.push(com);
         }
       }
     }
@@ -100,16 +115,17 @@ export default class ComponentCollection {
     childContainer.register("IContext", { useValue: this.context });
     return childContainer.resolve<CommandComponent>(core);
   }
-  private findElementRootCommandNode(rootElement: Node): Array<Element> {
+  private findRootLevelComponentNode(rootElement: Node): Array<Element> {
     var retVal: Array<Element> = [];
-    var prodcess = (child: ChildNode) => {
+    var process = (child: ChildNode) => {
       if (child instanceof Element && child.isBasisCore()) {
         retVal.push(<any>child);
       } else {
-        child.childNodes.forEach(prodcess);
+        child.childNodes.forEach(process);
       }
     };
-    rootElement.childNodes.forEach(prodcess);
+
+    [rootElement].forEach(process);
     return retVal;
   }
 }

@@ -20,9 +20,9 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var rawIncompleteTemplate = this.node
         .querySelector("incomplete")
         ?.GetTemplateToken(this.context);
-      var devider = this.node.querySelector("divider");
-      var rawDividerTemplate = devider?.GetTemplateToken(this.context);
-      var rawDividerRowcount = devider?.GetIntegerToken(
+      var divider = this.node.querySelector("divider");
+      var rawDividerTemplate = divider?.GetTemplateToken(this.context);
+      var rawDividerRowCount = divider?.GetIntegerToken(
         "rowcount",
         this.context
       );
@@ -31,14 +31,14 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
 
       var faces = await rawFaces.ProcessAsync(dataSource.data);
       var replaces = await rawReplaces.ProcessAsync(this.context);
-      var dividerRowcount = (await rawDividerRowcount?.getValueAsync()) ?? 0;
+      var dividerRowCount = (await rawDividerRowCount?.getValueAsync()) ?? 0;
       var dividerTemplate = await rawDividerTemplate?.getValueAsync();
       var incompleteTemplate = await rawIncompleteTemplate?.getValueAsync();
       result = await this.RenderAsync(
         dataSource.data,
         faces,
         replaces,
-        dividerRowcount,
+        dividerRowCount,
         dividerTemplate,
         incompleteTemplate
       );

@@ -6,12 +6,13 @@ import Component from "../Component";
 export class AttributeComponent extends Component<Element> {
   readonly Attribute: Attr;
   readonly token: IToken<string>;
+  private readonly initializeTask: Promise<void>;
   constructor(element: Element, context: IContext, attribute: Attr) {
     super(element, context);
     this.Attribute = attribute;
     this.token = this.Attribute.value.ToStringToken(context);
     this.addTrigger(this.token.getSourceNames());
-    this.token
+    this.initializeTask = this.token
       .getValueAsync(false)
       .then((defaultVal) => this.render(defaultVal ?? ""));
   }
@@ -20,6 +21,10 @@ export class AttributeComponent extends Component<Element> {
     this.token.getValueAsync().then((x) => {
       this.render(x);
     });
+  }
+
+  public initializeAsync(): Promise<void> {
+    return this.initializeTask;
   }
 
   render(content: string): void {
