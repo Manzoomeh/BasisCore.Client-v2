@@ -14,7 +14,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     super(element, context);
   }
 
-  async renderSourceAsync(dataSource: IDataSource): Promise<string> {
+  async renderSourceAsync(dataSource: IDataSource): Promise<DocumentFragment> {
     var result: string = null;
     if (dataSource.data) {
       var rawIncompleteTemplate = this.node
@@ -58,7 +58,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
         ?.GetTemplateToken(this.context);
       result = (await rawElseLayout?.getValueAsync()) ?? "";
     }
-    return result;
+    return this.range.createContextualFragment(result);
   }
 
   renderDataPartAsync(

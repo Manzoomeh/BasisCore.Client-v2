@@ -7,11 +7,12 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   private readonly initializeTask: Promise<void>;
   private sourceId: SourceId;
   readonly range: Range;
+  readonly content: DocumentFragment;
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.range = document.createRange();
     this.range.selectNode(element);
-    this.range.deleteContents();
+    this.content = this.range.extractContents();
     this.initializeTask = this.addDataHandler();
   }
 
@@ -33,7 +34,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
 
   protected abstract renderSourceAsync(
     dataSource: IDataSource
-  ): Promise<string>;
+  ): Promise<DocumentFragment>;
 
   public async renderAsync(): Promise<void> {
     var source = await this.context.repository.waitToGetAsync(this.sourceId);
@@ -50,15 +51,17 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     });
   }
 
-  protected async setContent(content: string, replace: boolean = true) {
-    let fragment = this.range.createContextualFragment(content);
+  protected async setContent(
+    newContent: DocumentFragment,
+    replace: boolean = true
+  ) {
     if (replace) {
       this.range.deleteContents();
-      this.range.insertNode(fragment);
+      this.range.insertNode(newContent);
     } else {
-      const preFragment = this.range.extractContents();
-      preFragment.appendChild(fragment);
-      this.range.insertNode(preFragment);
+      const currentContent = this.range.extractContents();
+      currentContent.appendChild(newContent);
+      this.range.insertNode(currentContent);
     }
   }
 }

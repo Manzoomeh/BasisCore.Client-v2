@@ -37,7 +37,7 @@ export default class CallComponent extends NonSourceBaseComponent {
       childList.push(child);
     }
 
-    this.range.extractContents();
+    this.range.deleteContents();
     this.range.insertNode(content);
     const collection = new ComponentCollection(childList, this.context);
     await collection.initializeAsync();
