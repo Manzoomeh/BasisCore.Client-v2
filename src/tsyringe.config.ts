@@ -10,14 +10,18 @@ import ListComponent from "./component/renderable/ListComponent";
 import PrintComponent from "./component/renderable/PrintComponent";
 import TreeComponent from "./component/renderable/TreeComponent";
 import ViewComponent from "./component/renderable/ViewViewComponent";
+import LocalContext from "./context/LocalContext";
 import ConsoleLogger from "./logger/ConsoleLogger";
 import { HostOptions } from "./options/HostOptions";
+import OwnerBaseRepository from "./repository/OwnerBaseRepository";
 import Repository from "./repository/Repository";
 
 container.register("IHostOptions", { useToken: HostOptions });
 container.register("IBasisCore", { useToken: BasisCore });
 container.register("ILogger", { useToken: ConsoleLogger });
 container.register("IContextRepository", { useToken: Repository });
+container.register("OwnerBaseRepository", { useToken: OwnerBaseRepository });
+container.register("ILocalContext", { useToken: LocalContext });
 
 container.register("print", { useToken: PrintComponent });
 container.register("tree", { useToken: TreeComponent });

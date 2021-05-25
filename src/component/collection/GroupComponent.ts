@@ -1,5 +1,6 @@
-import { injectable, inject } from "tsyringe";
+import { injectable, inject, container } from "tsyringe";
 import IContext from "../../context/IContext";
+import ILocalContext from "../../context/ILocalContext";
 import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
@@ -21,6 +22,11 @@ export default class GroupComponent extends NonSourceBaseComponent {
     this.initializeTask = this.collection.initializeAsync();
   }
 
+  private static createLocalContext(context: IContext): ILocalContext {
+    const childContainer = container.createChildContainer();
+    childContainer.register("OwnerContext", { useValue: context });
+    return childContainer.resolve("ILocalContext");
+  }
   public runAsync(): Promise<void> {
     return this.collection.runAsync();
   }

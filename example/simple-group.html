@@ -13,11 +13,13 @@
   <div h="[##p.l.k##]">1</div>
   <h1>Start</h1>
   <basis core="group" run="atclient">
+    <h1>G1 start</h1>
     <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
     <div>Binding is - [##l.float.value##]</div>
     <div h="[##p.l.k##]">1</div>
 
     <basis core="group" run="atclient">
+      <h1>G2 start</h1>
       <h1>inner</h1>
       <div>Binding is - [##l.float.value##]</div>
       <div class="class1 [##style.div.class##]" style="color: [##style.div.color|(red) ##]">
@@ -27,10 +29,14 @@
 
       <input type="button" value="Color"
         onclick="$bc.addSource('style.div', { class: 'btn-t', color:document.getElementById('color').value });" />
+      <h1>G2 end</h1>
     </basis>
+    <h1>G1 end</h1>
   </basis>
 
-  </basis>
+  <div class="class1 [##style.div.class##]" style="color: [##style.div.color|(red) ##]">
+    hi
+  </div>
   <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
   <div>Binding is - [##l.b.value|(wewewew)##]</div>
   <div>Binding is - [##l.b.value##]</div>

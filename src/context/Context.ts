@@ -34,8 +34,8 @@ export default abstract class Context implements IContext {
     throw new Error("Method not implemented.");
   }
 
-  addAsSource(sourecId: SourceId, value: any, replace: boolean = true) {
-    var source = DataUtil.ToDataSource(sourecId, value, replace);
+  addAsSource(sourceId: SourceId, value: any, replace: boolean = true) {
+    var source = DataUtil.ToDataSource(sourceId, value, replace);
     this.addSource(source);
   }
   addSource(source: IDataSource): void {
@@ -43,7 +43,8 @@ export default abstract class Context implements IContext {
     this.onDataSourceAddedHandler(source);
   }
 
-  private onDataSourceAddedHandler(source: IDataSource) {
+  protected onDataSourceAddedHandler(source: IDataSource) {
+    console.log(`add ${source.data.Id} `, this);
     var handler = this.repository.Resolves.get(source.data.Id);
     if (handler) {
       handler.Trigger(source);
