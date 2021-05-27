@@ -1,7 +1,8 @@
 ﻿import IContext from "../../context/IContext";
-import IData from "../../data/IData";
+import DataSet from "../../data/DataSet";
 import ClientException from "../../exception/ClientException";
 import IDictionary from "../../IDictionary";
+import { SourceId } from "../../type-alias";
 
 export default abstract class ConnectionOptions {
   readonly Name: string;
@@ -9,12 +10,13 @@ export default abstract class ConnectionOptions {
     this.Name = name;
   }
   abstract TestConnectionAsync(context: IContext): Promise<boolean>;
-  // abstract LoadDataAsync(
-  //   context: IContext,
-  //   sourceName: string,
-  //   parameters: IDictionary<string>
-  // ): Promise<IData>;
-  abstract LoadPageAsync(
+  public abstract loadDataAsync(
+    context: IContext,
+    sourceId: SourceId,
+    parameters: IDictionary<string>
+  ): Promise<DataSet>;
+
+  public abstract loadPageAsync(
     context: IContext,
     pageName: string,
     parameters: IDictionary<string>
@@ -56,11 +58,11 @@ export default abstract class ConnectionOptions {
   }
 }
 
-export class ParsedData {
+class ParsedData {
   Setting: any;
   Tables: Array<Pair<string, any[]>> = [];
 }
 
-export class Pair<K, V> {
+class Pair<K, V> {
   constructor(readonly Key: K, readonly Value: V) {}
 }

@@ -16,7 +16,10 @@ export default class RawFaceCollection extends Array<RawFace> {
     return retVal;
   }
 
-  async ProcessAsync(dataSource: IData) /*: Promise<FaceCollection>*/ {
+  public async processAsync(
+    dataSource: IData,
+    context: IContext
+  ): Promise<FaceCollection> {
     var facesTask = this.map(async (x) => {
       var applyReplace = (await x.ApplyReplace?.getValueAsync()) ?? faces;
       var applyFunction = (await x.ApplyFunction?.getValueAsync()) ?? false;
@@ -25,7 +28,7 @@ export default class RawFaceCollection extends Array<RawFace> {
       var filter = await x.Filter?.getValueAsync();
       var relatedRows = Util.IsNullOrEmpty(filter)
         ? dataSource.Rows
-        : await Util.ApplyFilterAsync(dataSource, filter);
+        : await Util.ApplyFilterAsync(dataSource, filter, context);
       var template = (await x.Template?.getValueAsync()) ?? "";
       dataSource.Columns.forEach((col, index) => {
         if (col.length > 0) {

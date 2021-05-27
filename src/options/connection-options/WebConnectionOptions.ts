@@ -1,5 +1,8 @@
 ﻿import IContext from "../../context/IContext";
+import Data from "../../data/Data";
+import DataSet from "../../data/DataSet";
 import IDictionary from "../../IDictionary";
+import { SourceId } from "../../type-alias";
 import Util from "../../Util";
 import ConnectionOptions from "./ConnectionOptions";
 
@@ -37,22 +40,20 @@ export default class WebConnectionOptions extends ConnectionOptions {
     }
     return isOk;
   }
-  // async LoadDataAsync(
-  //   context: IContext,
-  //   sourceName: string,
-  //   parameters: IDictionary<string> = null
-  // ): Promise<IDataSet> {
-  //   var rawJson = await Util.Ajax(
-  //     this.Url,
-  //     this.Verb ?? context.GetDefault("source.verb", "post"),
-  //     parameters
-  //   );
-  //   var json = this.ParseJsonString(rawJson);
-  //   return new ConstantDataSet(
-  //     json.Tables.map((x) => new ConstantData(x.Key, x.Value))
-  //   );
-  // }
-  async LoadPageAsync(
+  public async loadDataAsync(
+    context: IContext,
+    sourceId: SourceId,
+    parameters: IDictionary<string> = null
+  ): Promise<DataSet> {
+    var rawJson = await WebConnectionOptions.ajax(
+      this.Url,
+      this.Verb ?? context.options.getDefault("source.verb"),
+      parameters
+    );
+    var json = this.ParseJsonString(rawJson);
+    return new DataSet(json.Tables.map((x) => new Data(x.Key, x.Value)));
+  }
+  async loadPageAsync(
     context: IContext,
     pageName: string,
     parameters: IDictionary<string>

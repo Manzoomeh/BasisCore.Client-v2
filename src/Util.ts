@@ -1,7 +1,6 @@
 import IBasisCore from "./IBasisCore";
 import IData from "./data/IData";
-
-declare let $bc: IBasisCore;
+import IContext from "./context/IContext";
 
 export default class Util {
   public static HasValue(data: any): boolean {
@@ -46,12 +45,16 @@ export default class Util {
     return data === undefined || data == null || data === "";
   }
 
-  static async ApplyFilterAsync(source: IData, filter: string): Promise<any[]> {
+  static async ApplyFilterAsync(
+    source: IData,
+    filter: string,
+    context: IContext
+  ): Promise<any[]> {
     var retVal: any[];
     if (Util.IsNullOrEmpty(filter)) {
       retVal = source.Rows;
     } else {
-      var lib = await $bc.getOrLoadDbLibAsync();
+      var lib = await context.getOrLoadDbLibAsync();
       retVal = lib(`SELECT * FROM ? where ${filter}`, [source.Rows]);
     }
     return retVal;

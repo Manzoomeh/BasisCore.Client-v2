@@ -1,6 +1,9 @@
 import { inject, injectable } from "tsyringe";
+import DataSet from "../data/DataSet";
 import IDataSource from "../data/IDataSource";
+import IDictionary from "../IDictionary";
 import IContextRepository from "../repository/IContextRepository";
+import { SourceId } from "../type-alias";
 import Context from "./Context";
 import ILocalContext from "./ILocalContext";
 
@@ -13,7 +16,7 @@ export default class LocalContext extends Context implements ILocalContext {
   ) {
     super(repository, owner.options, owner.logger);
     this.owner = owner;
-    owner.OnDataSourceAdded.Add(this.onDataSourceAddedHandler.bind(this));
+    owner.onDataSourceAdded.Add(this.onDataSourceAddedHandler.bind(this));
     console.log("local context");
   }
 
@@ -24,5 +27,13 @@ export default class LocalContext extends Context implements ILocalContext {
     callDepth: number
   ): Promise<string> {
     return this.owner.loadPageAsync(pageName, rawCommand, pageSize, callDepth);
+  }
+
+  public async loadDataAsync(
+    sourceId: SourceId,
+    connectionName: string,
+    parameters: IDictionary<string>
+  ): Promise<DataSet> {
+    return this.owner.loadDataAsync(sourceId, connectionName, parameters);
   }
 }

@@ -1,8 +1,13 @@
+import IContext from "../context/IContext";
+import IBasisCore from "../IBasisCore";
 import { SourceId } from "../type-alias";
+import Util from "../Util";
 import Data from "./Data";
 import DataSource from "./DataSource";
 import IData from "./IData";
 import IDataSource from "./IDataSource";
+
+declare var $bc: IBasisCore;
 
 export default class DataUtil {
   public static ToDataTable(sourceId: SourceId, data: any): IData {
@@ -35,5 +40,13 @@ export default class DataUtil {
       retVal = data.filter((x) => x[columnName] == columnValue);
     }
     return retVal;
+  }
+
+  public static addRowNumber(data: IData) {
+    var index = 1;
+    data.Rows.forEach((row) => {
+      row.rownumber = index++;
+    });
+    data.updateColumnList();
   }
 }

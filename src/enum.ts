@@ -14,3 +14,9 @@ export enum RenderType {
   append,
   replace,
 }
+
+export enum JoinType {
+  innerjoin,
+  leftjoin,
+  rightjoin,
+}

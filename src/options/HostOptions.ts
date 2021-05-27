@@ -16,7 +16,7 @@ export class HostOptions implements IHostOptions {
   OnRendered: (element: Element) => void;
   OnRendering: (element: Element) => boolean;
   Sources: { [key: string]: any[][] };
-  DbLibPath: string = "alasql.min.js";
+  DbLibPath: string;
 
   constructor(@inject("ILogger") logger: ILogger) {
     this.setDefaults();

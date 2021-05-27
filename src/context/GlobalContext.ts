@@ -1,8 +1,11 @@
 import { inject, singleton } from "tsyringe";
+import DataSet from "../data/DataSet";
+import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import ConnectionOptionsManager from "../options/connection-options/ConnectionOptionsManager";
 import { HostOptions } from "../options/HostOptions";
 import IContextRepository from "../repository/IContextRepository";
+import { SourceId } from "../type-alias";
 import Context from "./Context";
 
 @singleton()
@@ -14,10 +17,10 @@ export default class GlobalContext extends Context {
     options: HostOptions
   ) {
     super(repository, options, logger);
-    this.connections = new ConnectionOptionsManager(options.Settings);
+    this.connections = new ConnectionOptionsManager(options.Settings, this);
   }
 
-  public async loadPageAsync(
+  public loadPageAsync(
     pageName: string,
     rawCommand: string,
     pageSize: string,
@@ -26,10 +29,20 @@ export default class GlobalContext extends Context {
     var parameters: any = {
       fileNames: pageName,
       dmnid: this.options.getDefault("dmnid"),
-      sitesize: pageSize,
+      siteSize: pageSize,
       command: rawCommand,
     };
+    //TODO: add business for callDepth
     var connectionInfo = this.connections.GetConnection("callcommand");
-    return await connectionInfo.LoadPageAsync(this, pageName, parameters);
+    return connectionInfo.loadPageAsync(this, pageName, parameters);
+  }
+
+  public loadDataAsync(
+    sourceId: SourceId,
+    connectionName: string,
+    parameters: IDictionary<string>
+  ): Promise<DataSet> {
+    var connectionInfo = this.connections.GetConnection(connectionName);
+    return connectionInfo.loadDataAsync(this, sourceId, parameters);
   }
 }

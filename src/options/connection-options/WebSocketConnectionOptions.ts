@@ -1,4 +1,5 @@
 ﻿import IContext from "../../context/IContext";
+import DataSet from "../../data/DataSet";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 
@@ -12,21 +13,20 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
       this.Url = setting.Connection;
     }
   }
+
+  public loadDataAsync(
+    context: IContext,
+    sourceId: string,
+    parameters: IDictionary<string>
+  ): Promise<DataSet> {
+    throw new Error("Method not implemented.");
+  }
+
   TestConnectionAsync(context: IContext): Promise<boolean> {
     return Promise.resolve(true);
   }
 
-  // async LoadDataAsync(
-  //   context: IContext,
-  //   sourceName: string,
-  //   parameters: IDictionary<string>
-  // ): Promise<IDataSet> {
-  //   var retVal = new StreamDataSet(this, context);
-  //   await retVal.SendDataAsync(parameters);
-  //   return retVal;
-  // }
-
-  LoadPageAsync(
+  loadPageAsync(
     context: IContext,
     pageName: string,
     parameters: IDictionary<string>

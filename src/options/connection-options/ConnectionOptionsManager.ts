@@ -1,4 +1,5 @@
-﻿import ConfigNotFoundException from "../../exception/ConfigNotFoundException";
+﻿import IContext from "../../context/IContext";
+import ConfigNotFoundException from "../../exception/ConfigNotFoundException";
 import { HostSetting } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
 import LocalStorageConnectionOptions from "./LocalStorageConnectionOptions";
@@ -7,7 +8,8 @@ import WebSocketConnectionOptions from "./WebSocketConnectionOptions";
 
 export default class ConnectionOptionsManager {
   private readonly connections: Map<string, ConnectionOptions> = new Map();
-  constructor(hostSettings: HostSetting) {
+  constructor(hostSettings: HostSetting, context: IContext) {
+    console.log("hs", hostSettings);
     Object.getOwnPropertyNames(hostSettings)
       .map((x) => {
         var parts = x.split(".", 3);
@@ -31,7 +33,7 @@ export default class ConnectionOptionsManager {
             break;
           }
           case "local": {
-            obj = new LocalStorageConnectionOptions(x.name, x.value);
+            obj = new LocalStorageConnectionOptions(x.name, x.value, context);
             break;
           }
         }

@@ -29,7 +29,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var rawReplaces = RawReplaceCollection.Create(this.node, this.context);
       var rawFaces = RawFaceCollection.Create(this.node, this.context);
 
-      var faces = await rawFaces.ProcessAsync(dataSource.data);
+      var faces = await rawFaces.processAsync(dataSource.data, this.context);
       var replaces = await rawReplaces.ProcessAsync(this.context);
       var dividerRowCount = (await rawDividerRowCount?.getValueAsync()) ?? 0;
       var dividerTemplate = await rawDividerTemplate?.getValueAsync();

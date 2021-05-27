@@ -9,8 +9,8 @@ export default interface IBasisCore {
   // GetDefault(key: string, defaultValue: string): string;
   // GetDefault(key: any, defaultValue?: any);
 
-  getOrLoadDbLibAsync(): Promise<any>;
-  getOrLoadObjectAsync(object: string, url: string): Promise<any>;
+  // getOrLoadDbLibAsync(): Promise<any>;
+  // getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
   addSource(sourecId: SourceId, data: any, replace: boolean);
 }

@@ -1,12 +1,9 @@
 import ClientException from "./exception/ClientException";
 import IBasisCore from "./IBasisCore";
-import Util from "./Util";
 import { singleton } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
 import ComponentCollection from "./component/collection/ComponentCollection";
 import { SourceId } from "./type-alias";
-
-declare var alasql: any;
 
 @singleton()
 export default class BasisCore implements IBasisCore {
@@ -33,38 +30,5 @@ export default class BasisCore implements IBasisCore {
     }
     this.content = new ComponentCollection(element, this.context);
     this.content.initializeAsync().then((_) => this.content.runAsync());
-  }
-
-  async getOrLoadDbLibAsync(): Promise<any> {
-    var retVal;
-    if (typeof alasql === "undefined") {
-      if (Util.IsNullOrEmpty(this.context.options.DbLibPath)) {
-        throw new ClientException(
-          `Error in load 'alasql'. 'DbLibPath' Not Configure Properly In Host Object.`
-        );
-      }
-      retVal = await this.getOrLoadObjectAsync(
-        "alasql",
-        this.context.options.DbLibPath
-      );
-    } else {
-      retVal = alasql;
-    }
-    return retVal;
-  }
-
-  public getOrLoadObjectAsync(object: string, url: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      if (eval(`typeof(${object})`) === "undefined") {
-        var script = document.createElement("script");
-        script.onload = (x) => resolve(eval(object));
-        script.onerror = (x) => reject(x);
-        script.setAttribute("type", "text/javascript");
-        script.setAttribute("src", url);
-        document.getElementsByTagName("head")[0].appendChild(script);
-      } else {
-        resolve(eval(object));
-      }
-    });
   }
 }
