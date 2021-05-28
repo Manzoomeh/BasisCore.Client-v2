@@ -12,5 +12,6 @@ export default interface IBasisCore {
   // getOrLoadDbLibAsync(): Promise<any>;
   // getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
-  addSource(sourecId: SourceId, data: any, replace: boolean);
+  addSource(sourceId: SourceId, data: any, replace: boolean);
+  runAsync(): Promise<void>;
 }

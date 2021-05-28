@@ -1,4 +1,4 @@
-import { inject, injectable } from "tsyringe";
+import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
 import IData from "../../data/IData";
@@ -10,8 +10,12 @@ import ReplaceCollection from "./base/ReplaceCollection";
 
 @injectable()
 export default class ViewComponent extends RenderableComponent {
-  constructor(element: Element, @inject("IContext") context: IContext) {
-    super(element, context);
+  constructor(
+    @inject("element") element: Element,
+    @inject("context") context: IContext,
+    @inject("container") container: DependencyContainer
+  ) {
+    super(element, context, container);
   }
 
   async renderDataPartAsync(

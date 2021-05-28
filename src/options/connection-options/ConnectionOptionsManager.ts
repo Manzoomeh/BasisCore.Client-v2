@@ -9,7 +9,6 @@ import WebSocketConnectionOptions from "./WebSocketConnectionOptions";
 export default class ConnectionOptionsManager {
   private readonly connections: Map<string, ConnectionOptions> = new Map();
   constructor(hostSettings: HostSetting, context: IContext) {
-    console.log("hs", hostSettings);
     Object.getOwnPropertyNames(hostSettings)
       .map((x) => {
         var parts = x.split(".", 3);

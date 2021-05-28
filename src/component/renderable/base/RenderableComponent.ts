@@ -1,4 +1,3 @@
-import IContext from "../../../context/IContext";
 import IData from "../../../data/IData";
 import IDataSource from "../../../data/IDataSource";
 import Util from "../../../Util";
@@ -10,10 +9,6 @@ import RenderParam from "./RenderParam";
 import ReplaceCollection from "./ReplaceCollection";
 
 export default abstract class RenderableComponent extends SourceBaseComponent {
-  constructor(element: Element, context: IContext) {
-    super(element, context);
-  }
-
   async renderSourceAsync(dataSource: IDataSource): Promise<DocumentFragment> {
     var result: string = null;
     if (dataSource.data) {

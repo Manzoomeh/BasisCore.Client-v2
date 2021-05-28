@@ -1,13 +1,11 @@
-import { inject, singleton } from "tsyringe";
+import { inject, injectable, singleton } from "tsyringe";
 import ConfigNotFoundException from "../exception/ConfigNotFoundException";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import Util from "../Util";
 import IHostOptions from "./IHostOptions";
 
-declare var host: IHostOptions;
-
-@singleton()
+@injectable()
 export class HostOptions implements IHostOptions {
   Debug: boolean;
   AutoRender: boolean;
@@ -18,9 +16,9 @@ export class HostOptions implements IHostOptions {
   Sources: { [key: string]: any[][] };
   DbLibPath: string;
 
-  constructor(@inject("ILogger") logger: ILogger) {
+  constructor(@inject("host") host: IHostOptions) {
     this.setDefaults();
-    if (typeof host !== "undefined") {
+    if (host) {
       var settings = { ...this.Settings, ...host.Settings };
       Object.assign(this, host);
       Object.assign(this.Settings, settings);
@@ -37,6 +35,7 @@ export class HostOptions implements IHostOptions {
         "default.binding.regex": "\\[##([^#]*)##\\]",
         "default.call.verb": "post",
         "default.dmnid": "",
+        "default.source.verb": "post",
       },
       OnRendered: null,
       OnRendering: null,

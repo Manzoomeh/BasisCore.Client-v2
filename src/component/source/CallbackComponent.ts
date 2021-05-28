@@ -5,10 +5,6 @@ import SourceBaseComponent from "../SourceBaseComponent";
 
 @injectable()
 export default class CallbackComponent extends SourceBaseComponent {
-  constructor(element: Element, @inject("IContext") context: IContext) {
-    super(element, context);
-  }
-
   protected async renderSourceAsync(dataSource: IDataSource): Promise<Node> {
     var methodName = await this.getAttributeValueAsync("method");
     var method = eval(methodName);

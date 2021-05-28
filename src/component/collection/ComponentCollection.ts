@@ -1,4 +1,4 @@
-import { container } from "tsyringe";
+import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import CommandComponent from "../CommandComponent";
 import IComponent from "../IComponent";
@@ -6,19 +6,31 @@ import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import { AttributeComponent } from "../text-base/AttributeComponent";
 import TextComponent from "../text-base/TextComponent";
 
+@injectable()
 export default class ComponentCollection {
-  private readonly initializeTask: Promise<void>;
-  readonly nodes: Array<Node>;
+  private initializeTask: Promise<void> = Promise.resolve();
+  readonly nodes: Array<Node> = new Array<Node>();
   readonly context: IContext;
   readonly components: Array<IComponent> = new Array<IComponent>();
   readonly regex: string;
+  readonly container: DependencyContainer;
 
-  constructor(nodeList: Array<Node>, context: IContext) {
-    //console.log("collection", nodeList);
-    this.nodes = nodeList;
+  constructor(
+    @inject("nodes") nodes: Array<Node>,
+    @inject("context") context: IContext,
+    @inject("container") container: DependencyContainer
+  ) {
+    this.container = container;
     this.context = context;
     this.regex = this.context.options.getDefault("binding.regex");
-    this.initializeTask = this.extractComponentAsync();
+    this.addNodes(nodes);
+  }
+
+  public addNodes(nodes: Array<Node>) {
+    this.nodes.push(...nodes);
+    this.initializeTask = this.initializeTask.then((_) =>
+      this.extractComponentAsync(nodes)
+    );
   }
 
   public async initializeAsync(): Promise<void> {
@@ -28,16 +40,12 @@ export default class ComponentCollection {
   public async runAsync(): Promise<void> {
     var tasks = this.components
       .filter((x) => x instanceof NonSourceBaseComponent)
-      .map((x) => {
-        //console.log("nosourcable", x);
-        return (x as NonSourceBaseComponent).renderAsync();
-      });
-
+      .map((x) => (x as NonSourceBaseComponent).renderAsync());
     await Promise.all(tasks);
   }
 
-  private async extractComponentAsync(): Promise<void> {
-    this.nodes.forEach((node) => {
+  private async extractComponentAsync(nodes: Array<Node>): Promise<void> {
+    nodes.forEach((node) => {
       this.extractTextBaseComponents(node);
       this.extractBasisCommands(node);
     });
@@ -82,7 +90,7 @@ export default class ComponentCollection {
   private extractTextBaseComponents(element: Node) {
     if (element.nodeType == Node.TEXT_NODE) {
       this.extractTextComponent(element);
-    } else {
+    } else if (element.nodeType != Node.COMMENT_NODE) {
       if (element instanceof Element) {
         if (element.tagName != "BASIS") {
           this.extractAttributeComponent(element);
@@ -107,10 +115,11 @@ export default class ComponentCollection {
   }
 
   private createCommandComponent(element: Element): CommandComponent {
-    const childContainer = container.createChildContainer();
+    const childContainer = this.container.createChildContainer();
     const core = element.getAttribute("core")?.toLowerCase();
-    childContainer.register(Element, { useValue: element });
-    childContainer.register("IContext", { useValue: this.context });
+    childContainer.register("element", { useValue: element });
+    childContainer.register("context", { useValue: this.context });
+    childContainer.register("container", { useValue: childContainer });
     return childContainer.resolve<CommandComponent>(core);
   }
   private findRootLevelComponentNode(rootElement: Node): Array<Element> {

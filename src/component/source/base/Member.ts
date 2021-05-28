@@ -31,9 +31,9 @@ export default abstract class Member {
   }
 
   public async addDataSourceAsync(data: IData, sourceId: SourceId) {
-    var postSqlTask = this.postSql.getValueAsync();
-    var sortTask = this.sort.getValueAsync();
-    var previewTask = this.preview.getValueAsync();
+    var postSqlTask = this.postSql?.getValueAsync();
+    var sortTask = this.sort?.getValueAsync();
+    var previewTask = this.preview?.getValueAsync();
     data.Id = `${sourceId}.${this.name}`.toLowerCase();
 
     const preview = await previewTask;

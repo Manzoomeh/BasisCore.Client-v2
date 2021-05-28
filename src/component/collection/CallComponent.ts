@@ -1,4 +1,4 @@
-import { inject, injectable } from "tsyringe";
+import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
@@ -6,8 +6,14 @@ import ComponentCollection from "./ComponentCollection";
 @injectable()
 export default class CallComponent extends NonSourceBaseComponent {
   readonly range: Range;
-  constructor(element: Element, @inject("IContext") context: IContext) {
+  private readonly container: DependencyContainer;
+  constructor(
+    @inject("element") element: Element,
+    @inject("context") context: IContext,
+    @inject("container") container: DependencyContainer
+  ) {
     super(element, context);
+    this.container = container;
     this.range = document.createRange();
     this.range.selectNode(element);
     this.range.deleteContents();
@@ -34,7 +40,13 @@ export default class CallComponent extends NonSourceBaseComponent {
     const childNodes = [...content.childNodes];
     this.range.deleteContents();
     this.range.insertNode(content);
-    const collection = new ComponentCollection(childNodes, this.context);
+    //const collection = new ComponentCollection(childNodes, this.context);
+    const childContainer = this.container.createChildContainer();
+    childContainer.register("nodes", { useValue: childNodes });
+    childContainer.register("context", { useValue: this.context });
+    childContainer.register("container", { useValue: childContainer });
+    const collection = childContainer.resolve(ComponentCollection);
+
     await collection.initializeAsync();
     await collection.runAsync();
   }

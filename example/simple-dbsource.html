@@ -11,19 +11,49 @@
 
 <body>
   <h1 data-attr=" kk ll">In the name of god</h1>
+  <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
 
+  <basis core="print" datamembername="book.list" run="atclient" renderto="#output">
+    <layout>
+      <p>
+        لیست کتاب ها
+      </p>
+      @child
+    </layout>
+    <else-layout>
+      رﻛﻮردي ﻳﺎﻓﺖ ﻧﺸﺪ
+    </else-layout>
+    <face filter="[count] == 1">
+      <div>
+        @BookName - @price
+      </div>
+    </face>
+  </basis>
+
+  <basis core="dbsource" source="schoolapi" name="book" run="atclient">
+    <member name="list" type="list" request="print" preview="true"></member>
+  </basis>
   <script>
     var host = {
       Debug: false,
       AutoRender: true,
       'DbLibPath': 'http://cdn.basiscore.net/_js/alasql.min.js',
       Settings: {
-        'connection.web.schoolapi': 'https://dbsource.basiscore.net/data.json'
+        'connection.web.schoolapi': 'data/schoolapi',
+        'default.dmnid': 2668
       },
 
     }
-
-    console.log($bc);
+    const bc = $bc(host, document.documentElement);
+    bc.runAsync().then(_ => console.log('render end'));
+    let i = 0;
+    // const h = setInterval(_ => {
+    //   bc.addSource("cms.data", `test-${i}`);
+    //   i++;
+    //   if (i > 20) {
+    //     clearInterval(h);
+    //   }
+    // }, 1000);
   </script>
 </body>
 

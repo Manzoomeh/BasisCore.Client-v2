@@ -1,10 +1,14 @@
-import { inject, injectable } from "tsyringe";
+import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import RenderableComponent from "./base/RenderableComponent";
 
 @injectable()
 export default class PrintComponent extends RenderableComponent {
-  constructor(element: Element, @inject("IContext") context: IContext) {
-    super(element, context);
+  constructor(
+    @inject("element") element: Element,
+    @inject("context") context: IContext,
+    @inject("container") container: DependencyContainer
+  ) {
+    super(element, context, container);
   }
 }

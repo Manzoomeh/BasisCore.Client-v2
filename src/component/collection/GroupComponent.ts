@@ -1,6 +1,5 @@
-import { injectable, inject, container } from "tsyringe";
+import { injectable, inject, DependencyContainer } from "tsyringe";
 import IContext from "../../context/IContext";
-import ILocalContext from "../../context/ILocalContext";
 import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
@@ -9,24 +8,27 @@ export default class GroupComponent extends NonSourceBaseComponent {
   private collection: ComponentCollection;
   private readonly initializeTask: Promise<void>;
 
-  constructor(element: Element, @inject("IContext") context: IContext) {
+  constructor(
+    @inject("element") element: Element,
+    @inject("context") context: IContext,
+    @inject("container") container: DependencyContainer
+  ) {
     super(element, context);
     const content = document.createDocumentFragment();
-    const childList = [...element.childNodes];
-    childList.forEach((node) => content.appendChild(node));
+    const childNodes = [...element.childNodes];
+    childNodes.forEach((node) => content.appendChild(node));
     const range = document.createRange();
     range.selectNode(element);
     range.deleteContents();
     range.insertNode(content);
-    this.collection = new ComponentCollection(childList, this.context);
+    const childContainer = container.createChildContainer();
+    childContainer.register("nodes", { useValue: childNodes });
+    childContainer.register("context", { useValue: this.context });
+    childContainer.register("container", { useValue: childContainer });
+    this.collection = childContainer.resolve(ComponentCollection);
     this.initializeTask = this.collection.initializeAsync();
   }
 
-  private static createLocalContext(context: IContext): ILocalContext {
-    const childContainer = container.createChildContainer();
-    childContainer.register("OwnerContext", { useValue: context });
-    return childContainer.resolve("ILocalContext");
-  }
   public runAsync(): Promise<void> {
     return this.collection.runAsync();
   }

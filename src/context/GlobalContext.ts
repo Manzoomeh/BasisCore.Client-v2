@@ -1,4 +1,4 @@
-import { inject, singleton } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
@@ -8,7 +8,7 @@ import IContextRepository from "../repository/IContextRepository";
 import { SourceId } from "../type-alias";
 import Context from "./Context";
 
-@singleton()
+@injectable()
 export default class GlobalContext extends Context {
   readonly connections: ConnectionOptionsManager;
   constructor(

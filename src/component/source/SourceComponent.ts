@@ -71,7 +71,10 @@ export default abstract class SourceComponent<
     } else {
       this.oldConnectionName = connectionName;
     }
-    const command = this.content.textContent.ToStringToken(this.context);
+
+    const command = (
+      this.content.firstChild as Element
+    ).outerHTML.ToStringToken(this.context);
     const params: any = {
       command: await command.getValueAsync(),
       dmnid: this.context.options.getDefault("dmnid"),

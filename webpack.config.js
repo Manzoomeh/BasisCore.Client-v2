@@ -3,6 +3,8 @@ const CircularDependencyPlugin = require("circular-dependency-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
+const data = require("./example/temp-data/schoolapi.json");
+
 module.exports = {
   entry: {
     basiscore: "./src/index.ts",
@@ -23,6 +25,14 @@ module.exports = {
   },
   devServer: {
     static: path.resolve(__dirname, "example"),
+    onBeforeSetupMiddleware: function (server) {
+      //console.log(app);
+      server.app.post("/data/schoolapi", function (req, res) {
+        res.json(data);
+      });
+    },
+    open: true,
+    port: 3000,
   },
   //   optimization: {
   //     minimize: true,
