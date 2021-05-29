@@ -57,7 +57,7 @@ export default class TokenUtil {
     newArrayToken: { (...data: IToken<string>[]): ArrayToken<T> }
   ): IToken<T> {
     //https://javascript.info/regexp-methods
-    var tmp = context.options.getDefault("binding.regex");
+    var tmp = context.options.getDefault<RegExp>("binding.regex");
     var retVal: IToken<T>;
     if (Util.HasValue(data)) {
       var match = data.match(tmp);

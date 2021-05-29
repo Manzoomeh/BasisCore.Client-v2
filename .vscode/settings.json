@@ -5,6 +5,7 @@
     "Renderable",
     "alasql",
     "atclient",
+    "basiscore",
     "callcommand",
     "datamembername",
     "dbsource",

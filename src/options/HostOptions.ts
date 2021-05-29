@@ -1,12 +1,12 @@
-import { inject, injectable, singleton } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import ConfigNotFoundException from "../exception/ConfigNotFoundException";
 import IDictionary from "../IDictionary";
-import ILogger from "../logger/ILogger";
 import Util from "../Util";
+import IContextHostOptions from "./IContextHostOptions";
 import IHostOptions from "./IHostOptions";
 
 @injectable()
-export class HostOptions implements IHostOptions {
+export class HostOptions implements IContextHostOptions {
   Debug: boolean;
   AutoRender: boolean;
   ServiceWorker: boolean;
@@ -16,39 +16,36 @@ export class HostOptions implements IHostOptions {
   Sources: { [key: string]: any[][] };
   DbLibPath: string;
 
+  public static readonly defaultSettings: IHostOptions = {
+    Debug: true,
+    AutoRender: true,
+    ServiceWorker: false,
+    DbLibPath: "alasql.min.js",
+    Settings: {
+      "default.binding.regex": /\[##([^#]*)##\]/,
+      "default.call.verb": "post",
+      "default.dmnid": "",
+      "default.source.verb": "post",
+    },
+    OnRendered: null,
+    OnRendering: null,
+    Sources: {},
+  };
+
   constructor(@inject("host") host: IHostOptions) {
-    this.setDefaults();
-    if (host) {
+    Object.assign(this, HostOptions.defaultSettings);
+    if (host && host != HostOptions.defaultSettings) {
       var settings = { ...this.Settings, ...host.Settings };
       Object.assign(this, host);
       Object.assign(this.Settings, settings);
     }
   }
 
-  private setDefaults() {
-    var defaultSettings = {
-      Debug: true,
-      AutoRender: true,
-      ServiceWorker: false,
-      DbLibPath: "alasql.min.js",
-      Settings: {
-        "default.binding.regex": "\\[##([^#]*)##\\]",
-        "default.call.verb": "post",
-        "default.dmnid": "",
-        "default.source.verb": "post",
-      },
-      OnRendered: null,
-      OnRendering: null,
-      Sources: {},
-    };
-    Object.assign(this, defaultSettings);
+  public getDefault<T>(key: string, defaultValue: T = null): T {
+    return this.getSetting<T>(`default.${key}`, defaultValue);
   }
 
-  public getDefault(key: string, defaultValue: string = null): string {
-    return this.getSetting(`default.${key}`, defaultValue);
-  }
-
-  public getSetting(key: string, defaultValue: string): any {
+  public getSetting<T>(key: string, defaultValue: T): T {
     var find = Object.getOwnPropertyNames(this.Settings).filter((x) =>
       Util.isEqual(x, key)
     );

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../../basiscore.min.js"></script>
+    <title>Print Command - Interval with append</title>
+</head>
+
+<body>
+    <Basis core="print" datamembername="local.print" run="atclient" if="">
+        <face>
+            <li>
+                <span>@ID (@NAME) </span>
+            </li>
+        </face>
+    </Basis>
+    <script>
+        var i = 0;
+        function fn() {
+            $bc.setSource(
+                "local.print",
+                [
+                    { id: i, name: `btn-t=${i}` }
+                ], false
+            );
+            i += 1;
+        }
+        fn();
+        setInterval(fn, 1000);
+    </script>
+</body>
+
+</html>

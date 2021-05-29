@@ -9,6 +9,7 @@ import { SourceId } from "./type-alias";
 export default class BasisCore implements IBasisCore {
   readonly context: GlobalContext;
   readonly content: ComponentCollection;
+  private runTask: Promise<void> = null;
 
   constructor(
     context: GlobalContext,
@@ -19,19 +20,25 @@ export default class BasisCore implements IBasisCore {
     container.register("context", { useToken: "root.context" });
     container.register("nodes", { useToken: "root.nodes" });
     this.content = container.resolve(ComponentCollection);
+    if (context.options.AutoRender) {
+      this.run();
+    }
   }
 
-  addSource(sourceId: SourceId, data: any, replace: boolean = true) {
-    this.context.addAsSource(sourceId, data, replace);
+  public setSource(sourceId: SourceId, data: any, replace: boolean = true) {
+    this.context.setAsSource(sourceId, data, replace);
   }
 
-  public async runAsync(): Promise<void> {
-    await this.content.initializeAsync();
-    return this.content.runAsync();
+  public run(): void {
+    if (!this.runTask) {
+      this.runTask = this.content
+        .initializeAsync()
+        .then((x) => this.content.runAsync());
+    }
   }
-  setArea(selector: string): void;
-  setArea(element: Element): void;
-  setArea(param: any): void {
+  addArea(selector: string): void;
+  addArea(element: Element): void;
+  addArea(param: any): void {
     // var element: Array<Element>;
     // if (typeof param === "string") {
     //   element = Array.from(document.querySelectorAll(param));

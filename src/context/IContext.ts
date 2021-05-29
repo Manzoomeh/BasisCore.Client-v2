@@ -1,14 +1,14 @@
 import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
-import IHostOptions from "../options/IHostOptions";
+import IContextHostOptions from "../options/IContextHostOptions";
 import IRepository from "../repository/IRepository";
 import { SourceId } from "../type-alias";
 
 export default interface IContext {
   repository: IRepository;
   logger: ILogger;
-  options: IHostOptions;
+  options: IContextHostOptions;
 
   checkSourceHeartbeatAsync(sourceId: SourceId): Promise<boolean>;
 

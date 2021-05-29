@@ -10,6 +10,4 @@ export default interface IHostOptions {
   OnRendering: { (element: Element): boolean };
   Sources: { [key: string]: Array<any[]> };
   DbLibPath: string;
-
-  getDefault(key: string, defaultValue?: string): string;
 }

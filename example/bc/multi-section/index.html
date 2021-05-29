@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../basiscore.min.js"></script>
+    <title>Multi Section</title>
+</head>
+
+<body>
+    <div id="section-1">
+        Time is (local) : [##data.time.hh|(00)##]:[##data.time.mm|(00)##]:[##data.time.ss|(00)##]
+    </div>
+    <div class="section-2">
+        Time is (UTC) : {data.time.hh|(00)}:{data.time.mm|(00)}:{data.time.ss|(00)}
+    </div>
+
+    <script>
+        const bc = new $bc().addArea('#section-1')
+        setInterval(() => {
+            const date = new Date();
+            const source = {
+                hh: date.getHours(),
+                mm: date.getMinutes(),
+                ss: date.getSeconds()
+            };
+            bc.setSource('data.time', source)
+        }, 1000);
+
+        const hostSetting = {
+            Settings: {
+                "default.binding.regex": /\{([^\}]*)\}/
+            }
+        }
+
+        const bc2 = new $bc().addArea('.section-2').setOptions(hostSetting)
+        setInterval(() => {
+            const date = new Date();
+            const source = {
+                hh: date.getUTCHours(),
+                mm: date.getUTCMinutes(),
+                ss: date.getUTCSeconds()
+            };
+            bc2.setSource('data.time', source)
+        }, 2000);
+    </script>
+</body>
+
+</html>

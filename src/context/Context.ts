@@ -1,7 +1,6 @@
 import IDataSource from "../data/IDataSource";
 import DataUtil from "../data/DataUtil";
 import ILogger from "../logger/ILogger";
-import IHostOptions from "../options/IHostOptions";
 import IContext from "./IContext";
 import EventManager from "../event/EventManager";
 import { SourceId } from "../type-alias";
@@ -10,18 +9,19 @@ import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import Util from "../Util";
 import ClientException from "../exception/ClientException";
+import IContextHostOptions from "../options/IContextHostOptions";
 
 declare var alasql: any;
 
 export default abstract class Context implements IContext {
   readonly repository: IContextRepository;
   readonly logger: ILogger;
-  readonly options: IHostOptions;
+  readonly options: IContextHostOptions;
   readonly onDataSourceAdded: EventManager<IDataSource>;
 
   constructor(
     repository: IContextRepository,
-    options: IHostOptions,
+    options: IContextHostOptions,
     logger: ILogger
   ) {
     this.repository = repository;
@@ -47,7 +47,7 @@ export default abstract class Context implements IContext {
     throw new Error("Method not implemented.");
   }
 
-  public addAsSource(sourceId: SourceId, value: any, replace: boolean = true) {
+  public setAsSource(sourceId: SourceId, value: any, replace: boolean = true) {
     var source = DataUtil.ToDataSource(sourceId, value, replace);
     this.setSource(source);
   }
@@ -57,7 +57,6 @@ export default abstract class Context implements IContext {
   }
 
   protected onDataSourceAddedHandler(source: IDataSource) {
-    console.log(`add ${source.data.Id} `);
     var handler = this.repository.Resolves.get(source.data.Id);
     if (handler) {
       handler.Trigger(source);

@@ -12,7 +12,7 @@ export default class ComponentCollection {
   readonly nodes: Array<Node> = new Array<Node>();
   readonly context: IContext;
   readonly components: Array<IComponent> = new Array<IComponent>();
-  readonly regex: string;
+  readonly regex: RegExp;
   readonly container: DependencyContainer;
 
   constructor(
@@ -22,7 +22,7 @@ export default class ComponentCollection {
   ) {
     this.container = container;
     this.context = context;
-    this.regex = this.context.options.getDefault("binding.regex");
+    this.regex = this.context.options.getDefault<RegExp>("binding.regex");
     this.addNodes(nodes);
   }
 
@@ -60,20 +60,21 @@ export default class ComponentCollection {
       this.components.push(this.createCommandComponent(item));
     }
   }
-  private extractTextComponent(node: Node) {
-    var content = node.textContent;
-    if (content.trim().length != 0) {
-      var match = content.match(this.regex);
-      if (match) {
+  private extractTextComponent(node: Text) {
+    if (node.textContent.trim().length != 0) {
+      do {
+        const match = node.textContent.match(this.regex);
+        if (!match) {
+          break;
+        }
         var com = new TextComponent(
           node,
           this.context,
           match.index,
           match.index + match[0].length
         );
-
         this.components.push(com);
-      }
+      } while (true);
     }
   }
   private async extractAttributeComponent(element: Element) {
@@ -89,27 +90,29 @@ export default class ComponentCollection {
   }
   private extractTextBaseComponents(element: Node) {
     if (element.nodeType == Node.TEXT_NODE) {
-      this.extractTextComponent(element);
+      this.extractTextComponent(element as Text);
     } else if (element.nodeType != Node.COMMENT_NODE) {
       if (element instanceof Element) {
-        if (element.tagName != "BASIS") {
+        if (!element.isBasisCore()) {
           this.extractAttributeComponent(element);
           if (element.hasChildNodes()) {
             for (const child of element.childNodes) {
               this.extractTextBaseComponents(child);
             }
-          } else {
-            this.extractTextComponent(element);
           }
+          // else {
+          //   this.extractTextComponent(element);
+          // }
         }
       } else {
         if (element.hasChildNodes()) {
           for (const child of element.childNodes) {
             this.extractTextBaseComponents(child);
           }
-        } else {
-          this.extractTextComponent(element);
         }
+        // } else {
+        //   this.extractTextComponent(element);
+        // }
       }
     }
   }
