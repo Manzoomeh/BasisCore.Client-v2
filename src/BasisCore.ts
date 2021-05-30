@@ -20,9 +20,6 @@ export default class BasisCore implements IBasisCore {
     container.register("context", { useToken: "root.context" });
     container.register("nodes", { useToken: "root.nodes" });
     this.content = container.resolve(ComponentCollection);
-    if (context.options.AutoRender) {
-      this.run();
-    }
   }
 
   public setSource(sourceId: SourceId, data: any, replace: boolean = true) {
@@ -36,9 +33,9 @@ export default class BasisCore implements IBasisCore {
         .then((x) => this.content.runAsync());
     }
   }
-  addArea(selector: string): void;
-  addArea(element: Element): void;
-  addArea(param: any): void {
+  addFragment(selector: string): void;
+  addFragment(element: Element): void;
+  addFragment(param: any): void {
     // var element: Array<Element>;
     // if (typeof param === "string") {
     //   element = Array.from(document.querySelectorAll(param));

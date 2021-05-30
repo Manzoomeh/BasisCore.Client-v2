@@ -5,38 +5,52 @@ import Util from "../Util";
 import IContextHostOptions from "./IContextHostOptions";
 import IHostOptions from "./IHostOptions";
 
+declare const host: IHostOptions;
+
 @injectable()
 export class HostOptions implements IContextHostOptions {
   Debug: boolean;
   AutoRender: boolean;
   ServiceWorker: boolean;
   Settings: IDictionary<any>;
-  OnRendered: (element: Element) => void;
-  OnRendering: (element: Element) => boolean;
   Sources: { [key: string]: any[][] };
   DbLibPath: string;
 
-  public static readonly defaultSettings: IHostOptions = {
-    Debug: true,
-    AutoRender: true,
-    ServiceWorker: false,
-    DbLibPath: "alasql.min.js",
-    Settings: {
-      "default.binding.regex": /\[##([^#]*)##\]/,
-      "default.call.verb": "post",
-      "default.dmnid": "",
-      "default.source.verb": "post",
-    },
-    OnRendered: null,
-    OnRendering: null,
-    Sources: {},
-  };
+  private static _defaultSettings: IHostOptions;
 
-  constructor(@inject("host") host: IHostOptions) {
+  public static get defaultSettings(): IHostOptions {
+    if (!HostOptions._defaultSettings) {
+      const defaults: IHostOptions = {
+        Debug: false,
+        AutoRender: true,
+        ServiceWorker: false,
+        DbLibPath: "alasql.min.js",
+        Settings: {
+          "default.binding.regex": /\[##([^#]*)##\]/,
+          "default.call.verb": "post",
+          "default.dmnid": "",
+          "default.source.verb": "post",
+        },
+        Sources: {},
+      };
+      if (typeof host != "undefined") {
+        var settings = {
+          ...defaults.Settings,
+          ...host.Settings,
+        };
+        Object.assign(defaults, host);
+        Object.assign(defaults.Settings, settings);
+      }
+      HostOptions._defaultSettings = defaults;
+    }
+    return HostOptions._defaultSettings;
+  }
+
+  constructor(@inject("host") options: Partial<IHostOptions>) {
     Object.assign(this, HostOptions.defaultSettings);
-    if (host && host != HostOptions.defaultSettings) {
-      var settings = { ...this.Settings, ...host.Settings };
-      Object.assign(this, host);
+    if (options && options != HostOptions.defaultSettings) {
+      var settings = { ...this.Settings, ...options.Settings };
+      Object.assign(this, options);
       Object.assign(this.Settings, settings);
     }
   }

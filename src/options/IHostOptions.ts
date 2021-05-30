@@ -6,8 +6,6 @@ export default interface IHostOptions {
   AutoRender: boolean;
   ServiceWorker: boolean;
   Settings: IDictionary<string | any | IConnectionSetting>;
-  OnRendered: { (element: Element): void };
-  OnRendering: { (element: Element): boolean };
   Sources: { [key: string]: Array<any[]> };
   DbLibPath: string;
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Call Command - Simple</title>
+</head>
+
+<body>
+    <basis core="call" file="called.html" pagesize="" run="atclient"></basis>
+    <script src="../../../../basiscore.min.js"></script>
+    <script>
+        const host = {
+            Settings: {
+                "default.call.verb": "get",
+                "connection.web.callcommand": "call/",
+            },
+        };
+
+    </script>
+
+</body>
+
+</html>

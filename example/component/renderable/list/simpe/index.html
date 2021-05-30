@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="../../../basiscore.min.js"></script>
-    <title>Tree Command - Simple</title>
+    <script src="../../../../basiscore.min.js"></script>
+    <title>List Command - Simple</title>
 </head>
 
 <body>
@@ -36,7 +36,7 @@
             </li>
         </face>
         <replace tagname="linK">
-            <a href="@val2"> Click For @val1 </a>
+            <a href="@val2"> Click For @val1 [##local.print.id##]</a>
         </replace>
 
         <replace tagname="bold">
@@ -48,14 +48,18 @@
     </basis>
 
     <script>
-
-        $bc.setSource("local.tree", [
+        const bc = new $bc()
+        bc.setSource("local.tree", [
             { id: 1, name: "ali", pid: null },
             { id: 2, name: "amir", pid: 1 },
             { id: 3, name: "hassan", pid: 1 },
             { id: 4, name: "javad", pid: 2 },
             { id: 5, name: "reza", pid: 4 },
         ]);
+
+        setTimeout(() => {
+            bc.setSource("local.print", { id: 1356.3, name: "ali", pid: null });
+        }, 3000);
 
     </script>
 </body>

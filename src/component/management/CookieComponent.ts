@@ -8,7 +8,10 @@ import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
 
 @injectable()
 export default class CookieComponent extends NonSourceBaseComponent {
-  constructor(element: Element, @inject("IContext") context: IContext) {
+  constructor(
+    @inject("element") element: Element,
+    @inject("context") context: IContext
+  ) {
     super(element, context);
   }
   public initializeAsync(): Promise<void> {
@@ -19,7 +22,6 @@ export default class CookieComponent extends NonSourceBaseComponent {
     var value = await this.getAttributeValueAsync("value");
     var maxAge = await this.getAttributeValueAsync("max-age");
     var path = await this.getAttributeValueAsync("path");
-
     var str = `${name.trim()}=${value || ""}`;
     if (maxAge) {
       str += `;max-age=${maxAge}`;

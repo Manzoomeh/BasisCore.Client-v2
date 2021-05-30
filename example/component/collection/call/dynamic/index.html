@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../../../../basiscore.min.js"></script>
+  <title>Call Command - Nested</title>
+</head>
+
+<body>
+  Load [##local.call.filename##]...
+  <basis core="call" file="[##local.call.filename##]" pagesize="" run="atclient" data-trigger-on="local.call"></basis>
+
+  <script>
+    const host = {
+      Settings: {
+        "default.call.verb": "get",
+        "connection.web.callcommand": "call/",
+      },
+    };
+
+
+    var i = 1;
+    const h = setInterval(() => {
+      console.log(`interval ${i}`);
+      $bc.setSource("local.call", { filename: `call-level-${i}.html` });
+      i += 1;
+      if (i == 4) {
+        clearInterval(h);
+      }
+    }, 4000);
+
+  </script>
+</body>
+
+</html>

@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="../../../basiscore.min.js"></script>
-    <title>Print Command - Interval with replace</title>
+    <script src="../../../../basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
 </head>
 
 <body>
@@ -18,18 +18,15 @@
         </face>
     </Basis>
     <script>
-        var i = 0;
-        function fn() {
-            $bc.setSource(
-                "local.print",
-                [
-                    { id: i, name: `btn-t=${i}` }
-                ]
-            );
-            i += 1;
-        }
-        fn();
-        setInterval(fn, 1000);
+
+        $bc.setSource(
+            "local.print",
+            [
+                { id: 1, name: "btn-t=1" },
+                { id: 2, name: "btn-t=2" },
+                { id: 3, name: "btn-t=3" },
+            ]
+        );
     </script>
 </body>
 

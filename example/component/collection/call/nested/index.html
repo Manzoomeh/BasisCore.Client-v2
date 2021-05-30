@@ -5,22 +5,25 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="../../../basiscore.min.js"></script>
-    <title>Call Command - Simple</title>
+    <script src="../../../../basiscore.min.js"></script>
+    <title>Call Command - Nested</title>
 </head>
 
 <body>
-    <basis core="call" file="call-1.html" pagesize="" run="atclient"></basis>
-
+    <basis core="call" file="call-level-1.html" pagesize="" run="atclient"></basis>
     <script>
         const options = {
             Settings: {
                 "default.call.verb": "get",
-                "connection.web.callcommand": "/call",
+                "connection.web.callcommand": "call/",
             },
         };
-        var bc = $bc(options);
+
+        $bc
+            .setOptions(options)
+            .run();
     </script>
+
 </body>
 
 </html>
