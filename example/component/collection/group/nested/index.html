@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../../../../basiscore.min.js"></script>
+  <title>Group Command - Nested</title>
+</head>
+
+<body>
+  <basis core="group" run="atclient">
+    <h1>Group 1 start</h1>
+    <Basis core="print" datamembername="local.print" run="atclient">
+      <face filter="id <= 2">
+        <li>
+          <span>@ID (@NAME) </span>
+        </li>
+      </face>
+    </Basis>
+
+    <basis core="group" run="atclient">
+      <h1>Group 2 start</h1>
+      <Basis core="print" datamembername="local.print" run="atclient">
+        <face filter="id > 2">
+          <li>
+            <span>@ID (@NAME) </span>
+          </li>
+        </face>
+      </Basis>
+      <h1>Group 2 end</h1>
+    </basis>
+    <h1>Group 1 end</h1>
+  </basis>
+  <script>
+    const host = {
+      DbLibPath: '../../../../alasql.min.js'
+    }
+
+    $bc.setSource(
+      "local.print",
+      [
+        { id: 1, name: "btn-t=1" },
+        { id: 2, name: "btn-t=2" },
+        { id: 3, name: "btn-t=3" },
+      ]
+    );
+  </script>
+</body>
+
+</html>

@@ -1,5 +1,4 @@
 import { inject, injectable } from "tsyringe";
-import Context from "../context/Context";
 import IContext from "../context/IContext";
 import IDataSource from "../data/IDataSource";
 import ILogger from "../logger/ILogger";
@@ -11,7 +10,7 @@ export default class OwnerBaseRepository extends Repository {
   owner: IContext;
   constructor(
     @inject("ILogger") logger: ILogger,
-    @inject("OwnerContext") owner: Context
+    @inject("OwnerContext") owner: IContext
   ) {
     super(logger);
     this.owner = owner;

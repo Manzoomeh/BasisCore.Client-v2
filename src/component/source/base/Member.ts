@@ -34,7 +34,7 @@ export default abstract class Member {
     var postSqlTask = this.postSql?.getValueAsync();
     var sortTask = this.sort?.getValueAsync();
     var previewTask = this.preview?.getValueAsync();
-    data.Id = `${sourceId}.${this.name}`.toLowerCase();
+    data.id = `${sourceId}.${this.name}`.toLowerCase();
 
     const preview = await previewTask;
     const sort = await sortTask;
@@ -45,15 +45,15 @@ export default abstract class Member {
       if (!Util.HasValue(lib)) {
         lib = await this.context.getOrLoadDbLibAsync();
       }
-      data.Rows = lib(Util.ReplaceEx(postSql, `\\[${data.Id}\\]`, "?"), [
-        data.Rows,
+      data.rows = lib(Util.ReplaceEx(postSql, `\\[${data.id}\\]`, "?"), [
+        data.rows,
       ]);
     }
     if (sort) {
       if (!Util.HasValue(lib)) {
         lib = await this.context.getOrLoadDbLibAsync();
       }
-      data.Rows = lib(`SELECT * FROM ? order by ${sort}`, [data.Rows]);
+      data.rows = lib(`SELECT * FROM ? order by ${sort}`, [data.rows]);
     }
     DataUtil.addRowNumber(data);
     const source = new DataSource(data);

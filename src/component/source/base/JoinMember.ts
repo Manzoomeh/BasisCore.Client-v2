@@ -48,13 +48,13 @@ export default class JoinMember extends InMemoryMember {
     var leftTableColumn = leftDataParts[2];
     var rightTableColumn = rightDataParts[2];
 
-    var joinResultCol = leftSource.data.Columns.filter(
-      (x) => x != "rownumber"
-    ).map((x) => `ltbl.[${x}] AS [${leftDataMember}.${x}]`);
+    var joinResultCol = leftSource.data.columns
+      .filter((x) => x != "rownumber")
+      .map((x) => `ltbl.[${x}] AS [${leftDataMember}.${x}]`);
     joinResultCol = joinResultCol.concat(
-      rightSource.data.Columns.filter((x) => x != "rownumber").map(
-        (x) => `rtbl.[${x}] AS [${rightDataMember}.${x}]`
-      )
+      rightSource.data.columns
+        .filter((x) => x != "rownumber")
+        .map((x) => `rtbl.[${x}] AS [${rightDataMember}.${x}]`)
     );
 
     var joinType = "JOIN";
@@ -77,7 +77,7 @@ export default class JoinMember extends InMemoryMember {
       `SELECT ${joinResultCol.join(
         ","
       )} FROM ? AS ltbl ${joinType} ? AS rtbl ON ltbl.${leftTableColumn} = rtbl.${rightTableColumn}`,
-      [leftSource.data.Rows, rightSource.data.Rows]
+      [leftSource.data.rows, rightSource.data.rows]
     );
 
     var data = new Data("", t);

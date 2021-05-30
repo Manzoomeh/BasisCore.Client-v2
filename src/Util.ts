@@ -52,10 +52,10 @@ export default class Util {
   ): Promise<any[]> {
     var retVal: any[];
     if (Util.IsNullOrEmpty(filter)) {
-      retVal = source.Rows;
+      retVal = source.rows;
     } else {
       var lib = await context.getOrLoadDbLibAsync();
-      retVal = lib(`SELECT * FROM ? where ${filter}`, [source.Rows]);
+      retVal = lib(`SELECT * FROM ? where ${filter}`, [source.rows]);
     }
     return retVal;
   }

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../../../basiscore.min.js"></script>
+    <title>Callback Command - Simple</title>
+</head>
+
+<body>
+
+    <basis core="callback" run="AtClient" datamembername="local.print" method="onSource"></basis>
+    <script>
+        var i = 0;
+        setInterval(() => {
+            $bc.setSource(
+                "local.print",
+                [
+                    { id: i + 0, name: `btn-t=${i + 0}` },
+                    { id: i + 1, name: `btn-t=${i + 1}` },
+                    { id: i + 2, name: `btn-t=${i + 2}` },
+                ]
+            );
+            i += 3;
+        }, 2000);
+
+        function onSource(source) {
+            console.table(source.data.rows);
+        }
+    </script>
+</body>
+
+</html>

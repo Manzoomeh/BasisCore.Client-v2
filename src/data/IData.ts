@@ -1,8 +1,8 @@
 import { SourceId } from "../type-alias";
 
 export default interface IData {
-  Id: SourceId;
-  Columns: Array<string>;
-  Rows: Array<any>;
-  updateColumnList();
+  id: SourceId;
+  columns: Array<string>;
+  rows: Array<any>;
+  updateColumnList(): void;
 }

@@ -67,13 +67,13 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     return new Promise((resolve) => {
       var param = new RenderParam(
         replaces,
-        dataSource.Rows.length,
+        dataSource.rows.length,
         dividerRowcount,
         dividerTemplate,
         incompleteTemplate
       );
       var result: string = "";
-      dataSource.Rows.forEach((row, _index, _) => {
+      dataSource.rows.forEach((row, _index, _) => {
         param.Data = row;
         result += faces.Render(param, this.context);
       });

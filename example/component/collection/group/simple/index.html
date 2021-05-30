@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../../../basiscore.min.js"></script>
+    <title>Group Command - Simple</title>
+</head>
+
+<body>
+    <basis core="group" run="atclient">
+        <h1>Group start</h1>
+        <Basis core="print" datamembername="local.print" run="atclient">
+            <face>
+                <li>
+                    <span>@ID (@NAME) </span>
+                </li>
+            </face>
+        </Basis>
+        <h1>Group end</h1>
+    </basis>
+
+    <script>
+
+        $bc.setSource(
+            "local.print",
+            [
+                { id: 1, name: "btn-t=1" },
+                { id: 2, name: "btn-t=2" },
+                { id: 3, name: "btn-t=3" },
+            ]
+        );
+    </script>
+</body>
+
+</html>

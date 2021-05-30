@@ -27,7 +27,7 @@ export default class ViewComponent extends RenderableComponent {
     incompleteTemplate: string
   ): Promise<string> {
     var retVal = "";
-    if (dataSource.Rows.length != 0) {
+    if (dataSource.rows.length != 0) {
       var token = this.node.GetStringToken("groupcol", this.context);
       var groupColumn = await (
         await TokenUtil.GetValueOrSystemDefaultAsync(
@@ -36,9 +36,9 @@ export default class ViewComponent extends RenderableComponent {
           "ViewCommand.GroupColumn"
         )
       ).toLowerCase();
-      var groupList = dataSource.Rows.map((x) => x[groupColumn]).filter(
-        (x, i, arr) => arr.indexOf(x) === i
-      );
+      var groupList = dataSource.rows
+        .map((x) => x[groupColumn])
+        .filter((x, i, arr) => arr.indexOf(x) === i);
       var rootRenderParam = new RenderParam(
         replaces,
         groupList.length,
@@ -50,7 +50,7 @@ export default class ViewComponent extends RenderableComponent {
 
       groupList.forEach((group, _i, _) => {
         var childItems = DataUtil.ApplySimpleFilter(
-          dataSource.Rows,
+          dataSource.rows,
           groupColumn,
           group
         );

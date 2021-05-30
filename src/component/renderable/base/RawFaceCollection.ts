@@ -27,10 +27,10 @@ export default class RawFaceCollection extends Array<RawFace> {
       var levels = (await x.Level?.getValueAsync())?.split("|") ?? null;
       var filter = await x.Filter?.getValueAsync();
       var relatedRows = Util.IsNullOrEmpty(filter)
-        ? dataSource.Rows
+        ? dataSource.rows
         : await Util.ApplyFilterAsync(dataSource, filter, context);
       var template = (await x.Template?.getValueAsync()) ?? "";
-      dataSource.Columns.forEach((col, index) => {
+      dataSource.columns.forEach((col, index) => {
         if (col.length > 0) {
           template = Util.ReplaceEx(template, `@${col}`, `@col${index + 1}`);
         }

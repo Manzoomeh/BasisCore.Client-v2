@@ -44,7 +44,7 @@ export default class DataUtil {
 
   public static addRowNumber(data: IData) {
     var index = 1;
-    data.Rows.forEach((row) => {
+    data.rows.forEach((row) => {
       row.rownumber = index++;
     });
     data.updateColumnList();

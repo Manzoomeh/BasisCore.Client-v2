@@ -26,7 +26,7 @@ export default class TreeComponent extends RenderableComponent {
     incompleteTemplate: string
   ): Promise<string> {
     var retVal = "";
-    if (dataSource.Rows.length != 0) {
+    if (dataSource.rows.length != 0) {
       var foreignKey = await this.getAttributeValueAsync(
         "parentidcol",
         "parentid"
@@ -34,13 +34,13 @@ export default class TreeComponent extends RenderableComponent {
       var principalKey = await this.getAttributeValueAsync("idcol", "id");
       var nullValue = await this.getAttributeValueAsync("nullvalue", "0");
       var rootRecords = DataUtil.ApplySimpleFilter(
-        dataSource.Rows,
+        dataSource.rows,
         foreignKey,
         nullValue
       );
       if (rootRecords.length == 0) {
         throw new Error(
-          `Tree Command Has No Root Record In Data Member '${dataSource.Id}' With '${nullValue}' Value In '${foreignKey}' Column That Set In NullValue Attribute.`
+          `Tree Command Has No Root Record In Data Member '${dataSource.id}' With '${nullValue}' Value In '${foreignKey}' Column That Set In NullValue Attribute.`
         );
       }
       var rootRenderParam = new RenderParam(
@@ -84,7 +84,7 @@ export default class TreeComponent extends RenderableComponent {
     var retVal = "";
     var childRenderResult = "";
     var childRows = DataUtil.ApplySimpleFilter(
-      dataSource.Rows,
+      dataSource.rows,
       foreignKey,
       parentRenderParam.Data[principalKey]
     );

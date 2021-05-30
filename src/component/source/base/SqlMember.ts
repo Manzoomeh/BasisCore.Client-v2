@@ -33,8 +33,8 @@ export default class SqlMember extends InMemoryMember {
     var lib = await this.context.getOrLoadDbLibAsync();
     var db = new lib.Database();
     dataList.forEach((data) => {
-      db.exec(`CREATE TABLE [${data.data.Id}]`);
-      db.tables[data.data.Id].data = data.data.Rows;
+      db.exec(`CREATE TABLE [${data.data.id}]`);
+      db.tables[data.data.id].data = data.data.rows;
     });
     var queryResult = db.exec(sql);
     return new Data("", queryResult);

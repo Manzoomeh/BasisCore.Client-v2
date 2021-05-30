@@ -1,4 +1,4 @@
-import { DependencyContainer, inject } from "tsyringe";
+import { DependencyContainer } from "tsyringe";
 import IContext from "../context/IContext";
 import IDataSource from "../data/IDataSource";
 import { SourceId } from "../type-alias";

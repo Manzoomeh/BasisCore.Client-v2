@@ -22,10 +22,10 @@ export default class Repository implements IContextRepository {
   }
 
   public setSource(source: IDataSource) {
-    const key = source.data.Id?.toLowerCase();
+    const key = source.data.id?.toLowerCase();
     this.repository.set(key, source);
     this.eventManager.get(key)?.Trigger(source);
-    this.logger.LogInformation(`${source.data.Id} Added.`);
+    this.logger.LogInformation(`${source.data.id} Added.`);
   }
 
   public addHandler(sourceId: SourceId, handler: SourceHandler) {
