@@ -1,12 +1,13 @@
 import DataSet from "../data/DataSet";
+import ISource from "../data/ISource";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import IContextHostOptions from "../options/IContextHostOptions";
 import IRepository from "../repository/IRepository";
-import { SourceId } from "../type-alias";
+import { SourceHandler, SourceId } from "../type-alias";
 
 export default interface IContext {
-  repository: IRepository;
+  //repository: IRepository;
   logger: ILogger;
   options: IContextHostOptions;
 
@@ -27,4 +28,9 @@ export default interface IContext {
 
   getOrLoadDbLibAsync(): Promise<any>;
   getOrLoadObjectAsync(object: string, url: string): Promise<any>;
+
+  setSource(source: ISource): void;
+  addOnSourceSetHandler(sourceId: SourceId, handler: SourceHandler): boolean;
+  tryToGetSource(sourceId: SourceId): ISource;
+  waitToGetSourceAsync(sourceId: SourceId): Promise<ISource>;
 }

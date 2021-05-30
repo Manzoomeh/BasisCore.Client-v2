@@ -1,4 +1,4 @@
-export enum DataSourceType {
+export enum SourceType {
   Table,
   Json,
 }

@@ -12,7 +12,7 @@
 <body>
     <ul>
         <basis core="repeater" id="rep0-cmd" name="rep" datamembername="local.print" run="atclient">
-            <li>hi [##rep.current.id|(not found!)##] </li>
+            <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
         </basis>
     </ul>
     <script>

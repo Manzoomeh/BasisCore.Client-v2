@@ -1,5 +1,5 @@
 import { inject, injectable } from "tsyringe";
-import IDataSource from "../data/IDataSource";
+import ISource from "../data/ISource";
 import EventManager from "../event/EventManager";
 import ILogger from "../logger/ILogger";
 import { SourceId, SourceHandler } from "../type-alias";
@@ -7,21 +7,21 @@ import IContextRepository from "./IContextRepository";
 
 @injectable()
 export default class Repository implements IContextRepository {
-  readonly repository: Map<SourceId, IDataSource> = new Map();
-  readonly eventManager: Map<SourceId, EventManager<IDataSource>> = new Map<
+  readonly repository: Map<SourceId, ISource> = new Map();
+  readonly eventManager: Map<SourceId, EventManager<ISource>> = new Map<
     SourceId,
-    EventManager<IDataSource>
+    EventManager<ISource>
   >();
   readonly logger: ILogger;
-  readonly Resolves = new Map<string, EventManager<IDataSource>>();
+  readonly Resolves = new Map<string, EventManager<ISource>>();
   constructor(@inject("ILogger") logger: ILogger) {
     this.logger = logger;
   }
-  public tryToGet(sourceId: SourceId): IDataSource {
+  public tryToGet(sourceId: SourceId): ISource {
     return this.repository.get(sourceId?.toLowerCase());
   }
 
-  public setSource(source: IDataSource) {
+  public setSource(source: ISource) {
     const key = source.data.id?.toLowerCase();
     this.repository.set(key, source);
     this.eventManager.get(key)?.Trigger(source);
@@ -32,7 +32,7 @@ export default class Repository implements IContextRepository {
     const key = sourceId?.toLowerCase();
     let handlers = this.eventManager.get(key);
     if (!handlers) {
-      handlers = new EventManager<IDataSource>();
+      handlers = new EventManager<ISource>();
       this.eventManager.set(key, handlers);
     }
     const added = handlers.Add(handler);
@@ -46,8 +46,8 @@ export default class Repository implements IContextRepository {
     this.eventManager[sourceId?.toLowerCase()]?.Remove(handler);
   }
 
-  public waitToGetAsync(sourceId: SourceId): Promise<IDataSource> {
-    return new Promise<IDataSource>((resolve) => {
+  public waitToGetAsync(sourceId: SourceId): Promise<ISource> {
+    return new Promise<ISource>((resolve) => {
       var retVal = this.tryToGet(sourceId);
       if (retVal) {
         resolve(retVal);
@@ -56,7 +56,7 @@ export default class Repository implements IContextRepository {
         this.logger.LogInformation(`wait for ${sourceId}`);
         let handler = this.Resolves.get(sourceId);
         if (!handler) {
-          handler = new EventManager<IDataSource>();
+          handler = new EventManager<ISource>();
           this.Resolves.set(sourceId, handler);
         }
         handler.Add(resolve);

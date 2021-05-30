@@ -27,7 +27,7 @@ export default class SqlMember extends InMemoryMember {
       sources = this.GetSqlSources(sql);
     }
     var task = sources.map((source) =>
-      this.context.repository.waitToGetAsync(source)
+      this.context.waitToGetSourceAsync(source)
     );
     var dataList = await Promise.all(task);
     var lib = await this.context.getOrLoadDbLibAsync();

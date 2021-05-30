@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../../../basiscore.min.js"></script>
+    <title>Callback Command - Simple</title>
+</head>
+
+<body>
+
+    <basis core="dbsource" source="schoolapi" name="book" run="atclient">
+        <member name="list" type="list" request="print" preview="true"></member>
+    </basis>
+
+    <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>
+
+    <script>
+        var host = {
+            Debug: false,
+            AutoRender: true,
+            'DbLibPath': 'http://cdn.basiscore.net/_js/alasql.min.js',
+            Settings: {
+                'connection.web.schoolapi': 'http://localhost:3000/data/schoolapi',
+                'default.dmnid': 2668
+            },
+
+        }
+
+
+        function onSource(source) {
+            console.table(source.data.rows);
+        }
+    </script>
+</body>
+
+</html>

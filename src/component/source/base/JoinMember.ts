@@ -38,12 +38,8 @@ export default class JoinMember extends InMemoryMember {
     var leftDataMember = leftDataParts.slice(0, 2).join(".");
     var rightDataMember = rightDataParts.slice(0, 2).join(".");
 
-    var leftSource = await this.context.repository.waitToGetAsync(
-      leftDataMember
-    );
-    var rightSource = await this.context.repository.waitToGetAsync(
-      rightDataMember
-    );
+    var leftSource = await this.context.waitToGetSourceAsync(leftDataMember);
+    var rightSource = await this.context.waitToGetSourceAsync(rightDataMember);
 
     var leftTableColumn = leftDataParts[2];
     var rightTableColumn = rightDataParts[2];

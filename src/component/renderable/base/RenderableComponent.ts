@@ -1,5 +1,5 @@
 import IData from "../../../data/IData";
-import IDataSource from "../../../data/IDataSource";
+import ISource from "../../../data/ISource";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
@@ -9,7 +9,7 @@ import RenderParam from "./RenderParam";
 import ReplaceCollection from "./ReplaceCollection";
 
 export default abstract class RenderableComponent extends SourceBaseComponent {
-  async renderSourceAsync(dataSource: IDataSource): Promise<DocumentFragment> {
+  async renderSourceAsync(dataSource: ISource): Promise<DocumentFragment> {
     var result: string = null;
     if (dataSource.data) {
       var rawIncompleteTemplate = this.node

@@ -1,6 +1,6 @@
 import { DependencyContainer } from "tsyringe";
 import IContext from "../context/IContext";
-import IDataSource from "../data/IDataSource";
+import ISource from "../data/ISource";
 import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
 
@@ -25,8 +25,8 @@ export default abstract class SourceBaseComponent extends CommandComponent {
 
   private async addDataHandler(): Promise<void> {
     this.sourceId = await this.getAttributeValueAsync("datamembername");
-    var source = this.context.repository.tryToGet(this.sourceId);
-    this.context.repository.addHandler(
+    var source = this.context.tryToGetSource(this.sourceId);
+    this.context.addOnSourceSetHandler(
       this.sourceId,
       this.onDataSourceAdded.bind(this)
     );
@@ -39,14 +39,14 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     return this.initializeTask;
   }
 
-  protected abstract renderSourceAsync(dataSource: IDataSource): Promise<Node>;
+  protected abstract renderSourceAsync(dataSource: ISource): Promise<Node>;
 
   public async renderAsync(): Promise<void> {
-    var source = await this.context.repository.waitToGetAsync(this.sourceId);
+    var source = await this.context.waitToGetSourceAsync(this.sourceId);
     this.onDataSourceAdded(source);
   }
 
-  private onDataSourceAdded(dataSource: IDataSource): void {
+  private onDataSourceAdded(dataSource: ISource): void {
     this.getCanRenderAsync(this.context).then((x) => {
       if (x) {
         this.renderSourceAsync(dataSource).then((renderResult) => {

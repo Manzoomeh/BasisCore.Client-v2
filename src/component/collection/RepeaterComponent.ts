@@ -1,6 +1,7 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import IDataSource from "../../data/IDataSource";
+import LocalContext from "../../context/LocalContext";
+import ISource from "../../data/ISource";
 import SourceBaseComponent from "../SourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
@@ -13,7 +14,8 @@ export default class RepeaterComponent extends SourceBaseComponent {
   ) {
     super(element, context, container);
   }
-  protected async renderSourceAsync(dataSource: IDataSource): Promise<Node> {
+  protected async renderSourceAsync(dataSource: ISource): Promise<Node> {
+    const name = await this.getAttributeValueAsync("name");
     for (let index = 0; index < dataSource.data.rows.length; index++) {
       const row = dataSource.data.rows[index];
       const template = this.content.firstChild.cloneNode(true);
@@ -21,11 +23,14 @@ export default class RepeaterComponent extends SourceBaseComponent {
       childNodes.forEach((node) => this.setContent(node, false));
       const childContainer = this.container.createChildContainer();
 
-      //childContainer.register("OwnerContext", { useValue: this.context });
-
+      childContainer.register("OwnerContext", { useValue: this.context });
       childContainer.register("nodes", { useValue: childNodes });
-      childContainer.register("context", { useValue: this.context });
+
       childContainer.register("container", { useValue: childContainer });
+      const localContext = childContainer.resolve<LocalContext>(LocalContext);
+      localContext.setAsSource(`${name}.current`, row);
+      childContainer.register("context", { useValue: localContext });
+
       const collection = childContainer.resolve(ComponentCollection);
       await collection.initializeAsync();
       await collection.runAsync();

@@ -39,7 +39,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
       } else if (item instanceof SourceTokenElement) {
         if (ObjectToken.HasValue(item.member)) {
           const sourceName = item.sourceName;
-          var dataSource = this.context.repository.tryToGet(sourceName);
+          var dataSource = this.context.tryToGetSource(sourceName);
           if (ObjectToken.HasValue(item.column)) {
             if (dataSource == null) {
               if (isLastItem) {
@@ -47,7 +47,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
                   break;
                 }
                 if (wait) {
-                  dataSource = await this.context.repository.waitToGetAsync(
+                  dataSource = await this.context.waitToGetSourceAsync(
                     sourceName
                   );
                 } else {

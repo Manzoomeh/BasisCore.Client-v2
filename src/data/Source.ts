@@ -1,15 +1,15 @@
-import { DataSourceType } from "../enum";
+import { SourceType } from "../enum";
 import IData from "./IData";
-import IDataSource from "./IDataSource";
+import ISource from "./ISource";
 
-export default class DataSource implements IDataSource {
+export default class Source implements ISource {
   readonly data: IData;
-  readonly type: DataSourceType;
+  readonly type: SourceType;
   readonly replace: boolean;
   constructor(
     data: IData,
     replace: boolean = true,
-    type: DataSourceType = DataSourceType.Table
+    type: SourceType = SourceType.Table
   ) {
     this.data = data;
     this.type = type;

@@ -1,21 +1,19 @@
-import IDataSource from "../data/IDataSource";
+import ISource from "../data/ISource";
 import DataUtil from "../data/DataUtil";
 import ILogger from "../logger/ILogger";
 import IContext from "./IContext";
 import EventManager from "../event/EventManager";
-import { SourceId } from "../type-alias";
+import { SourceHandler, SourceId } from "../type-alias";
 import IContextRepository from "../repository/IContextRepository";
 import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
-import Util from "../Util";
-import ClientException from "../exception/ClientException";
 import IContextHostOptions from "../options/IContextHostOptions";
 
 export default abstract class Context implements IContext {
-  readonly repository: IContextRepository;
+  protected readonly repository: IContextRepository;
   readonly logger: ILogger;
   readonly options: IContextHostOptions;
-  readonly onDataSourceAdded: EventManager<IDataSource>;
+  readonly onDataSourceAdded: EventManager<ISource>;
 
   constructor(
     repository: IContextRepository,
@@ -25,7 +23,7 @@ export default abstract class Context implements IContext {
     this.repository = repository;
     this.logger = logger;
     this.options = options;
-    this.onDataSourceAdded = new EventManager<IDataSource>();
+    this.onDataSourceAdded = new EventManager<ISource>();
   }
   abstract getOrLoadDbLibAsync(): Promise<any>;
   abstract getOrLoadObjectAsync(object: string, url: string): Promise<any>;
@@ -43,20 +41,12 @@ export default abstract class Context implements IContext {
     callDepth: number
   ): Promise<string>;
 
-  checkSourceHeartbeatAsync(source: string): Promise<boolean> {
+  public checkSourceHeartbeatAsync(source: string): Promise<boolean> {
+    //TODO: must complete
     throw new Error("Method not implemented.");
   }
 
-  public setAsSource(sourceId: SourceId, value: any, replace: boolean = true) {
-    var source = DataUtil.ToDataSource(sourceId, value, replace);
-    this.setSource(source);
-  }
-  public setSource(source: IDataSource): void {
-    this.repository.setSource(source);
-    this.onDataSourceAddedHandler(source);
-  }
-
-  protected onDataSourceAddedHandler(source: IDataSource) {
+  protected onDataSourceAddedHandler(source: ISource) {
     var handler = this.repository.Resolves.get(source.data.id);
     if (handler) {
       handler.Trigger(source);
@@ -64,4 +54,31 @@ export default abstract class Context implements IContext {
     }
     this.onDataSourceAdded.Trigger(source);
   }
+
+  public addOnSourceSetHandler(
+    sourceId: SourceId,
+    handler: SourceHandler
+  ): boolean {
+    return this.repository.addHandler(sourceId, handler);
+  }
+
+  public tryToGetSource(sourceId: SourceId): ISource {
+    return this.repository.tryToGet(sourceId);
+  }
+
+  public waitToGetSourceAsync(sourceId: SourceId): Promise<ISource> {
+    return this.repository.waitToGetAsync(sourceId);
+  }
+
+  public setAsSource(sourceId: SourceId, value: any, replace: boolean = true) {
+    var source = DataUtil.ToDataSource(sourceId, value, replace);
+    this.setSource(source);
+  }
+
+  public setSource(source: ISource): void {
+    this.repository.setSource(source);
+    this.onDataSourceAddedHandler(source);
+  }
+
+  public Dispose() {}
 }

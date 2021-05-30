@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../../../basiscore.min.js"></script>
+    <title>List Command - Divider</title>
+</head>
+
+<body>
+    <basis core="list" datamembername="local.data" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
+        <layout>
+            <ul>
+                @child
+            </ul>
+        </layout>
+        <face>
+            <div>@id</div>
+        </face>
+        <divider rowcount="3">
+            <br />
+        </divider>
+
+    </basis>
+
+    <script>
+        $bc.setSource("local.data", [
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+            { id: 6 },
+            { id: 7 },
+            { id: 8 },
+            { id: 9 },
+        ]);
+
+
+
+    </script>
+</body>
+
+</html>

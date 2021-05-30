@@ -1,5 +1,5 @@
 ﻿import IContext from "../../../context/IContext";
-import DataSource from "../../../data/DataSource";
+import Source from "../../../data/Source";
 import DataUtil from "../../../data/DataUtil";
 import IData from "../../../data/IData";
 import IBasisCore from "../../../IBasisCore";
@@ -56,8 +56,8 @@ export default abstract class Member {
       data.rows = lib(`SELECT * FROM ? order by ${sort}`, [data.rows]);
     }
     DataUtil.addRowNumber(data);
-    const source = new DataSource(data);
-    this.context.repository.setSource(source);
+    const source = new Source(data);
+    this.context.setSource(source);
 
     // if (preview || context.DebugContext.InDebugMode) {
     //   context.AddPreview(source);

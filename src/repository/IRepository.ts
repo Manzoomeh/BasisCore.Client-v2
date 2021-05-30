@@ -1,9 +1,9 @@
-import IDataSource from "../data/IDataSource";
+import ISource from "../data/ISource";
 import { SourceHandler, SourceId } from "../type-alias";
 
 export default interface IRepository {
-  setSource(source: IDataSource): void;
+  setSource(source: ISource): void;
   addHandler(sourceId: SourceId, handler: SourceHandler): boolean;
-  tryToGet(sourceId: SourceId): IDataSource;
-  waitToGetAsync(sourceId: SourceId): Promise<IDataSource>;
+  tryToGet(sourceId: SourceId): ISource;
+  waitToGetAsync(sourceId: SourceId): Promise<ISource>;
 }

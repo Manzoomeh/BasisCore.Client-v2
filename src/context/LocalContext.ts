@@ -1,7 +1,8 @@
 import { inject, injectable } from "tsyringe";
 import DataSet from "../data/DataSet";
+import ISource from "../data/ISource";
 import IDictionary from "../IDictionary";
-import OwnerBaseRepository from "../repository/OwnerBaseRepository";
+import IContextRepository from "../repository/IContextRepository";
 import { SourceId } from "../type-alias";
 import Context from "./Context";
 import ILocalContext from "./ILocalContext";
@@ -11,7 +12,7 @@ export default class LocalContext extends Context implements ILocalContext {
   readonly owner: Context;
 
   constructor(
-    repository: OwnerBaseRepository,
+    @inject("IContextRepository") repository: IContextRepository,
     @inject("OwnerContext") owner: Context
   ) {
     super(repository, owner.options, owner.logger);
@@ -42,5 +43,18 @@ export default class LocalContext extends Context implements ILocalContext {
     parameters: IDictionary<string>
   ): Promise<DataSet> {
     return this.owner.loadDataAsync(sourceId, connectionName, parameters);
+  }
+
+  public tryToGetSource(sourceId: SourceId): ISource {
+    return (
+      this.repository.tryToGet(sourceId) ?? this.owner.tryToGetSource(sourceId)
+    );
+  }
+
+  Dispose() {
+    super.Dispose();
+    if (this.owner instanceof LocalContext) {
+      this.owner.onDataSourceAdded.Remove(this.onDataSourceAddedHandler);
+    }
   }
 }
