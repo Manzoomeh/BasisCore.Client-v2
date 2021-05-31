@@ -40,13 +40,11 @@ export default class CallComponent extends NonSourceBaseComponent {
     const childNodes = [...content.childNodes];
     this.range.deleteContents();
     this.range.insertNode(content);
-    //const collection = new ComponentCollection(childNodes, this.context);
     const childContainer = this.container.createChildContainer();
     childContainer.register("nodes", { useValue: childNodes });
     childContainer.register("context", { useValue: this.context });
     childContainer.register("container", { useValue: childContainer });
     const collection = childContainer.resolve(ComponentCollection);
-
     await collection.initializeAsync();
     await collection.runAsync();
   }

@@ -10,6 +10,8 @@
     "datamembername",
     "dbsource",
     "dmnid",
+    "hostip",
+    "hostport",
     "idcol",
     "innerjoin",
     "jointype",

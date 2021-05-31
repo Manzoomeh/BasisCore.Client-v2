@@ -18,6 +18,28 @@
         </face>
     </Basis>
     <script>
+        const host = {
+            Sources: {
+                'cms.user': [{
+                    id: 22, name: 'qamsari', rkey: 123
+                }
+
+                ],
+                'inlinesource.TempTable': [
+                    {
+                        id: 1, name: 'qamsari', prpid: null
+                    },
+                    {
+                        id: 3, name: 'akaberi', prpid: 1
+                    },
+                    {
+                        id: 3, name: 'amir', prpid: 3
+                    }
+
+
+                ]
+            }
+        }
 
         $bc.setSource(
             "local.print",

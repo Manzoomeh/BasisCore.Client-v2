@@ -22,15 +22,12 @@ export default class RepeaterComponent extends SourceBaseComponent {
       const childNodes = [...template.childNodes];
       childNodes.forEach((node) => this.setContent(node, false));
       const childContainer = this.container.createChildContainer();
-
       childContainer.register("OwnerContext", { useValue: this.context });
       childContainer.register("nodes", { useValue: childNodes });
-
       childContainer.register("container", { useValue: childContainer });
       const localContext = childContainer.resolve<LocalContext>(LocalContext);
       localContext.setAsSource(`${name}.current`, row);
       childContainer.register("context", { useValue: localContext });
-
       const collection = childContainer.resolve(ComponentCollection);
       await collection.initializeAsync();
       await collection.runAsync();
