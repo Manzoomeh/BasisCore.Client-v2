@@ -9,6 +9,7 @@ declare global {
     GetBooleanToken(attributeName: string, context: IContext): IToken<boolean>;
     GetTemplateToken(context: IContext): IToken<string>;
     isBasisCore(): boolean;
+    isBasisTag(): boolean;
   }
 }
 Object.defineProperty(Element.prototype, "GetStringToken", {
@@ -71,6 +72,19 @@ Object.defineProperty(Element.prototype, "isBasisCore", {
         this.nodeType == Node.ELEMENT_NODE &&
         this.nodeName == "BASIS" &&
         Util.isEqual(this.getAttribute("run"), "atclient")
+      );
+    } catch {
+      return false;
+    }
+  },
+  writable: true,
+  configurable: true,
+});
+Object.defineProperty(Element.prototype, "isBasisTag", {
+  value: function isBasisTag() {
+    try {
+      return (
+        this.nodeType == Node.ELEMENT_NODE && this.hasAttribute("bc-triggers")
       );
     } catch {
       return false;

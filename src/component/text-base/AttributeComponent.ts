@@ -2,7 +2,7 @@ import IContext from "../../context/IContext";
 import IToken from "../../token/IToken";
 import { NonRangeableComponent } from "../NonRangeableComponent";
 
-export class AttributeComponent extends NonRangeableComponent {
+export class AttributeComponent extends NonRangeableComponent<Element> {
   readonly attribute: Attr;
   readonly token: IToken<string>;
   private readonly initializeTask: Promise<void>;

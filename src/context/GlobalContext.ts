@@ -22,11 +22,10 @@ export default class GlobalContext extends Context {
     options: HostOptions
   ) {
     super(repository, options, logger);
-    this.connections = new ConnectionOptionsManager(options.Settings, this);
+    this.connections = new ConnectionOptionsManager(options.settings, this);
     this.addLocalSource();
     const queryString = window.location.search.substring(1);
     this.addQueryString(queryString);
-    console.log(this.repository);
   }
 
   public loadPageAsync(
@@ -58,14 +57,14 @@ export default class GlobalContext extends Context {
   async getOrLoadDbLibAsync(): Promise<any> {
     let retVal;
     if (typeof alasql === "undefined") {
-      if (Util.IsNullOrEmpty(this.options.DbLibPath)) {
+      if (Util.IsNullOrEmpty(this.options.dbLibPath)) {
         throw new ClientException(
           `Error in load 'alasql'. 'DbLibPath' Not Configure Properly In Host Object.`
         );
       }
       retVal = await this.getOrLoadObjectAsync(
         "alasql",
-        this.options.DbLibPath
+        this.options.dbLibPath
       );
     } else {
       retVal = alasql;
@@ -127,9 +126,9 @@ export default class GlobalContext extends Context {
     };
     this.setAsSource("cms.cms", cms);
 
-    if (this.options.Sources) {
-      Object.getOwnPropertyNames(this.options.Sources).forEach((key) => {
-        this.setAsSource(key.toLowerCase(), this.options.Sources[key]);
+    if (this.options.sources) {
+      Object.getOwnPropertyNames(this.options.sources).forEach((key) => {
+        this.setAsSource(key.toLowerCase(), this.options.sources[key]);
       });
     }
   }

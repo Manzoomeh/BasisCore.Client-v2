@@ -10,19 +10,7 @@
 </head>
 
 <body>
-    Time is [##data.time.hh|(00)##]:[##data.time.mm|(00)##]:[##data.time.ss|(00)##]
-
-    <script>
-        setInterval(() => {
-            const date = new Date();
-            const source = {
-                hh: date.getHours(),
-                mm: date.getMinutes(),
-                ss: date.getSeconds()
-            };
-            $bc.setSource('data.time', source)
-        }, 1000);
-    </script>
+    Time is [##cms.cms.time##]
 </body>
 
 </html>

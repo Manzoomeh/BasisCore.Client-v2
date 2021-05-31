@@ -9,37 +9,37 @@ declare const host: IHostOptions;
 
 @injectable()
 export class HostOptions implements IContextHostOptions {
-  Debug: boolean;
-  AutoRender: boolean;
-  ServiceWorker: boolean;
-  Settings: IDictionary<any>;
-  Sources: { [key: string]: any[][] };
-  DbLibPath: string;
+  debug: boolean;
+  autoRender: boolean;
+  serviceWorker: boolean;
+  settings: IDictionary<any>;
+  sources: { [key: string]: any[][] };
+  dbLibPath: string;
 
   private static _defaultSettings: IHostOptions;
 
   public static get defaultSettings(): IHostOptions {
     if (!HostOptions._defaultSettings) {
       const defaults: IHostOptions = {
-        Debug: false,
-        AutoRender: true,
-        ServiceWorker: false,
-        DbLibPath: "alasql.min.js",
-        Settings: {
+        debug: false,
+        autoRender: true,
+        serviceWorker: false,
+        dbLibPath: "alasql.min.js",
+        settings: {
           "default.binding.regex": /\[##([^#]*)##\]/,
           "default.call.verb": "post",
           "default.dmnid": "",
           "default.source.verb": "post",
         },
-        Sources: {},
+        sources: {},
       };
       if (typeof host != "undefined") {
         var settings = {
-          ...defaults.Settings,
-          ...host.Settings,
+          ...defaults.settings,
+          ...host.settings,
         };
         Object.assign(defaults, host);
-        Object.assign(defaults.Settings, settings);
+        Object.assign(defaults.settings, settings);
       }
       HostOptions._defaultSettings = defaults;
     }
@@ -49,9 +49,9 @@ export class HostOptions implements IContextHostOptions {
   constructor(@inject("host") options: Partial<IHostOptions>) {
     Object.assign(this, HostOptions.defaultSettings);
     if (options && options != HostOptions.defaultSettings) {
-      var settings = { ...this.Settings, ...options.Settings };
+      var settings = { ...this.settings, ...options.settings };
       Object.assign(this, options);
-      Object.assign(this.Settings, settings);
+      Object.assign(this.settings, settings);
     }
   }
 
@@ -60,10 +60,10 @@ export class HostOptions implements IContextHostOptions {
   }
 
   public getSetting<T>(key: string, defaultValue: T): T {
-    var find = Object.getOwnPropertyNames(this.Settings).filter((x) =>
+    var find = Object.getOwnPropertyNames(this.settings).filter((x) =>
       Util.isEqual(x, key)
     );
-    var retVal = find.length == 1 ? this.Settings[find[0]] : null;
+    var retVal = find.length == 1 ? this.settings[find[0]] : null;
     if (!retVal) {
       if (defaultValue !== undefined) {
         retVal = defaultValue;

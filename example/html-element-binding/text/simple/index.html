@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../../basiscore.min.js"></script>
+    <title>Html Text Binding - Simple</title>
+</head>
+
+<body>
+
+    <input bc-triggers="change" name="cms.text" />
+    [##cms.text.value|(not set)##]
+    <br />
+    <input bc-triggers="keyup" name="cms.text1" />
+    [##cms.text1.value|(not set)##]
+    <br />
+    <input bc-triggers="change keyup" name="cms.text2" />
+    [##cms.text2.value|(not set)##]
+    <br />
+    <input type="checkbox" bc-triggers="change" name="cms.cbox" value="val1" />
+    <input type="checkbOx" bc-triggers="change" name="cms.cbox" value="val2" />
+    [##cms.cbox.value|(not set)##]
+    <br />
+
+    <input type="radio" bc-triggers="change" name="cms.g1" value="item-1" />
+    <input type="radio" bc-triggers="change" name="cms.g1" value="item-2" />
+    <input type="radio" bc-triggers="change" name="cms.g1" value="item-3" />
+    [##cms.g1.value|(not set)##]
+
+    <br />
+    <input type="color" bc-triggers="change input" name="cms.color" />
+    [##cms.color.value|(not set)##]
+
+    <br />
+    <input type="date" bc-triggers="change input" name="cms.date" />
+    [##cms.date.value|(not set)##]
+
+    <br />
+    <input type="file" bc-triggers="change input" name="cms.file" />
+    [##cms.file.value|(not set)##]
+
+    <br />
+    <input type="number" bc-triggers="change input" name="cms.number" />
+    [##cms.number.value|(not set)##]
+
+    <br />
+    <input type="range" bc-triggers="change input" name="cms.range" />
+    [##cms.range.value|(not set)##]
+
+    <br />
+    <input type="time" bc-triggers="change input" name="cms.time" />
+    [##cms.time.value|(not set)##]
+
+    <br />
+    <select bc-triggers="change" name="cms.cmb">
+        <option value="default"></option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option value='[##cms.cms.time##]'>max</option>
+    </select>
+    [##cms.cmb.value|(not set)##]
+
+    <br />
+    <form bc-triggers="submit" name="cms.form">
+        <input name="fname" />
+
+        <br />
+        <input name="lname" />
+        <br />
+        <input type="range" name="range" />
+        <br />
+        <input type="number" name="number" />
+        <input type="submit" />
+
+    </form>
+
+    <basis core="callback" run="AtClient" datamembername="cms.form" method="onSource"></basis>
+
+    <script>
+        function onSource(source) {
+            console.table(source.data.rows);
+        }
+    </script>
+</body>
+
+</html>

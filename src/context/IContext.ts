@@ -3,7 +3,6 @@ import ISource from "../data/ISource";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import IContextHostOptions from "../options/IContextHostOptions";
-import IRepository from "../repository/IRepository";
 import { SourceHandler, SourceId } from "../type-alias";
 
 export default interface IContext {
@@ -29,6 +28,7 @@ export default interface IContext {
   getOrLoadDbLibAsync(): Promise<any>;
   getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
+  setAsSource(sourceId: SourceId, value: any, replace?: boolean);
   setSource(source: ISource): void;
   addOnSourceSetHandler(sourceId: SourceId, handler: SourceHandler): boolean;
   tryToGetSource(sourceId: SourceId): ISource;

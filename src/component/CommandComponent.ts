@@ -1,7 +1,7 @@
 import IContext from "../context/IContext";
 import { NonRangeableComponent } from "./NonRangeableComponent";
 
-export default abstract class CommandComponent extends NonRangeableComponent {
+export default abstract class CommandComponent extends NonRangeableComponent<Element> {
   public readonly core: string;
   public readonly TriggerBase: boolean = false;
 

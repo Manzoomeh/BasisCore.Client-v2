@@ -3,6 +3,7 @@ import IContext from "../../context/IContext";
 import CommandComponent from "../CommandComponent";
 import IComponent from "../IComponent";
 import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
+import HTMLButtonComponent from "../html-element/HTMLButtonComponent";
 import { AttributeComponent } from "../text-base/AttributeComponent";
 import TextComponent from "../text-base/TextComponent";
 
@@ -50,14 +51,22 @@ export default class ComponentCollection {
       this.extractBasisCommands(node);
     });
 
-    //console.log("components", this.components, this.nodes);
     await Promise.all(this.components.map((x) => x.initializeAsync()));
   }
   private extractBasisCommands(node: Node) {
-    const nodes = this.findRootLevelComponentNode(node);
-    //console.log("Root Command nodes", nodes, node);
-    for (const item of nodes) {
-      this.components.push(this.createCommandComponent(item));
+    const pair = this.findRootLevelComponentNode(node);
+    for (const item of pair.coreList) {
+      this.components.push(
+        this.createCommandComponent(
+          item,
+          item.getAttribute("core").toLowerCase()
+        )
+      );
+    }
+    for (const item of pair.tagList) {
+      this.components.push(
+        this.createCommandComponent(item, item.tagName.toLowerCase())
+      );
     }
   }
   private extractTextComponent(node: Text) {
@@ -93,6 +102,12 @@ export default class ComponentCollection {
       this.extractTextComponent(element as Text);
     } else if (element.nodeType != Node.COMMENT_NODE) {
       if (element instanceof Element) {
+        // if (element.hasAttribute("bc-trigger")) {
+        //console.log(element, element.tagName);
+        //   this.components.push(
+        //     new HTMLButtonComponent(element as any, this.context)
+        //   );
+        // }
         if (!element.isBasisCore()) {
           this.extractAttributeComponent(element);
           if (element.hasChildNodes()) {
@@ -100,9 +115,6 @@ export default class ComponentCollection {
               this.extractTextBaseComponents(child);
             }
           }
-          // else {
-          //   this.extractTextComponent(element);
-          // }
         }
       } else {
         if (element.hasChildNodes()) {
@@ -110,32 +122,40 @@ export default class ComponentCollection {
             this.extractTextBaseComponents(child);
           }
         }
-        // } else {
-        //   this.extractTextComponent(element);
-        // }
       }
     }
   }
 
-  private createCommandComponent(element: Element): CommandComponent {
+  private createCommandComponent(
+    element: Element,
+    token: string
+  ): CommandComponent {
     const childContainer = this.container.createChildContainer();
-    const core = element.getAttribute("core")?.toLowerCase();
+
     childContainer.register("element", { useValue: element });
     childContainer.register("context", { useValue: this.context });
     childContainer.register("container", { useValue: childContainer });
-    return childContainer.resolve<CommandComponent>(core);
+    return childContainer.resolve<CommandComponent>(token);
   }
-  private findRootLevelComponentNode(rootElement: Node): Array<Element> {
-    var retVal: Array<Element> = [];
-    var process = (child: ChildNode) => {
-      if (child instanceof Element && child.isBasisCore()) {
-        retVal.push(<any>child);
-      } else {
-        child.childNodes.forEach(process);
+  private findRootLevelComponentNode(rootElement: Node): {
+    coreList: Array<Element>;
+    tagList: Array<Element>;
+  } {
+    const coreList = new Array<Element>();
+    const tagList = new Array<Element>();
+    var process = (child: Node) => {
+      if (child instanceof Element) {
+        if (child.isBasisCore()) {
+          coreList.push(child);
+          return;
+        } else if (child.isBasisTag()) {
+          tagList.push(child);
+        }
       }
+      child.childNodes.forEach(process);
     };
 
-    [rootElement].forEach(process);
-    return retVal;
+    process(rootElement);
+    return { coreList, tagList };
   }
 }
