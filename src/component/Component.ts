@@ -15,20 +15,13 @@ export default abstract class Component<TNode extends Node>
 
   protected addTrigger(sourceIds: Array<SourceId>) {
     sourceIds.forEach((sourceId) =>
-      this.context.addOnSourceSetHandler(sourceId, (x) => this.onTrigger())
+      this.context.addOnSourceSetHandler(sourceId, (x) =>
+        this.renderAsync(true)
+      )
     );
   }
 
-  protected onTrigger(): void {}
+  //protected onTrigger(): void {}
   abstract initializeAsync(): Promise<void>;
+  abstract renderAsync(fromTrigger: boolean): Promise<void>;
 }
-
-// export class ComponentList {
-//   readonly node: NodeListOf<ChildNode>;
-//   readonly context: IContext;
-
-//   constructor(nodeList: NodeListOf<ChildNode>, context: IContext) {
-//     this.node = nodeList;
-//     this.context = context;
-//   }
-// }

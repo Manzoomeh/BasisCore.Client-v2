@@ -1,6 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
+import NonSourceBaseComponent from "../NonSourceBaseComponent";
 
 //https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
 //https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie

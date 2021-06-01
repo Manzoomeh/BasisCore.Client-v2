@@ -41,7 +41,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
 
   protected abstract renderSourceAsync(dataSource: ISource): Promise<Node>;
 
-  public async renderAsync(): Promise<void> {
+  public async renderAsync(fromTrigger: boolean): Promise<void> {
     var source = await this.context.waitToGetSourceAsync(this.sourceId);
     this.onDataSourceAdded(source);
   }

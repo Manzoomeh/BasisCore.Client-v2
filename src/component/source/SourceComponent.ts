@@ -3,7 +3,7 @@ import DataSet from "../../data/DataSet";
 import IData from "../../data/IData";
 import ClientException from "../../exception/ClientException";
 import { SourceId } from "../../type-alias";
-import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
+import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import Member from "./base/Member";
 
 export default abstract class SourceComponent<

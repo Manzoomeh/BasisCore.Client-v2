@@ -8,7 +8,7 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.core = this.node.getAttribute("core");
-    const keys = this.node.getAttribute("data-trigger-on")?.split(" ");
+    const keys = this.node.getAttribute("bc-trigger-on")?.split(" ");
     if (keys) {
       this.addTrigger(keys);
       this.TriggerBase = true;

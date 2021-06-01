@@ -1,13 +1,14 @@
 import { injectable, inject, DependencyContainer } from "tsyringe";
 import IContext from "../../context/IContext";
-import LocalContext from "../../context/LocalContext";
-import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
+import ILocalContext from "../../context/ILocalContext";
+import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
 @injectable()
 export default class GroupComponent extends NonSourceBaseComponent {
   private collection: ComponentCollection;
   private readonly initializeTask: Promise<void>;
+  private readonly localContext: ILocalContext;
 
   constructor(
     @inject("element") element: Element,
@@ -15,6 +16,7 @@ export default class GroupComponent extends NonSourceBaseComponent {
     @inject("container") container: DependencyContainer
   ) {
     super(element, context);
+    console.log("ctor");
     const content = document.createDocumentFragment();
     const childNodes = [...element.childNodes];
     childNodes.forEach((node) => content.appendChild(node));
@@ -26,13 +28,14 @@ export default class GroupComponent extends NonSourceBaseComponent {
     childContainer.register("OwnerContext", { useValue: this.context });
     childContainer.register("nodes", { useValue: childNodes });
     childContainer.register("container", { useValue: childContainer });
-    const localContext = childContainer.resolve<LocalContext>(LocalContext);
-    childContainer.register("context", { useValue: localContext });
+    this.localContext = childContainer.resolve<ILocalContext>("ILocalContext");
+    childContainer.register("context", { useValue: this.localContext });
     this.collection = childContainer.resolve(ComponentCollection);
     this.initializeTask = this.collection.initializeAsync();
   }
 
   public runAsync(): Promise<void> {
+    console.log("GroupComponent.runAsync");
     return this.collection.runAsync();
   }
   public initializeAsync(): Promise<void> {

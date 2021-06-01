@@ -14,5 +14,4 @@ export abstract class NonRangeableComponent<
     const token = this.node.GetStringToken(attributeName, this.context);
     return (await token?.getValueAsync()) ?? defaultValue;
   }
-  abstract renderAsync(): Promise<void>;
 }

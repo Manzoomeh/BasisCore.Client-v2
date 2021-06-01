@@ -2,8 +2,7 @@ import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import CommandComponent from "../CommandComponent";
 import IComponent from "../IComponent";
-import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
-import HTMLButtonComponent from "../html-element/HTMLButtonComponent";
+import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import { AttributeComponent } from "../text-base/AttributeComponent";
 import TextComponent from "../text-base/TextComponent";
 
@@ -39,9 +38,10 @@ export default class ComponentCollection {
   }
 
   public async runAsync(): Promise<void> {
+    console.log("ComponentCollection.runAsync");
     var tasks = this.components
       .filter((x) => x instanceof NonSourceBaseComponent)
-      .map((x) => (x as NonSourceBaseComponent).renderAsync());
+      .map((x) => (x as NonSourceBaseComponent).renderAsync(false));
     await Promise.all(tasks);
   }
 
@@ -102,12 +102,6 @@ export default class ComponentCollection {
       this.extractTextComponent(element as Text);
     } else if (element.nodeType != Node.COMMENT_NODE) {
       if (element instanceof Element) {
-        // if (element.hasAttribute("bc-trigger")) {
-        //console.log(element, element.tagName);
-        //   this.components.push(
-        //     new HTMLButtonComponent(element as any, this.context)
-        //   );
-        // }
         if (!element.isBasisCore()) {
           this.extractAttributeComponent(element);
           if (element.hasChildNodes()) {
@@ -131,7 +125,6 @@ export default class ComponentCollection {
     token: string
   ): CommandComponent {
     const childContainer = this.container.createChildContainer();
-
     childContainer.register("element", { useValue: element });
     childContainer.register("context", { useValue: this.context });
     childContainer.register("container", { useValue: childContainer });

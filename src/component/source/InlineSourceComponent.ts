@@ -1,5 +1,4 @@
-﻿import IContext from "../../context/IContext";
-import SourceComponent from "./SourceComponent";
+﻿import SourceComponent from "./SourceComponent";
 import SourceUtil from "./SourceUtil";
 import InMemoryMember from "./base/InMemoryMember";
 

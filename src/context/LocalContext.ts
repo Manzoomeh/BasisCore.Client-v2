@@ -10,6 +10,7 @@ import ILocalContext from "./ILocalContext";
 @injectable()
 export default class LocalContext extends Context implements ILocalContext {
   readonly owner: Context;
+  public active: boolean = false;
 
   constructor(
     @inject("IContextRepository") repository: IContextRepository,
@@ -17,8 +18,17 @@ export default class LocalContext extends Context implements ILocalContext {
   ) {
     super(repository, owner.options, owner.logger);
     this.owner = owner;
-    owner.onDataSourceAdded.Add(this.onDataSourceAddedHandler.bind(this));
+    this.owner.onDataSourceAdded.Add(
+      this.onDataSourceAddedLocalHandler.bind(this)
+    );
     console.log("local context");
+  }
+
+  protected onDataSourceAddedLocalHandler(source: ISource) {
+    console.log("added", source);
+    if (this.active) {
+      super.onDataSourceAddedHandler(source);
+    }
   }
 
   public getOrLoadDbLibAsync(): Promise<any> {

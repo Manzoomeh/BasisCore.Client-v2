@@ -16,6 +16,7 @@ import TreeComponent from "./component/renderable/TreeComponent";
 import ViewComponent from "./component/renderable/ViewComponent";
 import CallbackComponent from "./component/source/CallbackComponent";
 import DbSourceComponent from "./component/source/DbSourceComponent";
+import LocalContext from "./context/LocalContext";
 
 import ConsoleLogger from "./logger/ConsoleLogger";
 import Repository from "./repository/Repository";
@@ -23,6 +24,7 @@ import Repository from "./repository/Repository";
 container.register("IBasisCore", { useToken: BasisCore });
 container.register("ILogger", { useToken: ConsoleLogger });
 container.register("IContextRepository", { useToken: Repository });
+container.register("ILocalContext", { useToken: LocalContext });
 
 container.register("print", { useToken: PrintComponent });
 container.register("tree", { useToken: TreeComponent });

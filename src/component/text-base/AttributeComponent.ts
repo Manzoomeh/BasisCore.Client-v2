@@ -16,18 +16,13 @@ export class AttributeComponent extends NonRangeableComponent<Element> {
       .then((defaultVal) => this.render(defaultVal ?? ""));
   }
 
-  protected onTrigger(): void {
-    this.renderAsync();
-  }
-
   public initializeAsync(): Promise<void> {
     return this.initializeTask;
   }
 
-  renderAsync(): Promise<void> {
-    return this.token.getValueAsync().then((x) => {
-      this.render(x);
-    });
+  public async renderAsync(fromTrigger: boolean): Promise<void> {
+    const content = await this.token.getValueAsync();
+    this.render(content);
   }
 
   render(content: string): void {

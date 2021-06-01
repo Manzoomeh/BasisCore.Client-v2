@@ -1,26 +1,18 @@
 import IContext from "../context/IContext";
 import CommandComponent from "./CommandComponent";
 
-export abstract class NonSourceBaseComponent extends CommandComponent {
+export default abstract class NonSourceBaseComponent extends CommandComponent {
   constructor(element: Element, context: IContext) {
     super(element, context);
   }
 
-  protected onTrigger(): void {
-    this.getCanRenderAsync(this.context).then((x) => {
-      if (x) {
-        this.runAsync();
+  public async renderAsync(fromTrigger: boolean): Promise<void> {
+    if (!this.TriggerBase || fromTrigger) {
+      const canRender = await this.getCanRenderAsync(this.context);
+      console.log("NonSourceBaseComponent.if", canRender);
+      if (canRender) {
+        await this.runAsync();
       }
-    });
-  }
-
-  public renderAsync(): Promise<void> {
-    if (!this.TriggerBase) {
-      return this.getCanRenderAsync(this.context).then((x) => {
-        if (x) {
-          this.runAsync();
-        }
-      });
     }
   }
   protected abstract runAsync(): Promise<void>;

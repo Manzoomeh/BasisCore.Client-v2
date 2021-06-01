@@ -1,6 +1,6 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import { NonSourceBaseComponent } from "../NonSourceBaseComponent";
+import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
 @injectable()

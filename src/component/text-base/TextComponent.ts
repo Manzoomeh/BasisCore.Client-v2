@@ -21,10 +21,9 @@ export default class TextComponent extends RangeableComponent<Node> {
     return this.initializeTask;
   }
 
-  protected onTrigger(): void {
-    this.token.getValueAsync().then((x) => {
-      this.setContent(x);
-    });
+  public async renderAsync(fromTrigger: boolean): Promise<void> {
+    const content = await this.token.getValueAsync();
+    this.setContent(content);
   }
 
   protected async setContent(content: string) {
