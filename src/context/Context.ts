@@ -70,13 +70,18 @@ export default abstract class Context implements IContext {
     return this.repository.waitToGetAsync(sourceId);
   }
 
-  public setAsSource(sourceId: SourceId, value: any, replace: boolean = true) {
+  public setAsSource(
+    sourceId: SourceId,
+    value: any,
+    replace: boolean = true,
+    preview?: boolean
+  ) {
     var source = DataUtil.ToDataSource(sourceId, value, replace);
-    this.setSource(source);
+    this.setSource(source, preview);
   }
 
-  public setSource(source: ISource): void {
-    this.repository.setSource(source);
+  public setSource(source: ISource, preview?: boolean): void {
+    this.repository.setSource(source, preview);
     this.onDataSourceAddedHandler(source);
   }
 

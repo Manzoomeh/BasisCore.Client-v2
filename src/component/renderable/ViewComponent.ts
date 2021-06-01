@@ -18,7 +18,7 @@ export default class ViewComponent extends RenderableComponent {
     super(element, context, container);
   }
 
-  async renderDataPartAsync(
+  protected async renderDataPartAsync(
     dataSource: IData,
     faces: FaceCollection,
     replaces: ReplaceCollection,
@@ -46,7 +46,7 @@ export default class ViewComponent extends RenderableComponent {
         dividerTemplate,
         incompleteTemplate
       );
-      rootRenderParam.SetLevel(["1"]);
+      rootRenderParam.setLevel(["1"]);
 
       groupList.forEach((group, _i, _) => {
         var childItems = DataUtil.ApplySimpleFilter(
@@ -54,8 +54,8 @@ export default class ViewComponent extends RenderableComponent {
           groupColumn,
           group
         );
-        rootRenderParam.Data = childItems[0];
-        var level1Result: string = faces.Render(rootRenderParam, this.context);
+        rootRenderParam.data = childItems[0];
+        var level1Result: string = faces.render(rootRenderParam);
         var level2Result = "";
         var childRenderParam = new RenderParam(
           replaces,
@@ -64,10 +64,10 @@ export default class ViewComponent extends RenderableComponent {
           dividerTemplate,
           incompleteTemplate
         );
-        childRenderParam.SetLevel(["2"]);
+        childRenderParam.setLevel(["2"]);
         childItems.forEach((row, _i, _) => {
-          childRenderParam.Data = row;
-          var renderResult = faces.Render(childRenderParam, this.context);
+          childRenderParam.data = row;
+          var renderResult = faces.render(childRenderParam);
           if (renderResult) {
             level2Result += renderResult;
           }

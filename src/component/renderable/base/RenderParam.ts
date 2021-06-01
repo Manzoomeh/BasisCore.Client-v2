@@ -2,53 +2,55 @@
 import ReplaceCollection from "./ReplaceCollection";
 
 export default class RenderParam {
-  Data: any[];
-  readonly Replaces: ReplaceCollection;
+  data: any[];
+  readonly replaces: ReplaceCollection;
   Levels: string[];
-  readonly _RenderableCount: number = 0;
-  _RenderedCount: number;
-  readonly _CellPerRow: number = 0;
-  readonly DividerTemplate: string;
-  readonly IncompleteTemplate: string;
-  _RenderedCell: number;
-  get IsEnd(): boolean {
-    return this._RenderableCount == this._RenderedCount;
+  readonly _renderableCount: number = 0;
+  _renderedCount: number;
+  readonly _cellPerRow: number = 0;
+  readonly dividerTemplate: string;
+  readonly incompleteTemplate: string;
+  _renderedCell: number;
+  get isEnd(): boolean {
+    return this._renderableCount == this._renderedCount;
   }
-  get EmptyCell(): number {
-    return this._CellPerRow - this._RenderedCell;
+  get emptyCell(): number {
+    return this._cellPerRow - this._renderedCell;
   }
-  get RowType(): FaceRowType {
-    return this._RenderedCount % 2 == 0 ? FaceRowType.Even : FaceRowType.Odd;
+  get rowType(): FaceRowType {
+    return this._renderedCount % 2 == 0 ? FaceRowType.Even : FaceRowType.Odd;
   }
-  get MustApplayDivider(): boolean {
+  get mustApplyDivider(): boolean {
     return (
-      this.DividerTemplate != null && this._RenderedCell == 0 && !this.IsEnd
+      this.dividerTemplate != null && this._renderedCell == 0 && !this.isEnd
     );
   }
   constructor(
     replaces: ReplaceCollection,
     renderableCount: number,
-    recoredPerRow: number,
+    recordPerRow: number,
     dividerTemplate: string,
     incompleteTemplate: string
   ) {
-    this.Replaces = replaces;
-    this._CellPerRow = recoredPerRow;
-    this._RenderableCount = renderableCount;
-    this.DividerTemplate = dividerTemplate;
-    this.IncompleteTemplate = incompleteTemplate;
-    this._RenderedCount = 0;
+    this.replaces = replaces;
+    this._cellPerRow = recordPerRow;
+    this._renderableCount = renderableCount;
+    this.dividerTemplate = dividerTemplate;
+    this.incompleteTemplate = incompleteTemplate;
+    this._renderedCount = 0;
   }
-  SetLevel(levels: string[]) {
+  setLevel(levels: string[]) {
     this.Levels = levels;
   }
-  SetRendered(): void {
-    this._RenderedCount++;
-    if (this._CellPerRow != 0) {
-      this._RenderedCell = this._RenderedCount % this._CellPerRow;
+  setRendered(): void {
+    this._renderedCount++;
+    if (!this.isEnd) {
+      if (this._cellPerRow != 0) {
+        this._renderedCell = this._renderedCount % this._cellPerRow;
+      }
     }
   }
-  SetIgnored() {
-    this._RenderedCount--;
+  setIgnored() {
+    this._renderedCount--;
   }
 }

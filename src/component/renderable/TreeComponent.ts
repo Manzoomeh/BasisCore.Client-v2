@@ -17,7 +17,7 @@ export default class TreeComponent extends RenderableComponent {
     super(element, context, container);
   }
 
-  async renderDataPartAsync(
+  protected async renderDataPartAsync(
     dataSource: IData,
     faces: FaceCollection,
     replaces: ReplaceCollection,
@@ -51,7 +51,7 @@ export default class TreeComponent extends RenderableComponent {
         incompleteTemplate
       );
       rootRecords.forEach((row) => {
-        rootRenderParam.Data = row;
+        rootRenderParam.data = row;
         retVal += this.renderLevel(
           dataSource,
           rootRenderParam,
@@ -86,7 +86,7 @@ export default class TreeComponent extends RenderableComponent {
     var childRows = DataUtil.ApplySimpleFilter(
       dataSource.rows,
       foreignKey,
-      parentRenderParam.Data[principalKey]
+      parentRenderParam.data[principalKey]
     );
 
     var groups: { [key: string]: any } = {};
@@ -101,7 +101,7 @@ export default class TreeComponent extends RenderableComponent {
       );
 
       childRows.forEach((row) => {
-        childRenderParam.Data = row;
+        childRenderParam.data = row;
         childRenderResult += this.renderLevel(
           dataSource,
           childRenderParam,
@@ -117,12 +117,12 @@ export default class TreeComponent extends RenderableComponent {
       });
       groups[""] = childRenderResult;
 
-      parentRenderParam.SetLevel([`${level}`]);
+      parentRenderParam.setLevel([`${level}`]);
     } else {
       groups[""] = "";
-      parentRenderParam.SetLevel([`${level}`, "end"]);
+      parentRenderParam.setLevel([`${level}`, "end"]);
     }
-    retVal = faces.Render(parentRenderParam, this.context);
+    retVal = faces.render(parentRenderParam);
     if (retVal) {
       Object.getOwnPropertyNames(groups).forEach(
         (key) =>

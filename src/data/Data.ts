@@ -4,7 +4,13 @@ import IData from "./IData";
 export default class Data implements IData {
   protected _rows: Array<any>;
   protected _columns: Array<string>;
-  public id: SourceId;
+  private _id: SourceId;
+  public get id(): SourceId {
+    return this._id;
+  }
+  public set id(value: SourceId) {
+    this._id = value.toLowerCase();
+  }
   public get columns(): Array<string> {
     return this._columns;
   }
@@ -16,7 +22,7 @@ export default class Data implements IData {
     this.updateColumnList();
   }
   constructor(sourceId: SourceId, rows: Array<any> = []) {
-    this.id = sourceId.toLowerCase();
+    this.id = sourceId;
     this.rows = rows;
   }
 

@@ -1,4 +1,5 @@
 import { singleton } from "tsyringe";
+import ISource from "../data/ISource";
 import { HostOptions } from "../options/HostOptions";
 import ILogger from "./ILogger";
 
@@ -7,13 +8,16 @@ export default class ConsoleLogger implements ILogger {
   constructor(options: HostOptions) {
     console.log("logger", options);
   }
-  LogError(message: string, exception: Error): void {
+  logSource(source: ISource): void {
+    console.table(source.data.id, source.data.rows);
+  }
+  logError(message: string, exception: Error): void {
     console.error(message, exception);
   }
-  LogInformation(message: string): void {
+  logInformation(message: string): void {
     console.info(message);
   }
-  LogWarning(message: string): void {
+  logWarning(message: string): void {
     console.warn(message);
   }
 }

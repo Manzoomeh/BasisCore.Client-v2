@@ -12,20 +12,29 @@
 <body>
     <basis core="list" datamembername="local.data" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
         <layout>
-            <ul>
-                @child
-            </ul>
+            <div>
+                <div>
+                    @child
+                </div>
+            </div>
         </layout>
         <face>
-            <div>@id</div>
+            <span>@id</span>
         </face>
-        <divider rowcount="3">
-            <br />
+        <divider rowcount="4">
+            <script type="text/template">
+            </div><div></script>
         </divider>
-
+        <incomplete>
+            <span>x</span>
+        </incomplete>
+        <else-layout>empty</else-layout>
     </basis>
 
     <script>
+        const host = {
+            dbLibPath: '../../../../alasql.min.js'
+        }
         $bc.setSource("local.data", [
             { id: 1 },
             { id: 2 },
@@ -37,6 +46,7 @@
             { id: 8 },
             { id: 9 },
         ]);
+
 
 
 

@@ -56,7 +56,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     return this.range.createContextualFragment(result);
   }
 
-  renderDataPartAsync(
+  protected renderDataPartAsync(
     dataSource: IData,
     faces: FaceCollection,
     replaces: ReplaceCollection,
@@ -72,11 +72,12 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
         dividerTemplate,
         incompleteTemplate
       );
-      var result: string = "";
-      dataSource.rows.forEach((row, _index, _) => {
-        param.Data = row;
-        result += faces.Render(param, this.context);
-      });
+
+      const result = dataSource.rows.reduce((r, row) => {
+        param.data = row;
+        r += faces.render(param);
+        return r;
+      }, "");
       resolve(result);
     });
   }

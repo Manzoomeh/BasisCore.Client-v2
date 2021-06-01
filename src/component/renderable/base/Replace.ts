@@ -1,15 +1,15 @@
 ﻿export default class Replace {
-  readonly TagName: string;
-  readonly Template: string;
+  readonly tagName: string;
+  readonly template: string;
   constructor(tagName: string, template: string) {
-    this.TagName = tagName;
-    this.Template = template;
+    this.tagName = tagName;
+    this.template = template;
   }
-  Applay(result: string): string {
-    var str = `\\[\\(${this.TagName}\\)(.+?)\\]`;
+  apply(result: string): string {
+    var str = `\\[\\(${this.tagName}\\)(.+?)\\]`;
     var matches = (<any>result).matchAll(RegExp(str, "gi"));
     for (const match of matches) {
-      var template = this.Template;
+      var template = this.template;
       var params = <string[]>match[1].split("|");
       params.forEach(
         (param, index, _) =>

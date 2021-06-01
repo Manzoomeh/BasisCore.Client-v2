@@ -30,6 +30,7 @@ export class HostOptions implements IContextHostOptions {
           "default.call.verb": "post",
           "default.dmnid": "",
           "default.source.verb": "post",
+          "default.ViewCommand.GroupColumn": "prpid",
         },
         sources: {},
       };

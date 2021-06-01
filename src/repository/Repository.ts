@@ -21,11 +21,14 @@ export default class Repository implements IContextRepository {
     return this.repository.get(sourceId?.toLowerCase());
   }
 
-  public setSource(source: ISource) {
-    const key = source.data.id?.toLowerCase();
+  public setSource(source: ISource, preview?: boolean) {
+    const key = source.data.id;
     this.repository.set(key, source);
+    if (preview) {
+      this.logger.logSource(source);
+    }
     this.eventManager.get(key)?.Trigger(source);
-    this.logger.LogInformation(`${source.data.id} Added.`);
+    this.logger.logInformation(`${source.data.id} Added.`);
   }
 
   public addHandler(sourceId: SourceId, handler: SourceHandler) {
@@ -37,7 +40,7 @@ export default class Repository implements IContextRepository {
     }
     const added = handlers.Add(handler);
     if (added) {
-      this.logger.LogInformation(`handler Added for ${sourceId}.`);
+      this.logger.logInformation(`handler Added for ${sourceId}.`);
     }
     return added;
   }
@@ -53,7 +56,7 @@ export default class Repository implements IContextRepository {
         resolve(retVal);
       } else {
         sourceId = sourceId?.toLowerCase();
-        this.logger.LogInformation(`wait for ${sourceId}`);
+        this.logger.logInformation(`wait for ${sourceId}`);
         let handler = this.Resolves.get(sourceId);
         if (!handler) {
           handler = new EventManager<ISource>();

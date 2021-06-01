@@ -1,5 +1,8 @@
+import ISource from "../data/ISource";
+
 export default interface ILogger {
-  LogError(message: string, exception: Error): void;
-  LogInformation(message: string): void;
-  LogWarning(message: string): void;
+  logSource(source: ISource): void;
+  logError(message: string, exception: Error): void;
+  logInformation(message: string): void;
+  logWarning(message: string): void;
 }

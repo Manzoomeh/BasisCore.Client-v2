@@ -18,7 +18,7 @@ export default class CallbackComponent extends SourceBaseComponent {
     try {
       method(dataSource);
     } catch (e) {
-      this.context.logger.LogError(
+      this.context.logger.logError(
         `error in execute callback method '${methodName}'.`,
         e
       );

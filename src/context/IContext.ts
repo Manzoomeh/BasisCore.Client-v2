@@ -28,8 +28,13 @@ export default interface IContext {
   getOrLoadDbLibAsync(): Promise<any>;
   getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
-  setAsSource(sourceId: SourceId, value: any, replace?: boolean);
-  setSource(source: ISource): void;
+  setAsSource(
+    sourceId: SourceId,
+    value: any,
+    replace?: boolean,
+    preview?: boolean
+  );
+  setSource(source: ISource, preview?: boolean): void;
   addOnSourceSetHandler(sourceId: SourceId, handler: SourceHandler): boolean;
   tryToGetSource(sourceId: SourceId): ISource;
   waitToGetSourceAsync(sourceId: SourceId): Promise<ISource>;
