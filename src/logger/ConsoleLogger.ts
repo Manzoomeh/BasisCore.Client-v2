@@ -6,7 +6,7 @@ import ILogger from "./ILogger";
 @singleton()
 export default class ConsoleLogger implements ILogger {
   constructor(options: HostOptions) {
-    console.log("logger", options);
+    console.log("logger - ctor");
   }
   logSource(source: ISource): void {
     console.table(source.data.id, source.data.rows);

@@ -16,6 +16,7 @@ export default class RepeaterComponent extends SourceBaseComponent {
   }
   protected async renderSourceAsync(dataSource: ISource): Promise<Node> {
     const name = await this.getAttributeValueAsync("name");
+    this.range.deleteContents();
     for (let index = 0; index < dataSource.data.rows.length; index++) {
       const row = dataSource.data.rows[index];
       const template = this.content.firstChild.cloneNode(true);

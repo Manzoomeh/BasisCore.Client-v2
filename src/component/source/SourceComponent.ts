@@ -1,6 +1,7 @@
 ﻿import IContext from "../../context/IContext";
 import DataSet from "../../data/DataSet";
 import IData from "../../data/IData";
+import { Priority } from "../../enum";
 import ClientException from "../../exception/ClientException";
 import { SourceId } from "../../type-alias";
 import NonSourceBaseComponent from "../NonSourceBaseComponent";
@@ -15,7 +16,7 @@ export default abstract class SourceComponent<
   readonly range: Range;
   readonly content: DocumentFragment;
   readonly members: Array<Element>;
-
+  readonly priority: Priority = Priority.high;
   abstract convertToMemberObject(element: Element): T;
 
   constructor(element: Element, context: IContext) {

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../basiscore.min.js"></script>
+    <title>Server Side Live Filter</title>
+</head>
+
+<body>
+    <fieldset>
+        <form name="data.filter" bc-triggers="submit">
+            <legend>ّFilter</legend>
+            <label>name: <input type="text" name="name" /></label>
+            <br />
+            <label>min id: <input type="number" name="min-id" min="1000" max="2000" /></label>
+            <br />
+            <label>max id: <input type="number" name="max-id" min="1000" max="2000" /></label>
+            <br />
+            <label>min age: <input type="range" name="age" min="10" max="90" /></label>
+            <br />
+            <input type="submit">
+        </form>
+    </fieldset>
+
+
+    <fieldset>
+        <legend>Filter on</legend>
+        <label>Name Contains: [##data.filter.name##]</label>
+        <br />
+        <label>Min id: [##data.filter.min-id##]</label>
+        <br />
+        <label>Max id: [##data.filter.max-id##]</label>
+        <br />
+        <label>Min age: [##data.filter.age##]</label>
+    </fieldset>
+
+    <basis core="dbsource" source="schoolapi" name="book" run="atclient" filter-name="[##data.filter.name##]"
+        filter-min-id="[##data.filter.min-id##]" filter-max-id="[##data.filter.max-id##]"
+        filter-age="[##data.filter.age##]" bc-trigger-on="data.filter">
+        <member name="list" type="list" request="print" preview="true"></member>
+    </basis>
+
+    <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>
+
+
+    <script>
+        const host = {
+            dbLibPath: '../../../../alasql.min.js',
+            settings: {
+                'connection.web.schoolapi': 'http://localhost:3000/data/schoolapi',
+                'default.dmnid': 2668
+            },
+        }
+
+
+        const MIN_ID = 1000;
+        const MAX_ID = 1500;
+        const MIN_AGE = 10;
+
+        $bc.setSource("data.filter", {
+            name: '',
+            "min-id": MIN_ID,
+            "max-id": MAX_ID,
+            "age": MIN_AGE
+        });
+
+        function onSource(source) {
+            console.table(source.data.rows);
+        }
+
+    </script>
+</body>
+
+</html>

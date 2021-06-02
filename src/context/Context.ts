@@ -24,6 +24,7 @@ export default abstract class Context implements IContext {
     this.logger = logger;
     this.options = options;
     this.onDataSourceAdded = new EventManager<ISource>();
+    console.log("context - ctor");
   }
   abstract getOrLoadDbLibAsync(): Promise<any>;
   abstract getOrLoadObjectAsync(object: string, url: string): Promise<any>;
@@ -47,10 +48,10 @@ export default abstract class Context implements IContext {
   }
 
   protected onDataSourceAddedHandler(source: ISource) {
-    var handler = this.repository.Resolves.get(source.data.id);
+    var handler = this.repository.resolves.get(source.data.id);
     if (handler) {
       handler.Trigger(source);
-      this.repository.Resolves.delete(source.data.id);
+      this.repository.resolves.delete(source.data.id);
     }
     this.onDataSourceAdded.Trigger(source);
   }
@@ -66,8 +67,12 @@ export default abstract class Context implements IContext {
     return this.repository.tryToGet(sourceId);
   }
 
-  public waitToGetSourceAsync(sourceId: SourceId): Promise<ISource> {
-    return this.repository.waitToGetAsync(sourceId);
+  public async waitToGetSourceAsync(sourceId: SourceId): Promise<ISource> {
+    var retVal = this.tryToGetSource(sourceId);
+    if (!retVal) {
+      retVal = await this.repository.waitToGetAsync(sourceId);
+    }
+    return retVal;
   }
 
   public setAsSource(

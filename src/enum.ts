@@ -20,3 +20,11 @@ export enum JoinType {
   leftjoin,
   rightjoin,
 }
+
+export enum Priority {
+  higher,
+  high,
+  normal,
+  Low,
+  lower,
+}

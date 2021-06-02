@@ -13,7 +13,7 @@
   <basis core="group" run="atclient">
     <h1>Group 1 start</h1>
     <Basis core="print" datamembername="local.print" run="atclient">
-      <face filter="id <= 2">
+      <face filter="id<=2">
         <li>
           <span>@ID (@NAME) </span>
         </li>
@@ -23,14 +23,22 @@
     <basis core="group" run="atclient">
       <h1>Group 2 start</h1>
       <Basis core="print" datamembername="local.print" run="atclient">
-        <face filter="id > 2">
+        <face filter="id>2">
           <li>
             <span>@ID (@NAME) </span>
           </li>
         </face>
       </Basis>
+
+
+      <basis core="group" run="atclient">
+        <h1>Group 3 start</h1>
+        [##local.print.name|(not set)##]
+        <h1>Group 3 end</h1>
+      </basis>
       <h1>Group 2 end</h1>
     </basis>
+
     <h1>Group 1 end</h1>
   </basis>
   <script>

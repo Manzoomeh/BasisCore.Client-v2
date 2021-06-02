@@ -1,15 +1,16 @@
 import { DependencyContainer } from "tsyringe";
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
+import { Priority } from "../enum";
 import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
 
 export default abstract class SourceBaseComponent extends CommandComponent {
-  private readonly initializeTask: Promise<void>;
   private sourceId: SourceId;
   readonly range: Range;
   readonly content: DocumentFragment;
   readonly container: DependencyContainer;
+  private _dataSource: ISource;
   constructor(
     element: Element,
     context: IContext,
@@ -20,42 +21,37 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     this.range = document.createRange();
     this.range.selectNode(element);
     this.content = this.range.extractContents();
-    this.initializeTask = this.addDataHandler();
   }
 
-  private async addDataHandler(): Promise<void> {
+  public async initializeAsync(): Promise<void> {
+    await super.initializeAsync();
     this.sourceId = await this.getAttributeValueAsync("datamembername");
-    var source = this.context.tryToGetSource(this.sourceId);
     this.context.addOnSourceSetHandler(
       this.sourceId,
       this.onDataSourceAdded.bind(this)
     );
-    if (source) {
-      this.onDataSourceAdded(source);
-    }
-  }
-
-  public initializeAsync(): Promise<void> {
-    return this.initializeTask;
+    console.log(`${this.core} - initializeAsync`);
   }
 
   protected abstract renderSourceAsync(dataSource: ISource): Promise<Node>;
 
-  public async renderAsync(fromTrigger: boolean): Promise<void> {
-    var source = await this.context.waitToGetSourceAsync(this.sourceId);
-    this.onDataSourceAdded(source);
+  public async runAsync(): Promise<void> {
+    let source = this._dataSource;
+    this._dataSource = null;
+    if (!source) {
+      source = await this.context.waitToGetSourceAsync(this.sourceId);
+    }
+    console.log(`${this.core} - runAsync`);
+    const renderResult = await this.renderSourceAsync(source);
+    if (renderResult) {
+      this.setContent(renderResult, source.replace);
+    }
   }
 
   private onDataSourceAdded(dataSource: ISource): void {
-    this.getCanRenderAsync(this.context).then((x) => {
-      if (x) {
-        this.renderSourceAsync(dataSource).then((renderResult) => {
-          if (renderResult) {
-            this.setContent(renderResult, dataSource.replace);
-          }
-        });
-      }
-    });
+    this._dataSource = dataSource;
+    console.log("ff");
+    this.renderAsync(false);
   }
 
   protected async setContent(newContent: Node, replace: boolean = true) {

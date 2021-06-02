@@ -35,7 +35,6 @@ export default class CallComponent extends NonSourceBaseComponent {
       pagesize,
       0
     );
-
     const content = this.range.createContextualFragment(result);
     const childNodes = [...content.childNodes];
     this.range.deleteContents();

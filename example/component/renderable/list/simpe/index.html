@@ -48,8 +48,8 @@
     </basis>
 
     <script>
-        const bc = new $bc()
-        bc.setSource("local.tree", [
+
+        $bc.setSource("local.tree", [
             { id: 1, name: "ali", pid: null },
             { id: 2, name: "amir", pid: 1 },
             { id: 3, name: "hassan", pid: 1 },
@@ -58,7 +58,7 @@
         ]);
 
         setTimeout(() => {
-            bc.setSource("local.print", { id: 1356.3, name: "ali", pid: null });
+            $bc.setSource("local.print", { id: 1356.3, name: "ali", pid: null });
         }, 3000);
 
     </script>

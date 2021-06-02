@@ -16,7 +16,18 @@
         </basis>
     </ul>
     <script>
-
+        let i = 0;
+        setInterval(() => {
+            $bc.setSource(
+                "local.print",
+                [
+                    { id: i, name: "btn-t=1" },
+                    { id: i + 1, name: "btn-t=2" },
+                    { id: i + 2, name: "btn-t=3" },
+                ], true
+            );
+            i += 3;
+        }, 3000);
         $bc.setSource(
             "local.print",
             [

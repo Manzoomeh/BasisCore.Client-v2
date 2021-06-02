@@ -1,8 +1,8 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
+import { Priority } from "../../enum";
 import CommandComponent from "../CommandComponent";
 import IComponent from "../IComponent";
-import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import { AttributeComponent } from "../text-base/AttributeComponent";
 import TextComponent from "../text-base/TextComponent";
 
@@ -23,35 +23,54 @@ export default class ComponentCollection {
     this.container = container;
     this.context = context;
     this.regex = this.context.options.getDefault<RegExp>("binding.regex");
+    console.log("ComponentCollection - ctor");
     this.addNodes(nodes);
   }
 
   public addNodes(nodes: Array<Node>) {
     this.nodes.push(...nodes);
     this.initializeTask = this.initializeTask.then((_) =>
-      this.extractComponentAsync(nodes)
+      this.extractComponent(nodes)
     );
   }
 
   public async initializeAsync(): Promise<void> {
-    return this.initializeTask;
+    await this.initializeTask;
+    const tasks = this.components.map((x) => x.initializeAsync());
+    await Promise.all(tasks);
   }
 
   public async runAsync(): Promise<void> {
     console.log("ComponentCollection.runAsync");
-    var tasks = this.components
-      .filter((x) => x instanceof NonSourceBaseComponent)
-      .map((x) => (x as NonSourceBaseComponent).renderAsync(false));
-    await Promise.all(tasks);
+
+    const priorityMap = this.components.reduce((map, component) => {
+      let list = map.get(component.priority);
+      if (!list) {
+        list = new Array<IComponent>();
+        map.set(component.priority, list);
+      }
+      list.push(component);
+      return map;
+    }, new Map<Priority, Array<IComponent>>());
+
+    console.log(priorityMap);
+    for (const enumValue in Priority) {
+      if (isNaN(Number(enumValue))) {
+        const key: any = Priority[enumValue];
+        const relatedComponent = priorityMap.get(key);
+        if (relatedComponent) {
+          const taskList = relatedComponent.map((x) => x.renderAsync(false));
+          await Promise.all(taskList);
+        }
+      }
+    }
   }
 
-  private async extractComponentAsync(nodes: Array<Node>): Promise<void> {
+  private extractComponent(nodes: Array<Node>): void {
     nodes.forEach((node) => {
       this.extractTextBaseComponents(node);
       this.extractBasisCommands(node);
     });
-
-    await Promise.all(this.components.map((x) => x.initializeAsync()));
   }
   private extractBasisCommands(node: Node) {
     const pair = this.findRootLevelComponentNode(node);

@@ -1,14 +1,12 @@
 import { injectable, inject, DependencyContainer } from "tsyringe";
 import IContext from "../../context/IContext";
-import ILocalContext from "../../context/ILocalContext";
 import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
 @injectable()
 export default class GroupComponent extends NonSourceBaseComponent {
   private collection: ComponentCollection;
-  private readonly initializeTask: Promise<void>;
-  private readonly localContext: ILocalContext;
+  //private readonly localContext: ILocalContext;
 
   constructor(
     @inject("element") element: Element,
@@ -16,7 +14,6 @@ export default class GroupComponent extends NonSourceBaseComponent {
     @inject("container") container: DependencyContainer
   ) {
     super(element, context);
-    console.log("ctor");
     const content = document.createDocumentFragment();
     const childNodes = [...element.childNodes];
     childNodes.forEach((node) => content.appendChild(node));
@@ -28,17 +25,18 @@ export default class GroupComponent extends NonSourceBaseComponent {
     childContainer.register("OwnerContext", { useValue: this.context });
     childContainer.register("nodes", { useValue: childNodes });
     childContainer.register("container", { useValue: childContainer });
-    this.localContext = childContainer.resolve<ILocalContext>("ILocalContext");
-    childContainer.register("context", { useValue: this.localContext });
+    const localContext = childContainer.resolve("ILocalContext");
+    childContainer.register("context", { useValue: localContext });
     this.collection = childContainer.resolve(ComponentCollection);
-    this.initializeTask = this.collection.initializeAsync();
   }
 
   public runAsync(): Promise<void> {
-    console.log("GroupComponent.runAsync");
+    console.log("group - runAsync");
     return this.collection.runAsync();
   }
-  public initializeAsync(): Promise<void> {
-    return this.initializeTask;
+
+  public async initializeAsync(): Promise<void> {
+    await super.initializeAsync();
+    await this.collection.initializeAsync();
   }
 }

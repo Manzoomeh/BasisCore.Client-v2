@@ -1,10 +1,12 @@
 ﻿import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
+import { Priority } from "../../enum";
 import SourceBaseComponent from "../SourceBaseComponent";
 
 @injectable()
 export default class CallbackComponent extends SourceBaseComponent {
+  readonly priority: Priority = Priority.normal;
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,

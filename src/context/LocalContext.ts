@@ -10,7 +10,7 @@ import ILocalContext from "./ILocalContext";
 @injectable()
 export default class LocalContext extends Context implements ILocalContext {
   readonly owner: Context;
-  public active: boolean = false;
+  public active: boolean = true;
 
   constructor(
     @inject("IContextRepository") repository: IContextRepository,
@@ -21,13 +21,13 @@ export default class LocalContext extends Context implements ILocalContext {
     this.owner.onDataSourceAdded.Add(
       this.onDataSourceAddedLocalHandler.bind(this)
     );
-    console.log("local context");
   }
 
   protected onDataSourceAddedLocalHandler(source: ISource) {
     console.log("added", source);
     if (this.active) {
       super.onDataSourceAddedHandler(source);
+      this.repository.eventManager.get(source.data.id)?.Trigger(source);
     }
   }
 
@@ -57,7 +57,7 @@ export default class LocalContext extends Context implements ILocalContext {
 
   public tryToGetSource(sourceId: SourceId): ISource {
     return (
-      this.repository.tryToGet(sourceId) ?? this.owner.tryToGetSource(sourceId)
+      super.tryToGetSource(sourceId) ?? this.owner.tryToGetSource(sourceId)
     );
   }
 

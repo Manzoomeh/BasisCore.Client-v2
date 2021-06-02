@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../basiscore.min.js"></script>
+    <title>ClientSide Live Filter</title>
+</head>
+
+<body>
+    <fieldset>
+        <legend>ّFilter</legend>
+        <label>name: <input type="text" name="filter.name" bc-triggers="keyup change" /></label>
+        <br />
+        <label>min id: <input type="number" name="filter.min-id" bc-triggers="keyup change" min="1000"
+                max="2000" /></label>
+        <br />
+        <label>max id: <input type="number" name="filter.max-id" bc-triggers="keyup change" min="1000"
+                max="2000" /></label>
+        <br />
+        <label>min age: <input type="range" bc-triggers="change input" name="filter.age" min="10" max="90" /></label>
+
+    </fieldset>
+
+
+    <fieldset>
+        <legend>Filter on</legend>
+        <label>Name Contains: [##filter.name.value##]</label>
+        <br />
+        <label>Min id: [##filter.min-id.value##]</label>
+        <br />
+        <label>Max id: [##filter.max-id.value##]</label>
+        <br />
+        <label>Min age: [##filter.age.value##]</label>
+    </fieldset>
+    <Basis core="print" datamembername="local.print" run="atclient" if=""
+        bc-trigger-on="filter.max-id filter.min-id filter.age filter.name">
+        <layout>
+            <script type="text/template">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Age</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @child
+                </tbody>
+            </table>
+        </script>
+        </layout>
+        <face
+            filter="name like'%[##filter.name.value##]%' and (id between [##filter.min-id.value|(1000)##]  and [##filter.max-id.value|(1100)##] ) and age >= [##filter.age.value##]">
+            <script type="text/template">
+            <tr>
+                <td>@id</td>
+                <td>@age</td>
+                <td>@name</td>
+            </tr>
+        </script>
+        </face>
+    </Basis>
+    <script>
+        const host = {
+            dbLibPath: '../../../../alasql.min.js'
+        }
+
+
+        const MIN_ID = 1000;
+        const MAX_ID = 1500;
+        const MIN_AGE = 10;
+
+        const dataList = [];
+        for (let index = MIN_ID; index < MAX_ID; index++) {
+            const data = {
+                id: index,
+                age: Math.floor(Math.random() * 80) + MIN_AGE,
+                name: Math.random().toString(36).substring(7)
+            }
+            dataList.push(data);
+
+        }
+        $bc.setSource("filter.name", '');
+        $bc.setSource("filter.min-id", MIN_ID);
+        $bc.setSource("filter.max-id", MAX_ID);
+        $bc.setSource("filter.age", MIN_AGE);
+        $bc.setSource("local.print", dataList);
+        $bc.setSource("local.print", dataList);
+
+    </script>
+</body>
+
+</html>

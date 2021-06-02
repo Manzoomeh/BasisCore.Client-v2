@@ -13,7 +13,7 @@ export default class Repository implements IContextRepository {
     EventManager<ISource>
   >();
   readonly logger: ILogger;
-  readonly Resolves = new Map<string, EventManager<ISource>>();
+  readonly resolves = new Map<string, EventManager<ISource>>();
   constructor(@inject("ILogger") logger: ILogger) {
     this.logger = logger;
   }
@@ -51,19 +51,14 @@ export default class Repository implements IContextRepository {
 
   public waitToGetAsync(sourceId: SourceId): Promise<ISource> {
     return new Promise<ISource>((resolve) => {
-      var retVal = this.tryToGet(sourceId);
-      if (retVal) {
-        resolve(retVal);
-      } else {
-        sourceId = sourceId?.toLowerCase();
-        this.logger.logInformation(`wait for ${sourceId}`);
-        let handler = this.Resolves.get(sourceId);
-        if (!handler) {
-          handler = new EventManager<ISource>();
-          this.Resolves.set(sourceId, handler);
-        }
-        handler.Add(resolve);
+      sourceId = sourceId?.toLowerCase();
+      this.logger.logInformation(`wait for ${sourceId}`);
+      let handler = this.resolves.get(sourceId);
+      if (!handler) {
+        handler = new EventManager<ISource>();
+        this.resolves.set(sourceId, handler);
       }
+      handler.Add(resolve);
     });
   }
 }

@@ -13,6 +13,9 @@ export default class CookieComponent extends NonSourceBaseComponent {
     @inject("context") context: IContext
   ) {
     super(element, context);
+    const range = document.createRange();
+    range.selectNode(element);
+    range.deleteContents();
   }
   public initializeAsync(): Promise<void> {
     return Promise.resolve();
