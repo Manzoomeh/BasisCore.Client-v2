@@ -10,7 +10,6 @@ import Member from "./base/Member";
 export default abstract class SourceComponent<
   T extends Member
 > extends NonSourceBaseComponent {
-  private readonly initializeTask: Promise<void>;
   private oldConnectionName: string;
   protected id: SourceId;
   readonly range: Range;
@@ -24,16 +23,12 @@ export default abstract class SourceComponent<
     this.range = new Range();
     this.range.selectNode(element);
     this.content = this.range.extractContents();
-    this.initializeTask = this.setName();
     this.members = [...this.content.querySelectorAll("member")];
   }
 
-  private async setName(): Promise<void> {
+  public async initializeAsync(): Promise<void> {
+    super.initializeAsync();
     this.id = await this.getAttributeValueAsync("name");
-  }
-
-  initializeAsync(): Promise<void> {
-    return this.initializeTask;
   }
 
   protected async runAsync(): Promise<void> {

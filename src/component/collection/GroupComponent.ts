@@ -6,7 +6,6 @@ import ComponentCollection from "./ComponentCollection";
 @injectable()
 export default class GroupComponent extends NonSourceBaseComponent {
   private collection: ComponentCollection;
-  //private readonly localContext: ILocalContext;
 
   constructor(
     @inject("element") element: Element,
@@ -32,7 +31,7 @@ export default class GroupComponent extends NonSourceBaseComponent {
 
   public runAsync(): Promise<void> {
     console.log("group - runAsync");
-    return this.collection.runAsync();
+    return this.collection.processAsync();
   }
 
   public async initializeAsync(): Promise<void> {

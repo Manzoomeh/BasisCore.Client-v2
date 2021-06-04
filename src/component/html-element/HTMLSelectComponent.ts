@@ -11,7 +11,7 @@ export default class HTMLSelectComponent extends HTMLElementComponent<HTMLSelect
     super(element, context);
   }
 
-  protected getSourceValue(event: Event): any {
-    return this.node.value ?? super.getSourceValue(event);
+  protected async getSourceValueAsync(event: Event): Promise<any> {
+    return this.node.value ?? (await super.getSourceValueAsync(event));
   }
 }

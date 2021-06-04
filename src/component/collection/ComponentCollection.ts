@@ -14,6 +14,10 @@ export default class ComponentCollection {
   readonly components: Array<IComponent> = new Array<IComponent>();
   readonly regex: RegExp;
   readonly container: DependencyContainer;
+  protected _busy: boolean = false;
+  public get busy(): boolean {
+    return this._busy;
+  }
 
   constructor(
     @inject("nodes") nodes: Array<Node>,
@@ -40,7 +44,18 @@ export default class ComponentCollection {
     await Promise.all(tasks);
   }
 
-  public async runAsync(): Promise<void> {
+  public processAsync(): Promise<void> {
+    if (!this.busy) {
+      this._busy = true;
+      try {
+        return this.runAsync();
+      } finally {
+        this._busy = false;
+      }
+    }
+  }
+
+  private async runAsync(): Promise<void> {
     console.log("ComponentCollection.runAsync");
 
     const priorityMap = this.components.reduce((map, component) => {
@@ -52,14 +67,12 @@ export default class ComponentCollection {
       list.push(component);
       return map;
     }, new Map<Priority, Array<IComponent>>());
-
-    console.log(priorityMap);
     for (const enumValue in Priority) {
       if (isNaN(Number(enumValue))) {
         const key: any = Priority[enumValue];
         const relatedComponent = priorityMap.get(key);
         if (relatedComponent) {
-          const taskList = relatedComponent.map((x) => x.renderAsync(false));
+          const taskList = relatedComponent.map((x) => x.processAsync());
           await Promise.all(taskList);
         }
       }

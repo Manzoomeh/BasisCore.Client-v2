@@ -11,8 +11,8 @@ export default class HTMLInputComponent extends HTMLElementComponent<HTMLInputEl
     super(element, context);
   }
 
-  protected getSourceValue(event: Event): any {
-    let value = super.getSourceValue(event);
+  protected async getSourceValueAsync(event: Event): Promise<any> {
+    let value = await super.getSourceValueAsync(event);
     if (!value) {
       switch (this.node.type) {
         case "checkbox": {

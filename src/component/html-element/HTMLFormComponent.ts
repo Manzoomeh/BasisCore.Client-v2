@@ -11,12 +11,12 @@ export default class HTMLFormComponent extends HTMLElementComponent<HTMLFormElem
     super(element, context);
   }
 
-  protected getSourceValue(event: Event): any {
+  protected getSourceValueAsync(event: Event): Promise<any> {
     const data = new FormData(this.node);
     const value = Array.from(data.keys()).reduce((result, key) => {
       result[key] = data.get(key);
       return result;
     }, {});
-    return value;
+    return Promise.resolve(value);
   }
 }

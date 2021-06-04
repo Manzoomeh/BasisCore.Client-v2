@@ -8,33 +8,45 @@ export default abstract class HTMLElementComponent<
   protected triggers: string;
   constructor(element: TElement, context: IContext) {
     super(element, context);
-    const triggers = this.node.attributes["bc-triggers"]?.value.split(" ");
-    triggers?.forEach((type) =>
-      this.node.addEventListener(type, this.onEventTriggerAsync.bind(this))
-    );
   }
 
   public async initializeAsync(): Promise<void> {
-    return Promise.resolve();
+    const value = await this.getAttributeValueAsync("bc-triggers");
+    if (value) {
+      const triggers = value.split(" ");
+      triggers?.forEach((type) =>
+        this.node.addEventListener(type, this.onEventTriggerAsync.bind(this))
+      );
+    }
   }
 
-  renderAsync(fromTrigger: boolean): Promise<void> {
+  renderAsync(): Promise<void> {
     return Promise.resolve();
   }
 
   protected async onEventTriggerAsync(event: Event) {
     event.preventDefault();
-    const id = this.getSourceId();
-    const value = this.getSourceValue(event);
-    this.context.setAsSource(id ?? "cms.unknown", value);
+    if (!this.busy) {
+      this._busy = true;
+      try {
+        const id = await this.getSourceIdAsync();
+        const value = await this.getSourceValueAsync(event);
+        this.context.setAsSource(id ?? "cms.unknown", value);
+      } finally {
+        this._busy = false;
+      }
+    }
   }
 
-  protected getSourceId(): SourceId {
-    return this.node.attributes["name"]?.value;
+  protected async getSourceIdAsync(): Promise<SourceId> {
+    return await this.getAttributeValueAsync("name");
   }
 
-  protected getSourceValue(event: Event): any {
-    return (this.node.attributes["bc-value"] ?? this.node.attributes["value"])
-      ?.value;
+  protected async getSourceValueAsync(event: Event): Promise<any> {
+    let retVal = await this.getAttributeValueAsync("bc-value");
+    if (!retVal) {
+      retVal = await this.getAttributeValueAsync("value");
+    }
+    return retVal;
   }
 }

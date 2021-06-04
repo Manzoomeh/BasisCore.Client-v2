@@ -1,7 +1,6 @@
 import { DependencyContainer } from "tsyringe";
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
-import { Priority } from "../enum";
 import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
 
@@ -50,8 +49,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
 
   private onDataSourceAdded(dataSource: ISource): void {
     this._dataSource = dataSource;
-    console.log("ff");
-    this.renderAsync(false);
+    this.processAsync();
   }
 
   protected async setContent(newContent: Node, replace: boolean = true) {

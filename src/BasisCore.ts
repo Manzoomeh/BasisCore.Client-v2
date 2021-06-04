@@ -1,4 +1,3 @@
-import ClientException from "./exception/ClientException";
 import IBasisCore from "./IBasisCore";
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
@@ -30,21 +29,7 @@ export default class BasisCore implements IBasisCore {
     if (!this.runTask) {
       this.runTask = this.content
         .initializeAsync()
-        .then((x) => this.content.runAsync());
+        .then((x) => this.content.processAsync());
     }
-  }
-  addFragment(selector: string): void;
-  addFragment(element: Element): void;
-  addFragment(param: any): void {
-    // var element: Array<Element>;
-    // if (typeof param === "string") {
-    //   element = Array.from(document.querySelectorAll(param));
-    // } else if (param instanceof Element) {
-    //   element = [param];
-    // } else {
-    //   throw new ClientException("Invalid Argument");
-    // }
-    // this.content = new ComponentCollection(element, this.context);
-    // this.content.initializeAsync().then((_) => this.content.runAsync());
   }
 }

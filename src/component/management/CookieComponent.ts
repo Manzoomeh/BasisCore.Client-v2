@@ -18,7 +18,7 @@ export default class CookieComponent extends NonSourceBaseComponent {
     range.deleteContents();
   }
   public initializeAsync(): Promise<void> {
-    return Promise.resolve();
+    return super.initializeAsync();
   }
   public async runAsync(): Promise<void> {
     var name = await this.getAttributeValueAsync("name");

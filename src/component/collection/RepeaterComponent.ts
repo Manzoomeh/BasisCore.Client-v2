@@ -31,7 +31,7 @@ export default class RepeaterComponent extends SourceBaseComponent {
       childContainer.register("context", { useValue: localContext });
       const collection = childContainer.resolve(ComponentCollection);
       await collection.initializeAsync();
-      await collection.runAsync();
+      await collection.processAsync();
     }
     return null;
   }

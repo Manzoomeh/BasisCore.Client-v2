@@ -1,5 +1,6 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
+import { Priority } from "../../enum";
 import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import ComponentCollection from "./ComponentCollection";
 
@@ -7,6 +8,7 @@ import ComponentCollection from "./ComponentCollection";
 export default class CallComponent extends NonSourceBaseComponent {
   readonly range: Range;
   private readonly container: DependencyContainer;
+  readonly priority: Priority = Priority.higher;
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
@@ -18,11 +20,9 @@ export default class CallComponent extends NonSourceBaseComponent {
     this.range.selectNode(element);
     this.range.deleteContents();
   }
-  public initializeAsync(): Promise<void> {
-    return Promise.resolve();
-  }
 
   protected async runAsync(): Promise<void> {
+    console.log(this.busy);
     const filename = await this.getAttributeValueAsync("file");
     const pagesize = await this.getAttributeValueAsync("pagesize");
     const command = await this.node.outerHTML
@@ -45,6 +45,6 @@ export default class CallComponent extends NonSourceBaseComponent {
     childContainer.register("container", { useValue: childContainer });
     const collection = childContainer.resolve(ComponentCollection);
     await collection.initializeAsync();
-    await collection.runAsync();
+    await collection.processAsync();
   }
 }

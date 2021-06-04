@@ -18,7 +18,10 @@
     </div>
 
     <script>
-        const bc = new $bc().addFragment('#section-1')
+        const bc = new $bc()
+            .addFragment('#section-1')
+            .run()
+
         setInterval(() => {
             const date = new Date();
             const source = {
@@ -38,7 +41,8 @@
         const bc2 = $bc
             .new()
             .addFragment('.section-2')
-            .setOptions(hostSetting);
+            .setOptions(hostSetting)
+            .run();
 
         setInterval(() => {
             const date = new Date();

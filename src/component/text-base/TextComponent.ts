@@ -3,7 +3,6 @@ import IToken from "../../token/IToken";
 import RangeableComponent from "../RangeableComponent";
 
 export default class TextComponent extends RangeableComponent<Node> {
-  private readonly initializeTask: Promise<void>;
   readonly token: IToken<string>;
   readonly content: DocumentFragment;
 
@@ -12,16 +11,14 @@ export default class TextComponent extends RangeableComponent<Node> {
     this.content = this.range.extractContents();
     this.token = this.content.textContent.ToStringToken(context);
     this.addTrigger(this.token.getSourceNames());
-    this.initializeTask = this.token
-      .getValueAsync(false)
-      .then((defaultVal) => this.setContent(defaultVal ?? ""));
   }
 
-  public initializeAsync(): Promise<void> {
-    return this.initializeTask;
+  public async initializeAsync(): Promise<void> {
+    const value = await this.token.getValueAsync(false);
+    this.setContent(value ?? "");
   }
 
-  public async renderAsync(fromTrigger: boolean): Promise<void> {
+  public async renderAsync(): Promise<void> {
     const content = await this.token.getValueAsync();
     this.setContent(content);
   }
