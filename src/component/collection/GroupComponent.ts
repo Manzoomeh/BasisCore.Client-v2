@@ -1,7 +1,7 @@
 import { injectable, inject, DependencyContainer } from "tsyringe";
 import IContext from "../../context/IContext";
 import NonSourceBaseComponent from "../NonSourceBaseComponent";
-import ComponentCollection from "./ComponentCollection";
+import ComponentCollection from "../ComponentCollection";
 
 @injectable()
 export default class GroupComponent extends NonSourceBaseComponent {

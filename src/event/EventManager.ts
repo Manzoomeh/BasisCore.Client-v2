@@ -7,23 +7,10 @@ export default class EventManager<T> implements IEvent<T>, IEventManager<T> {
 
   public Add(handler: EventHandler<T>): boolean {
     let retVal = false;
-    // console.log(
-    //   this.handlers.has(handler),
-    //   this.handlers.size,
-    //   this.handlers,
-    //   handler
-    // );
     if (!this.handlers.has(handler)) {
       this.handlers.add(handler);
       retVal = true;
     }
-    // console.log(
-    //   this.handlers.has(handler),
-    //   this.handlers.size,
-    //   this.handlers,
-    //   handler,
-    //   this.handlers.keys()
-    // );
     return retVal;
   }
 

@@ -3,7 +3,7 @@ import IContext from "../../context/IContext";
 import LocalContext from "../../context/LocalContext";
 import ISource from "../../data/ISource";
 import SourceBaseComponent from "../SourceBaseComponent";
-import ComponentCollection from "./ComponentCollection";
+import ComponentCollection from "../ComponentCollection";
 
 @injectable()
 export default class RepeaterComponent extends SourceBaseComponent {

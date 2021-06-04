@@ -1,7 +1,7 @@
 import IBasisCore from "./IBasisCore";
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
-import ComponentCollection from "./component/collection/ComponentCollection";
+import ComponentCollection from "./component/ComponentCollection";
 import { SourceId } from "./type-alias";
 
 @injectable()
