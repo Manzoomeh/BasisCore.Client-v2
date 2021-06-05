@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Multi Section</title>
+</head>
+
+<body>
+    <fieldset>
+        <legend>Section 1</legend>
+        <div id="section-1">
+            Time is (local) : [##sec1.time.hh|(00)##]:[##sec1.time.mm|(00)##]:[##sec1.time.ss|(00)##]
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Section 2</legend>
+        <div class="section-2">
+            Time is (UTC) : {sec2.time.hh|(00)}:{sec2.time.mm|(00)}:{sec2.time.ss|(00)}
+        </div>
+        <h1>no bc</h1>
+        <div class="section-2">
+            Time is (local from sec#1) : {sec1.time.hh|(00)}:{sec1.time.mm|(00)}:{sec1.time.ss|(00)}
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Section 3</legend>
+        <div class="section-3">
+            Time is (UTC from sec#2) : {sec2.time.hh|(00)}:{sec2.time.mm|(00)}:{sec2.time.ss|(00)}
+            <br />
+            Time is (local from sec#1) : {sec1.time.hh|(00)}:{sec1.time.mm|(00)}:{sec1.time.ss|(00)}
+        </div>
+    </fieldset>
+
+
+    <script>
+        const bc = new $bc()
+            .addFragment('#section-1')
+            .run()
+
+        setInterval(() => {
+            const date = new Date();
+            const source = {
+                hh: date.getHours(),
+                mm: date.getMinutes(),
+                ss: date.getSeconds()
+            };
+            bc.setSource('sec1.time', source)
+        }, 1000);
+
+        const otherHostSetting = {
+            settings: {
+                "default.binding.regex": /\{([^\}]*)\}/
+            }
+        }
+
+        const bc2 = $bc
+            .new()
+            .addFragment('.section-2')
+            .setOptions(otherHostSetting)
+            .run();
+
+        setInterval(() => {
+            const date = new Date();
+            const source = {
+                hh: date.getUTCHours(),
+                mm: date.getUTCMinutes(),
+                ss: date.getUTCSeconds()
+            };
+            bc2.setSource('sec2.time', source)
+        }, 2000);
+
+        const bc3 = $bc.new();
+
+        $bc.linker()
+            .add(bc)
+            .add(bc2)
+            .add(bc3)
+            .addFilter('sec1.time');
+
+        bc3.addFragment('.section-3')
+            .setOptions(otherHostSetting)
+            .run();
+
+    </script>
+</body>
+
+</html>

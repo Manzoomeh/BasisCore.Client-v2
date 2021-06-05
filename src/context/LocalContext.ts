@@ -18,15 +18,13 @@ export default class LocalContext extends Context implements ILocalContext {
   ) {
     super(repository, owner.options, owner.logger);
     this.owner = owner;
-    this.owner.onDataSourceAdded.Add(
-      this.onDataSourceAddedLocalHandler.bind(this)
-    );
+    this.owner.onDataSourceSet.Add(this.onDataSourceSetLocalHandler.bind(this));
   }
 
-  protected onDataSourceAddedLocalHandler(source: ISource) {
+  protected onDataSourceSetLocalHandler(source: ISource) {
     console.log("added", source);
     if (this.active) {
-      super.onDataSourceAddedHandler(source);
+      super.onDataSourceSetHandler(source);
       this.repository.eventManager.get(source.data.id)?.Trigger(source);
     }
   }
@@ -64,7 +62,7 @@ export default class LocalContext extends Context implements ILocalContext {
   Dispose() {
     super.Dispose();
     if (this.owner instanceof LocalContext) {
-      this.owner.onDataSourceAdded.Remove(this.onDataSourceAddedHandler);
+      this.owner.onDataSourceSet.Remove(this.onDataSourceSetHandler);
     }
   }
 }

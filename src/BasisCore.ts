@@ -7,7 +7,7 @@ import { SourceId } from "./type-alias";
 @injectable()
 export default class BasisCore implements IBasisCore {
   readonly context: GlobalContext;
-  readonly content: ComponentCollection;
+  public readonly content: ComponentCollection;
   private runTask: Promise<void> = null;
 
   constructor(

@@ -1,6 +1,6 @@
 export enum SourceType {
-  Table,
-  Json,
+  internal,
+  external,
 }
 
 export enum FaceRowType {

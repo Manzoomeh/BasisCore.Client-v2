@@ -13,7 +13,7 @@ export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
   readonly logger: ILogger;
   readonly options: IContextHostOptions;
-  readonly onDataSourceAdded: EventManager<ISource>;
+  readonly onDataSourceSet: EventManager<ISource>;
 
   constructor(
     repository: IContextRepository,
@@ -23,7 +23,7 @@ export default abstract class Context implements IContext {
     this.repository = repository;
     this.logger = logger;
     this.options = options;
-    this.onDataSourceAdded = new EventManager<ISource>();
+    this.onDataSourceSet = new EventManager<ISource>();
     console.log("context - ctor");
   }
   abstract getOrLoadDbLibAsync(): Promise<any>;
@@ -47,13 +47,13 @@ export default abstract class Context implements IContext {
     throw new Error("Method not implemented.");
   }
 
-  protected onDataSourceAddedHandler(source: ISource) {
+  protected onDataSourceSetHandler(source: ISource) {
     var handler = this.repository.resolves.get(source.data.id);
     if (handler) {
       handler.Trigger(source);
       this.repository.resolves.delete(source.data.id);
     }
-    this.onDataSourceAdded.Trigger(source);
+    this.onDataSourceSet.Trigger(source);
   }
 
   public addOnSourceSetHandler(
@@ -87,7 +87,7 @@ export default abstract class Context implements IContext {
 
   public setSource(source: ISource, preview?: boolean): void {
     this.repository.setSource(source, preview);
-    this.onDataSourceAddedHandler(source);
+    this.onDataSourceSetHandler(source);
   }
 
   public Dispose() {}

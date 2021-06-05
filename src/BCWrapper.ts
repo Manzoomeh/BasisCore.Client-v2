@@ -4,14 +4,20 @@ import IHostOptions from "./options/IHostOptions";
 import ClientException from "./exception/ClientException";
 import { HostOptions } from "./options/HostOptions";
 import { SourceId } from "./type-alias";
+import BCLinker from "./BCLinker";
+import EventManager from "./event/EventManager";
 
-export class BCWrapper implements IBasisCore {
+export class BCWrapper {
   private readonly elementList: Array<Element> = new Array<Element>();
   private hostSetting?: Partial<IHostOptions> = null;
-  private basiscore: IBasisCore = null;
+  private _basiscore: IBasisCore = null;
+  public manager: EventManager<IBasisCore> = new EventManager<IBasisCore>();
   private static _global: BCWrapper;
   public static get global(): BCWrapper {
     return BCWrapper._global ?? (BCWrapper._global = BCWrapper.new());
+  }
+  public get basiscore(): IBasisCore {
+    return this._basiscore;
   }
 
   static wrappers: Array<BCWrapper> = new Array<BCWrapper>();
@@ -48,7 +54,7 @@ export class BCWrapper implements IBasisCore {
   }
 
   public setOptions(options: Partial<IHostOptions>): BCWrapper {
-    if (this.basiscore) {
+    if (this._basiscore) {
       throw new ClientException(
         "Can't set option for already builded bc object."
       );
@@ -62,7 +68,7 @@ export class BCWrapper implements IBasisCore {
   }
 
   public build(): BCWrapper {
-    if (!this.basiscore) {
+    if (!this._basiscore) {
       const childContainer = container.createChildContainer();
       childContainer.register("host", {
         useValue: this.hostSetting ?? HostOptions.defaultSettings,
@@ -74,7 +80,8 @@ export class BCWrapper implements IBasisCore {
             : this.elementList,
       });
       childContainer.register("container", { useValue: childContainer });
-      this.basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
+      this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
+      this.manager.Trigger(this._basiscore);
     }
     return this;
   }
@@ -84,10 +91,10 @@ export class BCWrapper implements IBasisCore {
   }
 
   public run(): BCWrapper {
-    if (!this.basiscore) {
+    if (!this._basiscore) {
       this.build();
     }
-    this.basiscore.run();
+    this._basiscore.run();
     return this;
   }
 
@@ -96,10 +103,14 @@ export class BCWrapper implements IBasisCore {
   }
 
   public setSource(sourceId: SourceId, data: any, replace: boolean) {
-    if (!this.basiscore) {
+    if (!this._basiscore) {
       this.run();
     } else {
-      this.basiscore.setSource(sourceId, data, replace);
+      this._basiscore.setSource(sourceId, data, replace);
     }
+  }
+
+  public static linker(): BCLinker {
+    return new BCLinker();
   }
 }

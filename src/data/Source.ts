@@ -9,7 +9,7 @@ export default class Source implements ISource {
   constructor(
     data: IData,
     replace: boolean = true,
-    type: SourceType = SourceType.Table
+    type: SourceType = SourceType.internal
   ) {
     this.data = data;
     this.type = type;
