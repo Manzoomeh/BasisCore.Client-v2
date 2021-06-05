@@ -1,35 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>simple binding</title>
-    <script src="./basiscore.min.js"></script>
-  </head>
-  <body>
-    <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
-    <div>Binding is - [##l.b.value|(wewewew)##]</div>
-    <div>Binding is - [##l.b.value##]</div>
-    <div>Binding is - [##l.number.value##]</div>
-    <div>Binding is - [##l.float.value##]</div>
-    <div
-      class="class1 [##style.div.class##]"
-      style="color: [##style.div.color|(red) ##]"
-    >
-      hi
-    </div>
-    <input id="color" />
-    <input
-      type="button"
-      value="Color"
-      onclick="$bc.addSource('style.div', { class: 'btn-t', color:document.getElementById('color').value });"
-    />
-    <script>
-      $bc.addSource("l.b", "test");
-      $bc.addSource("l.number", 125);
-      $bc.addSource("l.float", 3.56);
-      $bc.addSource("style.div", { class: "btn-t" });
-    </script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>simple binding</title>
+  <script src="/basiscore.min.js"></script>
+</head>
+
+<body>
+  <div>Binding is - [##cms.data.value|l.b.value| (2) ##]</div>
+  <div>Binding is - [##l.b.value|(wewewew)##]</div>
+  <div>Binding is - [##l.b.value##]</div>
+  <div>Binding is - [##l.number.value##]</div>
+  <div>Binding is - [##l.float.value##]</div>
+  <div class="class1 [##style.div.class##]" style="color: [##style.div.color|(red) ##]">
+    hi
+  </div>
+  <input id="color" />
+  <input type="button" value="Color"
+    onclick="$bc.addSource('style.div', { class: 'btn-t', color:document.getElementById('color').value });" />
+  <script>
+    $bc.addSource("l.b", "test");
+    $bc.addSource("l.number", 125);
+    $bc.addSource("l.float", 3.56);
+    $bc.addSource("style.div", { class: "btn-t" });
+  </script>
+</body>
+
 </html>
