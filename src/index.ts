@@ -3,6 +3,7 @@ import "./extension/StringExtensions";
 import "./extension/ElementExtensions";
 import { HostOptions } from "./options/HostOptions";
 import { BCWrapper } from "./BCWrapper";
+import LocalDataBase from "./repository/LocalDataBase";
 
 console.log(
   `%cWelcome To BasisCore Ecosystem%c
@@ -12,6 +13,7 @@ version:2.0.0`,
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );
 
+(window as any).LocalDataBase = LocalDataBase;
 (global as any).$bc = BCWrapper;
 
 window.addEventListener("load", (x) => {
