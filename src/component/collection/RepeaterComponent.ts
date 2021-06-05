@@ -4,6 +4,7 @@ import LocalContext from "../../context/LocalContext";
 import ISource from "../../data/ISource";
 import SourceBaseComponent from "../SourceBaseComponent";
 import ComponentCollection from "../ComponentCollection";
+import { AppendType } from "../../enum";
 
 @injectable()
 export default class RepeaterComponent extends SourceBaseComponent {
@@ -21,13 +22,14 @@ export default class RepeaterComponent extends SourceBaseComponent {
       const row = dataSource.data.rows[index];
       const template = this.content.firstChild.cloneNode(true);
       const childNodes = [...template.childNodes];
-      childNodes.forEach((node) => this.setContent(node, false));
+      childNodes.forEach((node) => this.setContent(node, AppendType.after));
+      //this.setContent(template, dataSource.appendType);
       const childContainer = this.container.createChildContainer();
       childContainer.register("OwnerContext", { useValue: this.context });
       childContainer.register("nodes", { useValue: childNodes });
       childContainer.register("container", { useValue: childContainer });
       const localContext = childContainer.resolve<LocalContext>(LocalContext);
-      localContext.setAsSource(`${name}.current`, row);
+      localContext.setAsSource(`${name}.current`, row, dataSource.appendType);
       childContainer.register("context", { useValue: localContext });
       const collection = childContainer.resolve(ComponentCollection);
       await collection.initializeAsync();

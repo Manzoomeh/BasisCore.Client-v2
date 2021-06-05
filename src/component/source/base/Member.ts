@@ -7,6 +7,7 @@ import IDictionary from "../../../IDictionary";
 import IToken from "../../../token/IToken";
 import { SourceId } from "../../../type-alias";
 import Util from "../../../Util";
+import { AppendType } from "../../../enum";
 
 declare var $bc: IBasisCore;
 
@@ -56,7 +57,7 @@ export default abstract class Member {
       data.rows = lib(`SELECT * FROM ? order by ${sort}`, [data.rows]);
     }
     DataUtil.addRowNumber(data);
-    const source = new Source(data);
+    const source = new Source(data, AppendType.replace);
     this.context.setSource(source);
 
     // if (preview || context.DebugContext.InDebugMode) {

@@ -3,7 +3,7 @@ import { BCWrapper } from "./BCWrapper";
 import DataUtil from "./data/DataUtil";
 import ISource from "./data/ISource";
 import Source from "./data/Source";
-import { SourceType } from "./enum";
+import { AppendType, SourceType } from "./enum";
 import IBasisCore from "./IBasisCore";
 import { SourceId } from "./type-alias";
 
@@ -48,7 +48,7 @@ export default class BCLinker {
       ) {
         var newSource = new Source(
           source.data,
-          source.replace,
+          source.appendType,
           SourceType.external
         );
         this.cors
@@ -64,8 +64,12 @@ export default class BCLinker {
     return this;
   }
 
-  public setSource(sourceId: SourceId, data: any, replace: boolean): BCLinker {
-    const source = DataUtil.ToDataSource(sourceId, data, replace);
+  public setSource(
+    sourceId: SourceId,
+    data: any,
+    appendType: AppendType
+  ): BCLinker {
+    const source = DataUtil.ToDataSource(sourceId, data, appendType);
     this.cors.forEach((core) => core.context.setSource(source));
     return this;
   }

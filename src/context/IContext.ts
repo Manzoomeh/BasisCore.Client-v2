@@ -1,5 +1,6 @@
 import DataSet from "../data/DataSet";
 import ISource from "../data/ISource";
+import { AppendType } from "../enum";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import IContextHostOptions from "../options/IContextHostOptions";
@@ -31,7 +32,7 @@ export default interface IContext {
   setAsSource(
     sourceId: SourceId,
     value: any,
-    replace?: boolean,
+    appendType: AppendType,
     preview?: boolean
   );
   setSource(source: ISource, preview?: boolean): void;

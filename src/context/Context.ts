@@ -8,6 +8,7 @@ import IContextRepository from "../repository/IContextRepository";
 import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
+import { AppendType } from "../enum";
 
 export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
@@ -78,10 +79,10 @@ export default abstract class Context implements IContext {
   public setAsSource(
     sourceId: SourceId,
     value: any,
-    replace: boolean = true,
+    appendType: AppendType,
     preview?: boolean
   ) {
-    var source = DataUtil.ToDataSource(sourceId, value, replace);
+    var source = DataUtil.ToDataSource(sourceId, value, appendType);
     this.setSource(source, preview);
   }
 

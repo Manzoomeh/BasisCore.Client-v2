@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Repeater Command - Binding</title>
+</head>
+
+<body>
+    <fieldset>
+        <legend>Replace</legend>
+        <ul>
+            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient">
+                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+            </basis>
+
+
+        </ul>
+    </fieldset>
+
+    <fieldset>
+        <legend>Before</legend>
+        <ul>
+            <basis core="repeater" name="rep" datamembername="before.data" run="atclient">
+                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+            </basis>
+
+
+        </ul>
+    </fieldset>
+
+    <fieldset>
+        <legend>After</legend>
+        <ul>
+            <basis core="repeater" name="rep" datamembername="after.data" run="atclient">
+                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+            </basis>
+
+
+        </ul>
+    </fieldset>
+
+    <input type="button" value="setSource" onclick="set()" />
+    <script>
+        let i = 0;
+        function set() {
+            $bc.setSource(
+                "replace.data",
+                [
+                    { id: i, name: `data ${i}` },
+                    { id: i + 1, name: `data ${i + 1}` },
+                    { id: i + 2, name: `data ${i + 2}` },
+                ],
+                AppendType.replace
+            );
+            // $bc.setSource(
+            //     "before.data",
+            //     [
+            //         { id: i, name: `data ${i}` },
+            //         { id: i + 1, name: `data ${i + 1}` },
+            //         { id: i + 2, name: `data ${i + 2}` },
+            //     ],
+            //     AppendType.before
+            // );
+            // $bc.setSource(
+            //     "after.data",
+            //     [
+            //         { id: i, name: `data ${i}` },
+            //         { id: i + 1, name: `data ${i + 1}` },
+            //         { id: i + 2, name: `data ${i + 2}` },
+            //     ],
+            //     AppendType.after
+            // );
+            i += 3;
+        }
+        //setInterval(set, 3000);
+        set();
+    </script>
+</body>
+
+</html>

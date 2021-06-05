@@ -9,9 +9,9 @@ export enum FaceRowType {
   Even,
 }
 
-export enum RenderType {
-  none,
-  append,
+export enum AppendType {
+  before,
+  after,
   replace,
 }
 

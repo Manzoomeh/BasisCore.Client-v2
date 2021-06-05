@@ -3,6 +3,7 @@ import { DependencyContainer, inject, injectable } from "tsyringe";
 import GlobalContext from "./context/GlobalContext";
 import ComponentCollection from "./component/ComponentCollection";
 import { SourceId } from "./type-alias";
+import { AppendType } from "./enum";
 
 @injectable()
 export default class BasisCore implements IBasisCore {
@@ -21,8 +22,12 @@ export default class BasisCore implements IBasisCore {
     this.content = container.resolve(ComponentCollection);
   }
 
-  public setSource(sourceId: SourceId, data: any, replace: boolean = true) {
-    this.context.setAsSource(sourceId, data, replace);
+  public setSource(
+    sourceId: SourceId,
+    data: any,
+    appendType: AppendType = AppendType.replace
+  ) {
+    this.context.setAsSource(sourceId, data, appendType);
   }
 
   public run(): void {

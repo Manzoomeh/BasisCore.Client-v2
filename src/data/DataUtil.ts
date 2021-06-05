@@ -3,6 +3,7 @@ import Data from "./Data";
 import Source from "./Source";
 import IData from "./IData";
 import ISource from "./ISource";
+import { AppendType } from "../enum";
 
 export default class DataUtil {
   public static ToDataTable(sourceId: SourceId, data: any): IData {
@@ -20,10 +21,10 @@ export default class DataUtil {
   public static ToDataSource(
     sourceId: SourceId,
     data: any,
-    replace: boolean = true
+    appendType: AppendType
   ): ISource {
     const tbl = DataUtil.ToDataTable(sourceId, data);
-    return new Source(tbl, replace);
+    return new Source(tbl, appendType);
   }
 
   static ApplySimpleFilter(data: any[], columnName: string, columnValue: any) {

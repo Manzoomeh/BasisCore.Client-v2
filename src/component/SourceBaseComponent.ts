@@ -1,6 +1,7 @@
 import { DependencyContainer } from "tsyringe";
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
+import { AppendType } from "../enum";
 import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
 
@@ -43,7 +44,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     console.log(`${this.core} - runAsync`);
     const renderResult = await this.renderSourceAsync(source);
     if (renderResult) {
-      this.setContent(renderResult, source.replace);
+      this.setContent(renderResult, source.appendType);
     }
   }
 
@@ -52,14 +53,27 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     this.processAsync();
   }
 
-  protected async setContent(newContent: Node, replace: boolean = true) {
-    if (replace) {
-      this.range.deleteContents();
-      this.range.insertNode(newContent);
-    } else {
-      const currentContent = this.range.extractContents();
-      currentContent.appendChild(newContent);
-      this.range.insertNode(currentContent);
+  protected async setContent(
+    newContent: Node,
+    appendType: AppendType = AppendType.replace
+  ) {
+    console.log("yyy", appendType);
+    switch (appendType) {
+      case AppendType.after: {
+        const currentContent = this.range.extractContents();
+        currentContent.appendChild(newContent);
+        this.range.insertNode(currentContent);
+        break;
+      }
+      case AppendType.before: {
+        this.range.insertNode(newContent);
+        break;
+      }
+      default: {
+        this.range.deleteContents();
+        this.range.insertNode(newContent);
+        break;
+      }
     }
   }
 }

@@ -6,6 +6,7 @@ import { HostOptions } from "./options/HostOptions";
 import { SourceId } from "./type-alias";
 import BCLinker from "./BCLinker";
 import EventManager from "./event/EventManager";
+import { AppendType } from "./enum";
 
 export class BCWrapper {
   private readonly elementList: Array<Element> = new Array<Element>();
@@ -98,15 +99,19 @@ export class BCWrapper {
     return this;
   }
 
-  public static setSource(sourceId: SourceId, data: any, replace: boolean) {
-    return BCWrapper.run().setSource(sourceId, data, replace);
+  public static setSource(
+    sourceId: SourceId,
+    data: any,
+    appendType: AppendType
+  ) {
+    return BCWrapper.run().setSource(sourceId, data, appendType);
   }
 
-  public setSource(sourceId: SourceId, data: any, replace: boolean) {
+  public setSource(sourceId: SourceId, data: any, appendType: AppendType) {
     if (!this._basiscore) {
       this.run();
     } else {
-      this._basiscore.setSource(sourceId, data, replace);
+      this._basiscore.setSource(sourceId, data, appendType);
     }
   }
 

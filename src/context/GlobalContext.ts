@@ -1,5 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import DataSet from "../data/DataSet";
+import { AppendType } from "../enum";
 import ClientException from "../exception/ClientException";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
@@ -99,7 +100,7 @@ export default class GlobalContext extends Context {
         data[pair[0]] = pair[1];
         return data;
       }, {});
-      this.setAsSource("cms.cookie", data);
+      this.setAsSource("cms.cookie", data, AppendType.replace);
     }
 
     const request = {
@@ -107,7 +108,7 @@ export default class GlobalContext extends Context {
       hostip: window.location.hostname,
       hostport: window.location.port,
     };
-    this.setAsSource("cms.request", request);
+    this.setAsSource("cms.request", request, AppendType.replace);
 
     const toTwoDigit = (x) => ("0" + x).slice(-2);
     const d = new Date();
@@ -124,11 +125,15 @@ export default class GlobalContext extends Context {
       time2: `${ho}${mi}${se}`,
       date3: `${ye}.${mo}.${da}`,
     };
-    this.setAsSource("cms.cms", cms);
+    this.setAsSource("cms.cms", cms, AppendType.replace);
 
     if (this.options.sources) {
       Object.getOwnPropertyNames(this.options.sources).forEach((key) => {
-        this.setAsSource(key.toLowerCase(), this.options.sources[key]);
+        this.setAsSource(
+          key.toLowerCase(),
+          this.options.sources[key],
+          AppendType.replace
+        );
       });
     }
   }
@@ -142,7 +147,7 @@ export default class GlobalContext extends Context {
           return data;
         }, {});
 
-      this.setAsSource("cms.query", data);
+      this.setAsSource("cms.query", data, AppendType.replace);
     }
   }
 }
