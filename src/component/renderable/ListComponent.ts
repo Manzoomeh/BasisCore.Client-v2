@@ -6,9 +6,8 @@ import RenderableComponent from "./base/RenderableComponent";
 export default class ListComponent extends RenderableComponent {
   constructor(
     @inject("element") element: Element,
-    @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("context") context: IContext
   ) {
-    super(element, context, container);
+    super(element, context);
   }
 }

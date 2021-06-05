@@ -1,5 +1,6 @@
 ﻿import IContext from "../../../context/IContext";
 import IToken from "../../../token/IToken";
+import StringValue from "../../../token/string/StringValue";
 
 export default class RawFace {
   readonly ApplyReplace: IToken<boolean>;
@@ -15,6 +16,6 @@ export default class RawFace {
     this.Level = element.GetStringToken("level", context);
     this.RowType = element.GetStringToken("rowtype", context);
     this.Filter = element.GetStringToken("filter", context);
-    this.Template = element.GetTemplateToken(context);
+    this.Template = new StringValue(element.GetTemplate(), context); // element.GetTemplateToken(context);
   }
 }

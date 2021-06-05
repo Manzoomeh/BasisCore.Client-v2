@@ -10,11 +10,10 @@
 </head>
 
 <body>
-    <Basis core="print" datamembername="local.print" run="atclient" if="">
+    [##cms.user.name##]
+    <Basis core="print" datamembername="inlinesource.print" run="atclient" if="">
         <face>
-            <li>
-                <span>@ID (@NAME) </span>
-            </li>
+            <span>@ID (@NAME) </span>
         </face>
     </Basis>
     <script>
@@ -23,9 +22,8 @@
                 'cms.user': [{
                     id: 22, name: 'qamsari', rkey: 123
                 }
-
                 ],
-                'inlinesource.TempTable': [
+                'inlinesource.print': [
                     {
                         id: 1, name: 'qamsari', prpid: null
                     },
@@ -35,20 +33,9 @@
                     {
                         id: 3, name: 'amir', prpid: 3
                     }
-
-
                 ]
             }
         }
-
-        $bc.setSource(
-            "local.print",
-            [
-                { id: 1, name: "btn-t=1" },
-                { id: 2, name: "btn-t=2" },
-                { id: 3, name: "btn-t=3" },
-            ]
-        );
     </script>
 </body>
 

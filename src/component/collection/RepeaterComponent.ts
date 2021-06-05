@@ -3,16 +3,19 @@ import IContext from "../../context/IContext";
 import LocalContext from "../../context/LocalContext";
 import ISource from "../../data/ISource";
 import SourceBaseComponent from "../SourceBaseComponent";
-import ComponentCollection from "../ComponentCollection";
+import ComponentCollection from "../../ComponentCollection";
 
 @injectable()
 export default class RepeaterComponent extends SourceBaseComponent {
+  readonly container: DependencyContainer;
+
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
     @inject("container") container: DependencyContainer
   ) {
-    super(element, context, container);
+    super(element, context);
+    this.container = container;
   }
   protected async renderSourceAsync(dataSource: ISource): Promise<Node> {
     const name = await this.getAttributeValueAsync("name");

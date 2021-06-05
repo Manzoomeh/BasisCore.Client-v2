@@ -1,4 +1,5 @@
 import { DependencyContainer } from "tsyringe";
+import ComponentCollection from "../ComponentCollection";
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
 import { AppendType } from "../enum";
@@ -9,15 +10,10 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   private sourceId: SourceId;
   readonly range: Range;
   readonly content: DocumentFragment;
-  readonly container: DependencyContainer;
   private _dataSource: ISource;
-  constructor(
-    element: Element,
-    context: IContext,
-    container: DependencyContainer
-  ) {
+
+  constructor(element: Element, context: IContext) {
     super(element, context);
-    this.container = container;
     this.range = document.createRange();
     this.range.selectNode(element);
     this.content = this.range.extractContents();

@@ -12,10 +12,9 @@ import ReplaceCollection from "./base/ReplaceCollection";
 export default class ViewComponent extends RenderableComponent {
   constructor(
     @inject("element") element: Element,
-    @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("context") context: IContext
   ) {
-    super(element, context, container);
+    super(element, context);
   }
 
   protected async renderDataPartAsync(

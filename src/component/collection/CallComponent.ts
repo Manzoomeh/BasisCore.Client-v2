@@ -2,7 +2,7 @@ import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import { Priority } from "../../enum";
 import NonSourceBaseComponent from "../NonSourceBaseComponent";
-import ComponentCollection from "../ComponentCollection";
+import ComponentCollection from "../../ComponentCollection";
 
 @injectable()
 export default class CallComponent extends NonSourceBaseComponent {

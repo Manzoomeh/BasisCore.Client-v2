@@ -7,12 +7,14 @@ import SourceBaseComponent from "../SourceBaseComponent";
 @injectable()
 export default class CallbackComponent extends SourceBaseComponent {
   readonly priority: Priority = Priority.normal;
+  readonly container: DependencyContainer;
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
     @inject("container") container: DependencyContainer
   ) {
-    super(element, context, container);
+    super(element, context);
+    this.container = container;
   }
   protected async renderSourceAsync(dataSource: ISource): Promise<Node> {
     var methodName = await this.getAttributeValueAsync("method");
