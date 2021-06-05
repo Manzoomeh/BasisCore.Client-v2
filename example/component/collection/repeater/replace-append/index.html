@@ -11,12 +11,23 @@
 
 <body>
     <input type="button" value="Set Source" onclick="set()" />
-    <ul>
-        <basis core="repeater" id="rep0-cmd" name="rep" datamembername="replace.data" run="atclient">
-            <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-        </basis>
-    </ul>
-
+    <fieldset>
+        <legend>Replace</legend>
+        <ul>
+            <basis core="repeater" id="rep0-cmd" name="rep" datamembername="replace.data" run="atclient">
+                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+            </basis>
+        </ul>
+    </fieldset>
+    <fieldset>
+        <legend>Append</legend>
+        <ul>
+            <basis core="repeater" id="rep0-cmd" name="rep" datamembername="replace.data" run="atclient"
+                replace="false">
+                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+            </basis>
+        </ul>
+    </fieldset>
 
     <script>
 
@@ -27,7 +38,7 @@
                 [
                     { id: i, name: `data ${i}` }
                 ],
-                AppendType.replace
+                AppendType.after
             );
 
             i += 1;

@@ -57,7 +57,6 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     newContent: Node,
     appendType: AppendType = AppendType.replace
   ) {
-    console.log("yyy", appendType);
     switch (appendType) {
       case AppendType.after: {
         const currentContent = this.range.extractContents();

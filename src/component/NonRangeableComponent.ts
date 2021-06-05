@@ -14,4 +14,12 @@ export abstract class NonRangeableComponent<
     const token = this.node.GetStringToken(attributeName, this.context);
     return (await token?.getValueAsync()) ?? defaultValue;
   }
+
+  protected async getAttributeBooleanValueAsync(
+    attributeName: string,
+    defaultValue: boolean = false
+  ): Promise<Boolean> {
+    const token = this.node.GetBooleanToken(attributeName, this.context);
+    return (await token?.getValueAsync()) ?? defaultValue;
+  }
 }

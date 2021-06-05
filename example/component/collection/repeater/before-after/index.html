@@ -10,40 +10,68 @@
 </head>
 
 <body>
+    <input type="button" value="Set Source" onclick="set()" />
     <fieldset>
-        <legend>Replace</legend>
-        <ul>
-            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient">
-                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-            </basis>
+        <legend>Source.appendType = Replace</legend>
+        <fieldset>
+            <legend>repeater.replace = true</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend>repeater.replace = false</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" replace="false">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+    </fieldset>
+    <fieldset>
+        <legend>Source.appendType = Before</legend>
+        <fieldset>
+            <legend>repeater.replace = true</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="before.data" run="atclient">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend>repeater.replace = false</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="before.data" run="atclient" replace="false">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
 
-
-        </ul>
     </fieldset>
 
     <fieldset>
-        <legend>Before</legend>
-        <ul>
-            <basis core="repeater" name="rep" datamembername="before.data" run="atclient">
-                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-            </basis>
-
-
-        </ul>
+        <legend>Source.appendType = After</legend>
+        <fieldset>
+            <legend>repeater.replace = true</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="after.data" run="atclient">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend>repeater.replace = false</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="after.data" run="atclient" replace="false">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
     </fieldset>
 
-    <fieldset>
-        <legend>After</legend>
-        <ul>
-            <basis core="repeater" name="rep" datamembername="after.data" run="atclient">
-                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-            </basis>
 
-
-        </ul>
-    </fieldset>
-
-    <input type="button" value="setSource" onclick="set()" />
     <script>
         let i = 0;
         function set() {
@@ -56,27 +84,26 @@
                 ],
                 AppendType.replace
             );
-            // $bc.setSource(
-            //     "before.data",
-            //     [
-            //         { id: i, name: `data ${i}` },
-            //         { id: i + 1, name: `data ${i + 1}` },
-            //         { id: i + 2, name: `data ${i + 2}` },
-            //     ],
-            //     AppendType.before
-            // );
-            // $bc.setSource(
-            //     "after.data",
-            //     [
-            //         { id: i, name: `data ${i}` },
-            //         { id: i + 1, name: `data ${i + 1}` },
-            //         { id: i + 2, name: `data ${i + 2}` },
-            //     ],
-            //     AppendType.after
-            // );
+            $bc.setSource(
+                "before.data",
+                [
+                    { id: i, name: `data ${i}` },
+                    { id: i + 1, name: `data ${i + 1}` },
+                    { id: i + 2, name: `data ${i + 2}` },
+                ],
+                AppendType.before
+            );
+            $bc.setSource(
+                "after.data",
+                [
+                    { id: i, name: `data ${i}` },
+                    { id: i + 1, name: `data ${i + 1}` },
+                    { id: i + 2, name: `data ${i + 2}` },
+                ],
+                AppendType.after
+            );
             i += 3;
         }
-        //setInterval(set, 3000);
         set();
     </script>
 </body>
