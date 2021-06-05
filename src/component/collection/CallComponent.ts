@@ -1,14 +1,15 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import { Priority } from "../../enum";
-import NonSourceBaseComponent from "../NonSourceBaseComponent";
 import ComponentCollection from "../../ComponentCollection";
+import CommandComponent from "../CommandComponent";
 
 @injectable()
-export default class CallComponent extends NonSourceBaseComponent {
+export default class CallComponent extends CommandComponent {
   readonly range: Range;
   private readonly container: DependencyContainer;
   readonly priority: Priority = Priority.higher;
+
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
@@ -39,12 +40,7 @@ export default class CallComponent extends NonSourceBaseComponent {
     const childNodes = [...content.childNodes];
     this.range.deleteContents();
     this.range.insertNode(content);
-    const childContainer = this.container.createChildContainer();
-    childContainer.register("nodes", { useValue: childNodes });
-    childContainer.register("context", { useValue: this.context });
-    childContainer.register("container", { useValue: childContainer });
-    const collection = childContainer.resolve(ComponentCollection);
-    await collection.initializeAsync();
-    await collection.processAsync();
+    const collection = this.container.resolve(ComponentCollection);
+    await collection.processNodesAsync(childNodes);
   }
 }

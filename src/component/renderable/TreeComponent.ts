@@ -11,9 +11,10 @@ import ReplaceCollection from "./base/ReplaceCollection";
 export default class TreeComponent extends RenderableComponent {
   constructor(
     @inject("element") element: Element,
-    @inject("context") context: IContext
+    @inject("context") context: IContext,
+    @inject("container") container: DependencyContainer
   ) {
-    super(element, context);
+    super(element, context, container);
   }
 
   protected async renderDataPartAsync(

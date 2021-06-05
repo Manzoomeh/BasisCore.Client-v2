@@ -60,7 +60,7 @@ export default abstract class Context implements IContext {
   public addOnSourceSetHandler(
     sourceId: SourceId,
     handler: SourceHandler
-  ): boolean {
+  ): SourceHandler {
     return this.repository.addHandler(sourceId, handler);
   }
 

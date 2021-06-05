@@ -64,11 +64,7 @@ export class BCWrapper {
     return this;
   }
 
-  public static build(): BCWrapper {
-    return BCWrapper.global.build();
-  }
-
-  public build(): BCWrapper {
+  public run(): BCWrapper {
     if (!this._basiscore) {
       const childContainer = container.createChildContainer();
       childContainer.register("host", {
@@ -84,19 +80,12 @@ export class BCWrapper {
       this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
       this.manager.Trigger(this._basiscore);
     }
+
     return this;
   }
 
   public static run(): BCWrapper {
-    return BCWrapper.build().run();
-  }
-
-  public run(): BCWrapper {
-    if (!this._basiscore) {
-      this.build();
-    }
-    this._basiscore.run();
-    return this;
+    return BCWrapper.global.run();
   }
 
   public static setSource(

@@ -10,16 +10,18 @@
 </head>
 
 <body>
+    <input type="button" value="Set Source" onclick="fn()" />
     <Basis core="print" datamembername="local.print" run="atclient" if="">
         <layout>
             <script type="text/template">
             <ul>@child</ul>
         </script>
-            <face>
-                <li>
-                    <span>@ID (@NAME) </span>
-                </li>
-            </face>
+        </layout>
+        <face>
+            <li>
+                <span>@ID (@NAME) </span>
+            </li>
+        </face>
     </Basis>
     <script>
         var i = 0;
@@ -30,7 +32,7 @@
             i += 1;
         }
         fn();
-        setInterval(fn, 1000);
+        //setInterval(fn, 1000);
     </script>
 </body>
 

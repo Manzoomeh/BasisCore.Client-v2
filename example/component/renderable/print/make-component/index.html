@@ -14,7 +14,8 @@
     <Basis core="print" datamembername="local.print" run="atclient" if="">
         <face>
             <div style="background-color: @color;">
-                hi by @color [##local.print.color##]
+                hi by @color [##local.c.value##]
+                <button name="local.c" bc-triggers="click" bc-value="@color">Set to @color</button>
             </div>
         </face>
     </Basis>
@@ -22,8 +23,8 @@
         $bc.setSource(
             "local.print", [
             { id: 1, color: 'red' },
-            //    { id: 2, color: 'green' },
-            //  { id: 3, color: 'blue' }
+            { id: 2, color: 'green' },
+            { id: 3, color: 'blue' }
         ], AppendType.after
 
         );
@@ -39,7 +40,7 @@
         //     i += 1;
         // }
         // fn();
-        //setInterval(fn, 1000);
+        setInterval(fn, 1000);
     </script>
 </body>
 

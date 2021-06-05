@@ -5,20 +5,20 @@ import IEventManager from "./IEventManager";
 export default class EventManager<T> implements IEvent<T>, IEventManager<T> {
   private readonly handlers: Set<EventHandler<T>> = new Set<EventHandler<T>>();
 
-  public Add(handler: EventHandler<T>): boolean {
-    let retVal = false;
+  public Add(handler: EventHandler<T>): EventHandler<T> {
+    let retVal = null;
     if (!this.handlers.has(handler)) {
       this.handlers.add(handler);
-      retVal = true;
+      retVal = handler;
     }
     return retVal;
   }
 
-  public Remove(handler: EventHandler<T>): boolean {
-    let retVal = false;
+  public Remove(handler: EventHandler<T>): EventHandler<T> {
+    let retVal = null;
     if (this.handlers.has(handler)) {
       this.handlers.delete(handler);
-      retVal = true;
+      retVal = handler;
     }
     return retVal;
   }

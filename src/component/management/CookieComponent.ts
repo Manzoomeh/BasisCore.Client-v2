@@ -1,13 +1,13 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import NonSourceBaseComponent from "../NonSourceBaseComponent";
+import CommandComponent from "../CommandComponent";
 
 //https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
 //https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie
 //https://www.w3schools.com/js/js_cookies.asp
 
 @injectable()
-export default class CookieComponent extends NonSourceBaseComponent {
+export default class CookieComponent extends CommandComponent {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext

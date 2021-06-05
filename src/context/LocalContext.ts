@@ -3,7 +3,7 @@ import DataSet from "../data/DataSet";
 import ISource from "../data/ISource";
 import IDictionary from "../IDictionary";
 import IContextRepository from "../repository/IContextRepository";
-import { SourceId } from "../type-alias";
+import { SourceHandler, SourceId } from "../type-alias";
 import Context from "./Context";
 import ILocalContext from "./ILocalContext";
 
@@ -11,6 +11,7 @@ import ILocalContext from "./ILocalContext";
 export default class LocalContext extends Context implements ILocalContext {
   readonly owner: Context;
   public active: boolean = true;
+  readonly handler: SourceHandler;
 
   constructor(
     @inject("IContextRepository") repository: IContextRepository,
@@ -18,7 +19,14 @@ export default class LocalContext extends Context implements ILocalContext {
   ) {
     super(repository, owner.options, owner.logger);
     this.owner = owner;
-    this.owner.onDataSourceSet.Add(this.onDataSourceSetLocalHandler.bind(this));
+    this.handler = this.owner.onDataSourceSet.Add(
+      this.onDataSourceSetLocalHandler.bind(this)
+    );
+  }
+
+  dispose(): void {
+    this.owner.onDataSourceSet.Remove(this.handler);
+    this.active = false;
   }
 
   protected onDataSourceSetLocalHandler(source: ISource) {

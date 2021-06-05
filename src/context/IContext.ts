@@ -36,7 +36,10 @@ export default interface IContext {
     preview?: boolean
   );
   setSource(source: ISource, preview?: boolean): void;
-  addOnSourceSetHandler(sourceId: SourceId, handler: SourceHandler): boolean;
+  addOnSourceSetHandler(
+    sourceId: SourceId,
+    handler: SourceHandler
+  ): SourceHandler;
   tryToGetSource(sourceId: SourceId): ISource;
   waitToGetSourceAsync(sourceId: SourceId): Promise<ISource>;
 }

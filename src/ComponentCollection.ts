@@ -8,19 +8,11 @@ import TextComponent from "./component/text-base/TextComponent";
 
 @injectable()
 export default class ComponentCollection {
-  private initializeTask: Promise<void> = Promise.resolve();
-  readonly nodes: Array<Node> = new Array<Node>();
   readonly context: IContext;
-  readonly components: Array<IComponent> = new Array<IComponent>();
   readonly regex: RegExp;
   readonly container: DependencyContainer;
-  protected _busy: boolean = false;
-  public get busy(): boolean {
-    return this._busy;
-  }
 
   constructor(
-    @inject("nodes") nodes: Array<Node>,
     @inject("context") context: IContext,
     @inject("container") container: DependencyContainer
   ) {
@@ -28,37 +20,23 @@ export default class ComponentCollection {
     this.context = context;
     this.regex = this.context.options.getDefault<RegExp>("binding.regex");
     console.log("ComponentCollection - ctor");
-    this.addNodes(nodes);
   }
 
-  public addNodes(nodes: Array<Node>) {
-    this.nodes.push(...nodes);
-    this.initializeTask = this.initializeTask.then((_) =>
-      this.extractComponent(nodes)
-    );
+  public async processNodesAsync(nodes: Array<Node>): Promise<void> {
+    const components = this.extractComponent(nodes);
+    await this.initializeAsync(components);
+    await this.runAsync(components);
   }
 
-  public async initializeAsync(): Promise<void> {
-    await this.initializeTask;
-    const tasks = this.components.map((x) => x.initializeAsync());
+  private async initializeAsync(components: Array<IComponent>): Promise<void> {
+    const tasks = components.map((x) => x.initializeAsync());
     await Promise.all(tasks);
   }
 
-  public processAsync(): Promise<void> {
-    if (!this.busy) {
-      this._busy = true;
-      try {
-        return this.runAsync();
-      } finally {
-        this._busy = false;
-      }
-    }
-  }
-
-  private async runAsync(): Promise<void> {
+  private async runAsync(components: Array<IComponent>): Promise<void> {
     console.log("ComponentCollection.runAsync");
 
-    const priorityMap = this.components.reduce((map, component) => {
+    const priorityMap = components.reduce((map, component) => {
       let list = map.get(component.priority);
       if (!list) {
         list = new Array<IComponent>();
@@ -79,16 +57,18 @@ export default class ComponentCollection {
     }
   }
 
-  private extractComponent(nodes: Array<Node>): void {
+  private extractComponent(nodes: Array<Node>): Array<IComponent> {
+    const components = new Array<IComponent>();
     nodes.forEach((node) => {
-      this.extractTextBaseComponents(node);
-      this.extractBasisCommands(node);
+      this.extractTextBaseComponents(node, components);
+      this.extractBasisCommands(node, components);
     });
+    return components;
   }
-  private extractBasisCommands(node: Node) {
+  private extractBasisCommands(node: Node, components: Array<IComponent>) {
     const pair = this.findRootLevelComponentNode(node);
     for (const item of pair.coreList) {
-      this.components.push(
+      components.push(
         this.createCommandComponent(
           item,
           item.getAttribute("core").toLowerCase()
@@ -96,12 +76,12 @@ export default class ComponentCollection {
       );
     }
     for (const item of pair.tagList) {
-      this.components.push(
+      components.push(
         this.createCommandComponent(item, item.tagName.toLowerCase())
       );
     }
   }
-  private extractTextComponent(node: Text) {
+  private extractTextComponent(node: Text, components: Array<IComponent>) {
     if (node.textContent.trim().length != 0) {
       do {
         const match = node.textContent.match(this.regex);
@@ -114,38 +94,44 @@ export default class ComponentCollection {
           match.index,
           match.index + match[0].length
         );
-        this.components.push(com);
+        components.push(com);
       } while (true);
     }
   }
-  private async extractAttributeComponent(element: Element) {
+  private async extractAttributeComponent(
+    element: Element,
+    components: Array<IComponent>
+  ) {
     for (const pair of element.attributes) {
       if (pair.value.trim().length != 0) {
         var match = pair.value.match(this.regex);
         if (match) {
           const com = new AttributeComponent(element, this.context, pair);
-          this.components.push(com);
+          components.push(com);
         }
       }
     }
   }
-  private extractTextBaseComponents(element: Node) {
+  private extractTextBaseComponents(
+    element: Node,
+    components: Array<IComponent>
+  ) {
     if (element.nodeType == Node.TEXT_NODE) {
-      this.extractTextComponent(element as Text);
+      this.extractTextComponent(element as Text, components);
     } else if (element.nodeType != Node.COMMENT_NODE) {
       if (element instanceof Element) {
         if (!element.isBasisCore()) {
-          this.extractAttributeComponent(element);
+          this.extractAttributeComponent(element, components);
           if (element.hasChildNodes()) {
             for (const child of element.childNodes) {
-              this.extractTextBaseComponents(child);
+              this.extractTextBaseComponents(child, components);
             }
           }
         }
       } else {
         if (element.hasChildNodes()) {
           for (const child of element.childNodes) {
-            this.extractTextBaseComponents(child);
+            this.extractTextBaseComponents(child, components);
           }
         }
       }

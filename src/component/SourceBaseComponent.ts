@@ -1,5 +1,3 @@
-import { DependencyContainer } from "tsyringe";
-import ComponentCollection from "../ComponentCollection";
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
 import { AppendType } from "../enum";
@@ -29,7 +27,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     console.log(`${this.core} - initializeAsync`);
   }
 
-  protected abstract renderSourceAsync(dataSource: ISource): Promise<Node>;
+  protected abstract renderSourceAsync(dataSource: ISource): Promise<void>;
 
   public async runAsync(): Promise<void> {
     let source = this._dataSource;
@@ -38,10 +36,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
       source = await this.context.waitToGetSourceAsync(this.sourceId);
     }
     console.log(`${this.core} - runAsync`);
-    const renderResult = await this.renderSourceAsync(source);
-    if (renderResult) {
-      this.setContent(renderResult, source.appendType);
-    }
+    await this.renderSourceAsync(source);
   }
 
   private onDataSourceAdded(dataSource: ISource): void {
@@ -49,10 +44,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     this.processAsync();
   }
 
-  protected async setContent(
-    newContent: Node,
-    appendType: AppendType = AppendType.replace
-  ) {
+  protected setContent(newContent: Node, appendType: AppendType) {
     switch (appendType) {
       case AppendType.after: {
         const currentContent = this.range.extractContents();

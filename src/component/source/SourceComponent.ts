@@ -4,12 +4,12 @@ import IData from "../../data/IData";
 import { Priority } from "../../enum";
 import ClientException from "../../exception/ClientException";
 import { SourceId } from "../../type-alias";
-import NonSourceBaseComponent from "../NonSourceBaseComponent";
+import CommandComponent from "../CommandComponent";
 import Member from "./base/Member";
 
 export default abstract class SourceComponent<
   T extends Member
-> extends NonSourceBaseComponent {
+> extends CommandComponent {
   private oldConnectionName: string;
   protected id: SourceId;
   readonly range: Range;

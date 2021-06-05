@@ -9,17 +9,17 @@ import { AppendType } from "./enum";
 export default class BasisCore implements IBasisCore {
   readonly context: GlobalContext;
   public readonly content: ComponentCollection;
-  private runTask: Promise<void> = null;
 
   constructor(
     context: GlobalContext,
-    @inject("container") container: DependencyContainer
+    @inject("container") container: DependencyContainer,
+    @inject("root.nodes") nodes: Array<Node>
   ) {
     this.context = context;
     container.register("root.context", { useValue: context });
     container.register("context", { useToken: "root.context" });
-    container.register("nodes", { useToken: "root.nodes" });
     this.content = container.resolve(ComponentCollection);
+    this.content.processNodesAsync(nodes);
   }
 
   public setSource(
@@ -30,11 +30,9 @@ export default class BasisCore implements IBasisCore {
     this.context.setAsSource(sourceId, data, appendType);
   }
 
-  public run(): void {
-    if (!this.runTask) {
-      this.runTask = this.content
-        .initializeAsync()
-        .then((x) => this.content.processAsync());
-    }
-  }
+  // public run(): void {
+  //   if (!this.runTask) {
+  //     this.runTask = this.content.processAsync();
+  //   }
+  // }
 }

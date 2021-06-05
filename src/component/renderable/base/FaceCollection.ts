@@ -1,5 +1,4 @@
-﻿import IContext from "../../../context/IContext";
-import { FaceRowType } from "../../../enum";
+﻿import { FaceRowType } from "../../../enum";
 import Util from "../../../Util";
 import Face from "./Face";
 import RenderParam from "./RenderParam";

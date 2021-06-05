@@ -8,6 +8,7 @@ import SourceBaseComponent from "../SourceBaseComponent";
 export default class CallbackComponent extends SourceBaseComponent {
   readonly priority: Priority = Priority.normal;
   readonly container: DependencyContainer;
+
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
@@ -16,7 +17,7 @@ export default class CallbackComponent extends SourceBaseComponent {
     super(element, context);
     this.container = container;
   }
-  protected async renderSourceAsync(dataSource: ISource): Promise<Node> {
+  protected async renderSourceAsync(dataSource: ISource): Promise<void> {
     var methodName = await this.getAttributeValueAsync("method");
     var method = eval(methodName);
     try {
@@ -27,6 +28,5 @@ export default class CallbackComponent extends SourceBaseComponent {
         e
       );
     }
-    return null;
   }
 }

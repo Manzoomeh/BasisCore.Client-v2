@@ -31,7 +31,7 @@ export default class Repository implements IContextRepository {
     this.logger.logInformation(`${source.data.id} Added.`);
   }
 
-  public addHandler(sourceId: SourceId, handler: SourceHandler) {
+  public addHandler(sourceId: SourceId, handler: SourceHandler): SourceHandler {
     const key = sourceId?.toLowerCase();
     let handlers = this.eventManager.get(key);
     if (!handlers) {
