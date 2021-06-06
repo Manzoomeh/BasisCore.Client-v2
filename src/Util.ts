@@ -1,4 +1,3 @@
-import IBasisCore from "./IBasisCore";
 import IData from "./data/IData";
 import IContext from "./context/IContext";
 

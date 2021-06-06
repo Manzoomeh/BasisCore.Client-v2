@@ -43,7 +43,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
           if (ObjectToken.HasValue(item.column)) {
             if (dataSource == null) {
               if (isLastItem) {
-                if (sourceName.startsWith("cms.")) {
+                if (item.source === "cms") {
                   break;
                 }
                 if (wait) {

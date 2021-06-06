@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Html Text Binding - Simple</title>
+</head>
+
+<body>
+
+
+    <form bc-triggers="submit" name="cms.form">
+        <label>fname :
+            <input name="fname" /></label>
+        <br />
+        <label>lname :
+            <input name="lname" /></label>
+        <br />
+        <label>range :<input type="range" name="range" /></label>
+        <br />
+        <label>number :<input type="number" name="number" /></label>
+        <input type="submit" />
+
+    </form>
+    <fieldset>
+        <legend>Result</legend>
+        fname: [##cms.form.fname##]
+        <br />
+        lname: [##cms.form.lname##]
+        <br />
+        range: [##cms.form.range##]
+        <br />
+        number: [##cms.form.number##]
+        <br />
+
+    </fieldset>
+</body>
+
+</html>

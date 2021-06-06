@@ -13,7 +13,9 @@ export default class HTMLFormComponent extends HTMLElementComponent<HTMLFormElem
 
   protected getSourceValueAsync(event: Event): Promise<any> {
     const data = new FormData(this.node);
+
     const value = Array.from(data.keys()).reduce((result, key) => {
+      console.log("form", key, data.get(key));
       result[key] = data.get(key);
       return result;
     }, {});

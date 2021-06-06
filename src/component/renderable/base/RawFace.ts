@@ -8,7 +8,7 @@ export default class RawFace {
   readonly Level: IToken<string>;
   readonly RowType: IToken<string>;
   readonly Filter: IToken<string>;
-  readonly Template: IToken<string>;
+  readonly Template: string;
 
   constructor(element: Element, context: IContext) {
     this.ApplyReplace = element.GetBooleanToken("replace", context);
@@ -16,6 +16,6 @@ export default class RawFace {
     this.Level = element.GetStringToken("level", context);
     this.RowType = element.GetStringToken("rowtype", context);
     this.Filter = element.GetStringToken("filter", context);
-    this.Template = new StringValue(element.GetTemplate(), context); // element.GetTemplateToken(context);
+    this.Template = element.getTemplate();
   }
 }

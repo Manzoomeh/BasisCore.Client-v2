@@ -8,7 +8,7 @@ declare global {
     GetIntegerToken(attributeName: string, context: IContext): IToken<number>;
     GetBooleanToken(attributeName: string, context: IContext): IToken<boolean>;
     GetTemplateToken(context: IContext): IToken<string>;
-    GetTemplate(): string;
+    getTemplate(): string;
     isBasisCore(): boolean;
     isBasisTag(): boolean;
   }
@@ -66,8 +66,8 @@ Object.defineProperty(Element.prototype, "GetTemplateToken", {
   writable: true,
   configurable: true,
 });
-Object.defineProperty(Element.prototype, "GetTemplate", {
-  value: function GetTemplate() {
+Object.defineProperty(Element.prototype, "getTemplate", {
+  value: function getTemplate() {
     var retVal: string;
     if (
       this.children.length == 1 &&
