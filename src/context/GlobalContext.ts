@@ -7,7 +7,7 @@ import ILogger from "../logger/ILogger";
 import ConnectionOptionsManager from "../options/connection-options/ConnectionOptionsManager";
 import { HostOptions } from "../options/HostOptions";
 import IContextRepository from "../repository/IContextRepository";
-import { SourceId } from "../type-alias";
+import { HttpMethod, SourceId } from "../type-alias";
 import Util from "../Util";
 import Context from "./Context";
 
@@ -31,19 +31,11 @@ export default class GlobalContext extends Context {
 
   public loadPageAsync(
     pageName: string,
-    rawCommand: string,
-    pageSize: string,
-    callDepth: number
+    parameters: IDictionary<string>,
+    method?: HttpMethod
   ): Promise<string> {
-    var parameters: any = {
-      fileNames: pageName,
-      dmnid: this.options.getDefault("dmnid"),
-      siteSize: pageSize,
-      command: rawCommand,
-    };
-    //TODO: add business for callDepth
     var connectionInfo = this.connections.GetConnection("callcommand");
-    return connectionInfo.loadPageAsync(this, pageName, parameters);
+    return connectionInfo.loadPageAsync(this, pageName, parameters, method);
   }
 
   public loadDataAsync(

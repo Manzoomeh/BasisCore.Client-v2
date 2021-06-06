@@ -2,15 +2,16 @@
 import Data from "../../data/Data";
 import DataSet from "../../data/DataSet";
 import IDictionary from "../../IDictionary";
-import { SourceId } from "../../type-alias";
+import { HttpMethod, SourceId } from "../../type-alias";
 import Util from "../../Util";
 import ConnectionOptions from "./ConnectionOptions";
 
 export default class WebConnectionOptions extends ConnectionOptions {
   readonly Url: string;
-  readonly Verb: string;
+  readonly Verb: HttpMethod;
   readonly Heartbeat: string;
-  readonly HeartbeatVerb: string;
+  readonly HeartbeatVerb: HttpMethod;
+
   constructor(name: string, setting: any) {
     super(name);
     if (typeof setting === "string") {
@@ -22,6 +23,7 @@ export default class WebConnectionOptions extends ConnectionOptions {
       this.HeartbeatVerb = setting.HeartbeatVerb;
     }
   }
+
   async TestConnectionAsync(context: IContext): Promise<boolean> {
     var isOk: boolean;
     if (Util.HasValue(this.Heartbeat)) {
@@ -29,7 +31,7 @@ export default class WebConnectionOptions extends ConnectionOptions {
         await WebConnectionOptions.ajax(
           this.Heartbeat,
           this.HeartbeatVerb ??
-            context.options.getDefault("source.heartbeatVerb", "get")
+            context.options.getDefault<HttpMethod>("source.heartbeatVerb")
         );
         isOk = true;
       } catch {
@@ -40,6 +42,7 @@ export default class WebConnectionOptions extends ConnectionOptions {
     }
     return isOk;
   }
+
   public async loadDataAsync(
     context: IContext,
     sourceId: SourceId,
@@ -47,33 +50,35 @@ export default class WebConnectionOptions extends ConnectionOptions {
   ): Promise<DataSet> {
     var rawJson = await WebConnectionOptions.ajax(
       this.Url,
-      this.Verb ?? context.options.getDefault("source.verb"),
+      this.Verb ?? context.options.getDefault<HttpMethod>("source.verb"),
       parameters
     );
     var json = this.ParseJsonString(rawJson);
     return new DataSet(json.Tables.map((x) => new Data(x.Key, x.Value)));
   }
+
   async loadPageAsync(
     context: IContext,
     pageName: string,
-    parameters: IDictionary<string>
+    parameters: IDictionary<string>,
+    method?: HttpMethod
   ): Promise<string> {
     return await WebConnectionOptions.ajax(
       `${this.Url}${pageName}`,
-      this.Verb ?? context.options.getDefault("call.verb"),
+      method ?? this.Verb ?? context.options.getDefault("call.verb"),
       parameters
     );
   }
 
   private static ajax(
     url: string,
-    methode: string,
+    method: HttpMethod,
     parameters: IDictionary<string> = null
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       var xhr = new XMLHttpRequest();
       xhr.withCredentials = false;
-      xhr.open(methode, url, true);
+      xhr.open(method, url, true);
       xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr.onload = function (e) {
         if (xhr.readyState === 4) {

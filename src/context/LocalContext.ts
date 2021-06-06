@@ -3,7 +3,7 @@ import DataSet from "../data/DataSet";
 import ISource from "../data/ISource";
 import IDictionary from "../IDictionary";
 import IContextRepository from "../repository/IContextRepository";
-import { SourceHandler, SourceId } from "../type-alias";
+import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
 import Context from "./Context";
 import ILocalContext from "./ILocalContext";
 
@@ -40,17 +40,17 @@ export default class LocalContext extends Context implements ILocalContext {
   public getOrLoadDbLibAsync(): Promise<any> {
     return this.owner.getOrLoadDbLibAsync();
   }
+
   public getOrLoadObjectAsync(object: string, url: string): Promise<any> {
     return this.getOrLoadObjectAsync(object, url);
   }
 
   public loadPageAsync(
     pageName: string,
-    rawCommand: string,
-    pageSize: string,
-    callDepth: number
+    parameters: IDictionary<string>,
+    method?: HttpMethod
   ): Promise<string> {
-    return this.owner.loadPageAsync(pageName, rawCommand, pageSize, callDepth);
+    return this.owner.loadPageAsync(pageName, parameters, method);
   }
 
   public async loadDataAsync(

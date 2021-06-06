@@ -3,7 +3,7 @@ import DataUtil from "../data/DataUtil";
 import ILogger from "../logger/ILogger";
 import IContext from "./IContext";
 import EventManager from "../event/EventManager";
-import { SourceHandler, SourceId } from "../type-alias";
+import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
 import IContextRepository from "../repository/IContextRepository";
 import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
@@ -38,9 +38,8 @@ export default abstract class Context implements IContext {
 
   public abstract loadPageAsync(
     pageName: string,
-    rawCommand: string,
-    pageSize: string,
-    callDepth: number
+    parameters: IDictionary<string>,
+    method?: HttpMethod
   ): Promise<string>;
 
   public checkSourceHeartbeatAsync(source: string): Promise<boolean> {

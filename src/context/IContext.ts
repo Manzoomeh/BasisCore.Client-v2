@@ -4,10 +4,9 @@ import { AppendType } from "../enum";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import IContextHostOptions from "../options/IContextHostOptions";
-import { SourceHandler, SourceId } from "../type-alias";
+import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
 
 export default interface IContext {
-  //repository: IRepository;
   logger: ILogger;
   options: IContextHostOptions;
 
@@ -15,9 +14,8 @@ export default interface IContext {
 
   loadPageAsync(
     pageName: string,
-    rawCommand: string,
-    pageSize: string,
-    callDepth: number
+    parameters: IDictionary<string>,
+    method?: HttpMethod
   ): Promise<string>;
 
   loadDataAsync(

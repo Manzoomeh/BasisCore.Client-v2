@@ -3,9 +3,11 @@ import IContext from "../../context/IContext";
 import { Priority } from "../../enum";
 import ComponentCollection from "../../ComponentCollection";
 import CommandComponent from "../CommandComponent";
+import { HttpMethod } from "../../type-alias";
 
 @injectable()
 export default class CallComponent extends CommandComponent {
+  private defaultAttributeNames = ["core", "run", "file", "method"];
   readonly range: Range;
   private readonly container: DependencyContainer;
   readonly priority: Priority = Priority.higher;
@@ -23,18 +25,40 @@ export default class CallComponent extends CommandComponent {
   }
 
   protected async runAsync(): Promise<void> {
-    console.log(this.busy);
     const filename = await this.getAttributeValueAsync("file");
-    const pagesize = await this.getAttributeValueAsync("pagesize");
+    const pageSize = await this.getAttributeValueAsync("pagesize");
+    const method = (
+      await this.getAttributeValueAsync("method")
+    )?.toUpperCase() as HttpMethod;
+
+    console.log(method);
     const command = await this.node.outerHTML
       .ToStringToken(this.context)
       .getValueAsync();
 
+    let parameters = null;
+    if (method === "POST") {
+      parameters = {};
+      for (let i = 0; i < this.node.attributes.length; i++) {
+        const attr = this.node.attributes[i];
+        const name = attr.name.toLowerCase();
+        if (this.defaultAttributeNames.indexOf(name) == -1) {
+          parameters[name] = await this.getAttributeValueAsync(attr.name);
+        }
+      }
+    } else {
+      parameters = {
+        fileNames: filename,
+        dmnid: this.context.options.getDefault("dmnid"),
+        siteSize: pageSize,
+        command: command,
+      };
+    }
+
     const result = await this.context.loadPageAsync(
       filename,
-      command,
-      pagesize,
-      0
+      parameters,
+      method
     );
     const content = this.range.createContextualFragment(result);
     const childNodes = [...content.childNodes];

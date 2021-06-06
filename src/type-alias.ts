@@ -8,3 +8,4 @@ export declare type SourceHandler = EventHandler<ISource>;
 export declare type HostSetting = IDictionary<
   string | any | IConnectionSetting
 >;
+export declare type HttpMethod = "POST" | "GET";

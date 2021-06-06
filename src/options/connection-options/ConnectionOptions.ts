@@ -2,7 +2,7 @@
 import DataSet from "../../data/DataSet";
 import ClientException from "../../exception/ClientException";
 import IDictionary from "../../IDictionary";
-import { SourceId } from "../../type-alias";
+import { HttpMethod, SourceId } from "../../type-alias";
 
 export default abstract class ConnectionOptions {
   readonly Name: string;
@@ -19,7 +19,8 @@ export default abstract class ConnectionOptions {
   public abstract loadPageAsync(
     context: IContext,
     pageName: string,
-    parameters: IDictionary<string>
+    parameters: IDictionary<string>,
+    method?: HttpMethod
   ): Promise<string>;
 
   public ParseJsonString(json: string): ParsedData {
