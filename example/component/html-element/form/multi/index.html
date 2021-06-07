@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <form bc-triggers="submit" name="cms.form">
+    <!-- <form bc-triggers="submit" name="cms.form">
         <label>fname :
             <input name="fname" /></label>
         <br />
@@ -45,14 +45,20 @@
         number: [##cms.form.cars##]
         <br />
 
-    </fieldset>
+    </fieldset> -->
 
-    <basis core="callback" run="AtClient" datamembername="cms.form" method="onSource"></basis>
+    <!-- <basis core="callback" run="AtClient" datamembername="cms.form" method="onSource"></basis>
 
     <script>
         function onSource(source) {
             console.table(source.data.rows);
         }
+    </script> -->
+
+    [##cms.data.id+1##]
+
+    <script>
+        $bc.setSource('cms.data', [{ id: 1 }, { id: 2 }, { id: 3 }])
     </script>
 </body>
 
