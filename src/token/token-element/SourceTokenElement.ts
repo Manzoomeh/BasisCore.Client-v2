@@ -8,8 +8,8 @@ export default class SourceTokenElement implements ITokenElement {
   readonly extractValue: (source: ISource) => string;
 
   constructor(parts: Array<string>) {
-    this.source = parts[0];
-    this.member = parts[1];
+    this.source = parts[0].toLowerCase();
+    this.member = parts[1].toLowerCase();
     this.column = parts.length > 2 ? parts.slice(2).join(".") : null;
     this.extractValue = new Function(
       "source",

@@ -10,6 +10,7 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
   }
 
   public async initializeAsync(): Promise<void> {
+    await super.initializeAsync();
     const value = await this.getAttributeValueAsync("bc-trigger-on");
     const keys = value?.split(" ");
     if (keys) {

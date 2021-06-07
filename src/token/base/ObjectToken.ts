@@ -10,7 +10,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
   constructor(rawValue: string, context: IContext) {
     this.context = context;
     this.params = rawValue.split("|").map((part) => {
-      var parts = part.toLowerCase().split(".");
+      var parts = part.split(".");
       const matchValue = parts[0].match(/^\s*\((.*)\)\s*$/);
       return matchValue
         ? new ValueTokenElement<T>(this.tryParse(matchValue[1]))
@@ -151,16 +151,14 @@ export default abstract class ObjectToken<T> implements IToken<T> {
             } catch (ex) {
               console.error(ex);
             }
-            console.log("d", value);
-            if (value) {
+            if (value != null) {
               retVal = this.tryParse(value);
               break;
             } else {
               continue;
             }
           } else {
-            const result = source ? true : false;
-            retVal = this.tryParse(result.toString());
+            retVal = this.tryParse(source ? "true" : "false");
             break;
           }
         } else {

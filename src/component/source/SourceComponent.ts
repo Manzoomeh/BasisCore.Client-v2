@@ -27,7 +27,7 @@ export default abstract class SourceComponent<
   }
 
   public async initializeAsync(): Promise<void> {
-    super.initializeAsync();
+    await super.initializeAsync();
     this.id = await this.getAttributeValueAsync("name");
   }
 

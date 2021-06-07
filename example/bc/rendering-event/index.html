@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Call Command - Simple</title>
+</head>
+
+<body>
+    <basis core="call" file="called.html" pagesize="" run="atclient" bc-rendering="rendering" bc-rendered="rendered">
+    </basis>
+    <script>
+        const host = {
+            settings: {
+                "default.call.verb": "get",
+                "connection.web.callcommand": "call/",
+            },
+        };
+
+        function rendering() {
+            console.log('rendering');
+            return true;
+        }
+        function rendered() {
+            console.log('rendered');
+        }
+
+    </script>
+
+</body>
+
+</html>

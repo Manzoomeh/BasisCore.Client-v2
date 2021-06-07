@@ -42,7 +42,7 @@ export default abstract class ConnectionOptions {
         var rawTbl = obj[tblName];
         var cols = <string[]>rawTbl.shift();
         //for add case insensitive to alasql lib
-        cols = cols?.map((x) => x.toLowerCase().trim()) ?? [];
+        //cols = cols?.map((x) => x.toLowerCase().trim()) ?? [];
         var rows = new Array<any>();
         rawTbl.forEach((rawRow) => {
           var row = {};

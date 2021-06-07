@@ -14,6 +14,9 @@ export default abstract class Component<TNode extends Node>
     return this._busy;
   }
 
+  protected onRendering: (node: TNode) => boolean;
+  protected onRendered: (node: TNode) => void;
+
   constructor(node: TNode, context: IContext) {
     this.node = node;
     this.context = context;
@@ -22,7 +25,12 @@ export default abstract class Component<TNode extends Node>
     if (!this.busy) {
       this._busy = true;
       try {
-        await this.renderAsync();
+        if (!this.onRendering || this.onRendering(this.node)) {
+          await this.renderAsync();
+          if (this.onRendered) {
+            this.onRendered(this.node);
+          }
+        }
       } finally {
         this._busy = false;
       }

@@ -56,10 +56,24 @@
     </script> -->
 
     [##cms.data.id+1##]
+    <br />
+    [##cms.temp.nameM.length##]
+    <br />
+    name= [##cms.temp.name##]
+    <br />
+    nameM = [##cms.temp.nameM##]
+    <br />
+    <basis core="print" datamembername="cms.temp" run="atclient">
+        <face>
+            name= @name
+            <br />
+            nameM = @nameM.length
+        </face>
+        <script>
 
-    <script>
-        $bc.setSource('cms.data', [{ id: 1 }, { id: 2 }, { id: 3 }])
-    </script>
+            $bc.setSource('cms.data', [{ id: 1 }, { id: 2 }, { id: 3 }])
+            $bc.setSource('cms.temp', { name: '__name__', nameM: '__nameM__' })
+        </script>
 </body>
 
 </html>

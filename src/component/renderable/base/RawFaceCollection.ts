@@ -16,6 +16,18 @@ export default class RawFaceCollection extends Array<RawFace> {
     return retVal;
   }
 
+  private static sortDescending(a, b) {
+    var nameA = a.name;
+    var nameB = b.name;
+    if (nameA > nameB) {
+      return -1;
+    }
+    if (nameA < nameB) {
+      return 1;
+    }
+    return 0;
+  }
+
   public async processAsync(
     dataSource: IData,
     context: IContext
@@ -30,11 +42,23 @@ export default class RawFaceCollection extends Array<RawFace> {
         ? dataSource.rows
         : await Util.ApplyFilterAsync(dataSource, filter, context);
       var template = x.Template ?? "";
-      dataSource.columns.forEach((col, index) => {
-        if (col.length > 0) {
-          template = Util.ReplaceEx(template, `@${col}`, `@col${index + 1}`);
-        }
-      });
+      dataSource.columns
+        .map((col, i) => {
+          return {
+            name: col,
+            index: i,
+          };
+        })
+        .sort(RawFaceCollection.sortDescending)
+        .forEach((col) => {
+          if (col.name.length > 0) {
+            template = Util.ReplaceEx(
+              template,
+              `@${col.name}`,
+              `@col${col.index + 1}`
+            );
+          }
+        });
 
       return <Face>{
         ApplyFunction: applyFunction,
