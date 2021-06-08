@@ -30,6 +30,9 @@ module.exports = {
       server.app.post("/data/schoolapi", function (req, res) {
         res.json(data);
       });
+      server.app.post("*", (req, res) => {
+        res.redirect(req.originalUrl);
+      });
     },
     open: true,
     port: 3000,
