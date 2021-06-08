@@ -26,98 +26,6 @@ export default abstract class ObjectToken<T> implements IToken<T> {
       .filter((x) => x instanceof SourceTokenElement)
       .map((x: SourceTokenElement) => x.sourceName);
   }
-  // private static HasValue(data: any): boolean {
-  //   return data !== undefined && data != null;
-  // }
-
-  // async getValueAsync(wait: boolean = true): Promise<T> {
-  //   var retVal: T = null;
-  //   for (var i = 0; i < this.params.length; i++) {
-  //     var item = this.params[i];
-  //     var isLastItem = i + 1 == this.params.length;
-  //     if (item instanceof ValueTokenElement) {
-  //       retVal = item.value;
-  //     } else if (item instanceof SourceTokenElement) {
-  //       if (ObjectToken.HasValue(item.member)) {
-  //         const sourceName = item.sourceName;
-  //         var dataSource = this.context.tryToGetSource(sourceName);
-  //         if (ObjectToken.HasValue(item.column)) {
-  //           if (dataSource == null) {
-  //             if (isLastItem) {
-  //               if (item.source === "cms") {
-  //                 break;
-  //               }
-  //               if (wait) {
-  //                 dataSource = await this.context.waitToGetSourceAsync(
-  //                   sourceName
-  //                 );
-  //               } else {
-  //                 break;
-  //               }
-  //             } else {
-  //               continue;
-  //             }
-  //           }
-  //           console.log("d", item.GetValue(dataSource));
-  //           var columnName = item.column.toLowerCase();
-  //           if (dataSource.data.columns.indexOf(columnName) == -1) {
-  //             if (isLastItem) {
-  //               break;
-  //             } else {
-  //               continue;
-  //             }
-  //           }
-  //           if (dataSource.data.rows.length == 1) {
-  //             var columnRawValue = dataSource.data.rows[0][columnName];
-  //             var columnValue = "";
-  //             try {
-  //               columnValue = columnRawValue.toString();
-  //             } catch {
-  //               /*Nothing*/
-  //             }
-  //             if (!ObjectToken.HasValue(columnRawValue) || columnValue === "") {
-  //               //if value in source is null or blank,process next source
-  //               if (!isLastItem) {
-  //                 continue;
-  //               }
-  //             } else {
-  //               retVal = this.tryParse(columnValue);
-  //               break;
-  //             }
-  //           } else if (dataSource.data.rows.length > 1) {
-  //             try {
-  //               var sb = "";
-  //               var data = dataSource.data.rows
-  //                 .filter((x) => ObjectToken.HasValue(x[columnName]))
-  //                 .map((x) => x[columnName]);
-  //               data.forEach((item) => {
-  //                 if (sb.length > 0) {
-  //                   sb += ",";
-  //                 }
-  //                 sb += item;
-  //               });
-  //               retVal = this.tryParse(sb);
-  //               break;
-  //             } catch {
-  //               /*Nothing*/
-  //             }
-  //           }
-  //         } else {
-  //           var result = ObjectToken.HasValue(dataSource);
-  //           retVal = this.tryParse(result.toString());
-  //           break;
-  //         }
-  //       } else {
-  //         var result = await this.context.checkSourceHeartbeatAsync(
-  //           item.source
-  //         );
-  //         retVal = this.tryParse(result.toString());
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   return retVal;
-  // }
 
   async getValueAsync(wait: boolean = true): Promise<T> {
     var retVal: T = null;
@@ -149,7 +57,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
             try {
               value = item.extractValue(source);
             } catch (ex) {
-              console.error(ex);
+              //console.error(ex);
             }
             if (value != null) {
               retVal = this.tryParse(value);

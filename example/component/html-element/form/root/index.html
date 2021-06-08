@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Html Text Binding - Simple</title>
+</head>
+
+<body>
+    <form bc-triggers="submit" name="cms.form">
+        <fieldset>
+            <legend>cms.form</legend>
+            <label>id :
+                <input name="id" /></label>
+            <br />
+            <fieldset>
+                <legend>cms.form._root</legend>
+                <label>fname :
+                    <input name="_root.fname" /></label>
+                <br />
+                <label>lname :
+                    <input name="_root.lname" /></label>
+                <br />
+                <label>range :<input type="range" name="_root.range" /></label>
+                <br />
+                <fieldset id="phone-holder">
+                    <legend>cms.form._root.phones</legend>
+                </fieldset>
+                <template id="phone-template">
+                    <div>
+                        <label>Code :
+                            <input name="_root.phones__[x].code" /></label>
+                        <br />
+                        <label>Phone :
+                            <input name="_root.phones__[x].number" /></label>
+                        <br />
+                    </div>
+                </template>
+                <br />
+                <button type="button" onclick="addPhone()">Add Phone</button>
+            </fieldset>
+        </fieldset>
+        <input type="submit" />
+
+
+    </form>
+    <fieldset>
+        <legend>Result</legend>
+        cms.form.id: [##cms.form.id##]
+        <br />
+        cms.form._root: [##cms.form._root##]
+        <br />
+        cms.form._root.fname: [##cms.form._root.fname##]
+        <br />
+        cms.form._root.lname: [##cms.form._root.lname##]
+        <br />
+        cms.form._root.range: [##cms.form._root.range##]
+        <br />
+        cms.form._root.phones: [##cms.form._root.phones##]
+        <br />
+        cms.form._root.phones[0]?.code: [##cms.form._root.phones[0]?.code##]
+        <br />
+        cms.form._root.phones[2]?.number: [##cms.form._root.phones[1]?.number##]
+        <br />
+
+
+    </fieldset>
+    <basis core="callback" run="AtClient" datamembername="cms.form" method="onSource"></basis>
+
+    <script>
+        let id = 1
+        function addPhone() {
+            const template = document.getElementById("phone-template");
+            const copy = document.importNode(template.content, true);
+            console.log(copy.querySelectorAll('[name]'))
+            copy.querySelectorAll('[name]').forEach(element => {
+                element.attributes["name"].value = element.attributes["name"].value.replace('[x]', id.toString());
+            });
+            id++;
+            document.getElementById("phone-holder").append(copy);
+        }
+
+        function onSource(source) {
+            console.table(source.data.rows);
+        }
+    </script>
+
+</body>
+
+</html>
