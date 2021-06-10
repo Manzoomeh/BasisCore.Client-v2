@@ -24,18 +24,19 @@ export default class FaceCollection extends Array<Face> {
         return con1 && con2 && con3;
       })[0];
       if (firstMatchFace != null) {
-        if (firstMatchFace.FormattedTemplate != null) {
-          retVal = FaceCollection.format(
-            firstMatchFace.FormattedTemplate,
-            param.data
-          );
-          if (firstMatchFace.ApplyReplace && param.replaces != null) {
-            retVal = param.replaces.apply(retVal);
-          }
-          if (firstMatchFace.ApplyFunction) {
-            //TODO:add function
-          }
+        //if (firstMatchFace.FormattedTemplate != null) {
+        // retVal = FaceCollection.format(
+        //   firstMatchFace.FormattedTemplate,
+        //   param.data
+        // );
+        retVal = firstMatchFace.template.getValue(param.data);
+        if (firstMatchFace.ApplyReplace && param.replaces != null) {
+          retVal = param.replaces.apply(retVal);
         }
+        if (firstMatchFace.ApplyFunction) {
+          //TODO:add function
+        }
+        //}
         param.setRendered();
         if (param.mustApplyDivider) {
           retVal += param.dividerTemplate;

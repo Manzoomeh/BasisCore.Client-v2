@@ -14,15 +14,18 @@ import ReplaceCollection from "./ReplaceCollection";
 export default abstract class RenderableComponent extends SourceBaseComponent {
   readonly container: DependencyContainer;
   readonly collection: ComponentCollection;
+  readonly reservedKeys: Array<string>;
 
   constructor(
     element: Element,
     context: IContext,
-    container: DependencyContainer
+    container: DependencyContainer,
+    reservedKeys?: Array<string>
   ) {
     super(element, context);
     this.container = container;
     this.collection = container.resolve(ComponentCollection);
+    this.reservedKeys = reservedKeys;
   }
 
   async renderSourceAsync(source: ISource): Promise<void> {
@@ -40,7 +43,11 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var rawReplaces = RawReplaceCollection.Create(this.node, this.context);
       var rawFaces = RawFaceCollection.Create(this.node, this.context);
 
-      var faces = await rawFaces.processAsync(source.data, this.context);
+      var faces = await rawFaces.processAsync(
+        source.data,
+        this.context,
+        this.reservedKeys
+      );
       var replaces = await rawReplaces.ProcessAsync(this.context);
       var dividerRowCount = (await rawDividerRowCount?.getValueAsync()) ?? 0;
       var dividerTemplate = await rawDividerTemplate?.getValueAsync();

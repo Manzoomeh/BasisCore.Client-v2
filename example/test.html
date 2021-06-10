@@ -1,0 +1,153 @@
+<script src="/basiscore.min.js"></script>
+
+<basis core="cookie" name="viewList" value="listStyle" path="/" />
+<basis core="dbsource" source="trust_loginuiapi" run="atclient" name="shared" userid="122504" cache="none">
+    <member name="files" type="list" request="sharedfiles" perpage="5" pageno="{##db.page.value|(1)##}"></member>
+    <member name="paging" type="list" request="crmpaging" parentname="files" countp="4"></member>
+</basis>
+
+
+<div class="widget_wrapper" id="sharedWithMe">
+    <div class="widget_title">
+        <span>اشتراک با من</span>
+        <div class="widget_buttons">
+            <span class="delete_widget">
+                <i class="lni lni-close"></i>
+            </span>
+        </div>
+    </div>
+
+
+
+
+
+
+    <div class="widget_body">
+
+
+        <div class="responstable-box listStyle">
+
+            <basis core="print" datamembername="shared.files" run="atclient">
+                <else-layout>
+                    <script type="text/template">
+                            <tr>
+                                <td colspan="6" class="empty_list">فایلی آپلود نکردید</td>
+                            </tr>
+                        </script>
+                </else-layout>
+                <layout>
+                    <script type="text/template">
+                                <table class="responstable sharedfiles listTable ">
+                                    <tbody>
+                                        <tr>
+                                            <th class="col1" data-th="جزئیات">
+                                                <span>
+                                                    ردیف
+                                                </span>
+                                            </th>
+                                            <th class="col5">
+                                                <span>
+                                                    <i class="icon-list"></i>
+                                                    عنوان
+                                                </span>
+                                            </th>
+                                            <th class="col5">
+                                                <span>
+                                                    <i class="icon-user"></i>
+                                                    مالک فایل
+                                                </span>
+                                            </th>
+                                            <th class="col2">
+                                                <span>
+                                                    <i class="icon-doc"></i>
+                                                    حجم فایل
+                                                </span>
+                                            </th>
+                                            <th class="col4">
+                                                <span>
+                                                    <i class="icon-calendar"></i>
+                                                    تاریخ
+                                                </span>
+                                            </th>
+                                            <th class="col1">
+                                                <span>
+                                                    <i class="icon-settings"></i>
+                                                    عملیات
+                                                </span>
+                                            </th>
+                                        </tr>
+                            @child
+                        </tbody>
+                    </table>
+                            </script>
+                </layout>
+
+                <face>
+                    <script type="text/template">
+                            <tr>
+                                <td>@rownumber @rownumber>3?"hi":"low" </td>
+                                <td class="title-box">
+                                    <div class="">
+                                        <img src="/images/typeUndefined.png" width="35" />
+                                        <a class="title " href="/@path " target="_blank " download="@url " >@url </a>
+                                    </div>
+                                </td>
+                                <td class="file-owner">
+                                    <div>
+                                        <span class="user"> @UserName.split('\u0040').join('\u0020') @rownumber%3 </span>
+                                        <span class="name"> (@title ) </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @size B
+                                </td>
+                                <td>
+                                    @date
+                                </td>
+                                <td>
+                                    <div class="icons">
+                                        <a class="download" data-tooltip="دانلود فایل" href="/@path " target="_blank" download="@url ">
+                                            <i class="lni lni-cloud-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </script>
+                </face>
+
+            </basis>
+
+
+            <div class="clr"></div>
+        </div>
+
+        <div class="clr"></div>
+    </div>
+    <div class="pagination">
+        <ul class="paging">
+
+
+        </ul>
+
+        <div class="clr"></div>
+    </div>
+</div>
+<script>
+    var host = {
+        Debug: false,
+        AutoRender: false,
+        settings: {
+            // 'connection.web.callcommand': '',
+            'connection.web.callcommand': 'http://127.0.0.1:8080/',
+            'connection.web.basiscoreapi': 'https://dbsource.basiscore.net/data.json',
+            'connection.web.trustloginuiapi': 'https://dbsource.basiscore.net/data.json',
+            'connection.web.trust_loginuiapi': 'https://dbsource.basiscore.net/data.json',
+            'default.dbsource.verb': 'post',
+            'default.call.verb': 'get',
+            'default.viewCommand.groupColumn': 'prpid',
+            'default.dmnid': '12',
+            'default.binding.regex': '\\{##([^#]*)##\\}'
+        }
+    }
+
+</script>

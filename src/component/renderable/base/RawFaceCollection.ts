@@ -5,7 +5,9 @@ import IToken from "../../../token/IToken";
 import Util from "../../../Util";
 import Face from "./Face";
 import FaceCollection from "./FaceCollection";
+import ITemplate from "./ITemplate";
 import RawFace from "./RawFace";
+import ContentTemplate from "./ContentTemplate";
 
 export default class RawFaceCollection extends Array<RawFace> {
   static Create(element: Element, context: IContext): RawFaceCollection {
@@ -16,21 +18,10 @@ export default class RawFaceCollection extends Array<RawFace> {
     return retVal;
   }
 
-  private static sortDescending(a, b) {
-    var nameA = a.name;
-    var nameB = b.name;
-    if (nameA > nameB) {
-      return -1;
-    }
-    if (nameA < nameB) {
-      return 1;
-    }
-    return 0;
-  }
-
   public async processAsync(
     dataSource: IData,
-    context: IContext
+    context: IContext,
+    reservedKeys: Array<string>
   ): Promise<FaceCollection> {
     var facesTask = this.map(async (x) => {
       var applyReplace = (await x.ApplyReplace?.getValueAsync()) ?? faces;
@@ -41,32 +32,17 @@ export default class RawFaceCollection extends Array<RawFace> {
       var relatedRows = Util.IsNullOrEmpty(filter)
         ? dataSource.rows
         : await Util.ApplyFilterAsync(dataSource, filter, context);
-      var template = x.Template ?? "";
-      dataSource.columns
-        .map((col, i) => {
-          return {
-            name: col,
-            index: i,
-          };
-        })
-        .sort(RawFaceCollection.sortDescending)
-        .forEach((col) => {
-          if (col.name.length > 0) {
-            template = Util.ReplaceEx(
-              template,
-              `@${col.name}`,
-              `@col${col.index + 1}`
-            );
-          }
-        });
-
+      const templateParser: ITemplate = new ContentTemplate(
+        x.Template,
+        reservedKeys
+      );
       return <Face>{
         ApplyFunction: applyFunction,
         ApplyReplace: applyReplace,
         RowType: rowType,
-        FormattedTemplate: template,
         Levels: levels,
         RelatedRows: relatedRows,
+        template: templateParser,
       };
     });
     var faces = await Promise.all(facesTask);

@@ -59,7 +59,7 @@ export default abstract class ObjectToken<T> implements IToken<T> {
             } catch (ex) {
               //console.error(ex);
             }
-            if (value != null) {
+            if (value != null && value !== "") {
               retVal = this.tryParse(value);
               break;
             } else {

@@ -14,7 +14,7 @@ export default class TreeComponent extends RenderableComponent {
     @inject("context") context: IContext,
     @inject("container") container: DependencyContainer
   ) {
-    super(element, context, container);
+    super(element, context, container, ["child"]);
   }
 
   protected async renderDataPartAsync(

@@ -14,33 +14,36 @@
     <Basis core="print" datamembername="local.print" run="atclient" if="">
         <face>
             <div style="background-color: @color;">
-                hi by @color [##local.c.value##]
-                <button name="local.c" bc-triggers="click" bc-value="@color">Set to @color</button>
+                id = @id
+                <br />
+                @color
+                <br />
+                @color[1]
+                <br />
+                @color.length
+                <br />
+                @color.toUpperCase()
+                <br />
+                @fn(color,'t')
+                <br />
+                @col1
+                <br />
+                @col2
+                <br />
+                @id@id
             </div>
         </face>
     </Basis>
     <script>
+        function fn(data, c) {
+            return `---${data} - ${c}`
+        }
         $bc.setSource(
             "local.print", [
             { id: 1, color: 'red' },
             { id: 2, color: 'green' },
             { id: 3, color: 'blue' }
-        ], AppendType.after
-
-        );
-        // var i = 0;
-        // function fn() {
-        //     $bc.setSource(
-        //         "local.print", [
-        //         { id: i, name: `btn-t=${i}`, color: 'red' },
-        //         { id: i, name: `btn-t=${i}`, color: 'green' },
-        //         { id: i, name: `btn-t=${i}`, color: 'blue' }], AppendType.after
-
-        //     );
-        //     i += 1;
-        // }
-        // fn();
-        setInterval(fn, 1000);
+        ]);
     </script>
 </body>
 

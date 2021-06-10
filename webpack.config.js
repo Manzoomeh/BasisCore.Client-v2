@@ -3,7 +3,7 @@ const CircularDependencyPlugin = require("circular-dependency-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
-const data = require("./example/temp-data/schoolapi.json");
+//const data = require("./example/temp-data/schoolapi.json");
 
 module.exports = {
   entry: {
@@ -27,9 +27,9 @@ module.exports = {
     static: path.resolve(__dirname, "example"),
     onBeforeSetupMiddleware: function (server) {
       //console.log(app);
-      server.app.post("/data/schoolapi", function (req, res) {
-        res.json(data);
-      });
+      // server.app.post("/api/*.json", function (req, res) {
+      //   res.json(data);
+      // });
       server.app.post("*", (req, res) => {
         res.redirect(req.originalUrl);
       });

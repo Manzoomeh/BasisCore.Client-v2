@@ -11,11 +11,13 @@
 
 <body>
 
-    <basis core="dbsource" source="schoolapi" name="book" run="atclient">
+    <basis core="dbsource" source="bookapi" name="book" run="atclient">
         <member name="list" type="list" request="print" preview="true"></member>
+        <member name="type" type="list" request="print" preview="true"></member>
     </basis>
 
     <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>
+    <basis core="callback" run="AtClient" datamembername="book.type" method="onSource"></basis>
 
     <script>
         var host = {
@@ -23,7 +25,7 @@
             autoRender: true,
             'DbLibPath': 'http://cdn.basiscore.net/_js/alasql.min.js',
             settings: {
-                'connection.web.schoolapi': 'http://localhost:3000/data/schoolapi',
+                'connection.web.bookapi': 'data/book.json',
                 'default.dmnid': 2668
             },
 

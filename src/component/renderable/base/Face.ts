@@ -1,4 +1,5 @@
 ﻿import { FaceRowType } from "../../../enum";
+import ITemplate from "./ITemplate";
 
 export default class Face {
   Name: string;
@@ -6,6 +7,6 @@ export default class Face {
   ApplyFunction: boolean;
   RowType: FaceRowType;
   RelatedRows: Array<any[]>;
-  FormattedTemplate: string;
+  template: ITemplate;
   Levels: string[];
 }
