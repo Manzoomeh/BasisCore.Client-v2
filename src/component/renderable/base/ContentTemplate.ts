@@ -40,10 +40,10 @@ export default class ContentTemplate implements ITemplate {
 
   private extractContents() {
     //const r = /@([a-z\_]{1}[\w.(),'"\[\]]*)@?/gi;
-    const r = /([^@]|^)@(?:([^@\s]+)@|([^@\s]+))/gi;
+    const pattern = /([^@]|^)@(?:([^@\s]+)@|([^@\s]+))/gi;
     let matchResult;
     let startIndex = 0;
-    while ((matchResult = r.exec(this.template)) !== null) {
+    while ((matchResult = pattern.exec(this.template)) !== null) {
       const finding = matchResult[0];
       const preChar = matchResult[1];
       const expression = matchResult[2] ?? matchResult[3];
@@ -61,7 +61,7 @@ export default class ContentTemplate implements ITemplate {
         );
       }
       this.contents.push(new ExpressionTemplate(expression, this.reservedKeys));
-      startIndex = index + finding.length;
+      startIndex = index + finding.length - 1;
     }
     if (startIndex != this.template.length) {
       this.contents.push(new StringTemplate(this.template.slice(startIndex)));
@@ -101,10 +101,9 @@ class ExpressionTemplate implements ITemplate {
         ...Object.keys(data),
         ...Object.keys(data).map((key, index) => `col${index + 1}=${key}`),
         `${
-          this.reservedKeys
-            ?.map((key) => `const ${key}='@${key}';`)
-            .join(" ") ?? ""
-        } return ${this.rawExpression};`
+          this.reservedKeys?.map((key) => `const ${key}='@${key}';`).join("") ??
+          ""
+        }return ${this.rawExpression};`
       ) as any;
     }
     return this.getValue1(...Object.values(data));
