@@ -44,15 +44,19 @@ export default abstract class HTMLElementComponent<
     }
   }
 
+  protected async getBcProperty(name: string): Promise<string> {
+    let retVal = await this.getAttributeValueAsync(`bc-${name}`);
+    if (!retVal) {
+      retVal = await this.getAttributeValueAsync(name);
+    }
+    return retVal;
+  }
+
   protected async getSourceIdAsync(): Promise<SourceId> {
-    return await this.getAttributeValueAsync("name");
+    return this.getBcProperty("name");
   }
 
   protected async getSourceValueAsync(event: Event): Promise<any> {
-    let retVal = await this.getAttributeValueAsync("bc-value");
-    if (!retVal) {
-      retVal = await this.getAttributeValueAsync("value");
-    }
-    return retVal;
+    return this.getBcProperty("value");
   }
 }
