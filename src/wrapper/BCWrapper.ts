@@ -1,12 +1,13 @@
 import { container } from "tsyringe";
-import IBasisCore from "./IBasisCore";
-import IHostOptions from "./options/IHostOptions";
-import ClientException from "./exception/ClientException";
-import { HostOptions } from "./options/HostOptions";
-import { SourceId } from "./type-alias";
-import BCLinker from "./BCLinker";
-import EventManager from "./event/EventManager";
-import { AppendType } from "./enum";
+import IBasisCore from "../IBasisCore";
+import IHostOptions from "../options/IHostOptions";
+import ClientException from "../exception/ClientException";
+import { HostOptions } from "../options/HostOptions";
+import { SourceId } from "../type-alias";
+import BCLinker from "../BCLinker";
+import EventManager from "../event/EventManager";
+import { AppendType } from "../enum";
+import UtilWrapper from "./UtilWrapper";
 
 export class BCWrapper {
   private readonly elementList: Array<Element> = new Array<Element>();
@@ -14,16 +15,18 @@ export class BCWrapper {
   private _basiscore: IBasisCore = null;
   public manager: EventManager<IBasisCore> = new EventManager<IBasisCore>();
   private static _global: BCWrapper;
+
   public static get global(): BCWrapper {
     return BCWrapper._global ?? (BCWrapper._global = BCWrapper.new());
   }
+
   public get basiscore(): IBasisCore {
     return this._basiscore;
   }
 
-  static wrappers: Array<BCWrapper> = new Array<BCWrapper>();
+  public static readonly util: UtilWrapper = new UtilWrapper();
 
-  constructor() {}
+  static wrappers: Array<BCWrapper> = new Array<BCWrapper>();
 
   public static new(): BCWrapper {
     var retVal = new BCWrapper();

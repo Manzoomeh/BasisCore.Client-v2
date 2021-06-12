@@ -36,6 +36,16 @@ export default abstract class SourceBaseComponent extends CommandComponent {
       source = await this.context.waitToGetSourceAsync(this.sourceId);
     }
     console.log(`${this.core} - runAsync`);
+    const manipulation = await this.getAttributeValueAsync("bc-pre-process");
+    if (manipulation) {
+      const manipulationFn = new Function(
+        "source",
+        "context",
+        `return ${manipulation}(source,context);`
+      );
+      const result = manipulationFn(source, this.context);
+      source = result instanceof Promise ? await result : result;
+    }
     await this.renderSourceAsync(source);
   }
 

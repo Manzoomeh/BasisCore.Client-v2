@@ -2,7 +2,7 @@ import "./tsyringe.config";
 import "./extension/StringExtensions";
 import "./extension/ElementExtensions";
 import { HostOptions } from "./options/HostOptions";
-import { BCWrapper } from "./BCWrapper";
+import { BCWrapper } from "./wrapper/BCWrapper";
 import LocalDataBase from "./repository/LocalDataBase";
 import { AppendType } from "./enum";
 
