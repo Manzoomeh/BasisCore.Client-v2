@@ -5,12 +5,14 @@ export default class IntegerObject extends ObjectToken<number> {
   constructor(rawValue: string, context: IContext) {
     super(rawValue, context);
   }
+
   tryParse(value: string): number {
+    let retVal = 0;
     try {
-      return parseInt(value);
+      retVal = parseInt(value);
     } catch {
       /*Nothing*/
     }
-    return 0;
+    return retVal;
   }
 }

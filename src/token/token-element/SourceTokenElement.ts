@@ -1,11 +1,11 @@
 ﻿import ISource from "../../data/ISource";
 import ITokenElement from "./ITokenElement";
 
-export default class SourceTokenElement implements ITokenElement {
+export default class SourceTokenElement<TType> implements ITokenElement {
   source: string;
   member?: string;
   column?: string;
-  readonly extractValue: (source: ISource) => string;
+  readonly extractValue: (source: ISource) => TType;
 
   constructor(parts: Array<string>) {
     this.source = parts[0].toLowerCase();
@@ -15,11 +15,10 @@ export default class SourceTokenElement implements ITokenElement {
       "source",
       `let retVal = null;
       if (source.data.rows.length == 1) {
-        retVal = (source.data.rows[0].${this.column})?.toString();
+        retVal = source.data.rows[0].${this.column};
       } else if (source.data.rows.length > 1) {
         retVal = source.data.rows
-              .map((row) => row.${this.column})
-              .join(",");
+              .map((row) => row.${this.column});
       }
       return retVal;`
     ) as any;
@@ -28,15 +27,4 @@ export default class SourceTokenElement implements ITokenElement {
   get sourceName(): string {
     return `${this.source}.${this.member}`;
   }
-
-  // g(source: ISource): any {
-  //   let retVal = null;
-  //   if (source.data.rows.length == 1) {
-  //     retVal = source.data.rows[0];
-  //   } else if (source.data.rows.length > 1) {
-  //     retVal = source.data.rows
-  //     .filter((row) => row).join(",");
-  //   }
-  //   return retVal;
-  // }
 }
