@@ -28,7 +28,7 @@ export default abstract class ArrayToken<TType>
     var tasks = new Array<Promise<string>>();
     this.forEach((token) => tasks.push(token.getValueAsync(wait)));
     var result = await Promise.all(tasks);
-    var retVal = this.tryParse(result.join());
+    var retVal = this.tryParse(result.join(""));
     return retVal;
   }
 

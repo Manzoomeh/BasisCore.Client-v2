@@ -102,8 +102,9 @@ class ExpressionTemplate implements ITemplate {
           ...Object.keys(data),
           ...Object.keys(data).map((key, index) => `col${index + 1}=${key}`),
           `${
-            this.reservedKeys?.map((key) => `const ${key}='@${key}';`).join() ??
-            ""
+            this.reservedKeys
+              ?.map((key) => `const ${key}='@${key}';`)
+              .join("") ?? ""
           }return ${this.rawExpression};`
         ) as any;
       } catch (ex) {
