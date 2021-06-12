@@ -17,11 +17,11 @@ export class HostOptions implements IContextHostOptions {
   sources: { [key: string]: any[][] };
   dbLibPath: string;
 
-  private static _defaultSettings: IHostOptions;
+  private static _defaultSettings: Partial<IHostOptions>;
 
-  public static get defaultSettings(): IHostOptions {
+  public static get defaultSettings(): Partial<IHostOptions> {
     if (!HostOptions._defaultSettings) {
-      let defaults: IHostOptions = {
+      let defaults: Partial<IHostOptions> = {
         debug: false,
         autoRender: true,
         serviceWorker: false,
@@ -34,7 +34,6 @@ export class HostOptions implements IContextHostOptions {
           "default.ViewCommand.GroupColumn": "prpid",
           "default.source.heartbeatVerb": "GET",
         },
-        sources: {},
       };
       if (typeof host != "undefined") {
         defaults = _.defaultsDeep(_.cloneDeep(host), defaults);
