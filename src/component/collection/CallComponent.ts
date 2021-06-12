@@ -30,8 +30,6 @@ export default class CallComponent extends CommandComponent {
     const method = (
       await this.getAttributeValueAsync("method")
     )?.toUpperCase() as HttpMethod;
-
-    console.log(method);
     const command = await this.node.outerHTML
       .ToStringToken(this.context)
       .getValueAsync();
