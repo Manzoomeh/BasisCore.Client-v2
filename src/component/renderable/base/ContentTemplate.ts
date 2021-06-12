@@ -97,14 +97,22 @@ class ExpressionTemplate implements ITemplate {
 
   getValue(data: any): string {
     if (!this.getValue1) {
-      this.getValue1 = new Function(
-        ...Object.keys(data),
-        ...Object.keys(data).map((key, index) => `col${index + 1}=${key}`),
-        `${
-          this.reservedKeys?.map((key) => `const ${key}='@${key}';`).join("") ??
-          ""
-        }return ${this.rawExpression};`
-      ) as any;
+      try {
+        this.getValue1 = new Function(
+          ...Object.keys(data),
+          ...Object.keys(data).map((key, index) => `col${index + 1}=${key}`),
+          `${
+            this.reservedKeys?.map((key) => `const ${key}='@${key}';`).join() ??
+            ""
+          }return ${this.rawExpression};`
+        ) as any;
+      } catch (ex) {
+        console.error(
+          `Error in create binding expression for '${this.rawExpression}'`,
+          ex
+        );
+        throw ex;
+      }
     }
     return this.getValue1(...Object.values(data));
   }
