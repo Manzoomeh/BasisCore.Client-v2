@@ -4,6 +4,7 @@ import IDictionary from "../IDictionary";
 import Util from "../Util";
 import IContextHostOptions from "./IContextHostOptions";
 import IHostOptions from "./IHostOptions";
+import _ from "lodash";
 
 declare const host: IHostOptions;
 
@@ -20,13 +21,13 @@ export class HostOptions implements IContextHostOptions {
 
   public static get defaultSettings(): IHostOptions {
     if (!HostOptions._defaultSettings) {
-      const defaults: IHostOptions = {
+      let defaults: IHostOptions = {
         debug: false,
         autoRender: true,
         serviceWorker: false,
         dbLibPath: "alasql.min.js",
         settings: {
-          "default.binding.regex": /\[##([^#]*)##\]/,
+          "default.binding.regex": /\[##([^\[#\]]*)##\]/,
           "default.call.verb": "POST",
           "default.dmnid": "",
           "default.source.verb": "POST",
@@ -36,25 +37,21 @@ export class HostOptions implements IContextHostOptions {
         sources: {},
       };
       if (typeof host != "undefined") {
-        var settings = {
-          ...defaults.settings,
-          ...host.settings,
-        };
-        Object.assign(defaults, host);
-        Object.assign(defaults.settings, settings);
+        defaults = _.defaultsDeep(_.cloneDeep(host), defaults);
       }
       HostOptions._defaultSettings = defaults;
     }
     return HostOptions._defaultSettings;
   }
 
-  constructor(@inject("host") options: Partial<IHostOptions>) {
-    Object.assign(this, HostOptions.defaultSettings);
-    if (options && options != HostOptions.defaultSettings) {
-      var settings = { ...this.settings, ...options.settings };
-      Object.assign(this, options);
-      Object.assign(this.settings, settings);
+  constructor(@inject("IHostOptions") options: Partial<IHostOptions>) {
+    if (options !== HostOptions.defaultSettings) {
+      options = _.defaultsDeep(
+        _.cloneDeep(options),
+        HostOptions.defaultSettings
+      );
     }
+    Object.assign(this, _.cloneDeep(options));
   }
 
   public getDefault<T>(key: string, defaultValue: T = null): T {
