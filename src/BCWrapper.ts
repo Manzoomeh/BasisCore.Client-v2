@@ -67,7 +67,7 @@ export class BCWrapper {
   public run(): BCWrapper {
     if (!this._basiscore) {
       const childContainer = container.createChildContainer();
-      childContainer.register("host", {
+      childContainer.register("IHostOptions", {
         useValue: this.hostSetting ?? HostOptions.defaultSettings,
       });
       childContainer.register("root.nodes", {

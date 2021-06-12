@@ -2,6 +2,7 @@ import { inject, injectable } from "tsyringe";
 import DataSet from "../data/DataSet";
 import ISource from "../data/ISource";
 import IDictionary from "../IDictionary";
+import { HostOptions } from "../options/HostOptions";
 import IContextRepository from "../repository/IContextRepository";
 import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
 import Context from "./Context";
@@ -15,9 +16,12 @@ export default class LocalContext extends Context implements ILocalContext {
 
   constructor(
     @inject("IContextRepository") repository: IContextRepository,
-    @inject("OwnerContext") owner: Context
+    @inject("OwnerContext") owner: Context,
+    @inject("HostOptions") options: HostOptions
   ) {
-    super(repository, owner.options, owner.logger);
+    super(repository, options, owner.logger);
+
+    console.log("ctor", options);
     this.owner = owner;
     this.handler = this.owner.onDataSourceSet.Add(
       this.onDataSourceSetLocalHandler.bind(this)
@@ -30,7 +34,6 @@ export default class LocalContext extends Context implements ILocalContext {
   }
 
   protected onDataSourceSetLocalHandler(source: ISource) {
-    console.log("added", source);
     if (this.active) {
       super.onDataSourceSetHandler(source);
       this.repository.eventManager.get(source.data.id)?.Trigger(source);

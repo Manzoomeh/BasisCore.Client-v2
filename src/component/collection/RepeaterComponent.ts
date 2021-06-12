@@ -36,6 +36,9 @@ export default class RepeaterComponent extends SourceBaseComponent {
       const childContainer = this.container.createChildContainer();
       childContainer.register("OwnerContext", { useValue: this.context });
       childContainer.register("container", { useValue: childContainer });
+      childContainer.register("HostOptions", {
+        useValue: this.context.options,
+      });
       const localContext =
         childContainer.resolve<ILocalContext>("ILocalContext");
       this.oldChildContexts.push(localContext);
