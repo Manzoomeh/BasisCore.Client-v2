@@ -4,7 +4,7 @@ import IDictionary from "../IDictionary";
 import Util from "../Util";
 import IContextHostOptions from "./IContextHostOptions";
 import IHostOptions from "./IHostOptions";
-import _ from "lodash";
+import { defaultsDeep, cloneDeep } from "lodash";
 
 declare const host: IHostOptions;
 
@@ -36,7 +36,7 @@ export class HostOptions implements IContextHostOptions {
         },
       };
       if (typeof host != "undefined") {
-        defaults = _.defaultsDeep(_.cloneDeep(host), defaults);
+        defaults = defaultsDeep(cloneDeep(host), defaults);
       }
       HostOptions._defaultSettings = defaults;
     }
@@ -45,12 +45,9 @@ export class HostOptions implements IContextHostOptions {
 
   constructor(@inject("IHostOptions") options: Partial<IHostOptions>) {
     if (options !== HostOptions.defaultSettings) {
-      options = _.defaultsDeep(
-        _.cloneDeep(options),
-        HostOptions.defaultSettings
-      );
+      options = defaultsDeep(cloneDeep(options), HostOptions.defaultSettings);
     }
-    Object.assign(this, _.cloneDeep(options));
+    Object.assign(this, cloneDeep(options));
   }
 
   public getDefault<T>(key: string, defaultValue: T = null): T {

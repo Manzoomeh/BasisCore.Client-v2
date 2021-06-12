@@ -19,7 +19,11 @@
 
     <button name="cms.test" bc-triggers='click' bc-value="button.bc-value = [##cms.cms.date##]">with button tag</button>
 
+    <div name="cms.test" bc-triggers='click' bc-value="div.bc-value = [##cms.cms.date##]"
+        style="border: 1px solid black; display: inline;padding: 3px;">div</div>
 
+    <span name="cms.test" bc-triggers='click' bc-value="span.bc-value = [##cms.cms.date##]"
+        style="border: 1px solid black; display: inline;padding: 3px;">span</span>
     <br />
     Without Name : [##cms.unknown.value|(not set)##]
     <br />

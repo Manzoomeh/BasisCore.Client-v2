@@ -8,6 +8,7 @@ import TextComponent from "./component/text-base/TextComponent";
 
 @injectable()
 export default class ComponentCollection {
+  static readonly knowHtmlElement = ["form", "input", "select"];
   readonly context: IContext;
   readonly regex: RegExp;
   readonly container: DependencyContainer;
@@ -76,9 +77,12 @@ export default class ComponentCollection {
       );
     }
     for (const item of pair.tagList) {
-      components.push(
-        this.createCommandComponent(item, item.tagName.toLowerCase())
-      );
+      const tagName = item.tagName.toLowerCase();
+      const key =
+        ComponentCollection.knowHtmlElement.indexOf(tagName) != -1
+          ? tagName
+          : "unknown-html";
+      components.push(this.createCommandComponent(item, key));
     }
   }
   private extractTextComponent(node: Text, components: Array<IComponent>) {

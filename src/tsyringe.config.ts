@@ -5,9 +5,9 @@ import BasisCore from "./BasisCore";
 import CallComponent from "./component/collection/CallComponent";
 import GroupComponent from "./component/collection/GroupComponent";
 import RepeaterComponent from "./component/collection/RepeaterComponent";
-import HTMLButtonComponent from "./component/html-element/HTMLButtonComponent";
 import HTMLFormComponent from "./component/html-element/HTMLFormComponent";
 import HTMLInputComponent from "./component/html-element/HTMLInputComponent";
+import HTMLIUnknownComponent from "./component/html-element/HTMLIUnknownComponent";
 import HTMLSelectComponent from "./component/html-element/HTMLSelectComponent";
 import CookieComponent from "./component/management/CookieComponent";
 import ListComponent from "./component/renderable/ListComponent";
@@ -35,16 +35,9 @@ container.register("call", { useToken: CallComponent });
 container.register("group", { useToken: GroupComponent });
 container.register("repeater", { useToken: RepeaterComponent });
 container.register("callback", { useToken: CallbackComponent });
-
 container.register("dbsource", { useToken: DbSourceComponent });
 
-container.register("button", { useToken: HTMLButtonComponent });
 container.register("input", { useToken: HTMLInputComponent });
 container.register("select", { useToken: HTMLSelectComponent });
 container.register("form", { useToken: HTMLFormComponent });
-// container.register("input", {
-//   useFactory: (c) => {
-//     var element = c.resolve<Element>("element");
-//     return c.resolve(element.getAttribute("type")?.toLowerCase() ?? "text");
-//   },
-// });
+container.register("unknown-html", { useToken: HTMLIUnknownComponent });
