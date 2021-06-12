@@ -1,17 +1,17 @@
 import IBasisCore from "./IBasisCore";
 import { DependencyContainer, inject, injectable } from "tsyringe";
-import GlobalContext from "./context/GlobalContext";
+import RootContext from "./context/RootContext";
 import ComponentCollection from "./ComponentCollection";
 import { SourceId } from "./type-alias";
 import { AppendType } from "./enum";
 
 @injectable()
 export default class BasisCore implements IBasisCore {
-  readonly context: GlobalContext;
+  readonly context: RootContext;
   public readonly content: ComponentCollection;
 
   constructor(
-    context: GlobalContext,
+    context: RootContext,
     @inject("container") container: DependencyContainer,
     @inject("root.nodes") nodes: Array<Node>
   ) {

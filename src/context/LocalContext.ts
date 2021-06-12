@@ -11,7 +11,6 @@ import ILocalContext from "./ILocalContext";
 @injectable()
 export default class LocalContext extends Context implements ILocalContext {
   readonly owner: Context;
-  public active: boolean = true;
   readonly handler: SourceHandler;
 
   constructor(
@@ -30,14 +29,11 @@ export default class LocalContext extends Context implements ILocalContext {
 
   dispose(): void {
     this.owner.onDataSourceSet.Remove(this.handler);
-    this.active = false;
   }
 
   protected onDataSourceSetLocalHandler(source: ISource) {
-    if (this.active) {
-      super.onDataSourceSetHandler(source);
-      this.repository.eventManager.get(source.data.id)?.Trigger(source);
-    }
+    super.onDataSourceSetHandler(source);
+    this.repository.eventManager.get(source.data.id)?.Trigger(source);
   }
 
   public getOrLoadDbLibAsync(): Promise<any> {
@@ -68,12 +64,5 @@ export default class LocalContext extends Context implements ILocalContext {
     return (
       super.tryToGetSource(sourceId) ?? this.owner.tryToGetSource(sourceId)
     );
-  }
-
-  Dispose() {
-    super.Dispose();
-    if (this.owner instanceof LocalContext) {
-      this.owner.onDataSourceSet.Remove(this.onDataSourceSetHandler);
-    }
   }
 }

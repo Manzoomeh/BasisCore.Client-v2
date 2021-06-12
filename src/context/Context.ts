@@ -89,6 +89,4 @@ export default abstract class Context implements IContext {
     this.repository.setSource(source, preview);
     this.onDataSourceSetHandler(source);
   }
-
-  public Dispose() {}
 }

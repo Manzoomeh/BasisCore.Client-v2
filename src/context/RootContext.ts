@@ -14,7 +14,7 @@ import Context from "./Context";
 declare var alasql: any;
 
 @injectable()
-export default class GlobalContext extends Context {
+export default class RootContext extends Context {
   readonly connections: ConnectionOptionsManager;
   readonly loadLibDic: IDictionary<Promise<any>> = {};
   constructor(
@@ -34,7 +34,7 @@ export default class GlobalContext extends Context {
     parameters: IDictionary<string>,
     method?: HttpMethod
   ): Promise<string> {
-    var connectionInfo = this.connections.GetConnection("callcommand");
+    var connectionInfo = this.connections.getConnection("callcommand");
     return connectionInfo.loadPageAsync(this, pageName, parameters, method);
   }
 
@@ -43,7 +43,7 @@ export default class GlobalContext extends Context {
     connectionName: string,
     parameters: IDictionary<string>
   ): Promise<DataSet> {
-    let connectionInfo = this.connections.GetConnection(connectionName);
+    let connectionInfo = this.connections.getConnection(connectionName);
     return connectionInfo.loadDataAsync(this, sourceId, parameters);
   }
 

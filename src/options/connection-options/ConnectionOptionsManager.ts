@@ -40,9 +40,9 @@ export default class ConnectionOptionsManager {
       });
   }
 
-  GetConnection(connectionName: string): ConnectionOptions {
+  getConnection(connectionName: string): ConnectionOptions {
     var retVal = this.connections.get(connectionName);
-    if (retVal === undefined) {
+    if (!retVal) {
       throw new ConfigNotFoundException("host.settings", connectionName);
     }
     return retVal;
