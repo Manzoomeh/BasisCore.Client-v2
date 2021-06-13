@@ -1,6 +1,130 @@
 <script src="/basiscore.min.js"></script>
+<basis core="dbsource" source="trust_loginuiapi" run="atclient" name="list" dmnid="6" userid="122504" cache="none" q="">
+    <member name="files" type="list" request="routfiles" pageno="1" perpage="20"></member>
+    <member name="paging" type="list" request="crmpaging" countp="2" parentname="files"></member>
+</basis>
+<basis core="print" datamembername="list.files" run="atclient">
+    <layout>
+        <script type="text/template">
+            <table class="listTable">
+                <thead>
+                    <tr>
+                        <th class="col2 textCenter">
+                            <span>
+                                ردیف
+                            </span>
+                        </th>
+                        <th class="col4 textRight">
+                            <span>
+                                عنوان
+                            </span>
+                        </th>
+                        <th class="col4 textCenter">
+                            <span>
+                                حجم فایل
+                            </span>
+                        </th>
+                        <th class="col4 textCenter">
+                            <span>
+                                تاریخ
+                            </span>
+                        </th>
+                        <th class="col2 textCenter">
+                            <span>
+                                نمایش در گالری
+                            </span>
+                        </th>
+                        <th class="col2 textCenter">
+                            <span>
+                                تعداد اعضا
+                            </span>
+                        </th>
+                        <th class="col2 textCenter">
+                            <span>
+                                عملیات
+                            </span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+        @child
+    </tbody>
+</table>
+    </script>
+    </layout>
+    <else-layout>
+        <script type="text/template">
+        <tr>
+            <td colspan="7" class="empty_list">فایلی آپلود نکردید</td>
+        </tr>
+    </script>
+    </else-layout>
 
-<basis core="cookie" name="viewList" value="listStyle" path="/" />
+    <face>
+        bbbb
+        <script type="text/template">
+        <tr>
+            <td class="textCenter">@rownumber </td>
+            <td class="textRight">
+                <div class="parts">
+                    <img class="partItem" src="asset/widget/sharedWithMe/images/typeUndefined.png" width="35">
+                    <a class="partItem" href="/A02733E3-7FBB-4183-9BDC-DFA91C8FAD34/file/122504-@url@" target="_blank" download="@url ">@url </a>
+                </div>
+            </td>
+            <td class="textCenter directionLeft">@size B </td>
+            <td class="textCenter directionLeft">@date </td>
+            <td class="textCenter">
+                <div class="icons">
+                    <a class="iconItem">
+                        -
+                    </a>
+                </div>
+            </td>
+            <td class="textCenter">
+                <div class="icons">
+                    <a class="iconItem" onclick="fileMembers(this, '@id@' )">
+                        <i class="lni lni-user"></i>
+                        <span class="badge">@member </span>
+                    </a>
+                </div>
+            </td>
+            <td class="textCenter">
+                <div class="icons">
+                    <a class="iconItem share" data-tooltip="به اشتراک گذاری" onclick="sharePopup(this, @id ,'modal1')">
+                        <i class="lni lni-share"></i>
+                    </a>
+                    <a class="iconItem download" data-tooltip="دانلود فایل" href="/A02733E3-7FBB-4183-9BDC-DFA91C8FAD34/file/122504-@url " target="_blank" download="@url ">
+                        <i class="lni lni-cloud-download"></i>
+                    </a>
+                    <a class="iconItem delete" data-tooltip="حذف" href="#" onclick="deleteFile(this , @id , 'modal2')">
+                        <i class="lni lni-trash"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    </script>
+    </face>
+
+</basis>
+<script>
+    var host = {
+        Debug: false,
+
+        settings: {
+            // 'connection.web.callcommand': '',
+            'connection.web.callcommand': 'http://127.0.0.1:8080/',
+            'connection.web.basiscoreapi': 'https://dbsource.basiscore.net/data.json',
+            'connection.web.trustloginuiapi': 'https://dbsource.basiscore.net/data.json',
+            'connection.web.trust_loginuiapi': 'https://dbsource.basiscore.net/data.json',
+            'default.dbsource.verb': 'post',
+            'default.call.verb': 'get',
+            'default.viewCommand.groupColumn': 'prpid',
+            'default.dmnid': '12',
+            'default.binding.regex': '\\{##([^#]*)##\\}'
+        }
+    }
+</script>
+<!-- <basis core="cookie" name="viewList" value="listStyle" path="/" />
 <basis core="dbsource" source="trust_loginuiapi" run="atclient" name="shared" userid="122504" cache="none">
     <member name="files" type="list" request="sharedfiles" perpage="5" pageno="{##db.page.value|(1)##}"></member>
     <member name="paging" type="list" request="crmpaging" parentname="files" countp="4"></member>
@@ -150,4 +274,4 @@
         }
     }
 
-</script>
+</script> -->

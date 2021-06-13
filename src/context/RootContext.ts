@@ -1,4 +1,3 @@
-import { inject, injectable } from "tsyringe";
 import DataSet from "../data/DataSet";
 import { AppendType } from "../enum";
 import ClientException from "../exception/ClientException";
@@ -13,20 +12,17 @@ import Context from "./Context";
 
 declare var alasql: any;
 
-@injectable()
-export default class RootContext extends Context {
+export default abstract class RootContext extends Context {
   readonly connections: ConnectionOptionsManager;
   readonly loadLibDic: IDictionary<Promise<any>> = {};
   constructor(
-    @inject("IContextRepository") repository: IContextRepository,
-    @inject("ILogger") logger: ILogger,
-    options: HostOptions
+    repository: IContextRepository,
+    options: HostOptions,
+    logger: ILogger
   ) {
     super(repository, options, logger);
     this.connections = new ConnectionOptionsManager(options.settings, this);
-    this.addLocalSource();
-    const queryString = window.location.search.substring(1);
-    this.addQueryString(queryString);
+    this.addHostOptionsSource();
   }
 
   public loadPageAsync(
@@ -52,7 +48,7 @@ export default class RootContext extends Context {
     if (typeof alasql === "undefined") {
       if (Util.IsNullOrEmpty(this.options.dbLibPath)) {
         throw new ClientException(
-          `Error in load 'alasql'. 'DbLibPath' Not Configure Properly In Host Object.`
+          `Error in load 'alasql'. 'DbLibPath' not configure properly in host object.`
         );
       }
       retVal = await this.getOrLoadObjectAsync(
@@ -85,40 +81,7 @@ export default class RootContext extends Context {
     return retVal;
   }
 
-  private addLocalSource() {
-    if (document.cookie) {
-      const cookieValues = document.cookie.split(";").map((x) => x.split("="));
-      const data = cookieValues.reduce((data, pair) => {
-        data[pair[0]] = pair[1];
-        return data;
-      }, {});
-      this.setAsSource("cms.cookie", data, AppendType.replace);
-    }
-
-    const request = {
-      requestId: -1,
-      hostip: window.location.hostname,
-      hostport: window.location.port,
-    };
-    this.setAsSource("cms.request", request, AppendType.replace);
-
-    const toTwoDigit = (x) => ("0" + x).slice(-2);
-    const d = new Date();
-    const ye = d.getFullYear();
-    const mo = toTwoDigit(d.getMonth());
-    const da = toTwoDigit(d.getDay());
-    const ho = toTwoDigit(d.getHours());
-    const mi = toTwoDigit(d.getMinutes());
-    const se = toTwoDigit(d.getSeconds());
-    const cms = {
-      date: `${ye}/${mo}/${da}`,
-      time: `${ho}:${mi}`,
-      date2: `${ye}${mo}${da}`,
-      time2: `${ho}${mi}${se}`,
-      date3: `${ye}.${mo}.${da}`,
-    };
-    this.setAsSource("cms.cms", cms, AppendType.replace);
-
+  private addHostOptionsSource() {
     if (this.options.sources) {
       Object.getOwnPropertyNames(this.options.sources).forEach((key) => {
         this.setAsSource(
@@ -127,19 +90,6 @@ export default class RootContext extends Context {
           AppendType.replace
         );
       });
-    }
-  }
-  public addQueryString(queryString: string) {
-    if (queryString.length > 0) {
-      const data = queryString
-        .split("&")
-        .map((x) => x.split("="))
-        .reduce((data, pair) => {
-          data[pair[0]] = decodeURIComponent(pair[1] ?? "");
-          return data;
-        }, {});
-
-      this.setAsSource("cms.query", data, AppendType.replace);
     }
   }
 }

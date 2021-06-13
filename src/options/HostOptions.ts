@@ -17,6 +17,7 @@ export class HostOptions implements IContextHostOptions {
   settings: IDictionary<any>;
   sources: { [key: string]: any[][] };
   dbLibPath: string;
+  originalOptions: Partial<IHostOptions>;
 
   private static _defaultSettings: Partial<IHostOptions>;
 
@@ -45,10 +46,14 @@ export class HostOptions implements IContextHostOptions {
   }
 
   constructor(@inject("IHostOptions") options: Partial<IHostOptions>) {
+    const originalOptions = cloneDeep(options);
     if (options !== HostOptions.defaultSettings) {
       options = defaultsDeep(cloneDeep(options), HostOptions.defaultSettings);
+      Object.assign(this, options);
+    } else {
+      Object.assign(this, cloneDeep(options));
     }
-    Object.assign(this, cloneDeep(options));
+    this.originalOptions = originalOptions;
   }
 
   public getDefault<T>(key: string, defaultValue: T = null): T {

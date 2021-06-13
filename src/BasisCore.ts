@@ -1,17 +1,17 @@
 import IBasisCore from "./IBasisCore";
 import { DependencyContainer, inject, injectable } from "tsyringe";
-import RootContext from "./context/RootContext";
 import ComponentCollection from "./ComponentCollection";
 import { SourceId } from "./type-alias";
 import { AppendType } from "./enum";
+import BasisCoreRootContext from "./context/BasisCoreRootContext";
 
 @injectable()
 export default class BasisCore implements IBasisCore {
-  readonly context: RootContext;
+  readonly context: BasisCoreRootContext;
   public readonly content: ComponentCollection;
 
   constructor(
-    context: RootContext,
+    context: BasisCoreRootContext,
     @inject("container") container: DependencyContainer,
     @inject("root.nodes") nodes: Array<Node>
   ) {
@@ -29,10 +29,4 @@ export default class BasisCore implements IBasisCore {
   ) {
     this.context.setAsSource(sourceId, data, appendType);
   }
-
-  // public run(): void {
-  //   if (!this.runTask) {
-  //     this.runTask = this.content.processAsync();
-  //   }
-  // }
 }

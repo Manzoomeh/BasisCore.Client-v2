@@ -6,7 +6,7 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.core = this.node.getAttribute("core");
-    console.log(`${this.core} - ctor`);
+    //console.log(`${this.core} - ctor`);
   }
 
   public async initializeAsync(): Promise<void> {
@@ -26,7 +26,7 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
 
   public async renderAsync(): Promise<void> {
     const canRender = await this.getCanRenderAsync(this.context);
-    console.log(`${this.core} - if`, canRender);
+    //console.log(`${this.core} - if`, canRender);
     if (canRender) {
       await this.runAsync();
     }

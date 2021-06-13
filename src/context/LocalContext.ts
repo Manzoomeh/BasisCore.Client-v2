@@ -20,20 +20,15 @@ export default class LocalContext extends Context implements ILocalContext {
   ) {
     super(repository, options, owner.logger);
 
-    console.log("ctor", options);
+    //console.log("ctor", options);
     this.owner = owner;
     this.handler = this.owner.onDataSourceSet.Add(
-      this.onDataSourceSetLocalHandler.bind(this)
+      this.setSourceFromOwner.bind(this)
     );
   }
 
   dispose(): void {
     this.owner.onDataSourceSet.Remove(this.handler);
-  }
-
-  protected onDataSourceSetLocalHandler(source: ISource) {
-    super.onDataSourceSetHandler(source);
-    this.repository.eventManager.get(source.data.id)?.Trigger(source);
   }
 
   public getOrLoadDbLibAsync(): Promise<any> {

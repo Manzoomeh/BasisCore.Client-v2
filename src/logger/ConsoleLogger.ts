@@ -1,13 +1,9 @@
 import { singleton } from "tsyringe";
 import ISource from "../data/ISource";
-import { HostOptions } from "../options/HostOptions";
 import ILogger from "./ILogger";
 
 @singleton()
 export default class ConsoleLogger implements ILogger {
-  constructor(options: HostOptions) {
-    console.log("logger - ctor");
-  }
   logSource(source: ISource): void {
     console.table(source.data.id, source.data.rows);
   }

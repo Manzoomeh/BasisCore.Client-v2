@@ -2,7 +2,6 @@ import { container } from "tsyringe";
 import IBasisCore from "../IBasisCore";
 import IHostOptions from "../options/IHostOptions";
 import ClientException from "../exception/ClientException";
-import { HostOptions } from "../options/HostOptions";
 import { SourceId } from "../type-alias";
 import BCLinker from "../BCLinker";
 import EventManager from "../event/EventManager";
@@ -71,7 +70,7 @@ export class BCWrapper {
     if (!this._basiscore) {
       const childContainer = container.createChildContainer();
       childContainer.register("IHostOptions", {
-        useValue: this.hostSetting ?? HostOptions.defaultSettings,
+        useValue: this.hostSetting ?? {},
       });
       childContainer.register("root.nodes", {
         useValue:

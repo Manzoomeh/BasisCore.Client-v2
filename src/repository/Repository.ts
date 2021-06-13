@@ -21,6 +21,15 @@ export default class Repository implements IContextRepository {
     return this.repository.get(sourceId?.toLowerCase());
   }
 
+  public setSourceFromOwner(source: ISource) {
+    const key = source.data.id;
+    if (this.repository.has(key)) {
+      this.repository.set(key, source);
+    }
+    this.eventManager.get(key)?.Trigger(source);
+    this.logger.logInformation(`${source.data.id} Added from owner context.`);
+  }
+
   public setSource(source: ISource, preview?: boolean) {
     const key = source.data.id;
     this.repository.set(key, source);

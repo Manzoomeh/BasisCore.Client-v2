@@ -15,7 +15,15 @@ export default class SourceTokenElement<TType> implements ITokenElement {
       "source",
       `let retVal = null;
       if (source.data.rows.length == 1) {
+        try{
         retVal = source.data.rows[0].${this.column};
+        }catch(e){
+          try{
+            retVal = source.data.rows[0]['${this.column}'];
+          }catch{
+            throw e;
+          }
+        }
       } else if (source.data.rows.length > 1) {
         retVal = source.data.rows
               .map((row) => row.${this.column});

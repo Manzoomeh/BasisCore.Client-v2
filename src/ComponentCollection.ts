@@ -20,7 +20,7 @@ export default class ComponentCollection {
     this.container = container;
     this.context = context;
     this.regex = this.context.options.getDefault<RegExp>("binding.regex");
-    console.log("ComponentCollection - ctor");
+    //console.log("ComponentCollection - ctor");
   }
 
   public async processNodesAsync(nodes: Array<Node>): Promise<void> {
@@ -35,7 +35,7 @@ export default class ComponentCollection {
   }
 
   private async runAsync(components: Array<IComponent>): Promise<void> {
-    console.log("ComponentCollection.runAsync");
+    //console.log("ComponentCollection.runAsync");
 
     const priorityMap = components.reduce((map, component) => {
       let list = map.get(component.priority);

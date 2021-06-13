@@ -24,7 +24,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
       this.sourceId,
       this.onDataSourceAdded.bind(this)
     );
-    console.log(`${this.core} - initializeAsync`);
+    //console.log(`${this.core} - initializeAsync`);
   }
 
   protected abstract renderSourceAsync(dataSource: ISource): Promise<void>;
@@ -35,7 +35,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     if (!source) {
       source = await this.context.waitToGetSourceAsync(this.sourceId);
     }
-    console.log(`${this.core} - runAsync`);
+    //console.log(`${this.core} - runAsync`);
     const manipulation = await this.getAttributeValueAsync("bc-pre-process");
     if (manipulation) {
       const manipulationFn = new Function(

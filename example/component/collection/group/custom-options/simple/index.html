@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Group Command - Simple</title>
+</head>
+
+<body>
+    <input type="button" value="Set Source" onclick="set()" />
+    use [## => [##cms.cms.time##]
+    <br />
+    user => [##app.user.name|(no user)##]
+    <basis core="group" run="atclient" bc-options="groupOptions">
+        <h1>Group#1 start</h1>
+        use { => {cms.cms.time}
+        <br />
+        user => {app.user.name|(no user)}
+        <basis core="group" run="atclient" bc-options='groupOptions1'>
+            <h1>Group#1.1 start</h1>
+            use {# => {#cms.cms.time#}
+            <br />
+            user => {#app.user.name|(no user)#}
+            <h1>Group#1.1 end</h1>
+        </basis>
+        <h1>Group#1 end</h1>
+    </basis>
+
+    <script>
+        const host = {
+            tempData: 34
+        }
+        const groupOptions = {
+            debug: true,
+            k: 234,
+            settings: {
+                "default.binding.regex": /\{([^\{\}]*)\}/,
+            },
+            sources: {
+                "app.user": [{ id: 1, name: "user#1" }]
+            }
+        }
+        const groupOptions1 = {
+            p: 56,
+            settings: {
+                "default.binding.regex": "\\{#([^\\{#\\}]*)#\\}"
+            }
+        }
+
+        let i = 0;
+        function set() {
+            $bc.setSource("app.user", { id: i, name: `data ${i}` });
+            i += 1;
+        }
+
+    </script>
+</body>
+
+</html>
