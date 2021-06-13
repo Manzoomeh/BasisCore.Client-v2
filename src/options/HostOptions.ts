@@ -4,7 +4,8 @@ import IDictionary from "../IDictionary";
 import Util from "../Util";
 import IContextHostOptions from "./IContextHostOptions";
 import IHostOptions from "./IHostOptions";
-import { defaultsDeep, cloneDeep } from "lodash";
+import defaultsDeep from "lodash.defaultsdeep";
+import cloneDeep from "lodash.clonedeep";
 
 declare const host: IHostOptions;
 
