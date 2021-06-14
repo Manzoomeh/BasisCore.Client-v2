@@ -1,7 +1,6 @@
 ﻿import IContext from "../../context/IContext";
 import DataSet from "../../data/DataSet";
-import IData from "../../data/IData";
-import { Priority } from "../../enum";
+import { MergeType, Priority } from "../../enum";
 import ClientException from "../../exception/ClientException";
 import { SourceId } from "../../type-alias";
 import CommandComponent from "../CommandComponent";
@@ -51,7 +50,7 @@ export default abstract class SourceComponent<
     }
     memberObjList.forEach(async (member, index) => {
       const source = dataSet.collection[index];
-      await member.addDataSourceAsync(source, this.id);
+      await member.addDataSourceAsync(source, this.id, source.mergeType);
     });
   }
 

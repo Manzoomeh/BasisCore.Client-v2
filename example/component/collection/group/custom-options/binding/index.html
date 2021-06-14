@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <basis core="repeater" name="rep" datamembername="page.data" run="atclient" replace="false">
+    <basis core="repeater" name="rep" datamembername="page.data" run="atclient" bc-append-type="after">
         <basis core="group" run="atclient" bc-options="[##rep.current.options##]">
             <fieldset>
                 <legend>[##rep.current.title##]</legend>
@@ -32,7 +32,7 @@
 
         const source = [
             {
-                title: "Group#2",
+                title: "Group#1",
                 options: {
                     sources: {
                         "data.test": [{

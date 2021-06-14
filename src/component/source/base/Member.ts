@@ -7,6 +7,7 @@ import IDictionary from "../../../IDictionary";
 import IToken from "../../../token/IToken";
 import { SourceId } from "../../../type-alias";
 import Util from "../../../Util";
+import { MergeType } from "../../../enum";
 
 declare var $bc: IBasisCore;
 
@@ -30,7 +31,11 @@ export default abstract class Member {
     this.rawContent = element.textContent.ToStringToken(context);
   }
 
-  public async addDataSourceAsync(data: IData, sourceId: SourceId) {
+  public async addDataSourceAsync(
+    data: IData,
+    sourceId: SourceId,
+    mergeType: MergeType
+  ) {
     var postSqlTask = this.postSql?.getValueAsync();
     var sortTask = this.sort?.getValueAsync();
     var previewTask = this.preview?.getValueAsync();
@@ -56,7 +61,7 @@ export default abstract class Member {
       data.rows = lib(`SELECT * FROM ? order by ${sort}`, [data.rows]);
     }
     DataUtil.addRowNumber(data);
-    const source = new Source(data);
+    const source = new Source(data, mergeType);
     this.context.setSource(source);
 
     // if (preview || context.DebugContext.InDebugMode) {

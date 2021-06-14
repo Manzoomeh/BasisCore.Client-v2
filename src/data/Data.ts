@@ -1,3 +1,4 @@
+import { MergeType } from "../enum";
 import { SourceId } from "../type-alias";
 import IData from "./IData";
 
@@ -17,13 +18,19 @@ export default class Data implements IData {
   public get rows(): Array<any> {
     return this._rows;
   }
+  public readonly mergeType: MergeType;
   // public set rows(value: Array<any>) {
   //   this._rows = value;
   //   this.updateColumnList();
   // }
-  constructor(sourceId: SourceId, rows: Array<any> = []) {
+  constructor(
+    sourceId: SourceId,
+    rows: Array<any>,
+    mergeType: MergeType = MergeType.replace
+  ) {
     this.id = sourceId;
     this._rows = rows;
+    this.mergeType = mergeType;
   }
 
   // public updateColumnList(): void {

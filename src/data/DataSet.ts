@@ -1,8 +1,9 @@
+import Data from "./Data";
 import IData from "./IData";
 
 export default class DataSet {
-  constructor(dataList: IData[]) {
+  constructor(dataList: Data[]) {
     this.collection = dataList || [];
   }
-  readonly collection: IData[];
+  readonly collection: Data[];
 }

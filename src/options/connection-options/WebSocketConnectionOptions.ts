@@ -1,6 +1,7 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
 import DataSet from "../../data/DataSet";
+import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
@@ -47,17 +48,16 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
       };
       socket.onmessage = (e) => {
         try {
-          var json = JSON.parse(e.data);
+          var json: IDictionary<IServerData<any>> = JSON.parse(e.data);
 
           const dataList = Object.keys(json)
             .map((key) => {
               return {
                 key: key,
-                info: json[key]?.info,
-                data: json[key].data,
+                data: json[key],
               };
             })
-            .map((x) => new Data(x.key, x.data));
+            .map((x) => new Data(x.key, x.data.data, x.data.mergeType));
           onDataReceived(new DataSet(dataList));
         } catch (ex) {
           context.logger.logError(
@@ -80,4 +80,10 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
   ): Promise<string> {
     throw new Error("WebSocket Call Not Implemented.");
   }
+}
+
+interface IServerData<T> {
+  data: Array<T>;
+  keepalive: boolean;
+  mergeType: MergeType;
 }

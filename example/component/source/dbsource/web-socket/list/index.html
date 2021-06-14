@@ -6,22 +6,63 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/basiscore.min.js"></script>
-    <title>Print Command - Simple</title>
+    <title>Callback Command - Simple</title>
 </head>
 
 <body>
+
+    <basis core='dbsource' source='simple' name='user' run="atclient">
+        <member name='list' />
+    </basis>
+
     <fieldset>
         <legend>filter</legend>
-
         <label>name: <input name="demo.filter-name" bc-triggers="keyup change" /></label>
         <br />
 
     </fieldset>
-    [##demo.sql.value|( )##]
-    <Basis core="print" datamembername="demo.data" run="atclient" bc-pre-process="manipulation"
-        bc-trigger-on="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
-        <layout>
-            <script type="text/template">
+    <fieldset>
+        <legend>Order</legend>
+        <span name="demo.sort-by" bc-triggers="click" bc-value="id">Id</span>
+        <span name="demo.sort-by" bc-triggers="click" bc-value="name">Name</span>
+        <span name="demo.sort-by" bc-triggers="click" bc-value="age">Age</span>
+    </fieldset>
+    <fieldset>
+        <legend>Last Update</legend>
+        <Basis core="print" datamembername="user.list" run="atclient">
+            <layout>
+                <script type="text/template">
+            <table>
+                <thead>
+                    
+                    <tr>
+                        <td   >Id</td>
+                        <td >Name</td>
+                        <td >Age</td>
+                    </tr>
+                </thead>
+                <tbody>@child</tbody>
+                <tfoot></tfoot>
+            </table></script>
+            </layout>
+            <face>
+                <script type="text/template">
+            <tr>
+                <td>@id@</td>
+                <td>@name@</td>
+                <td>@age@</td>
+            </tr>
+        </script>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
+        <legend>All</legend>
+        [##demo.sql.value|( )##]
+        <Basis core="print" datamembername="user.list" run="atclient" bc-pre-process="manipulation"
+            bc-trigger-on="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
+            <layout>
+                <script type="text/template">
                 <table>
                     <thead>
                         
@@ -34,44 +75,34 @@
                     <tbody>@child</tbody>
                     <tfoot></tfoot>
                 </table></script>
-        </layout>
-        <face>
-            <script type="text/template">
+            </layout>
+            <face>
+                <script type="text/template">
                 <tr>
                     <td>@id@</td>
                     <td>@name@</td>
                     <td>@age@</td>
                 </tr>
             </script>
-        </face>
-    </Basis>
-
+            </face>
+        </Basis>
+    </fieldset>
     <script>
-        const MIN_ID = 1000;
-        const MAX_ID = 1500;
-        const MIN_AGE = 10;
-
-        const dataList = [];
-        for (let index = MIN_ID; index < MAX_ID; index++) {
-            const data = {
-                id: index,
-                age: Math.floor(Math.random() * 80) + MIN_AGE,
-                name: Math.random().toString(36).substring(7)
-            }
-            dataList.push(data);
-
-        }
-
-        const host = {
+        var host = {
             dbLibPath: '/alasql.min.js',
-            sources: { 'demo.data': dataList }
+            settings: {
+                'connection.websocket.simple': "ws://localhost:8080/list",
+                'default.dmnid': 2668
+            },
+
         }
 
         let preSort = null;
         let preWhere = null;
         let orderPart = null;
         let wherePart = null;
-        async function manipulation(source, context) {
+        async function manipulation(_, context) {
+            const source = context.tryToGetSource('user.list');
             let retVal = source;
 
             const where = context.tryToGetSource('demo.filter-name');
@@ -87,18 +118,19 @@
                 if (preSort?.data.rows[0].value == sortCol) {
                     sortType = 'desc'
                     preSort = null;
-                } else {
-                    preSort = sort;
                 }
+                preSort = sort;
+
                 orderPart = `order by ${sortCol} ${sortType}`
             }
 
-            const sql = `select top 10 * from ? ${wherePart ?? ""} ${orderPart ?? ""}`;
+            const sql = `select * from ? ${wherePart ?? ""} ${orderPart ?? ""}`;
             $bc.setSource('demo.sql', sql);
             retVal = await $bc.util.source.runSqlAsync(source, context, sql);
 
             return { source: retVal };
         }
+
     </script>
 </body>
 
