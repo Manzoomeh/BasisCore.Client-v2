@@ -31,14 +31,6 @@ export default abstract class SourceComponent<
     this.id = await this.getAttributeValueAsync("name");
   }
 
-  // protected async runAsync(): Promise<void> {
-  //   this.oldConnectionName = null;
-  //   if (this.members.length > 0) {
-  //     const dataSet = await this.loadDataAsync();
-  //     this.processLoadedDataSet(dataSet.collection);
-  //   }
-  // }
-
   protected async runAsync(): Promise<void> {
     this.oldConnectionName = null;
     if (this.members.length > 0) {

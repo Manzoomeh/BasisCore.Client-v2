@@ -43,6 +43,6 @@ export default class DataUtil {
     data.rows.forEach((row) => {
       row.rownumber = index++;
     });
-    data.updateColumnList();
+    //data.updateColumnList();
   }
 }
