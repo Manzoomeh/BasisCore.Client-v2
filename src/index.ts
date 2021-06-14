@@ -19,10 +19,7 @@ version:2.0.11`,
 (window as any).AppendType = AppendType;
 
 window.addEventListener("load", (x) => {
-  if (
-    BCWrapper.wrappers.length == 0 &&
-    HostOptions.defaultSettings.autoRender
-  ) {
+  if (BCWrapper.all.length == 0 && HostOptions.defaultSettings.autoRender) {
     BCWrapper.run();
   }
 });

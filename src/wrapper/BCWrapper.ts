@@ -25,11 +25,11 @@ export class BCWrapper {
 
   public static readonly util: UtilWrapper = new UtilWrapper();
 
-  static wrappers: Array<BCWrapper> = new Array<BCWrapper>();
+  static all: Array<BCWrapper> = new Array<BCWrapper>();
 
   public static new(): BCWrapper {
     var retVal = new BCWrapper();
-    BCWrapper.wrappers.push(retVal);
+    BCWrapper.all.push(retVal);
     return retVal;
   }
 
@@ -42,14 +42,20 @@ export class BCWrapper {
   public addFragment(selector: string): BCWrapper;
   public addFragment(element: Element): BCWrapper;
   public addFragment(param: any): BCWrapper {
-    if (typeof param === "string") {
-      this.elementList.push(...document.querySelectorAll(param));
-    } else if (param instanceof Element) {
-      this.elementList.push(param);
+    if (this._basiscore) {
+      throw new ClientException(
+        "Can't add fragment for already builded bc object."
+      );
     } else {
-      throw new ClientException("Invalid selector");
+      if (typeof param === "string") {
+        this.elementList.push(...document.querySelectorAll(param));
+      } else if (param instanceof Element) {
+        this.elementList.push(param);
+      } else {
+        throw new ClientException("Invalid selector");
+      }
+      return this;
     }
-    return this;
   }
 
   public static setOptions(options: IHostOptions): BCWrapper {
@@ -82,7 +88,6 @@ export class BCWrapper {
       this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
       this.manager.Trigger(this._basiscore);
     }
-
     return this;
   }
 
