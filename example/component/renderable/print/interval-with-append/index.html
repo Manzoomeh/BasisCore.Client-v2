@@ -11,7 +11,7 @@
 
 <body>
     <ul>
-        <Basis core="print" datamembername="local.print" run="atclient" if="">
+        <Basis core="print" datamembername="local.print" run="atclient">
             <layout>
                 <script type="text/template">
             <ul>@child</ul>
@@ -28,7 +28,7 @@
         var i = 0;
         function fn() {
             $bc.setSource(
-                "local.print", { id: i, name: `btn-t=${i}` }, AppendType.after
+                "local.print", { id: i, name: `btn-t=${i}` }, MergeType.append
             );
             i += 1;
         }

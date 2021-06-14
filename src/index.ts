@@ -2,9 +2,9 @@ import "./tsyringe.config";
 import "./extension/StringExtensions";
 import "./extension/ElementExtensions";
 import { HostOptions } from "./options/HostOptions";
-import { BCWrapper } from "./wrapper/BCWrapper";
+import BCWrapper from "./wrapper/BCWrapper";
 import LocalDataBase from "./repository/LocalDataBase";
-import { AppendType } from "./enum";
+import { MergeType } from "./enum";
 
 console.log(
   `%cWelcome To BasisCore Ecosystem%c
@@ -16,7 +16,7 @@ version:2.0.11`,
 
 (window as any).LocalDataBase = LocalDataBase;
 (global as any).$bc = BCWrapper;
-(window as any).AppendType = AppendType;
+(window as any).MergeType = MergeType;
 
 window.addEventListener("load", (x) => {
   if (BCWrapper.all.length == 0 && HostOptions.defaultSettings.autoRender) {

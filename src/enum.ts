@@ -1,4 +1,4 @@
-export enum SourceType {
+export enum OriginType {
   internal,
   external,
 }
@@ -13,6 +13,11 @@ export enum AppendType {
   before,
   after,
   replace,
+}
+
+export enum MergeType {
+  replace,
+  append,
 }
 
 export enum JoinType {

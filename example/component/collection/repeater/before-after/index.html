@@ -11,67 +11,68 @@
 
 <body>
     <input type="button" value="Set Source" onclick="set()" />
+    <input type="button" value="trigger" name="event.render" bc-triggers="click" bc-value="0" />
     <fieldset>
-        <legend>Source.appendType = Replace</legend>
+        <legend>Source.MergeType= replace</legend>
         <fieldset>
-            <legend>repeater.replace = true</legend>
+            <legend>repeater.AppendType = before</legend>
             <ul>
-                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient">
+                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="before"
+                    bc-trigger-on="event.render">
                     <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
                 </basis>
             </ul>
         </fieldset>
         <fieldset>
-            <legend>repeater.replace = false</legend>
+            <legend>repeater.AppendType = after</legend>
             <ul>
-                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" replace="false">
+                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="after"
+                    bc-trigger-on="event.render">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend>repeater.AppendType = Replace</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="replace"
+                    bc-trigger-on="event.render">
                     <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
                 </basis>
             </ul>
         </fieldset>
     </fieldset>
     <fieldset>
-        <legend>Source.appendType = Before</legend>
+        <legend>Source.MergeType = append</legend>
         <fieldset>
-            <legend>repeater.replace = true</legend>
+            <legend>repeater.AppendType = before</legend>
             <ul>
-                <basis core="repeater" name="rep" datamembername="before.data" run="atclient">
+                <basis core="repeater" name="rep" datamembername="append.data" run="atclient" bc-append-type="before"
+                    bc-trigger-on="event.render">
                     <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
                 </basis>
             </ul>
         </fieldset>
         <fieldset>
-            <legend>repeater.replace = false</legend>
+            <legend>repeater.AppendType = after</legend>
             <ul>
-                <basis core="repeater" name="rep" datamembername="before.data" run="atclient" replace="false">
+                <basis core="repeater" name="rep" datamembername="append.data" run="atclient" bc-append-type="after"
+                    bc-trigger-on="event.render">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend>repeater.AppendType = Replace</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="append.data" run="atclient" bc-append-type="replace"
+                    bc-trigger-on="event.render">
                     <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
                 </basis>
             </ul>
         </fieldset>
 
     </fieldset>
-
-    <fieldset>
-        <legend>Source.appendType = After</legend>
-        <fieldset>
-            <legend>repeater.replace = true</legend>
-            <ul>
-                <basis core="repeater" name="rep" datamembername="after.data" run="atclient">
-                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-                </basis>
-            </ul>
-        </fieldset>
-        <fieldset>
-            <legend>repeater.replace = false</legend>
-            <ul>
-                <basis core="repeater" name="rep" datamembername="after.data" run="atclient" replace="false">
-                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-                </basis>
-            </ul>
-        </fieldset>
-    </fieldset>
-
-
     <script>
         let i = 0;
         function set() {
@@ -81,26 +82,16 @@
                     { id: i, name: `data ${i}` },
                     { id: i + 1, name: `data ${i + 1}` },
                     { id: i + 2, name: `data ${i + 2}` },
-                ],
-                AppendType.replace
+                ], MergeType.replace
             );
             $bc.setSource(
-                "before.data",
+                "append.data",
                 [
                     { id: i, name: `data ${i}` },
                     { id: i + 1, name: `data ${i + 1}` },
                     { id: i + 2, name: `data ${i + 2}` },
-                ],
-                AppendType.before
-            );
-            $bc.setSource(
-                "after.data",
-                [
-                    { id: i, name: `data ${i}` },
-                    { id: i + 1, name: `data ${i + 1}` },
-                    { id: i + 2, name: `data ${i + 2}` },
-                ],
-                AppendType.after
+                ]
+                , MergeType.append
             );
             i += 3;
         }

@@ -1,6 +1,7 @@
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
 import { AppendType } from "../enum";
+import IToken from "../token/IToken";
 import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
 
@@ -9,12 +10,22 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   readonly range: Range;
   readonly content: DocumentFragment;
   private _dataSource: ISource;
+  private manipulationToken: IToken<string>;
+  private appendTypeToken: IToken<string>;
 
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.range = document.createRange();
     this.range.selectNode(element);
     this.content = this.range.extractContents();
+    this.manipulationToken = this.node.GetStringToken(
+      "bc-pre-process",
+      this.context
+    );
+    this.appendTypeToken = this.node.GetStringToken(
+      "bc-append-type",
+      this.context
+    );
   }
 
   public async initializeAsync(): Promise<void> {
@@ -27,26 +38,37 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     //console.log(`${this.core} - initializeAsync`);
   }
 
-  protected abstract renderSourceAsync(dataSource: ISource): Promise<void>;
+  protected abstract renderSourceAsync(
+    dataSource: ISource,
+    appendType: AppendType
+  ): Promise<void>;
 
   public async runAsync(): Promise<void> {
-    let source = this._dataSource;
+    let oldSource = this._dataSource;
     this._dataSource = null;
-    if (!source) {
-      source = await this.context.waitToGetSourceAsync(this.sourceId);
+    if (!oldSource) {
+      oldSource = await this.context.waitToGetSourceAsync(this.sourceId);
     }
     //console.log(`${this.core} - runAsync`);
-    const manipulation = await this.getAttributeValueAsync("bc-pre-process");
+    const appendTypeStr = await this.appendTypeToken?.getValueAsync();
+    let oldAppendType = appendTypeStr
+      ? AppendType[appendTypeStr]
+      : AppendType.replace;
+    const manipulation = await this.manipulationToken?.getValueAsync();
     if (manipulation) {
       const manipulationFn = new Function(
         "source",
         "context",
-        `return ${manipulation}(source,context);`
+        "appendType",
+        `return ${manipulation}(source,context,appendType);`
       );
-      const result = manipulationFn(source, this.context);
-      source = result instanceof Promise ? await result : result;
+      const result = manipulationFn(oldSource, this.context, oldAppendType);
+      let { source = oldSource, appendType = oldAppendType } =
+        result instanceof Promise ? await result : result;
+      oldSource = source;
+      oldAppendType = appendType;
     }
-    await this.renderSourceAsync(source);
+    await this.renderSourceAsync(oldSource, oldAppendType);
   }
 
   private onDataSourceAdded(dataSource: ISource): void {

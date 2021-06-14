@@ -1,18 +1,18 @@
-import { AppendType, SourceType } from "../enum";
+import { MergeType, OriginType } from "../enum";
 import IData from "./IData";
 import ISource from "./ISource";
 
 export default class Source implements ISource {
   readonly data: IData;
-  readonly type: SourceType;
-  readonly appendType: AppendType;
+  readonly origin: OriginType;
+  readonly mergeType: MergeType;
   constructor(
     data: IData,
-    replace: AppendType,
-    type: SourceType = SourceType.internal
+    mergeType: MergeType = MergeType.replace,
+    origin: OriginType = OriginType.internal
   ) {
     this.data = data;
-    this.type = type;
-    this.appendType = replace;
+    this.origin = origin;
+    this.mergeType = mergeType;
   }
 }

@@ -1,8 +1,8 @@
-import { AppendType, SourceType } from "../enum";
+import { MergeType, OriginType } from "../enum";
 import IData from "./IData";
 
 export default interface ISource {
-  type: SourceType;
+  origin: OriginType;
   data: IData;
-  appendType: AppendType;
+  mergeType: MergeType;
 }

@@ -1,5 +1,4 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
-import { AppendType } from "../enum";
 import ILogger from "../logger/ILogger";
 import { HostOptions } from "../options/HostOptions";
 import IContextRepository from "../repository/IContextRepository";
@@ -29,7 +28,7 @@ export default class BasisCoreRootContext extends RootContext {
           data[pair[0]] = decodeURIComponent(pair[1] ?? "");
           return data;
         }, {});
-      this.setAsSource("cms.query", data, AppendType.replace);
+      this.setAsSource("cms.query", data);
     }
   }
 
@@ -40,7 +39,7 @@ export default class BasisCoreRootContext extends RootContext {
         data[pair[0]] = pair[1];
         return data;
       }, {});
-      this.setAsSource("cms.cookie", data, AppendType.replace);
+      this.setAsSource("cms.cookie", data);
     }
 
     const request = {
@@ -48,7 +47,7 @@ export default class BasisCoreRootContext extends RootContext {
       hostip: window.location.hostname,
       hostport: window.location.port,
     };
-    this.setAsSource("cms.request", request, AppendType.replace);
+    this.setAsSource("cms.request", request);
 
     const toTwoDigit = (x) => ("0" + x).slice(-2);
     const d = new Date();
@@ -65,15 +64,11 @@ export default class BasisCoreRootContext extends RootContext {
       time2: `${ho}${mi}${se}`,
       date3: `${ye}.${mo}.${da}`,
     };
-    this.setAsSource("cms.cms", cms, AppendType.replace);
+    this.setAsSource("cms.cms", cms);
 
     if (this.options.sources) {
       Object.getOwnPropertyNames(this.options.sources).forEach((key) => {
-        this.setAsSource(
-          key.toLowerCase(),
-          this.options.sources[key],
-          AppendType.replace
-        );
+        this.setAsSource(key.toLowerCase(), this.options.sources[key]);
       });
     }
   }

@@ -5,10 +5,10 @@ import ClientException from "../exception/ClientException";
 import { SourceId } from "../type-alias";
 import BCLinker from "../BCLinker";
 import EventManager from "../event/EventManager";
-import { AppendType } from "../enum";
 import UtilWrapper from "./UtilWrapper";
+import { MergeType } from "../enum";
 
-export class BCWrapper {
+export default class BCWrapper {
   private readonly elementList: Array<Element> = new Array<Element>();
   private hostSetting?: Partial<IHostOptions> = null;
   private _basiscore: IBasisCore = null;
@@ -98,16 +98,16 @@ export class BCWrapper {
   public static setSource(
     sourceId: SourceId,
     data: any,
-    appendType: AppendType
+    mergeType?: MergeType
   ) {
-    return BCWrapper.run().setSource(sourceId, data, appendType);
+    return BCWrapper.run().setSource(sourceId, data, mergeType);
   }
 
-  public setSource(sourceId: SourceId, data: any, appendType: AppendType) {
+  public setSource(sourceId: SourceId, data: any, mergeType: MergeType) {
     if (!this._basiscore) {
       this.run();
     } else {
-      this._basiscore.setSource(sourceId, data, appendType);
+      this._basiscore.setSource(sourceId, data, mergeType);
     }
   }
 

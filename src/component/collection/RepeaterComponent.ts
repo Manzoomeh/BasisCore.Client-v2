@@ -4,6 +4,7 @@ import ISource from "../../data/ISource";
 import SourceBaseComponent from "../SourceBaseComponent";
 import ComponentCollection from "../../ComponentCollection";
 import ILocalContext from "../../context/ILocalContext";
+import { AppendType } from "../../enum";
 
 @injectable()
 export default class RepeaterComponent extends SourceBaseComponent {
@@ -18,7 +19,10 @@ export default class RepeaterComponent extends SourceBaseComponent {
     super(element, context);
     this.container = container;
   }
-  protected async renderSourceAsync(dataSource: ISource): Promise<void> {
+  protected async renderSourceAsync(
+    dataSource: ISource,
+    appendType: AppendType
+  ): Promise<void> {
     const name = await this.getAttributeValueAsync("name");
     const replace = await this.getAttributeBooleanValueAsync("replace", true);
     if (replace) {
@@ -32,14 +36,14 @@ export default class RepeaterComponent extends SourceBaseComponent {
       var fragment = document.createDocumentFragment();
       const childNodes = [...template.childNodes];
       childNodes.forEach((node) => fragment.appendChild(node));
-      this.setContent(fragment, dataSource.appendType);
+      this.setContent(fragment, appendType);
       const childContainer = this.container.createChildContainer();
       childContainer.register("OwnerContext", { useValue: this.context });
       childContainer.register("container", { useValue: childContainer });
       const localContext =
         childContainer.resolve<ILocalContext>("ILocalContext");
       this.oldChildContexts.push(localContext);
-      localContext.setAsSource(`${name}.current`, row, dataSource.appendType);
+      localContext.setAsSource(`${name}.current`, row, dataSource.mergeType);
       childContainer.register("context", { useValue: localContext });
       const collection = childContainer.resolve(ComponentCollection);
       await collection.processNodesAsync(childNodes);

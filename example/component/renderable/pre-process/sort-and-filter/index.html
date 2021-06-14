@@ -100,7 +100,7 @@
             $bc.setSource('demo.sql', sql);
             retVal = await $bc.util.source.runSqlAsync(source, context, sql);
 
-            return retVal;
+            return { source: retVal };
         }
     </script>
 </body>

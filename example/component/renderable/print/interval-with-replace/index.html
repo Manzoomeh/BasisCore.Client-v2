@@ -27,7 +27,7 @@
         var i = 0;
         function fn() {
             $bc.setSource(
-                "local.print", { id: i, name: `btn-t=${i}` }/*,AppendType.replace*/
+                "local.print", { id: i, name: `btn-t=${i}` }, MergeType.replace
             );
             i += 1;
         }

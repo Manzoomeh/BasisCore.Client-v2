@@ -1,6 +1,6 @@
 import DataSet from "../data/DataSet";
 import ISource from "../data/ISource";
-import { AppendType } from "../enum";
+import { MergeType } from "../enum";
 import { EventHandler } from "../event/EventHandler";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
@@ -32,7 +32,7 @@ export default interface IContext {
   setAsSource(
     sourceId: SourceId,
     value: any,
-    appendType: AppendType,
+    mergeType?: MergeType,
     preview?: boolean
   );
   setSource(source: ISource, preview?: boolean): void;

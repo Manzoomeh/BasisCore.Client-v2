@@ -1,9 +1,9 @@
 import BasisCore from "./BasisCore";
-import { BCWrapper } from "./wrapper/BCWrapper";
+import BCWrapper from "./wrapper/BCWrapper";
 import DataUtil from "./data/DataUtil";
 import ISource from "./data/ISource";
 import Source from "./data/Source";
-import { AppendType, SourceType } from "./enum";
+import { MergeType, OriginType } from "./enum";
 import IBasisCore from "./IBasisCore";
 import { SourceId } from "./type-alias";
 
@@ -43,13 +43,13 @@ export default class BCLinker {
   private onSourceSet(basisCore: BasisCore, source: ISource): Promise<void> {
     return new Promise<void>((res) => {
       if (
-        source.type == SourceType.internal &&
+        source.origin == OriginType.internal &&
         this.filter.indexOf(source.data.id) == -1
       ) {
         var newSource = new Source(
           source.data,
-          source.appendType,
-          SourceType.external
+          source.mergeType,
+          OriginType.external
         );
         this.cors
           .filter((x) => x != basisCore)
@@ -67,10 +67,11 @@ export default class BCLinker {
   public setSource(
     sourceId: SourceId,
     data: any,
-    appendType: AppendType
+    mergeType?: MergeType,
+    preview?: boolean
   ): BCLinker {
-    const source = DataUtil.ToDataSource(sourceId, data, appendType);
-    this.cors.forEach((core) => core.context.setSource(source));
+    const source = DataUtil.ToDataSource(sourceId, data, mergeType);
+    this.cors.forEach((core) => core.context.setSource(source, preview));
     return this;
   }
 }

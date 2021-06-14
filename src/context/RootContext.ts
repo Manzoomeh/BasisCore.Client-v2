@@ -1,5 +1,4 @@
 import DataSet from "../data/DataSet";
-import { AppendType } from "../enum";
 import { EventHandler } from "../event/EventHandler";
 import ClientException from "../exception/ClientException";
 import IDictionary from "../IDictionary";
@@ -91,11 +90,7 @@ export default abstract class RootContext extends Context {
   private addHostOptionsSource() {
     if (this.options.sources) {
       Object.getOwnPropertyNames(this.options.sources).forEach((key) => {
-        this.setAsSource(
-          key.toLowerCase(),
-          this.options.sources[key],
-          AppendType.replace
-        );
+        this.setAsSource(key.toLowerCase(), this.options.sources[key]);
       });
     }
   }

@@ -8,8 +8,8 @@ import IContextRepository from "../repository/IContextRepository";
 import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
-import { AppendType } from "../enum";
 import { EventHandler } from "../event/EventHandler";
+import { MergeType } from "../enum";
 
 export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
@@ -80,10 +80,10 @@ export default abstract class Context implements IContext {
   public setAsSource(
     sourceId: SourceId,
     value: any,
-    appendType: AppendType,
+    mergeType?: MergeType,
     preview?: boolean
   ) {
-    var source = DataUtil.ToDataSource(sourceId, value, appendType);
+    var source = DataUtil.ToDataSource(sourceId, value, mergeType);
     this.setSource(source, preview);
   }
 

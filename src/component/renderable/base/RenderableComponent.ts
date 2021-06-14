@@ -3,6 +3,7 @@ import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
 import IData from "../../../data/IData";
 import ISource from "../../../data/ISource";
+import { AppendType } from "../../../enum";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
@@ -28,7 +29,10 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     this.reservedKeys = reservedKeys;
   }
 
-  async renderSourceAsync(source: ISource): Promise<void> {
+  async renderSourceAsync(
+    source: ISource,
+    appendType: AppendType
+  ): Promise<void> {
     var result: string = null;
     if (source.data) {
       var rawIncompleteTemplate = this.node
@@ -75,7 +79,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     }
     const content = this.range.createContextualFragment(result);
     const childNodes = [...content.childNodes];
-    this.setContent(content, source.appendType);
+    this.setContent(content, appendType);
     await this.collection.processNodesAsync(childNodes);
   }
 

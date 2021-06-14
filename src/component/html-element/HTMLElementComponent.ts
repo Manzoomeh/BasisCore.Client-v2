@@ -1,5 +1,4 @@
 import IContext from "../../context/IContext";
-import { AppendType } from "../../enum";
 import { SourceId } from "../../type-alias";
 import { NonRangeableComponent } from "../NonRangeableComponent";
 
@@ -33,11 +32,7 @@ export default abstract class HTMLElementComponent<
       try {
         const id = await this.getSourceIdAsync();
         const value = await this.getSourceValueAsync(event);
-        this.context.setAsSource(
-          id ?? "cms.unknown",
-          value,
-          AppendType.replace
-        );
+        this.context.setAsSource(id ?? "cms.unknown", value);
       } finally {
         this._busy = false;
       }

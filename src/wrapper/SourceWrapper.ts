@@ -1,17 +1,13 @@
 import IContext from "../context/IContext";
 import DataUtil from "../data/DataUtil";
 import ISource from "../data/ISource";
-import { AppendType } from "../enum";
+import { MergeType } from "../enum";
 import { SourceId } from "../type-alias";
 import Util from "../Util";
 
 export class SourceWrapper {
-  public new(
-    sourceId: SourceId,
-    data: any,
-    appendType: AppendType = AppendType.replace
-  ): ISource {
-    return DataUtil.ToDataSource(sourceId, data, appendType);
+  public new(sourceId: SourceId, data: any, mergeType?: MergeType): ISource {
+    return DataUtil.ToDataSource(sourceId, data, mergeType);
   }
 
   public async sortAsync(
@@ -23,7 +19,7 @@ export class SourceWrapper {
     return DataUtil.ToDataSource(
       source.data.id,
       lib(`SELECT * FROM ? order by ${sort}`, [source.data.rows]),
-      source.appendType
+      source.mergeType
     );
   }
 
@@ -34,7 +30,7 @@ export class SourceWrapper {
       lib(Util.ReplaceEx(sql, `\\[${source.data.id}\\]`, "?"), [
         source.data.rows,
       ]),
-      source.appendType
+      source.mergeType
     );
   }
 }

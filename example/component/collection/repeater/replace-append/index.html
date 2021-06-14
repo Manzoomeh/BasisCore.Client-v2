@@ -12,18 +12,28 @@
 <body>
     <input type="button" value="Set Source" onclick="set()" />
     <fieldset>
-        <legend>Replace</legend>
+        <legend>repeater.AppendType = before</legend>
         <ul>
-            <basis core="repeater" id="rep0-cmd" name="rep" datamembername="replace.data" run="atclient">
+            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="before"
+                bc-trigger-on="event.render">
                 <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
             </basis>
         </ul>
     </fieldset>
     <fieldset>
-        <legend>Append</legend>
+        <legend>repeater.AppendType = after</legend>
         <ul>
-            <basis core="repeater" id="rep0-cmd" name="rep" datamembername="replace.data" run="atclient"
-                replace="false">
+            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="after"
+                bc-trigger-on="event.render">
+                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+            </basis>
+        </ul>
+    </fieldset>
+    <fieldset>
+        <legend>repeater.AppendType = Replace</legend>
+        <ul>
+            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="replace"
+                bc-trigger-on="event.render">
                 <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
             </basis>
         </ul>
@@ -36,9 +46,10 @@
             $bc.setSource(
                 "replace.data",
                 [
-                    { id: i, name: `data ${i}` }
-                ],
-                AppendType.after
+                    { id: i, name: `data ${i}` },
+                    { id: i + 1, name: `data ${i + 1}` },
+                    { id: i + 2, name: `data ${i + 2}` },
+                ]
             );
 
             i += 1;
