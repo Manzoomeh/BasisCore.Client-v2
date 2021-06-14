@@ -9,6 +9,7 @@ import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
 import { AppendType } from "../enum";
+import { EventHandler } from "../event/EventHandler";
 
 export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
@@ -33,8 +34,9 @@ export default abstract class Context implements IContext {
   public abstract loadDataAsync(
     sourceId: SourceId,
     connectionName: string,
-    parameters: IDictionary<string>
-  ): Promise<DataSet>;
+    parameters: IDictionary<string>,
+    onDataReceived: EventHandler<DataSet>
+  ): Promise<void>;
 
   public abstract loadPageAsync(
     pageName: string,

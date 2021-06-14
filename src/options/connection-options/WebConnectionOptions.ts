@@ -1,6 +1,7 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
 import DataSet from "../../data/DataSet";
+import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
 import { HttpMethod, SourceId } from "../../type-alias";
 import Util from "../../Util";
@@ -46,15 +47,18 @@ export default class WebConnectionOptions extends ConnectionOptions {
   public async loadDataAsync(
     context: IContext,
     sourceId: SourceId,
-    parameters: IDictionary<string> = null
-  ): Promise<DataSet> {
+    parameters: IDictionary<string>,
+    onDataReceived: EventHandler<DataSet>
+  ): Promise<void> {
     var rawJson = await WebConnectionOptions.ajax(
       this.Url,
       this.Verb ?? context.options.getDefault<HttpMethod>("source.verb"),
       parameters
     );
     var json = this.ParseJsonString(rawJson);
-    return new DataSet(json.Tables.map((x) => new Data(x.Key, x.Value)));
+    onDataReceived(
+      new DataSet(json.Tables.map((x) => new Data(x.Key, x.Value)))
+    );
   }
 
   async loadPageAsync(

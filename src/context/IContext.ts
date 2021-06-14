@@ -1,6 +1,7 @@
 import DataSet from "../data/DataSet";
 import ISource from "../data/ISource";
 import { AppendType } from "../enum";
+import { EventHandler } from "../event/EventHandler";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import IContextHostOptions from "../options/IContextHostOptions";
@@ -21,8 +22,9 @@ export default interface IContext {
   loadDataAsync(
     sourceId: SourceId,
     connectionName: string,
-    parameters: IDictionary<string>
-  ): Promise<DataSet>;
+    parameters: IDictionary<string>,
+    onDataReceived: EventHandler<DataSet>
+  ): Promise<void>;
 
   getOrLoadDbLibAsync(): Promise<any>;
   getOrLoadObjectAsync(object: string, url: string): Promise<any>;

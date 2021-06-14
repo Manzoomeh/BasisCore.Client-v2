@@ -4,6 +4,7 @@ import ClientException from "../../exception/ClientException";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 import DataSet from "../../data/DataSet";
+import { EventHandler } from "../../event/EventHandler";
 
 declare let $bc: IBasisCore;
 
@@ -14,6 +15,7 @@ export default class LocalStorageConnectionOptions extends ConnectionOptions {
   private Function: (
     parameters: IDictionary<string>
   ) => Promise<IDictionary<any[]>>;
+
   constructor(name: string, setting: any, context: IContext) {
     super(name);
     this.context = context;
@@ -32,6 +34,7 @@ export default class LocalStorageConnectionOptions extends ConnectionOptions {
     }
     this.Function = null;
   }
+
   private async LoadLibAsync() {
     if (!this.Function) {
       this.Function = await this.context.getOrLoadObjectAsync(
@@ -48,8 +51,9 @@ export default class LocalStorageConnectionOptions extends ConnectionOptions {
   public loadDataAsync(
     context: IContext,
     sourceId: string,
-    parameters: IDictionary<string>
-  ): Promise<DataSet> {
+    parameters: IDictionary<string>,
+    onDataReceived: EventHandler<DataSet>
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 

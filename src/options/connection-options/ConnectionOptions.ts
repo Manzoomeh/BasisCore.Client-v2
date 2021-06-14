@@ -1,5 +1,6 @@
 ﻿import IContext from "../../context/IContext";
 import DataSet from "../../data/DataSet";
+import { EventHandler } from "../../event/EventHandler";
 import ClientException from "../../exception/ClientException";
 import IDictionary from "../../IDictionary";
 import { HttpMethod, SourceId } from "../../type-alias";
@@ -9,12 +10,15 @@ export default abstract class ConnectionOptions {
   constructor(name: string) {
     this.Name = name;
   }
+
   abstract TestConnectionAsync(context: IContext): Promise<boolean>;
+
   public abstract loadDataAsync(
     context: IContext,
     sourceId: SourceId,
-    parameters: IDictionary<string>
-  ): Promise<DataSet>;
+    parameters: IDictionary<string>,
+    onDataReceived: EventHandler<DataSet>
+  ): Promise<void>;
 
   public abstract loadPageAsync(
     context: IContext,

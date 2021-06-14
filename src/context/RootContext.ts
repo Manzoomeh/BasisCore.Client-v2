@@ -1,5 +1,6 @@
 import DataSet from "../data/DataSet";
 import { AppendType } from "../enum";
+import { EventHandler } from "../event/EventHandler";
 import ClientException from "../exception/ClientException";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
@@ -37,10 +38,16 @@ export default abstract class RootContext extends Context {
   public loadDataAsync(
     sourceId: SourceId,
     connectionName: string,
-    parameters: IDictionary<string>
-  ): Promise<DataSet> {
+    parameters: IDictionary<string>,
+    onDataReceived: EventHandler<DataSet>
+  ): Promise<void> {
     let connectionInfo = this.connections.getConnection(connectionName);
-    return connectionInfo.loadDataAsync(this, sourceId, parameters);
+    return connectionInfo.loadDataAsync(
+      this,
+      sourceId,
+      parameters,
+      onDataReceived
+    );
   }
 
   async getOrLoadDbLibAsync(): Promise<any> {

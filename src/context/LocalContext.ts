@@ -1,6 +1,7 @@
 import { inject, injectable } from "tsyringe";
 import DataSet from "../data/DataSet";
 import ISource from "../data/ISource";
+import { EventHandler } from "../event/EventHandler";
 import IDictionary from "../IDictionary";
 import { HostOptions } from "../options/HostOptions";
 import IContextRepository from "../repository/IContextRepository";
@@ -47,12 +48,18 @@ export default class LocalContext extends Context implements ILocalContext {
     return this.owner.loadPageAsync(pageName, parameters, method);
   }
 
-  public async loadDataAsync(
+  public loadDataAsync(
     sourceId: SourceId,
     connectionName: string,
-    parameters: IDictionary<string>
-  ): Promise<DataSet> {
-    return this.owner.loadDataAsync(sourceId, connectionName, parameters);
+    parameters: IDictionary<string>,
+    onDataReceived: EventHandler<DataSet>
+  ): Promise<void> {
+    return this.owner.loadDataAsync(
+      sourceId,
+      connectionName,
+      parameters,
+      onDataReceived
+    );
   }
 
   public tryToGetSource(sourceId: SourceId): ISource {

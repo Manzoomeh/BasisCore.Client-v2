@@ -31,32 +31,39 @@ export default abstract class SourceComponent<
     this.id = await this.getAttributeValueAsync("name");
   }
 
+  // protected async runAsync(): Promise<void> {
+  //   this.oldConnectionName = null;
+  //   if (this.members.length > 0) {
+  //     const dataSet = await this.loadDataAsync();
+  //     this.processLoadedDataSet(dataSet.collection);
+  //   }
+  // }
+
   protected async runAsync(): Promise<void> {
     this.oldConnectionName = null;
     if (this.members.length > 0) {
-      const dataSet = await this.loadDataAsync();
-      this.processLoadedDataSet(dataSet.collection);
+      await this.loadDataAsync();
     }
   }
 
-  private async processLoadedDataSet(data: IData[]) {
+  private async processLoadedDataSet(dataSet: DataSet) {
     const memberObjList = this.members.map((memberElement) =>
       this.convertToMemberObject(memberElement)
     );
-    if (memberObjList.length != data.length) {
+    if (memberObjList.length != dataSet.collection.length) {
       throw new Error(
         `Command '${await this.id}' has ${memberObjList.length} member(s) but ${
-          data.length
+          dataSet.collection.length
         } result(s) returned from source!`
       );
     }
     memberObjList.forEach(async (member, index) => {
-      const source = data[index];
+      const source = dataSet.collection[index];
       await member.addDataSourceAsync(source, this.id);
     });
   }
 
-  private async loadDataAsync(): Promise<DataSet> {
+  private async loadDataAsync(): Promise<void> {
     const connectionName = await this.getAttributeValueAsync("source");
     if (this.oldConnectionName) {
       if (this.oldConnectionName !== connectionName) {
@@ -75,6 +82,11 @@ export default abstract class SourceComponent<
       command: await command.getValueAsync(),
       dmnid: this.context.options.getDefault("dmnid"),
     };
-    return await this.context.loadDataAsync(this.id, connectionName, params);
+    await this.context.loadDataAsync(
+      this.id,
+      connectionName,
+      params,
+      this.processLoadedDataSet.bind(this)
+    );
   }
 }
