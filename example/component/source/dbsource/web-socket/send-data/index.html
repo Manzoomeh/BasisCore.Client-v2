@@ -11,19 +11,24 @@
 
 <body>
 
-    <basis core='dbsource' source='simple' name='stream' run="atclient">
+    <form name="test.counter" bc-triggers="submit">
+        <input type="number" name="value" min="5" max="30" value="10" />
+        <input type="submit" />
+    </form>
+    <basis core='dbsource' source='simple' counter="[##test.counter.value|(10)##]" name='stream' run="atclient"
+        bc-trigger-on="test.counter">
         <member name='time' />
     </basis>
 
     <div>
-        Update time for 10 seconds only! (remain [##stream.time.remain##])
+        Update time for limited seconds only! (remain [##stream.time.remain##])
         <br />
         Time is : [##stream.time.hh|(00)##]:[##stream.time.mm|(00)##]:[##stream.time.ss|(00)##]
     </div>
     <script>
         var host = {
             settings: {
-                'connection.websocket.simple': "ws://localhost:8080/time",
+                'connection.websocket.simple': "ws://localhost:8080/time-remain",
                 'default.dmnid': 2668
             },
 

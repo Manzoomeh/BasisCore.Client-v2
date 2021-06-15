@@ -7,33 +7,28 @@ const MergeType = {
 
 const wss = new WebSocket.Server({ port: 8080 });
 
-const p = {
-  "book.list": {
-    data: [
-      { id: 1, BookName: "طراحی وبسایت", Price: 1400, Count: 4 },
-      { id: 2, BookName: "تمدن", Price: 2300, Count: 3 },
-    ],
-  },
-  "book.Type": {
-    data: [
-      { id: 1, Name: "وبسایت" },
-      { id: 2, Name: "طراحی" },
-    ],
-  },
-};
+let timeCounter = 10;
 setInterval(() => {
   const date = new Date();
+  if (timeCounter > 0) {
+    timeCounter--;
+  }
   const data = {
-    "stream.time": {
-      mergeType: MergeType.replace,
-      isEnd: false,
-      data: [
-        {
-          hh: date.getHours(),
-          mm: date.getMinutes(),
-          ss: date.getSeconds(),
-        },
-      ],
+    setting: {
+      keepalive: timeCounter > 0,
+    },
+    sources: {
+      "stream.time": {
+        mergeType: MergeType.replace,
+        data: [
+          {
+            hh: date.getHours(),
+            mm: date.getMinutes(),
+            ss: date.getSeconds(),
+            remain: timeCounter,
+          },
+        ],
+      },
     },
   };
   [...wss.clients]
@@ -41,20 +36,52 @@ setInterval(() => {
     .forEach((ws) => ws.send(JSON.stringify(data)));
 }, 1000);
 
+let timeRemainCounter = 0;
+setInterval(() => {
+  const date = new Date();
+  if (timeRemainCounter > 0) {
+    timeRemainCounter--;
+  }
+  const data = {
+    setting: {
+      keepalive: timeRemainCounter > 0,
+    },
+    sources: {
+      "stream.time": {
+        mergeType: MergeType.replace,
+        data: [
+          {
+            hh: date.getHours(),
+            mm: date.getMinutes(),
+            ss: date.getSeconds(),
+            remain: timeRemainCounter,
+          },
+        ],
+      },
+    },
+  };
+  [...wss.clients]
+    .filter((ws) => ws.typeEx === "/time-remain")
+    .forEach((ws) => ws.send(JSON.stringify(data)));
+}, 1000);
+
 let userId = 1000;
 setInterval(() => {
   userId++;
   const data = {
-    "user.list": {
-      mergeType: MergeType.append,
-      isEnd: false,
-      data: [
-        {
-          id: userId,
-          age: Math.floor(Math.random() * 80) + 10,
-          name: Math.random().toString(36).substring(7),
-        },
-      ],
+    setting: {},
+    sources: {
+      "user.list": {
+        mergeType: MergeType.append,
+        isEnd: false,
+        data: [
+          {
+            id: userId,
+            age: Math.floor(Math.random() * 80) + 10,
+            name: Math.random().toString(36).substring(7),
+          },
+        ],
+      },
     },
   };
   [...wss.clients]
@@ -64,7 +91,25 @@ setInterval(() => {
 
 wss.on("connection", function connection(ws, req) {
   ws.typeEx = req.url;
+  if (req.url == "/time") {
+    timeCounter = 10;
+  } else if (req.url == "/time-remain") {
+    //timeRemainCounter = 10;
+  }
   ws.on("message", function incoming(message) {
     console.log("received: %s", message);
+    if (ws.typeEx == "/time-remain") {
+      const data = JSON.parse(message);
+      const result = /counter="(?<f>[^"]*)"/i.exec(data.command);
+      if (result) {
+        const r = parseInt(result.groups.f);
+        timeRemainCounter += r;
+        console.log(
+          "add %i to timeRemainCounter and extended to %i",
+          r,
+          timeRemainCounter
+        );
+      }
+    }
   });
 });

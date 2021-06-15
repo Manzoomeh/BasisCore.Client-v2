@@ -73,6 +73,7 @@ export default abstract class SourceComponent<
       command: await command.getValueAsync(),
       dmnid: this.context.options.getDefault("dmnid"),
     };
+    this._busy = false;
     await this.context.loadDataAsync(
       this.id,
       connectionName,

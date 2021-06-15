@@ -1,5 +1,4 @@
 import IContext from "../context/IContext";
-import DataUtil from "../data/DataUtil";
 import ISource from "../data/ISource";
 import Source from "../data/Source";
 import { MergeType } from "../enum";
