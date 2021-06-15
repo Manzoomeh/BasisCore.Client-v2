@@ -1,4 +1,4 @@
-import DataSet from "../data/DataSet";
+import Data from "../data/Data";
 import ISource from "../data/ISource";
 import { MergeType } from "../enum";
 import { EventHandler } from "../event/EventHandler";
@@ -23,7 +23,7 @@ export default interface IContext {
     sourceId: SourceId,
     connectionName: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<DataSet>
+    onDataReceived: EventHandler<Array<Data>>
   ): Promise<void>;
 
   getOrLoadDbLibAsync(): Promise<any>;
@@ -31,7 +31,7 @@ export default interface IContext {
 
   setAsSource(
     sourceId: SourceId,
-    value: any,
+    data: any,
     mergeType?: MergeType,
     preview?: boolean
   );

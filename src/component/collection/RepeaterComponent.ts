@@ -30,8 +30,8 @@ export default class RepeaterComponent extends SourceBaseComponent {
       this.oldChildContexts.forEach((x) => x.dispose());
       this.oldChildContexts.length = 0;
     }
-    for (let index = 0; index < dataSource.data.rows.length; index++) {
-      const row = dataSource.data.rows[index];
+    for (let index = 0; index < dataSource.rows.length; index++) {
+      const row = dataSource.rows[index];
       const template = this.content.firstChild.cloneNode(true);
       var fragment = document.createDocumentFragment();
       const childNodes = [...template.childNodes];

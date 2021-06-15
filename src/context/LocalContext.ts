@@ -1,5 +1,5 @@
 import { inject, injectable } from "tsyringe";
-import DataSet from "../data/DataSet";
+import Data from "../data/Data";
 import ISource from "../data/ISource";
 import { EventHandler } from "../event/EventHandler";
 import IDictionary from "../IDictionary";
@@ -52,7 +52,7 @@ export default class LocalContext extends Context implements ILocalContext {
     sourceId: SourceId,
     connectionName: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<DataSet>
+    onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
     return this.owner.loadDataAsync(
       sourceId,

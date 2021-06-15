@@ -1,6 +1,6 @@
 ﻿import IContext from "../../context/IContext";
-import DataSet from "../../data/DataSet";
-import { MergeType, Priority } from "../../enum";
+import Data from "../../data/Data";
+import { Priority } from "../../enum";
 import ClientException from "../../exception/ClientException";
 import { SourceId } from "../../type-alias";
 import CommandComponent from "../CommandComponent";
@@ -37,20 +37,20 @@ export default abstract class SourceComponent<
     }
   }
 
-  private async processLoadedDataSet(dataSet: DataSet) {
+  private async processLoadedDataSet(dataList: Array<Data>) {
     const memberObjList = this.members.map((memberElement) =>
       this.convertToMemberObject(memberElement)
     );
-    if (memberObjList.length != dataSet.collection.length) {
+    if (memberObjList.length != dataList.length) {
       throw new Error(
         `Command '${await this.id}' has ${memberObjList.length} member(s) but ${
-          dataSet.collection.length
+          dataList.length
         } result(s) returned from source!`
       );
     }
     memberObjList.forEach(async (member, index) => {
-      const source = dataSet.collection[index];
-      await member.addDataSourceAsync(source, this.id, source.mergeType);
+      const source = dataList[index];
+      await member.addDataSourceAsync(source.rows, this.id, source.mergeType);
     });
   }
 

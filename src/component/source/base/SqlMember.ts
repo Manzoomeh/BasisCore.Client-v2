@@ -1,5 +1,4 @@
 import IContext from "../../../context/IContext";
-import Data from "../../../data/Data";
 import IBasisCore from "../../../IBasisCore";
 import InMemoryMember from "./InMemoryMember";
 
@@ -10,7 +9,7 @@ export default class SqlMember extends InMemoryMember {
     super(element, context);
   }
 
-  async ParseDataAsync(): Promise<Data> {
+  async ParseDataAsync(): Promise<Array<any>> {
     var rawContent = this.element.textContent.ToStringToken(this.context);
     var sql = await rawContent.getValueAsync(); //Util.GetValueOrDefaultAsync(rawContent, context.Context);
 
@@ -33,11 +32,11 @@ export default class SqlMember extends InMemoryMember {
     var lib = await this.context.getOrLoadDbLibAsync();
     var db = new lib.Database();
     dataList.forEach((data) => {
-      db.exec(`CREATE TABLE [${data.data.id}]`);
-      db.tables[data.data.id].data = data.data.rows;
+      db.exec(`CREATE TABLE [${data.id}]`);
+      db.tables[data.id].data = data.rows;
     });
     var queryResult = db.exec(sql);
-    return new Data("", queryResult);
+    return queryResult;
   }
 
   GetSqlSources(sql: string): string[] {

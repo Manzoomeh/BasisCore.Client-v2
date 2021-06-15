@@ -1,13 +1,14 @@
 import IContext from "../context/IContext";
 import DataUtil from "../data/DataUtil";
 import ISource from "../data/ISource";
+import Source from "../data/Source";
 import { MergeType } from "../enum";
 import { SourceId } from "../type-alias";
 import Util from "../Util";
 
 export class SourceWrapper {
   public new(sourceId: SourceId, data: any, mergeType?: MergeType): ISource {
-    return DataUtil.ToDataSource(sourceId, data, mergeType);
+    return new Source(sourceId, data, mergeType);
   }
 
   public async sortAsync(
@@ -16,20 +17,22 @@ export class SourceWrapper {
     sort: string
   ): Promise<ISource> {
     const lib = await context.getOrLoadDbLibAsync();
-    return DataUtil.ToDataSource(
-      source.data.id,
-      lib(`SELECT * FROM ? order by ${sort}`, [source.data.rows]),
+    return new Source(
+      source.id,
+      lib(`SELECT * FROM ? order by ${sort}`, [source.rows]),
       source.mergeType
     );
   }
 
-  public async runSqlAsync(source: ISource, context: IContext, sql: string) {
+  public async runSqlAsync(
+    source: ISource,
+    context: IContext,
+    sql: string
+  ): Promise<ISource> {
     const lib = await context.getOrLoadDbLibAsync();
-    return DataUtil.ToDataSource(
-      source.data.id,
-      lib(Util.ReplaceEx(sql, `\\[${source.data.id}\\]`, "?"), [
-        source.data.rows,
-      ]),
+    return new Source(
+      source.id,
+      lib(Util.ReplaceEx(sql, `\\[${source.id}\\]`, "?"), [source.rows]),
       source.mergeType
     );
   }

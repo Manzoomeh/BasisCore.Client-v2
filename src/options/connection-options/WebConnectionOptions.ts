@@ -1,6 +1,6 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
-import DataSet from "../../data/DataSet";
+import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
 import { HttpMethod, SourceId } from "../../type-alias";
@@ -48,7 +48,7 @@ export default class WebConnectionOptions extends ConnectionOptions {
     context: IContext,
     sourceId: SourceId,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<DataSet>
+    onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
     var rawJson = await WebConnectionOptions.ajax(
       this.Url,
@@ -57,7 +57,7 @@ export default class WebConnectionOptions extends ConnectionOptions {
     );
     var json = this.ParseJsonString(rawJson);
     onDataReceived(
-      new DataSet(json.Tables.map((x) => new Data(x.Key, x.Value)))
+      json.Tables.map((x) => new Data(x.Key, x.Value, MergeType.replace))
     );
   }
 

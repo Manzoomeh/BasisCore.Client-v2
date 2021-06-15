@@ -1,7 +1,7 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
-import IData from "../../data/IData";
+import ISource from "../../data/ISource";
 import FaceCollection from "./base/FaceCollection";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
@@ -18,7 +18,7 @@ export default class TreeComponent extends RenderableComponent {
   }
 
   protected async renderDataPartAsync(
-    dataSource: IData,
+    dataSource: ISource,
     faces: FaceCollection,
     replaces: ReplaceCollection,
     dividerRowCount: number,
@@ -70,7 +70,7 @@ export default class TreeComponent extends RenderableComponent {
   }
 
   private renderLevel(
-    dataSource: IData,
+    dataSource: ISource,
     parentRenderParam: RenderParam,
     level: number,
     faces: FaceCollection,

@@ -1,7 +1,6 @@
 import { DependencyContainer } from "tsyringe";
 import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
-import IData from "../../../data/IData";
 import ISource from "../../../data/ISource";
 import { AppendType } from "../../../enum";
 import Util from "../../../Util";
@@ -34,7 +33,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     appendType: AppendType
   ): Promise<void> {
     var result: string = null;
-    if (source.data) {
+    if (source.rows) {
       var rawIncompleteTemplate = this.node
         .querySelector("incomplete")
         ?.GetTemplateToken(this.context);
@@ -48,7 +47,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var rawFaces = RawFaceCollection.Create(this.node, this.context);
 
       var faces = await rawFaces.processAsync(
-        source.data,
+        source,
         this.context,
         this.reservedKeys
       );
@@ -57,7 +56,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       var dividerTemplate = await rawDividerTemplate?.getValueAsync();
       var incompleteTemplate = await rawIncompleteTemplate?.getValueAsync();
       result = await this.renderDataPartAsync(
-        source.data,
+        source,
         faces,
         replaces,
         dividerRowCount,
@@ -65,7 +64,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
         incompleteTemplate
       );
     }
-    if (source.data == null || (Util.HasValue(result) && result.length > 0)) {
+    if (source.rows == null || (Util.HasValue(result) && result.length > 0)) {
       var rawLayout = this.node
         .querySelector("layout")
         ?.GetTemplateToken(this.context);
@@ -84,7 +83,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
   }
 
   protected renderDataPartAsync(
-    dataSource: IData,
+    dataSource: ISource,
     faces: FaceCollection,
     replaces: ReplaceCollection,
     dividerRowcount: number,

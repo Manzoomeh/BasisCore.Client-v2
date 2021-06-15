@@ -44,10 +44,11 @@ export default class BCLinker {
     return new Promise<void>((res) => {
       if (
         source.origin == OriginType.internal &&
-        this.filter.indexOf(source.data.id) == -1
+        this.filter.indexOf(source.id) == -1
       ) {
         var newSource = new Source(
-          source.data,
+          source.id,
+          source.rows,
           source.mergeType,
           OriginType.external
         );
@@ -70,7 +71,7 @@ export default class BCLinker {
     mergeType?: MergeType,
     preview?: boolean
   ): BCLinker {
-    const source = DataUtil.ToDataSource(sourceId, data, mergeType);
+    const source = new Source(sourceId, data, mergeType);
     this.cors.forEach((core) => core.context.setSource(source, preview));
     return this;
   }

@@ -76,7 +76,7 @@
 
         function update(currentSource, context, appendType) {
             const source = $bc.util.clone(currentSource);
-            source.data.rows.forEach(row => {
+            source.rows.forEach(row => {
                 row.id += 100;
                 row.name = `new ${row.name}`
             });
@@ -88,7 +88,7 @@
         }
 
         function filter(source, context) {
-            const rows = source.data.rows.filter(x => x.id > 3)
+            const rows = source.rows.filter(x => x.id > 3)
             const newSource = $bc.util.source.new('inlinesource.print2', rows)
             return { source: newSource };
         }

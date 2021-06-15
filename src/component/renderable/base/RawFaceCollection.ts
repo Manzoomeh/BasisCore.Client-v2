@@ -1,5 +1,4 @@
 ﻿import IContext from "../../../context/IContext";
-import IData from "../../../data/IData";
 import { FaceRowType } from "../../../enum";
 import IToken from "../../../token/IToken";
 import Util from "../../../Util";
@@ -8,6 +7,7 @@ import FaceCollection from "./FaceCollection";
 import ITemplate from "./ITemplate";
 import RawFace from "./RawFace";
 import ContentTemplate from "./ContentTemplate";
+import ISource from "../../../data/ISource";
 
 export default class RawFaceCollection extends Array<RawFace> {
   static Create(element: Element, context: IContext): RawFaceCollection {
@@ -19,7 +19,7 @@ export default class RawFaceCollection extends Array<RawFace> {
   }
 
   public async processAsync(
-    dataSource: IData,
+    source: ISource,
     context: IContext,
     reservedKeys: Array<string>
   ): Promise<FaceCollection> {
@@ -30,8 +30,8 @@ export default class RawFaceCollection extends Array<RawFace> {
       var levels = (await x.Level?.getValueAsync())?.split("|") ?? null;
       var filter = await x.Filter?.getValueAsync();
       var relatedRows = Util.IsNullOrEmpty(filter)
-        ? dataSource.rows
-        : await Util.ApplyFilterAsync(dataSource, filter, context);
+        ? source.rows
+        : await Util.ApplyFilterAsync(source, filter, context);
       const templateParser: ITemplate = new ContentTemplate(
         x.Template,
         reservedKeys

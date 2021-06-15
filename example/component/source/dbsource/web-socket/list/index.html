@@ -107,15 +107,15 @@
 
             const where = context.tryToGetSource('demo.filter-name');
             if (where && preWhere !== where) {
-                const nameValue = where.data.rows[0].value;
+                const nameValue = where.rows[0].value;
                 wherePart = nameValue ? `where name like '%${nameValue}%'` : ''
             }
 
             const sort = context.tryToGetSource('demo.sort-by');
             if (sort && preSort !== sort) {
-                const sortCol = sort.data.rows[0].value;
+                const sortCol = sort.rows[0].value;
                 let sortType = 'asc';
-                if (preSort?.data.rows[0].value == sortCol) {
+                if (preSort?.rows[0].value == sortCol) {
                     sortType = 'desc'
                     preSort = null;
                 }

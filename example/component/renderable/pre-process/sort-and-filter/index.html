@@ -45,7 +45,7 @@
             </script>
         </face>
     </Basis>
-
+    <basis core="callback" run="AtClient" datamembername="local.print" method="onSource"></basis>
     <script>
         const MIN_ID = 1000;
         const MAX_ID = 1500;
@@ -76,20 +76,20 @@
 
             const where = context.tryToGetSource('demo.filter-name');
             if (where && preWhere !== where) {
-                const nameValue = where.data.rows[0].value;
+                const nameValue = where.rows[0].value;
                 wherePart = nameValue ? `where name like '%${nameValue}%'` : ''
             }
 
             const sort = context.tryToGetSource('demo.sort-by');
             if (sort && preSort !== sort) {
-                const sortCol = sort.data.rows[0].value;
+                const sortCol = sort.rows[0].value;
                 let sortType = 'asc';
-                if (preSort?.data.rows[0].value == sortCol) {
+                if (preSort?.rows[0].value == sortCol) {
                     sortType = 'desc'
                     preSort = null;
-                } else {
-                    preSort = sort;
                 }
+                preSort = sort;
+
                 orderPart = `order by ${sortCol} ${sortType}`
             }
 
@@ -98,6 +98,10 @@
             retVal = await $bc.util.source.runSqlAsync(source, context, sql);
 
             return { source: retVal };
+        }
+
+        function onSource(source) {
+            console.table(source.rows);
         }
     </script>
 </body>

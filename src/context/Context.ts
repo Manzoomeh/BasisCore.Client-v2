@@ -5,11 +5,13 @@ import IContext from "./IContext";
 import EventManager from "../event/EventManager";
 import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
 import IContextRepository from "../repository/IContextRepository";
-import DataSet from "../data/DataSet";
+// import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
 import { EventHandler } from "../event/EventHandler";
 import { MergeType } from "../enum";
+import Data from "../data/Data";
+import Source from "../data/Source";
 
 export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
@@ -35,7 +37,7 @@ export default abstract class Context implements IContext {
     sourceId: SourceId,
     connectionName: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<DataSet>
+    onDataReceived: EventHandler<Array<Data>>
   ): Promise<void>;
 
   public abstract loadPageAsync(
@@ -50,10 +52,10 @@ export default abstract class Context implements IContext {
   }
 
   private onDataSourceSetHandler(source: ISource) {
-    var handler = this.repository.resolves.get(source.data.id);
+    var handler = this.repository.resolves.get(source.id);
     if (handler) {
       handler.Trigger(source);
-      this.repository.resolves.delete(source.data.id);
+      this.repository.resolves.delete(source.id);
     }
     this.onDataSourceSet.Trigger(source);
   }
@@ -79,11 +81,11 @@ export default abstract class Context implements IContext {
 
   public setAsSource(
     sourceId: SourceId,
-    value: any,
+    data: any,
     mergeType?: MergeType,
     preview?: boolean
   ) {
-    var source = DataUtil.ToDataSource(sourceId, value, mergeType);
+    var source = new Source(sourceId, data, mergeType);
     this.setSource(source, preview);
   }
 

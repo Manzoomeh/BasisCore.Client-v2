@@ -3,8 +3,8 @@ import IContext from "../../context/IContext";
 import ClientException from "../../exception/ClientException";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
-import DataSet from "../../data/DataSet";
 import { EventHandler } from "../../event/EventHandler";
+import Data from "../../data/Data";
 
 declare let $bc: IBasisCore;
 
@@ -52,7 +52,7 @@ export default class LocalStorageConnectionOptions extends ConnectionOptions {
     context: IContext,
     sourceId: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<DataSet>
+    onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }

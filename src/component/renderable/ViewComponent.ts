@@ -1,7 +1,7 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
-import IData from "../../data/IData";
+import ISource from "../../data/ISource";
 import TokenUtil from "../../token/TokenUtil";
 import FaceCollection from "./base/FaceCollection";
 import RenderableComponent from "./base/RenderableComponent";
@@ -19,7 +19,7 @@ export default class ViewComponent extends RenderableComponent {
   }
 
   protected async renderDataPartAsync(
-    dataSource: IData,
+    dataSource: ISource,
     faces: FaceCollection,
     replaces: ReplaceCollection,
     dividerRowcount: number,

@@ -1,5 +1,5 @@
-import IData from "./data/IData";
 import IContext from "./context/IContext";
+import ISource from "./data/ISource";
 
 export default class Util {
   public static HasValue(data: any): boolean {
@@ -45,7 +45,7 @@ export default class Util {
   }
 
   static async ApplyFilterAsync(
-    source: IData,
+    source: ISource,
     filter: string,
     context: IContext
   ): Promise<any[]> {

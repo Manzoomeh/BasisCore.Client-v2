@@ -1,7 +1,6 @@
 ﻿import IContext from "../../../context/IContext";
 import Source from "../../../data/Source";
 import DataUtil from "../../../data/DataUtil";
-import IData from "../../../data/IData";
 import IBasisCore from "../../../IBasisCore";
 import IDictionary from "../../../IDictionary";
 import IToken from "../../../token/IToken";
@@ -32,14 +31,14 @@ export default abstract class Member {
   }
 
   public async addDataSourceAsync(
-    data: IData,
+    data: Array<any>,
     sourceId: SourceId,
     mergeType: MergeType
   ) {
     var postSqlTask = this.postSql?.getValueAsync();
     var sortTask = this.sort?.getValueAsync();
     var previewTask = this.preview?.getValueAsync();
-    data.id = `${sourceId}.${this.name}`.toLowerCase();
+    const id = `${sourceId}.${this.name}`.toLowerCase();
 
     const preview = await previewTask;
     const sort = await sortTask;
@@ -50,18 +49,16 @@ export default abstract class Member {
       if (!Util.HasValue(lib)) {
         lib = await this.context.getOrLoadDbLibAsync();
       }
-      data.rows = lib(Util.ReplaceEx(postSql, `\\[${data.id}\\]`, "?"), [
-        data.rows,
-      ]);
+      data = lib(Util.ReplaceEx(postSql, `\\[${id}\\]`, "?"), [data]);
     }
     if (sort) {
       if (!Util.HasValue(lib)) {
         lib = await this.context.getOrLoadDbLibAsync();
       }
-      data.rows = lib(`SELECT * FROM ? order by ${sort}`, [data.rows]);
+      data = lib(`SELECT * FROM ? order by ${sort}`, [data]);
     }
     DataUtil.addRowNumber(data);
-    const source = new Source(data, mergeType);
+    const source = new Source(id, data, mergeType);
     this.context.setSource(source);
 
     // if (preview || context.DebugContext.InDebugMode) {

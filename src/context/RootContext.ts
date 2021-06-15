@@ -1,4 +1,4 @@
-import DataSet from "../data/DataSet";
+import Data from "../data/Data";
 import { EventHandler } from "../event/EventHandler";
 import ClientException from "../exception/ClientException";
 import IDictionary from "../IDictionary";
@@ -38,7 +38,7 @@ export default abstract class RootContext extends Context {
     sourceId: SourceId,
     connectionName: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<DataSet>
+    onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
     let connectionInfo = this.connections.getConnection(connectionName);
     return connectionInfo.loadDataAsync(

@@ -1,6 +1,5 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
-import DataSet from "../../data/DataSet";
 import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
@@ -21,7 +20,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
     context: IContext,
     sourceId: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<DataSet>
+    onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const socket = new WebSocket(this.Url);
@@ -58,7 +57,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
               };
             })
             .map((x) => new Data(x.key, x.data.data, x.data.mergeType));
-          onDataReceived(new DataSet(dataList));
+          onDataReceived(dataList);
         } catch (ex) {
           context.logger.logError(
             "Error In Call WebSocketConnection::ProcessMessage",
