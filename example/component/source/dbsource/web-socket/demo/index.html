@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/basiscore.min.js"></script>
+    <title>Callback Command - Simple</title>
+</head>
+
+<body>
+    <basis core="dbsource" source="simple" name="stream" file-name="flight_search.json" run="atclient">
+        <member name="data" />
+    </basis>
+    <basis core="callback" run="AtClient" datamembername="stream.data" method="onSource"></basis>
+
+    <Basis core="print" datamembername="stream.data" run="atclient" bc-pre-process="manipulation">
+        <layout>
+            <script type="text/template">
+          <table width="100%">
+              <thead>
+
+                  <tr>
+
+                      <td>showstartcity</td>
+                      <td>showendcity</td>
+                      <td>timesinfo</td>
+                      <td>showstartairport</td>
+                      <td>moneytype</td>
+                      <td>total</td>
+                  </tr>
+              </thead>
+              <tbody>@child</tbody>
+              <tfoot></tfoot>
+          </table>
+        </script>
+        </layout>
+        <face>
+            <script type="text/template">
+          <tr>
+              <td>@infooo.showstartcity@</td>
+              <td>@infooo.showendcity@</td>
+              <td>@ticketinfooo.timesinfo@</td>
+              <td>@ticketinfooo.exitinfo?.showstartairport??'not-set'@</td>
+              <td>@moneytype@</td>
+              <td>@Intl.NumberFormat().format(total)@</td>
+          </tr>
+        </script>
+        </face>
+    </Basis>
+    <script>
+        var host = {
+            settings: {
+                "connection.websocket.simple": "ws://127.0.0.1:1586",
+                "default.dmnid": 2668,
+            },
+        };
+
+        function onSource(source) {
+            console.table(source.rows);
+        }
+
+        async function manipulation(_, context) {
+            const source = context.tryToGetSource("stream.data");
+            return { source };
+        }
+    </script>
+</body>
+
+</html>

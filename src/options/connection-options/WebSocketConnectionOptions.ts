@@ -8,6 +8,7 @@ import ConnectionOptions from "./ConnectionOptions";
 export default class WebSocketConnectionOptions extends ConnectionOptions {
   readonly url: string;
   readonly activeSockets: Map<string, WebSocket> = new Map<string, WebSocket>();
+  readonly maxRetry: number = 5;
 
   constructor(name: string, setting: any) {
     super(name);
@@ -25,6 +26,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
     onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
     const url = this.url;
+    const maxRetry = this.maxRetry;
     const activeSockets = this.activeSockets;
     const preOpenSocket = activeSockets.get(sourceId);
     if (preOpenSocket) {
@@ -37,7 +39,9 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
     }
 
     return new Promise((resolve, reject) => {
+      let retry = 0;
       function initAndConnect(reconnect: boolean) {
+        retry++;
         const socket = new WebSocket(url);
         let error = null;
         socket.onopen = (e) => {
@@ -53,8 +57,12 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
           activeSockets.delete(sourceId);
           if (error != null) {
             context.logger.logInformation("Try reconnect To %s", url);
-            initAndConnect(true);
-            error = null;
+            if (retry < maxRetry) {
+              initAndConnect(true);
+              error = null;
+            } else {
+              reject(error);
+            }
           } else {
             resolve();
             context.logger.logInformation(`${url} Disconnected`);
@@ -67,7 +75,11 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
         socket.onmessage = (e) => {
           try {
             var json: IServerResponse = JSON.parse(e.data);
-            if (json.setting && !json.setting.keepalive) {
+            if (
+              json.setting &&
+              json.setting.keepalive !== undefined &&
+              !json.setting.keepalive
+            ) {
               context.logger.logInformation(
                 "Disconnect from %s by server request",
                 url

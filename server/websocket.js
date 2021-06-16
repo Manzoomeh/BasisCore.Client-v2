@@ -69,11 +69,9 @@ let userId = 1000;
 setInterval(() => {
   userId++;
   const data = {
-    setting: {},
     sources: {
       "user.list": {
         mergeType: MergeType.append,
-        isEnd: false,
         data: [
           {
             id: userId,
@@ -100,7 +98,7 @@ wss.on("connection", function connection(ws, req) {
     console.log("received: %s", message);
     if (ws.typeEx == "/time-remain") {
       const data = JSON.parse(message);
-      const result = /counter="(?<f>[^"]*)"/i.exec(data.command);
+      const result = /counter=["'](?<f>[^"']*)["']/i.exec(data.command);
       if (result) {
         const r = parseInt(result.groups.f);
         timeRemainCounter += r;

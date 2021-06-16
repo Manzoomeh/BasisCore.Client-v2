@@ -1,118 +1,38 @@
-<script src="/basiscore.min.js"></script>
-<basis core="dbsource" source="trust_loginuiapi" run="atclient" name="list" dmnid="6" userid="122504" cache="none" q="">
-    <member name="files" type="list" request="routfiles" pageno="1" perpage="20"></member>
-    <member name="paging" type="list" request="crmpaging" countp="2" parentname="files"></member>
+<script src="asset/widget/common/js/jquery-3.3.1.min.js"></script>
+<script src="basiscore.min.js"></script>
+<script src="alasql.min.js"></script>
+<input id="currentPage" type="hidden" value="{##db.next.value|(0)##}" />
+{##db.next.value##}
+<basis core="dbsource" source="trustloginuiapi" run="atclient" name="db" cache="refresh" pagecount="{##db.next.value##}"
+    bc-trigger-on="db.next">
+    <member name="wcalendar" type="list" request="calendar" preview=""></member>
 </basis>
-<basis core="print" datamembername="list.files" run="atclient">
-    <layout>
-        <script type="text/template">
-            <table class="listTable">
-                <thead>
-                    <tr>
-                        <th class="col2 textCenter">
-                            <span>
-                                ردیف
-                            </span>
-                        </th>
-                        <th class="col4 textRight">
-                            <span>
-                                عنوان
-                            </span>
-                        </th>
-                        <th class="col4 textCenter">
-                            <span>
-                                حجم فایل
-                            </span>
-                        </th>
-                        <th class="col4 textCenter">
-                            <span>
-                                تاریخ
-                            </span>
-                        </th>
-                        <th class="col2 textCenter">
-                            <span>
-                                نمایش در گالری
-                            </span>
-                        </th>
-                        <th class="col2 textCenter">
-                            <span>
-                                تعداد اعضا
-                            </span>
-                        </th>
-                        <th class="col2 textCenter">
-                            <span>
-                                عملیات
-                            </span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-        @child
-    </tbody>
-</table>
-    </script>
-    </layout>
-    <else-layout>
-        <script type="text/template">
-        <tr>
-            <td colspan="7" class="empty_list">فایلی آپلود نکردید</td>
-        </tr>
-    </script>
-    </else-layout>
+<basis core="dbsource" source="trustloginuiapi" run="atclient" name="db" pagecount="{##db.next.value##}"
+    bc-trigger-on="db.next" cache="refresh">
+    <member name="lastcalendar" type="list" request="calendar"
+        postsql="select top 1 * from [db.lastcalendar] order by id desc" preview=""></member>
+</basis>
+<basis core="dbsource" source="trustloginuiapi" run="atclient" name="db" pagecount="{##db.next.value##}"
+    bc-trigger-on="db.next" cache="refresh">
+    <member name="firstcalendar" type="list" request="calendar" postsql="select top 1 * from [db.firstcalendar] "
+        preview=""></member>
+</basis>
 
+
+<basis core="print" datamembername="db.firstcalendar" run="atclient" bc-rendered="calendarRendered">
     <face>
-        bbbb
         <script type="text/template">
-        <tr>
-            <td class="textCenter">@rownumber </td>
-            <td class="textRight">
-                <div class="parts">
-                    <img class="partItem" src="asset/widget/sharedWithMe/images/typeUndefined.png" width="35">
-                    <a class="partItem" href="/A02733E3-7FBB-4183-9BDC-DFA91C8FAD34/file/122504-@url@" target="_blank" download="@url ">@url </a>
-                </div>
-            </td>
-            <td class="textCenter directionLeft">@size B </td>
-            <td class="textCenter directionLeft">@date </td>
-            <td class="textCenter">
-                <div class="icons">
-                    <a class="iconItem">
-                        -
-                    </a>
-                </div>
-            </td>
-            <td class="textCenter">
-                <div class="icons">
-                    <a class="iconItem" onclick="fileMembers(this, '@id@' )">
-                        <i class="lni lni-user"></i>
-                        <span class="badge">@member </span>
-                    </a>
-                </div>
-            </td>
-            <td class="textCenter">
-                <div class="icons">
-                    <a class="iconItem share" data-tooltip="به اشتراک گذاری" onclick="sharePopup(this, @id ,'modal1')">
-                        <i class="lni lni-share"></i>
-                    </a>
-                    <a class="iconItem download" data-tooltip="دانلود فایل" href="/A02733E3-7FBB-4183-9BDC-DFA91C8FAD34/file/122504-@url " target="_blank" download="@url ">
-                        <i class="lni lni-cloud-download"></i>
-                    </a>
-                    <a class="iconItem delete" data-tooltip="حذف" href="#" onclick="deleteFile(this , @id , 'modal2')">
-                        <i class="lni lni-trash"></i>
-                    </a>
-                </div>
-            </td>
-        </tr>
+        <input type="hidden" value="@smonth@" id="smonth" />
     </script>
     </face>
-
 </basis>
 <script>
     var host = {
         Debug: false,
-
+        AutoRender: false,
         settings: {
-            // 'connection.web.callcommand': '',
-            'connection.web.callcommand': 'http://127.0.0.1:8080/',
+            'connection.web.callcommand': 'https://basispanel.ir/',
+            // 'connection.web.callcommand': 'http://127.0.0.1:8080/',
             'connection.web.basiscoreapi': 'https://dbsource.basiscore.net/data.json',
             'connection.web.trustloginuiapi': 'https://dbsource.basiscore.net/data.json',
             'connection.web.trust_loginuiapi': 'https://dbsource.basiscore.net/data.json',
@@ -122,6 +42,85 @@
             'default.dmnid': '12',
             'default.binding.regex': '\\{##([^#]*)##\\}'
         }
+    }
+
+
+
+</script>
+<script>
+
+    $bc.setSource("db.next", 0);
+    function calendarRendered(e) {
+        console.log(e)
+        $(".today").closest(".month").show()
+        var wfirstday = $('#wfirstday').val()
+        var wlastday = $('#wlastday').val()
+        var week = $("#basisCalendar .calendar-body")
+        var smonth = $(".sMonthVal #smonth").val()
+        if (wfirstday <= 7) {
+            switch (parseInt(wfirstday)) {
+                case 7:
+                    break;
+                case 1:
+                    week.prepend('<div class="sat day"></div>')
+                    break;
+                case 2:
+                    week.prepend('<div class="sat day"></div><div class="sun day"></div>')
+                    break;
+                case 3:
+                    week.prepend('<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div>')
+                    break;
+                case 4:
+                    week.prepend('<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div><div class="tue day"></div>')
+                    break;
+                case 5:
+                    week.prepend('<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div><div class="tue day"></div><div class="wen day"></div>')
+                    break;
+                case 6:
+                    week.prepend('<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div><div class="tue day"></div><div class="wen day"></div><div class="tur day"></div>')
+                    break;
+            }
+        }
+        if (wlastday <= 7) {
+            switch (parseInt(wlastday)) {
+                case 7:
+                    week.append('<div class="sun day"></div><div class="mon day"></div><div class="tue day"></div><div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>')
+                    break;
+                case 1:
+                    week.append('<div class="mon day"></div><div class="tue day"></div><div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>')
+                    break;
+                case 2:
+                    week.append('<div class="tue day"></div><div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>')
+                    break;
+                case 3:
+                    week.append('<div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>')
+                    break;
+                case 4:
+                    week.append('<div class="tur day"></div><div class="fri day"></div>')
+                    break;
+                case 5:
+                    week.append('<div class="fri day"></div>')
+                    break;
+                case 6:
+                    break;
+            }
+        }
+
+
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var res = JSON.parse(this.response)
+                notes = res
+                res.forEach(function (e) {
+                    $('[data-id1="' + e.dateid + '"]').attr("data-show", true)
+                    $('[data-id1="' + e.dateid + '"]').find(".noteList ul").append(`<li style="background:#${e.color}">${e.note}</li>`)
+                })
+            }
+        };
+        var data = `ownerid= 0&userid=122504&month=${smonth}&year=1400`
+        xhr.open("POST", "https://api-ticketing.basiscore.com/777D20D5-5D4B-4BDA-B6FC-C97812265620/usernotes", true);
+        xhr.send(data);
     }
 </script>
 <!-- <basis core="cookie" name="viewList" value="listStyle" path="/" />
