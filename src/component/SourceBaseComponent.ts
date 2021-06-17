@@ -1,6 +1,6 @@
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
-import { AppendType } from "../enum";
+import { AppendType, Priority } from "../enum";
 import IToken from "../token/IToken";
 import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
@@ -12,6 +12,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   private _dataSource: ISource;
   private manipulationToken: IToken<string>;
   private appendTypeToken: IToken<string>;
+  readonly priority: Priority = Priority.None;
 
   constructor(element: Element, context: IContext) {
     super(element, context);

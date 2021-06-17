@@ -38,12 +38,14 @@ export default class ComponentCollection {
     //console.log("ComponentCollection.runAsync");
 
     const priorityMap = components.reduce((map, component) => {
-      let list = map.get(component.priority);
-      if (!list) {
-        list = new Array<IComponent>();
-        map.set(component.priority, list);
+      if (component.priority != Priority.None) {
+        let list = map.get(component.priority);
+        if (!list) {
+          list = new Array<IComponent>();
+          map.set(component.priority, list);
+        }
+        list.push(component);
       }
-      list.push(component);
       return map;
     }, new Map<Priority, Array<IComponent>>());
     for (const enumValue in Priority) {

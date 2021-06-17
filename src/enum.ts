@@ -31,5 +31,5 @@ export enum Priority {
   high,
   normal,
   Low,
-  lower,
+  None,
 }
