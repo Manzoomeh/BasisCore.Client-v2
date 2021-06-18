@@ -1,12 +1,12 @@
-﻿import IBasisCore from "../../IBasisCore";
-import IContext from "../../context/IContext";
+﻿import IContext from "../../context/IContext";
 import ClientException from "../../exception/ClientException";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 import { EventHandler } from "../../event/EventHandler";
 import Data from "../../data/Data";
+import IBCUtil from "../../wrapper/IBCUtil";
 
-declare let $bc: IBasisCore;
+declare let $bc: IBCUtil;
 
 export default class LocalStorageConnectionOptions extends ConnectionOptions {
   readonly Url: string;
@@ -37,10 +37,7 @@ export default class LocalStorageConnectionOptions extends ConnectionOptions {
 
   private async LoadLibAsync() {
     if (!this.Function) {
-      this.Function = await this.context.getOrLoadObjectAsync(
-        this.FunctionName,
-        this.Url
-      );
+      this.Function = await $bc.util.getLibAsync(this.FunctionName, this.Url);
     }
   }
   async TestConnectionAsync(context: IContext): Promise<boolean> {

@@ -27,7 +27,6 @@ export default interface IContext {
   ): Promise<void>;
 
   getOrLoadDbLibAsync(): Promise<any>;
-  getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
   setAsSource(
     sourceId: SourceId,

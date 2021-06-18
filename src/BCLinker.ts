@@ -1,6 +1,5 @@
 import BasisCore from "./BasisCore";
 import BCWrapper from "./wrapper/BCWrapper";
-import DataUtil from "./data/DataUtil";
 import ISource from "./data/ISource";
 import Source from "./data/Source";
 import { MergeType, OriginType } from "./enum";

@@ -2,9 +2,9 @@ import "./tsyringe.config";
 import "./extension/StringExtensions";
 import "./extension/ElementExtensions";
 import { HostOptions } from "./options/HostOptions";
-import BCWrapper from "./wrapper/BCWrapper";
 import LocalDataBase from "./repository/LocalDataBase";
 import { MergeType } from "./enum";
+import BCWrapperFactory from "./wrapper/BCWrapperFactory";
 
 console.log(
   `%cWelcome To BasisCore Ecosystem%c
@@ -14,12 +14,15 @@ version:2.0.12`,
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );
 
+const $bc = new BCWrapperFactory();
 (window as any).LocalDataBase = LocalDataBase;
-(global as any).$bc = BCWrapper;
+(global as any).$bc = $bc;
 (window as any).MergeType = MergeType;
 
-window.addEventListener("load", (x) => {
-  if (BCWrapper.all.length == 0 && HostOptions.defaultSettings.autoRender) {
-    BCWrapper.run();
+const loadListener = (_) => {
+  window.removeEventListener("load", loadListener);
+  if ($bc.all.length == 0 && HostOptions.defaultSettings.autoRender) {
+    $bc.run();
   }
-});
+};
+window.addEventListener("load", loadListener);

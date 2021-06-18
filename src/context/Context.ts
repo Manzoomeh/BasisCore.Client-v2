@@ -1,11 +1,9 @@
 import ISource from "../data/ISource";
-import DataUtil from "../data/DataUtil";
 import ILogger from "../logger/ILogger";
 import IContext from "./IContext";
 import EventManager from "../event/EventManager";
 import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
 import IContextRepository from "../repository/IContextRepository";
-// import DataSet from "../data/DataSet";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
 import { EventHandler } from "../event/EventHandler";
@@ -31,7 +29,6 @@ export default abstract class Context implements IContext {
     //console.log("context - ctor");
   }
   abstract getOrLoadDbLibAsync(): Promise<any>;
-  abstract getOrLoadObjectAsync(object: string, url: string): Promise<any>;
 
   public abstract loadDataAsync(
     sourceId: SourceId,

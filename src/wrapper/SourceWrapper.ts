@@ -4,8 +4,9 @@ import Source from "../data/Source";
 import { MergeType } from "../enum";
 import { SourceId } from "../type-alias";
 import Util from "../Util";
+import ISourceWrapper from "./ISourceWrapper";
 
-export class SourceWrapper {
+export class SourceWrapper implements ISourceWrapper {
   public new(sourceId: SourceId, data: any, mergeType?: MergeType): ISource {
     return new Source(sourceId, data, mergeType);
   }
