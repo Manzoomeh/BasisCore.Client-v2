@@ -29,7 +29,7 @@ export class HostOptions implements IContextHostOptions {
         serviceWorker: false,
         dbLibPath: "alasql.min.js",
         settings: {
-          "default.binding.regex": /\[##([^\[#\]]*)##\]/,
+          "default.binding.regex": /\[##([^#]*)##\]/,
           "default.call.verb": "POST",
           "default.dmnid": "",
           "default.source.verb": "POST",
