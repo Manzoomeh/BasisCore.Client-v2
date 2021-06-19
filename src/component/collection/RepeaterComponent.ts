@@ -46,7 +46,7 @@ export default class RepeaterComponent extends SourceBaseComponent {
       localContext.setAsSource(`${name}.current`, row, dataSource.mergeType);
       childContainer.register("context", { useValue: localContext });
       const collection = childContainer.resolve(ComponentCollection);
-      await collection.processNodesAsync(childNodes);
+      await collection.processNodesAsync(childNodes, false);
     }
   }
 }

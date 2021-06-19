@@ -19,10 +19,12 @@ export default class BasisCore implements IBasisCore {
     container.register("root.context", { useValue: context });
     container.register("context", { useToken: "root.context" });
     this.content = container.resolve(ComponentCollection);
-    this.content.processNodesAsync(nodes);
+    this.content.processNodesAsync(nodes, true);
   }
 
   public setSource(sourceId: SourceId, data: any, mergeType: MergeType) {
-    this.context.setAsSource(sourceId, data, mergeType);
+    this.content.initializeTask.then((_) => {
+      this.context.setAsSource(sourceId, data, mergeType);
+    });
   }
 }

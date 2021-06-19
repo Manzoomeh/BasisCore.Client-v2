@@ -79,7 +79,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     const content = this.range.createContextualFragment(result);
     const childNodes = [...content.childNodes];
     this.setContent(content, appendType);
-    await this.collection.processNodesAsync(childNodes);
+    await this.collection.processNodesAsync(childNodes, false);
   }
 
   protected renderDataPartAsync(

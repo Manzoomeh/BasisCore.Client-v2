@@ -12,6 +12,11 @@ export default class ComponentCollection {
   readonly context: IContext;
   readonly regex: RegExp;
   readonly container: DependencyContainer;
+  private _initializeTask: Promise<void>;
+
+  public get initializeTask(): Promise<void> {
+    return this._initializeTask;
+  }
 
   constructor(
     @inject("context") context: IContext,
@@ -23,10 +28,14 @@ export default class ComponentCollection {
     //console.log("ComponentCollection - ctor");
   }
 
-  public async processNodesAsync(nodes: Array<Node>): Promise<void> {
+  public async processNodesAsync(
+    nodes: Array<Node>,
+    ignoreNonePriority: boolean
+  ): Promise<void> {
     const components = this.extractComponent(nodes);
-    await this.initializeAsync(components);
-    await this.runAsync(components);
+    this._initializeTask = this.initializeAsync(components);
+    await this._initializeTask;
+    await this.runAsync(components, ignoreNonePriority);
   }
 
   private async initializeAsync(components: Array<IComponent>): Promise<void> {
@@ -34,11 +43,13 @@ export default class ComponentCollection {
     await Promise.all(tasks);
   }
 
-  private async runAsync(components: Array<IComponent>): Promise<void> {
+  private async runAsync(
+    components: Array<IComponent>,
+    ignoreNonePriority: boolean
+  ): Promise<void> {
     //console.log("ComponentCollection.runAsync");
-
     const priorityMap = components.reduce((map, component) => {
-      if (component.priority != Priority.None) {
+      if (!ignoreNonePriority || component.priority != Priority.None) {
         let list = map.get(component.priority);
         if (!list) {
           list = new Array<IComponent>();

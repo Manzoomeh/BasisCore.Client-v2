@@ -34,7 +34,6 @@ export default class GroupComponent extends CommandComponent {
     if (this.oldLocalContext) {
       this.oldLocalContext.dispose();
     }
-    //let hostOptions = this.context.options;
     const childContainer = this.container.createChildContainer();
     childContainer.register("OwnerContext", { useValue: this.context });
     childContainer.register("container", { useValue: childContainer });
@@ -52,6 +51,6 @@ export default class GroupComponent extends CommandComponent {
     }
     childContainer.register("context", { useValue: this.oldLocalContext });
     this.collection = childContainer.resolve(ComponentCollection);
-    await this.collection.processNodesAsync(this.childNodes);
+    await this.collection.processNodesAsync(this.childNodes, false);
   }
 }

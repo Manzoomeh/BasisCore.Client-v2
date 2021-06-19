@@ -63,6 +63,6 @@ export default class CallComponent extends CommandComponent {
     this.range.deleteContents();
     this.range.insertNode(content);
     const collection = this.container.resolve(ComponentCollection);
-    await collection.processNodesAsync(childNodes);
+    await collection.processNodesAsync(childNodes, false);
   }
 }
