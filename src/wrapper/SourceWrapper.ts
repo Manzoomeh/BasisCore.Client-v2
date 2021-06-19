@@ -13,8 +13,8 @@ export class SourceWrapper implements ISourceWrapper {
 
   public async sortAsync(
     source: ISource,
-    context: IContext,
-    sort: string
+    sort: string,
+    context: IContext
   ): Promise<ISource> {
     const lib = await context.getOrLoadDbLibAsync();
     return new Source(
@@ -24,10 +24,31 @@ export class SourceWrapper implements ISourceWrapper {
     );
   }
 
+  public async filterAsync(
+    source: ISource,
+    filter: string,
+    context: IContext
+  ): Promise<any[]> {
+    var retVal: any[];
+    if (this.isNullOrEmpty(filter)) {
+      retVal = source.rows;
+    } else {
+      var lib = await context.getOrLoadDbLibAsync();
+      retVal = lib(`SELECT * FROM ? [${source.id}] where ${filter}`, [
+        source.rows,
+      ]);
+    }
+    return retVal;
+  }
+
+  public isNullOrEmpty(data: string): boolean {
+    return data === undefined || data == null || data === "";
+  }
+
   public async runSqlAsync(
     source: ISource,
-    context: IContext,
-    sql: string
+    sql: string,
+    context: IContext
   ): Promise<ISource> {
     const lib = await context.getOrLoadDbLibAsync();
     return new Source(

@@ -43,19 +43,4 @@ export default class Util {
   public static IsNullOrEmpty(data: string): boolean {
     return data === undefined || data == null || data === "";
   }
-
-  static async ApplyFilterAsync(
-    source: ISource,
-    filter: string,
-    context: IContext
-  ): Promise<any[]> {
-    var retVal: any[];
-    if (Util.IsNullOrEmpty(filter)) {
-      retVal = source.rows;
-    } else {
-      var lib = await context.getOrLoadDbLibAsync();
-      retVal = lib(`SELECT * FROM ? where ${filter}`, [source.rows]);
-    }
-    return retVal;
-  }
 }

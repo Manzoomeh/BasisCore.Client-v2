@@ -8,6 +8,9 @@ import ITemplate from "./ITemplate";
 import RawFace from "./RawFace";
 import ContentTemplate from "./ContentTemplate";
 import ISource from "../../../data/ISource";
+import IBCUtil from "../../../wrapper/IBCUtil";
+
+declare const $bc: IBCUtil;
 
 export default class RawFaceCollection extends Array<RawFace> {
   static Create(element: Element, context: IContext): RawFaceCollection {
@@ -31,7 +34,7 @@ export default class RawFaceCollection extends Array<RawFace> {
       var filter = await x.Filter?.getValueAsync();
       var relatedRows = Util.IsNullOrEmpty(filter)
         ? source.rows
-        : await Util.ApplyFilterAsync(source, filter, context);
+        : await $bc.util.source.filterAsync(source, filter, context);
       const templateParser: ITemplate = new ContentTemplate(
         x.Template,
         reservedKeys
