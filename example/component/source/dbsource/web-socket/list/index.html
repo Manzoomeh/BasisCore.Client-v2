@@ -126,7 +126,7 @@
 
             const sql = `select * from ? ${wherePart ?? ""} ${orderPart ?? ""}`;
             $bc.setSource('demo.sql', sql);
-            retVal = await $bc.util.source.runSqlAsync(source, context, sql);
+            retVal = await $bc.util.source.runSqlAsync(source, sql, context);
 
             return { source: retVal };
         }
