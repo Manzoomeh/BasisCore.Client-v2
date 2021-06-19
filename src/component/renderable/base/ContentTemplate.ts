@@ -100,7 +100,6 @@ class ExpressionTemplate implements ITemplate {
       try {
         this.getValue1 = new Function(
           ...Object.keys(data),
-          ...Object.keys(data).map((key, index) => `col${index + 1}=${key}`),
           `${
             this.reservedKeys
               ?.map((key) => `const ${key}='@${key}';`)
