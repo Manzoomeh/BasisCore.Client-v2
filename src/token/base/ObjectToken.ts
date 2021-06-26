@@ -15,7 +15,7 @@ export default abstract class ObjectToken<TType> implements IToken<TType> {
       const matchValue = partSlices[0].match(/^\s*\((.*)\)\s*$/);
       return matchValue
         ? new ValueTokenElement<TType>(this.tryParse(matchValue[1]))
-        : new SourceTokenElement<TType>(partSlices);
+        : new SourceTokenElement<TType>(partSlices, part);
     });
   }
 
