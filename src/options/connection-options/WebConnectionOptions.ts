@@ -3,26 +3,13 @@ import Data from "../../data/Data";
 import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
-import { HttpMethod, SourceId } from "../../type-alias";
+import { ConnectionSetting, HttpMethod, SourceId } from "../../type-alias";
 import Util from "../../Util";
-import ConnectionOptions from "./ConnectionOptions";
+import UrlBaseConnectionOptions from "./UrlBaseConnectionOptions";
 
-export default class WebConnectionOptions extends ConnectionOptions {
-  readonly Url: string;
-  readonly Verb: HttpMethod;
-  readonly Heartbeat: string;
-  readonly HeartbeatVerb: HttpMethod;
-
-  constructor(name: string, setting: any) {
-    super(name);
-    if (typeof setting === "string") {
-      this.Url = setting;
-    } else {
-      this.Url = setting.Connection;
-      this.Heartbeat = setting.Heartbeat;
-      this.Verb = setting.Verb;
-      this.HeartbeatVerb = setting.HeartbeatVerb;
-    }
+export default class WebConnectionOptions extends UrlBaseConnectionOptions {
+  constructor(name: string, setting: ConnectionSetting) {
+    super(name, setting);
   }
 
   async TestConnectionAsync(context: IContext): Promise<boolean> {

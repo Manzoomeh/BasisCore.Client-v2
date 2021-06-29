@@ -1,4 +1,5 @@
 import IContext from "../context/IContext";
+import Data from "../data/Data";
 import ISource from "../data/ISource";
 import Source from "../data/Source";
 import { MergeType } from "../enum";
@@ -56,5 +57,9 @@ export class SourceWrapper implements ISourceWrapper {
       lib(Util.ReplaceEx(sql, `\\[${source.id}\\]`, "?"), [source.rows]),
       source.mergeType
     );
+  }
+
+  public data(id: SourceId, data: any, mergeType?: MergeType): Data {
+    return new Data(id, data, mergeType);
   }
 }

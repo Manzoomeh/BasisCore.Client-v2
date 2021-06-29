@@ -1,4 +1,5 @@
 import IContext from "../context/IContext";
+import IToken from "../token/IToken";
 import Component from "./Component";
 
 export abstract class NonRangeableComponent<
@@ -34,7 +35,7 @@ export abstract class NonRangeableComponent<
     attributeName: string,
     defaultValue: string = null
   ): Promise<string> {
-    const token = this.node.GetStringToken(attributeName, this.context);
+    const token = this.getAttributeToken(attributeName);
     return (await token?.getValueAsync()) ?? defaultValue;
   }
 
@@ -44,5 +45,9 @@ export abstract class NonRangeableComponent<
   ): Promise<Boolean> {
     const token = this.node.GetBooleanToken(attributeName, this.context);
     return (await token?.getValueAsync()) ?? defaultValue;
+  }
+
+  protected getAttributeToken(attributeName: string): IToken<string> {
+    return this.node.GetStringToken(attributeName, this.context);
   }
 }

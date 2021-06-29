@@ -14,6 +14,7 @@ import ListComponent from "./component/renderable/ListComponent";
 import PrintComponent from "./component/renderable/PrintComponent";
 import TreeComponent from "./component/renderable/TreeComponent";
 import ViewComponent from "./component/renderable/ViewComponent";
+import APIComponent from "./component/source/APIComponent";
 import CallbackComponent from "./component/source/CallbackComponent";
 import DbSourceComponent from "./component/source/DbSourceComponent";
 import LocalContext from "./context/LocalContext";
@@ -41,3 +42,5 @@ container.register("input", { useToken: HTMLInputComponent });
 container.register("select", { useToken: HTMLSelectComponent });
 container.register("form", { useToken: HTMLFormComponent });
 container.register("unknown-html", { useToken: HTMLIUnknownComponent });
+
+container.register("api", { useToken: APIComponent });

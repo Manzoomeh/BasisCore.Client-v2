@@ -3,6 +3,7 @@ import ConfigNotFoundException from "../../exception/ConfigNotFoundException";
 import { HostSetting } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
 import LocalStorageConnectionOptions from "./LocalStorageConnectionOptions";
+import RESTConnectionOptions from "./RESTConnectionOptions";
 import WebConnectionOptions from "./WebConnectionOptions";
 import WebSocketConnectionOptions from "./WebSocketConnectionOptions";
 
@@ -33,6 +34,10 @@ export default class ConnectionOptionsManager {
           }
           case "local": {
             obj = new LocalStorageConnectionOptions(x.name, x.value, context);
+            break;
+          }
+          case "rest": {
+            obj = new RESTConnectionOptions(x.name, x.value);
             break;
           }
         }

@@ -1,8 +1,8 @@
-﻿import SourceComponent from "./SourceComponent";
-import SourceUtil from "./SourceUtil";
+﻿import SourceUtil from "./SourceUtil";
 import InMemoryMember from "./base/InMemoryMember";
+import MemberBaseSourceComponent from "./MemberBaseSourceComponent";
 
-export default class InlineSourceComponent extends SourceComponent<InMemoryMember> {
+export default class InlineSourceComponent extends MemberBaseSourceComponent<InMemoryMember> {
   public convertToMemberObject(element: Element): InMemoryMember {
     return SourceUtil.ConvertToMember(element, this.context);
   }
