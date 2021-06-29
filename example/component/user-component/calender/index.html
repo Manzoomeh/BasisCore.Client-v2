@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+</head>
+
+<body>
+    <Basis core="usercomponent" manager="UserManager" run="atclient"></Basis>
+    <script>
+
+        class UserManager {
+            static get style() {
+                return `<style data-calender-style>
+    /*calendar*/
+.bcCalendarBox{
+    border: 1px solid #ccc;
+    width: 360px;position: absolute;
+}
+.day {
+line-height: 20px;
+border: 1px solid #efefef;
+    border-bottom-color: rgb(239, 239, 239);
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-left-color: rgb(239, 239, 239);
+    border-left-style: solid;
+    border-left-width: 1px;
+text-align: center;
+border-left: none;
+border-bottom: 0;
+cursor: pointer;
+font-family: 'IRANSansWeb';
+background: #fff;
+position: relative;
+padding: 5px;
+width: 40px; height: 40px;
+
+}
+.mstring_date{position: absolute;bottom: 5px; right: 5px; color: #ccc; font-size: 10px;}
+.day:hover{background: #f2fbfd;} 
+.today{background: #f2fbfd;}
+.calendar_body{display: grid;
+grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+direction: rtl;}
+.days_title{display: grid;
+grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+direction: rtl; }
+.days_title div{padding: 5px; font-weight: bold; background: #f9f9f9; display: flex; justify-content: center; align-items: center;}
+.days_title div:hover{background: none;}
+.month_title{border: 1px solid #dddddd;
+background: #e9e9e9;
+color: #333333;align-items: center;
+font-weight: bold ; text-align: center;justify-content: space-between;display: flex; height: 30px;}
+.bcCalendar_today{height: 30px;
+display: flex;
+justify-content: center;
+align-items: center; cursor: pointer;}
+
+.next_btn{padding: 5px; cursor: pointer;}
+#calendar1{direction: rtl; text-align: right; padding: 5px 10px ;}
+/**/
+</style>`
+            }
+
+            constructor(component) {
+                this.component = component;
+            }
+
+            async initializeAsync() {
+                const style = document.querySelector('[data-calender-style]');
+                if (!style) {
+                    document.head.append(this.component.toNode(UserManager.style))
+                }
+
+                const node = this.component.toNode(`<div style="display: flex; justify-content: center; margin-top: 50px;">
+<input class="bcdatepicker" id="calendar1" type="text" />`)
+                this.component.setContent(node);
+
+
+
+                this.bcdatepicker({
+                    "selector": "calendar1",
+                    "goToday": true,
+                    "goTodayText": "برو به امروز",
+                    "next": `<i class="lni lni-chevron-left"></i>`,
+                    "prev": `<i class="lni lni-chevron-right"></i>`
+                });
+            }
+
+            bcdatepicker(inp) {
+                this.xhrBcCalendar = new XMLHttpRequest();
+                var bcM = 0
+                var smonths = {
+                    1: "فروردین",
+                    2: "اردیبهشت",
+                    3: "خرداد",
+                    4: "تیر",
+                    5: "مرداد",
+                    6: "شهریور",
+                    7: "مهر",
+                    8: "آبان",
+                    9: "آذر",
+                    10: "دی",
+                    11: "بهمن",
+                    12: "اسفند",
+
+                }
+                var selector = inp["selector"]
+                var calendarInput = document.getElementById(selector)
+                var elLeft = calendarInput.offsetLeft
+                calendarInput.addEventListener('click', this.openCalendar.bind(this))
+                var newNode = document.createElement('div');
+                var nextBtn = inp["next"]
+                var prevBtn = inp["prev"]
+                var today = inp["goToday"] ? inp["goToday"] : null
+                var todayText = inp["goTodayText"] ? inp["goTodayText"] : null
+                let calendarWidth = calendarInput.clientWidth
+                newNode.classList.add("bcCalendarBox")
+                newNode.style.display = "none"
+                newNode.style.right = (window.innerWidth - (elLeft + calendarInput.clientWidth)) + "px"
+                calendarInput.parentNode.insertBefore(newNode, calendarInput.nextSibling);
+                const component = this;
+                this.xhrBcCalendar.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        calendarInput.nextSibling.innerHTML += ""
+                        var res = JSON.parse(this.response)
+                        let lastday = parseInt(res["db.calendar"][(res["db.calendar"].length) - 1][9])
+                        let firstday = parseInt(res["db.calendar"][1][9])
+                        let syear = parseInt(res["db.calendar"][1][4])
+                        let smonth = parseInt(res["db.calendar"][1][3])
+                        calendarInput.nextSibling.innerHTML = `<div class="month_title"><a class="next_btn" onclick="bcNextCalendar(this)"  title="Next">${nextBtn}</a><div><span>${syear}</span><span id="bcCalendarMonth" data-m="${bcM}">${smonths[smonth]}</span></div><a class="next_btn" onclick="bcPrevCalendar(this)"  title="Next">${prevBtn}</a></div>`
+                        calendarInput.nextSibling.innerHTML += `<div class="days_title"><div class="sat day">ش</div><div class="sun day">ی</div><div class="mon day">د</div><div class="tue day">س</div><div class="wen day">چ</div><div class="tur day">پ</div><div class="tur day">ج</div></div>`
+                        calendarInput.nextSibling.innerHTML += `<div class="calendar_body"></div>`
+                        if (today) {
+                            calendarInput.nextSibling.innerHTML += `<div class="bcCalendar_today" ><div>${todayText}</div></div>`
+                        }
+                        var calendarInputBody = calendarInput.nextSibling.querySelector(".calendar_body")
+                        for (var i = 1; i < res["db.calendar"].length; i++) {
+                            if (res["db.calendar"][i][11] == 1) {
+                                calendarInputBody.innerHTML += `<div class="day today"  data-sstring="${res["db.calendar"][i][1]}" data-id="${res["db.calendar"][i][20]}">${res["db.calendar"][i][2]}<span class="mstring_date">${res["db.calendar"][i][6]}</span></<div>`
+                            }
+                            else {
+                                calendarInputBody.innerHTML += `<div class="day"  data-id="${res["db.calendar"][i][0]}" data-sstring="${res["db.calendar"][i][1]}">${res["db.calendar"][i][2]}<span class="mstring_date">${res["db.calendar"][i][6]}</span></<div>`
+                            }
+                        }
+
+                        if (firstday <= 7) {
+                            switch (parseInt(firstday)) {
+                                case 7:
+                                    break;
+                                case 1:
+                                    calendarInputBody.innerHTML = '<div class="sat day"></div>' + calendarInputBody.innerHTML
+                                    break;
+                                case 2:
+                                    calendarInputBody.innerHTML = '<div class="sat day"></div><div class="sun day"></div>' + calendarInputBody.innerHTML
+                                    break;
+                                case 3:
+                                    calendarInputBody.innerHTML = '<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div>' + calendarInputBody.innerHTML
+                                    break;
+                                case 4:
+                                    calendarInputBody.innerHTML = '<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div><div class="tue day"></div>' + calendarInputBody.innerHTML
+                                    break;
+                                case 5:
+                                    calendarInputBody.innerHTML = '<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div><div class="tue day"></div><div class="wen day"></div>' + calendarInputBody.innerHTML
+                                    break;
+                                case 6:
+                                    calendarInputBody.innerHTML = '<div class="sat day"></div><div class="sun day"></div><div class="mon day"></div><div class="tue day"></div><div class="wen day"></div><div class="tur day"></div>' + calendarInputBody.innerHTML
+                                    break;
+                            }
+                        }
+                        if (lastday <= 7) {
+                            switch (parseInt(lastday)) {
+                                case 7:
+                                    calendarInputBody.innerHTML += '<div class="sun day"></div><div class="mon day"></div><div class="tue day"></div><div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>'
+                                    break;
+                                case 1:
+                                    calendarInputBody.innerHTML += '<div class="mon day"></div><div class="tue day"></div><div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>'
+                                    break;
+                                case 2:
+                                    calendarInputBody.innerHTML += '<div class="tue day"></div><div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>'
+                                    break;
+                                case 3:
+                                    calendarInputBody.innerHTML += '<div class="wen day"></div><div class="tur day"></div><div class="fri day"></div>'
+                                    break;
+                                case 4:
+                                    calendarInputBody.innerHTML += '<div class="tur day"></div><div class="fri day"></div>'
+                                    break;
+                                case 5:
+                                    calendarInputBody.innerHTML += '<div class="fri day"></div>'
+                                    break;
+                                case 6:
+                                    break;
+                            }
+                        }
+                        //Edited
+                        Array.from(calendarInputBody.querySelectorAll(".day")).forEach(element => {
+                            element.addEventListener('click', component.selectDay.bind(component))
+                        });
+                        calendarInput.nextSibling.querySelector('.bcCalendar_today').addEventListener('click', component.goToday.bind(component));
+
+                    }
+                };
+                let originalData = {}
+                this.sendData(originalData)
+                document.body.addEventListener('click', fn, true);
+                function fn(ee) {
+                    if (!ee.target.closest(".bcCalendarBox")) {
+                        var els = document.getElementsByClassName("bcCalendarBox")
+                        for (var i = 0; i < els.length; i++) {
+                            els[i].style.display = "none"
+                        }
+                    }
+                }
+            }
+            sendData(data) {
+                console.log('ddd')
+                var m = ""
+                let bcM = 0;
+                let actoin = data["action"] ? data["action"] : null
+                if (actoin == "next") {
+                    m = document.getElementById("bcCalendarMonth").getAttribute("data-m")
+                    bcM = parseInt(m) + 1
+                    document.getElementById("bcCalendarMonth").setAttribute("data-m", bcM)
+                    var data = `command=<basis core='dbsource' name='db'  source='trustloginuiapi' cache='refresh' pagecount='${bcM}'><member name='calendar' type='list' request='calendar'></member></basis>&dmnid=12`
+                }
+                else if (actoin == "prev") {
+                    m = document.getElementById("bcCalendarMonth").getAttribute("data-m")
+                    bcM = parseInt(m) - 1
+                    document.getElementById("bcCalendarMonth").setAttribute("data-m", bcM)
+                    var data = `command=<basis core='dbsource' name='db'  source='trustloginuiapi' cache='refresh' pagecount='${bcM}'><member name='calendar' type='list' request='calendar'></member></basis>&dmnid=12`
+                }
+                else if (actoin == "today") {
+                    bcM = 0
+                    document.getElementById("bcCalendarMonth").setAttribute("data-m", 0)
+                    var data = `command=<basis core='dbsource' name='db'  source='trustloginuiapi' cache='refresh' pagecount=''><member name='calendar' type='list' request='calendar'></member></basis>&dmnid=12`
+                }
+                else {
+                    var data = `command=<basis core='dbsource' name='db'  source='trustloginuiapi' cache='refresh' pagecount='${m}'><member name='calendar' type='list' request='calendar'></member></basis>&dmnid=12`
+                }
+
+                this.xhrBcCalendar.open("POST", `https://dbsource.basiscore.net/data.json`, true);
+                this.xhrBcCalendar.send(data);
+            }
+            bcNextCalendar(e) {
+                let data = {
+                    "action": "next"
+                }
+                this.sendData(data)
+            }
+            bcPrevCalendar(e) {
+                let data = {
+                    "action": "prev"
+                }
+                this.sendData(data)
+            }
+            goToday(e) {
+                let data = {
+                    "action": "today"
+                }
+                this.sendData(data)
+            }
+            selectDay(e) {
+                let el = e.target.closest(".bcCalendarBox").previousElementSibling
+                let dateid = e.target.getAttribute("data-id")
+                let sstring = e.target.getAttribute("data-sstring")
+                el.setAttribute("data-id", dateid)
+                el.setAttribute("value", sstring)
+                e.target.closest(".bcCalendarBox").style.display = "none"
+            }
+            openCalendar(e) {
+                e.target.nextElementSibling.style.display = "block"
+            }
+
+        }
+    </script>
+</body>
+
+</html>
