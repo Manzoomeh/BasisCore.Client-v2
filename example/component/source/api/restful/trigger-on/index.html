@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>API Command - REST - Simple</title>
+</head>
+
+<body>
+
+    <button name="events.fetch" bc-triggers="click" bc-value="null">Fetch API</button>
+
+    <Basis core="api" url="data/book.json" method="get" run="atclient" bc-trigger-on="events.fetch">
+    </Basis>
+
+    <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>
+    <basis core="callback" run="AtClient" datamembername="book.type" method="onSource"></basis>
+
+    <script>
+        function onSource(source) {
+            console.table(source.rows);
+        }
+    </script>
+</body>
+
+</html>

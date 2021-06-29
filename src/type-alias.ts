@@ -1,4 +1,5 @@
 import ISource from "./data/ISource";
+import { MergeType } from "./enum";
 import { EventHandler } from "./event/EventHandler";
 import IDictionary from "./IDictionary";
 import IConnectionSetting from "./options/IConnectionSetting";
@@ -9,3 +10,24 @@ export declare type HostSetting = IDictionary<
   string | any | IConnectionSetting
 >;
 export declare type HttpMethod = "POST" | "GET";
+
+export declare type ConnectionOptions = {
+  Url: string;
+  Verb: HttpMethod;
+  Heartbeat: string;
+  HeartbeatVerb: HttpMethod;
+};
+
+export declare type ConnectionSetting = string | ConnectionOptions;
+
+export declare type ServerResponseSetting = {
+  keepalive: boolean;
+};
+export declare type ServerResponse = {
+  setting: ServerResponseSetting;
+  sources: IDictionary<ServerData<any>>;
+};
+export declare type ServerData<T> = {
+  data: Array<T>;
+  mergeType: MergeType;
+};

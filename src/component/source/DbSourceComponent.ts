@@ -1,10 +1,10 @@
 ﻿import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import DbSourceMember from "./base/DbSourceMember";
-import SourceComponent from "./SourceComponent";
+import MemberBaseSourceComponent from "./MemberBaseSourceComponent";
 
 @injectable()
-export default class DbSourceComponent extends SourceComponent<DbSourceMember> {
+export default class DbSourceComponent extends MemberBaseSourceComponent<DbSourceMember> {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext

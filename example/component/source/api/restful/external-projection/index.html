@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>API Command - REST - Simple</title>
+</head>
+
+<body>
+
+    <Basis core="api" url="https://reqres.in/api/users" method="get" run="atclient" post-process="fn">
+    </Basis>
+
+    <basis core="callback" run="AtClient" datamembername="api.users" method="onSource"></basis>
+
+
+    <script>
+        function onSource(source) {
+            console.table(source.rows);
+        }
+
+        async function fn(response, context) {
+
+            /*
+            response is Response interface.
+            for more information about Response interface, visit  https://developer.mozilla.org/en-US/docs/Web/API/Response
+            
+            return type must be of type Data[] or Promise<Data[]> interface.
+            Create Data with $bc.util.source.data(id,row[],mergeType) helper 
+            */
+            const json = await response.json();
+            return [$bc.util.source.data('api.users', json.data)]
+
+        }
+    </script>
+</body>
+
+</html>

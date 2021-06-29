@@ -3,6 +3,7 @@ import Data from "../../data/Data";
 import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
+import { ServerResponse } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
 
 export default class WebSocketConnectionOptions extends ConnectionOptions {
@@ -74,7 +75,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
         };
         socket.onmessage = (e) => {
           try {
-            var json: IServerResponse = JSON.parse(e.data);
+            var json: ServerResponse = JSON.parse(e.data);
             if (
               json.setting &&
               json.setting.keepalive !== undefined &&
@@ -94,7 +95,14 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
                     data: json.sources[key],
                   };
                 })
-                .map((x) => new Data(x.key, x.data.data, x.data.mergeType));
+                .map(
+                  (x) =>
+                    new Data(
+                      x.key,
+                      x.data.data,
+                      x.data.mergeType ?? MergeType.replace
+                    )
+                );
               if (dataList.length > 0) {
                 onDataReceived(dataList);
               }
@@ -123,18 +131,3 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
     throw new Error("WebSocket call not implemented.");
   }
 }
-interface IServerResponseSetting {
-  keepalive: boolean;
-}
-interface IServerResponse {
-  setting: IServerResponseSetting;
-  sources: IDictionary<IServerData<any>>;
-}
-interface IServerData<T> {
-  data: Array<T>;
-  mergeType: MergeType;
-}
-
-// class SocketSession{
-//   public readonly task:Promise<void>
-// }
