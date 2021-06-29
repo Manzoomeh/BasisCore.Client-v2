@@ -43,6 +43,7 @@ export class UserDefineComponent
   public toNode(rawHtml: string): Node {
     return document.createRange().createContextualFragment(rawHtml);
   }
+
   public setContent(
     newContent: Node,
     appendType: AppendType = AppendType.replace
@@ -64,6 +65,14 @@ export class UserDefineComponent
         break;
       }
     }
+  }
+
+  public getDefault<T>(key: string, defaultValue?: T): T {
+    return this.context.options.getDefault<T>(key, defaultValue);
+  }
+
+  public getSetting<T>(key: string, defaultValue: T): T {
+    return this.context.options.getSetting<T>(key, defaultValue);
   }
 }
 interface IUserDefineComponent {

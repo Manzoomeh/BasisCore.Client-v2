@@ -17,9 +17,9 @@
     <script>
 
         class UserManager {
-            constructor(component) {
+            constructor(owner) {
                 console.log('constructor');
-                this.component = component;
+                this.owner = owner;
             }
 
             async initializeAsync() {
@@ -29,8 +29,8 @@
             async runAsync() {
                 console.log('runAsync');
                 const date = new Date()
-                const node = this.component.toNode(`<div>${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()} <div>`);
-                this.component.setContent(node)
+                const node = this.owner.toNode(`<div>${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()} <div>`);
+                this.owner.setContent(node)
             }
         }
     </script>

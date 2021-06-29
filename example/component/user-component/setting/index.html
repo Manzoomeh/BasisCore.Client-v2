@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+</head>
+
+<body>
+    <button bc-value="0" bc-triggers="click" name="event.click">Click to refresh</button>
+    <br />
+    <Basis core="usercomponent" manager="UserManager" run="atclient" bc-trigger-on="event.click"></Basis>
+    <script>
+        const host = {
+            settings: {
+                "time-component": {
+                    millisecond: false,
+                    headerMessage: "My timer",
+                }
+            }
+        }
+        class UserManager {
+            constructor(owner) {
+                this.owner = owner;
+                this.defaultSetting = {
+                    millisecond: true,
+                    headerMessage: "default header message",
+                    footerMessage: "default footer message",
+                }
+            }
+
+            async runAsync() {
+                const date = new Date()
+                const userSetting = this.owner.getSetting("time-component");
+                const setting = $bc.util.defaultsDeep(userSetting, this.defaultSetting);
+                console.log('user setting is %o and final setting is %o', userSetting, setting);
+                const node = this.owner.toNode(`<div>${setting.headerMessage}<br/> ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}${setting.millisecond ? `:${date.getMilliseconds()}` : ""}<br/> ${setting.footerMessage} <div>`);
+                this.owner.setContent(node)
+            }
+        }
+    </script>
+</body>
+
+</html>

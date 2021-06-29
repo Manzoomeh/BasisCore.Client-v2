@@ -67,19 +67,19 @@ align-items: center; cursor: pointer;}
 </style>`
             }
 
-            constructor(component) {
-                this.component = component;
+            constructor(owner) {
+                this.owner = owner;
             }
 
             async initializeAsync() {
                 const style = document.querySelector('[data-calender-style]');
                 if (!style) {
-                    document.head.append(this.component.toNode(UserManager.style))
+                    document.head.append(this.owner.toNode(UserManager.style))
                 }
 
-                const node = this.component.toNode(`<div style="display: flex; justify-content: center; margin-top: 50px;">
+                const node = this.owner.toNode(`<div style="display: flex; justify-content: center; margin-top: 50px;">
 <input class="bcdatepicker" id="calendar1" type="text" />`)
-                this.component.setContent(node);
+                this.owner.setContent(node);
 
 
 
