@@ -29,7 +29,7 @@ export default class GroupComponent extends CommandComponent {
     range.insertNode(content);
   }
 
-  public async runAsync(): Promise<void> {
+  public async runAsync(): Promise<boolean> {
     //console.log("group - runAsync");
     if (this.oldLocalContext) {
       this.oldLocalContext.dispose();
@@ -38,7 +38,7 @@ export default class GroupComponent extends CommandComponent {
     childContainer.register("OwnerContext", { useValue: this.context });
     childContainer.register("container", { useValue: childContainer });
 
-    const options = await this.getAttributeValueAsync("bc-options");
+    const options = await this.getAttributeValueAsync("options");
     if (options) {
       const newOptions = defaultsDeep(
         eval(options),
@@ -52,5 +52,6 @@ export default class GroupComponent extends CommandComponent {
     childContainer.register("context", { useValue: this.oldLocalContext });
     this.collection = childContainer.resolve(ComponentCollection);
     await this.collection.processNodesAsync(this.childNodes, false);
+    return true;
   }
 }

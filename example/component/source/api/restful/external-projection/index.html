@@ -11,7 +11,7 @@
 
 <body>
 
-    <Basis core="api" url="https://reqres.in/api/users" method="get" run="atclient" post-process="fn">
+    <Basis core="api" url="https://reqres.in/api/users" method="get" run="atclient" OnProcessed="fn">
     </Basis>
 
     <basis core="callback" run="AtClient" datamembername="api.users" method="onSource"></basis>

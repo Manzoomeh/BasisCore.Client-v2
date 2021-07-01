@@ -10,8 +10,8 @@ import SourceComponent from "./SourceComponent";
 export default class APIComponent extends SourceComponent {
   readonly urlToken: IToken<string>;
   readonly methodToken: IToken<string>;
-  readonly preProcessCallbackToken: IToken<string>;
-  readonly postProcessCallbackToken: IToken<string>;
+  readonly onProcessingToken: IToken<string>;
+  readonly onProcessedToken: IToken<string>;
   readonly bodyToken: IToken<string>;
   readonly nameToken: IToken<string>;
   constructor(
@@ -21,13 +21,13 @@ export default class APIComponent extends SourceComponent {
     super(element, context);
     this.urlToken = this.getAttributeToken("url");
     this.methodToken = this.getAttributeToken("method");
-    this.preProcessCallbackToken = this.getAttributeToken("pre-process");
-    this.postProcessCallbackToken = this.getAttributeToken("post-process");
+    this.onProcessingToken = this.getAttributeToken("OnProcessing");
+    this.onProcessedToken = this.getAttributeToken("OnProcessed");
     this.bodyToken = this.getAttributeToken("body");
     this.nameToken = this.getAttributeToken("name");
   }
 
-  protected async runAsync(): Promise<void> {
+  protected async runAsync(): Promise<boolean> {
     const method = (
       await this.methodToken?.getValueAsync()
     )?.toUpperCase() as HttpMethod;
@@ -44,8 +44,7 @@ export default class APIComponent extends SourceComponent {
     };
     const request = new Request(url, init);
 
-    const preProcessCallback =
-      await this.preProcessCallbackToken?.getValueAsync();
+    const preProcessCallback = await this.onProcessingToken?.getValueAsync();
 
     if (preProcessCallback) {
       const preProcessCallbackFn = new Function(
@@ -58,8 +57,7 @@ export default class APIComponent extends SourceComponent {
     } else {
       response = await fetch(url, init);
     }
-    const postProcessCallback =
-      await this.postProcessCallbackToken?.getValueAsync();
+    const postProcessCallback = await this.onProcessedToken?.getValueAsync();
     let dataList: Data[];
     if (postProcessCallback) {
       const postProcessCallbackFn = new Function(
@@ -90,5 +88,6 @@ export default class APIComponent extends SourceComponent {
       const source = new Source(data.id, data.rows, data.mergeType);
       this.context.setSource(source);
     });
+    return true;
   }
 }

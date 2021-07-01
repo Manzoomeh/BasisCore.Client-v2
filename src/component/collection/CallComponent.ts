@@ -24,7 +24,7 @@ export default class CallComponent extends CommandComponent {
     this.range.deleteContents();
   }
 
-  protected async runAsync(): Promise<void> {
+  protected async runAsync(): Promise<boolean> {
     const filename = await this.getAttributeValueAsync("file");
     const pageSize = await this.getAttributeValueAsync("pagesize");
     const method = (
@@ -64,5 +64,6 @@ export default class CallComponent extends CommandComponent {
     this.range.insertNode(content);
     const collection = this.container.resolve(ComponentCollection);
     await collection.processNodesAsync(childNodes, false);
+    return true;
   }
 }

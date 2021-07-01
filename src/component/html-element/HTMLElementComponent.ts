@@ -21,8 +21,8 @@ export default abstract class HTMLElementComponent<
     }
   }
 
-  renderAsync(): Promise<void> {
-    return Promise.resolve();
+  renderAsync(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   protected async onEventTriggerAsync(event: Event) {

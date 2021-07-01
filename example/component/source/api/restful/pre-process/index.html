@@ -11,7 +11,7 @@
 
 <body>
 
-    <Basis core="api" url="data/book.json" method="get" run="atclient" pre-process="fn">
+    <Basis core="api" url="data/book.json" method="get" run="atclient" OnProcessing="fn">
     </Basis>
 
     <basis core="callback" run="AtClient" datamembername="book.type" method="onSource"></basis>

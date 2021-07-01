@@ -17,9 +17,10 @@ export class AttributeComponent extends NonRangeableComponent<Element> {
     this.setContent(value ?? "");
   }
 
-  public async renderAsync(): Promise<void> {
+  public async renderAsync(): Promise<boolean> {
     const content = await this.token.getValueAsync();
     this.setContent(content);
+    return true;
   }
 
   private setContent(content: string): void {

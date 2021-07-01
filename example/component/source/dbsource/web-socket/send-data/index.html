@@ -16,7 +16,7 @@
         <input type="submit" />
     </form>
     <basis core='dbsource' source='simple' counter="[##test.counter.value|(10)##]" name='stream' run="atclient"
-        bc-trigger-on="test.counter">
+        triggers="test.counter">
         <member name='time' />
     </basis>
 

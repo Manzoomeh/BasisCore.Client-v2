@@ -10,22 +10,10 @@ export abstract class NonRangeableComponent<
   }
 
   public async initializeAsync(): Promise<void> {
-    const rendering = await this.getAttributeValueAsync("bc-rendering");
-    if (rendering) {
+    const onRendered = await this.getAttributeValueAsync("OnRendered");
+    if (onRendered) {
       try {
-        this.onRendering = new Function(
-          "node",
-          `return ${rendering}(node);`
-        ) as any;
-      } catch {
-        /*nothing*/
-      }
-    }
-
-    const rendered = await this.getAttributeValueAsync("bc-rendered");
-    if (rendered) {
-      try {
-        this.onRendered = new Function("node", `${rendered}(node);`) as any;
+        this.onRendered = new Function("param", `${onRendered}(param);`) as any;
       } catch {
         /*nothing*/
       }

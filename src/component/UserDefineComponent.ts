@@ -36,8 +36,10 @@ export class UserDefineComponent
       await this.manager.initializeAsync();
     }
   }
-  protected runAsync(): Promise<void> {
-    return this.manager.runAsync ? this.manager.runAsync() : Promise.resolve();
+  protected runAsync(): Promise<boolean> {
+    return this.manager.runAsync
+      ? this.manager.runAsync()
+      : Promise.resolve(true);
   }
 
   public toNode(rawHtml: string): Node {
@@ -82,5 +84,5 @@ interface IUserDefineComponent {
 
 interface IComponentManager {
   initializeAsync(): Promise<void>;
-  runAsync(): Promise<void>;
+  runAsync(): Promise<boolean>;
 }

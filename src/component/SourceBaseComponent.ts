@@ -9,7 +9,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   private sourceId: SourceId;
   readonly range: Range;
   readonly content: DocumentFragment;
-  private _dataSource: ISource;
+  //private _dataSource: ISource;
   private manipulationToken: IToken<string>;
   private appendTypeToken: IToken<string>;
   readonly priority: Priority = Priority.None;
@@ -20,22 +20,23 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     this.range.selectNode(element);
     this.content = this.range.extractContents();
     this.manipulationToken = this.node.GetStringToken(
-      "bc-pre-process",
+      "OnProcessing",
       this.context
     );
     this.appendTypeToken = this.node.GetStringToken(
-      "bc-append-type",
+      "append-type",
       this.context
     );
   }
 
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
-    this.sourceId = await this.getAttributeValueAsync("datamembername");
-    this.context.addOnSourceSetHandler(
-      this.sourceId,
-      this.onDataSourceAdded.bind(this)
-    );
+    this.sourceId = await this.getAttributeValueAsync("dataMemberName");
+    this.addTrigger([this.sourceId]);
+    // this.context.addOnSourceSetHandler(
+    //   this.sourceId,
+    //   this.onDataSourceAdded.bind(this)
+    // );
     //console.log(`${this.core} - initializeAsync`);
   }
 
@@ -44,38 +45,52 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     appendType: AppendType
   ): Promise<void>;
 
-  public async runAsync(): Promise<void> {
-    let oldSource = this._dataSource;
-    this._dataSource = null;
-    if (!oldSource) {
-      oldSource = await this.context.waitToGetSourceAsync(this.sourceId);
+  public async processAsync(): Promise<void> {
+    const oldSource = this.context.tryToGetSource(this.sourceId);
+    if (oldSource) {
+      await super.processAsync();
     }
-    //console.log(`${this.core} - runAsync`);
-    const appendTypeStr = await this.appendTypeToken?.getValueAsync();
-    let oldAppendType = appendTypeStr
-      ? AppendType[appendTypeStr]
-      : AppendType.replace;
-    const manipulation = await this.manipulationToken?.getValueAsync();
-    if (manipulation) {
-      const manipulationFn = new Function(
-        "source",
-        "context",
-        "appendType",
-        `return ${manipulation}(source,context,appendType);`
-      );
-      const result = manipulationFn(oldSource, this.context, oldAppendType);
-      let { source = oldSource, appendType = oldAppendType } =
-        result instanceof Promise ? await result : result;
-      oldSource = source;
-      oldAppendType = appendType;
-    }
-    await this.renderSourceAsync(oldSource, oldAppendType);
   }
 
-  private onDataSourceAdded(dataSource: ISource): void {
-    this._dataSource = dataSource;
-    this.processAsync();
+  public async runAsync(): Promise<boolean> {
+    let rendered = false;
+    // let oldSource = this._dataSource;
+    // this._dataSource = null;
+    // if (!oldSource) {
+    //   oldSource = await this.context.waitToGetSourceAsync(this.sourceId);
+    // }
+    //console.log(`${this.core} - runAsync`);
+    let oldSource = this.context.tryToGetSource(this.sourceId);
+    console.log(oldSource, this.sourceId);
+    if (oldSource) {
+      const appendTypeStr = await this.appendTypeToken?.getValueAsync();
+      let oldAppendType = appendTypeStr
+        ? AppendType[appendTypeStr]
+        : AppendType.replace;
+      const manipulation = await this.manipulationToken?.getValueAsync();
+      if (manipulation) {
+        const manipulationFn = new Function(
+          "source",
+          "context",
+          "appendType",
+          `return ${manipulation}(source,context,appendType);`
+        );
+        const result = manipulationFn(oldSource, this.context, oldAppendType);
+        let { source = oldSource, appendType = oldAppendType } =
+          result instanceof Promise ? await result : result;
+        oldSource = source;
+        oldAppendType = appendType;
+      }
+      await this.renderSourceAsync(oldSource, oldAppendType);
+      rendered = true;
+    }
+    return rendered;
   }
+
+  // private onDataSourceAdded(dataSource: ISource): void {
+  //   this._dataSource = dataSource;
+  //   this.processAsync();
+  // }
 
   protected setContent(newContent: Node, appendType: AppendType) {
     switch (appendType) {

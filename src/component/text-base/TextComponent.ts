@@ -18,9 +18,10 @@ export default class TextComponent extends RangeableComponent<Node> {
     this.setContent(value ?? "");
   }
 
-  public async renderAsync(): Promise<void> {
+  public async renderAsync(): Promise<boolean> {
     const content = await this.token.getValueAsync();
     this.setContent(content);
+    return true;
   }
 
   protected async setContent(content: string) {

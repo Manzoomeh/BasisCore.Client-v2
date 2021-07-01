@@ -14,12 +14,12 @@
     use [## => [##cms.cms.time##]
     <br />
     user => [##app.user.name|(no user)##]
-    <basis core="group" run="atclient" bc-options="groupOptions">
+    <basis core="group" run="atclient" options="groupOptions">
         <h1>Group#1 start</h1>
         use { => {cms.cms.time}
         <br />
         user => {app.user.name|(no user)}
-        <basis core="group" run="atclient" bc-options='groupOptions1'>
+        <basis core="group" run="atclient" options='groupOptions1'>
             <h1>Group#1.1 start</h1>
             use {# => {#cms.cms.time#}
             <br />
