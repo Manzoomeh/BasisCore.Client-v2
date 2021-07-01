@@ -1,6 +1,6 @@
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
-import { AppendType, Priority } from "../enum";
+import { Priority } from "../enum";
 import IToken from "../token/IToken";
 import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
@@ -11,7 +11,6 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   readonly content: DocumentFragment;
   //private _dataSource: ISource;
   private manipulationToken: IToken<string>;
-  private appendTypeToken: IToken<string>;
   readonly priority: Priority = Priority.None;
 
   constructor(element: Element, context: IContext) {
@@ -21,10 +20,6 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     this.content = this.range.extractContents();
     this.manipulationToken = this.node.GetStringToken(
       "OnProcessing",
-      this.context
-    );
-    this.appendTypeToken = this.node.GetStringToken(
-      "append-type",
       this.context
     );
   }
@@ -40,10 +35,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     //console.log(`${this.core} - initializeAsync`);
   }
 
-  protected abstract renderSourceAsync(
-    dataSource: ISource,
-    appendType: AppendType
-  ): Promise<void>;
+  protected abstract renderSourceAsync(dataSource: ISource): Promise<void>;
 
   public async processAsync(): Promise<void> {
     const oldSource = this.context.tryToGetSource(this.sourceId);
@@ -63,25 +55,17 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     let oldSource = this.context.tryToGetSource(this.sourceId);
     console.log(oldSource, this.sourceId);
     if (oldSource) {
-      const appendTypeStr = await this.appendTypeToken?.getValueAsync();
-      let oldAppendType = appendTypeStr
-        ? AppendType[appendTypeStr]
-        : AppendType.replace;
       const manipulation = await this.manipulationToken?.getValueAsync();
       if (manipulation) {
         const manipulationFn = new Function(
           "source",
           "context",
-          "appendType",
-          `return ${manipulation}(source,context,appendType);`
+          `return ${manipulation}(source,context);`
         );
-        const result = manipulationFn(oldSource, this.context, oldAppendType);
-        let { source = oldSource, appendType = oldAppendType } =
-          result instanceof Promise ? await result : result;
-        oldSource = source;
-        oldAppendType = appendType;
+        const result = manipulationFn(oldSource, this.context);
+        oldSource = result instanceof Promise ? await result : result;
       }
-      await this.renderSourceAsync(oldSource, oldAppendType);
+      await this.renderSourceAsync(oldSource);
       rendered = true;
     }
     return rendered;
@@ -92,23 +76,8 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   //   this.processAsync();
   // }
 
-  protected setContent(newContent: Node, appendType: AppendType) {
-    switch (appendType) {
-      case AppendType.after: {
-        const currentContent = this.range.extractContents();
-        currentContent.appendChild(newContent);
-        this.range.insertNode(currentContent);
-        break;
-      }
-      case AppendType.before: {
-        this.range.insertNode(newContent);
-        break;
-      }
-      default: {
-        this.range.deleteContents();
-        this.range.insertNode(newContent);
-        break;
-      }
-    }
+  protected setContent(newContent: Node) {
+    this.range.deleteContents();
+    this.range.insertNode(newContent);
   }
 }

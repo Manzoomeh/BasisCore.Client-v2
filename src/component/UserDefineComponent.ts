@@ -1,6 +1,5 @@
 import { inject, DependencyContainer, injectable } from "tsyringe";
 import IContext from "../context/IContext";
-import { AppendType } from "../enum";
 import CommandComponent from "./CommandComponent";
 
 @injectable()
@@ -46,27 +45,9 @@ export class UserDefineComponent
     return document.createRange().createContextualFragment(rawHtml);
   }
 
-  public setContent(
-    newContent: Node,
-    appendType: AppendType = AppendType.replace
-  ) {
-    switch (appendType) {
-      case AppendType.after: {
-        const currentContent = this.range.extractContents();
-        currentContent.appendChild(newContent);
-        this.range.insertNode(currentContent);
-        break;
-      }
-      case AppendType.before: {
-        this.range.insertNode(newContent);
-        break;
-      }
-      default: {
-        this.range.deleteContents();
-        this.range.insertNode(newContent);
-        break;
-      }
-    }
+  public setContent(newContent: Node) {
+    this.range.deleteContents();
+    this.range.insertNode(newContent);
   }
 
   public getDefault<T>(key: string, defaultValue?: T): T {
@@ -79,7 +60,7 @@ export class UserDefineComponent
 }
 interface IUserDefineComponent {
   toNode(rawHtml: string): Node;
-  setContent(newContent: Node, appendType?: AppendType): void;
+  setContent(newContent: Node): void;
 }
 
 interface IComponentManager {
