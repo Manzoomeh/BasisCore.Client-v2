@@ -14,8 +14,6 @@ export default abstract class Component<TNode extends Node>
     return this._busy;
   }
 
-  protected onRendered: (param: any) => void;
-
   constructor(node: TNode, context: IContext) {
     this.node = node;
     this.context = context;
@@ -30,9 +28,9 @@ export default abstract class Component<TNode extends Node>
       console.log("start", this.node);
       try {
         const rendered = await this.renderAsync();
-        if (rendered && this.onRendered) {
-          this.onRendered(this.node);
-        }
+        // if (rendered && this.onRendered) {
+        //   this.onRendered(this.node);
+        // }
       } finally {
         this._busy = false;
         console.log("end", this.node);

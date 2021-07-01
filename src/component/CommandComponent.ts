@@ -4,6 +4,7 @@ import { NonRangeableComponent } from "./NonRangeableComponent";
 export default abstract class CommandComponent extends NonRangeableComponent<Element> {
   public readonly core: string;
   private onRendering: (param: any) => boolean;
+  private onRendered: (param: any) => void;
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.core = this.node.getAttribute("core");
@@ -11,7 +12,6 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
   }
 
   public async initializeAsync(): Promise<void> {
-    await super.initializeAsync();
     const onRendering = await this.getAttributeValueAsync("OnRendering");
     if (onRendering) {
       try {
@@ -19,6 +19,14 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
           "param",
           `return ${onRendering}(param);`
         ) as any;
+      } catch {
+        /*nothing*/
+      }
+    }
+    const onRendered = await this.getAttributeValueAsync("OnRendered");
+    if (onRendered) {
+      try {
+        this.onRendered = new Function("param", `${onRendered}(param);`) as any;
       } catch {
         /*nothing*/
       }
@@ -43,6 +51,9 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
     if (canRender) {
       if (!this.onRendering || this.onRendering(this.node)) {
         rendered = await this.runAsync();
+        if (rendered && this.onRendered) {
+          this.onRendered(this.node);
+        }
       }
     }
     return rendered;
