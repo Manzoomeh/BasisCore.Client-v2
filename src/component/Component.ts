@@ -27,10 +27,7 @@ export default abstract class Component<TNode extends Node>
       this._busy = true;
       console.log("start", this.node);
       try {
-        const rendered = await this.renderAsync();
-        // if (rendered && this.onRendered) {
-        //   this.onRendered(this.node);
-        // }
+        await this.renderAsync();
       } finally {
         this._busy = false;
         console.log("end", this.node);
@@ -45,5 +42,5 @@ export default abstract class Component<TNode extends Node>
   }
 
   abstract initializeAsync(): Promise<void>;
-  abstract renderAsync(): Promise<boolean>;
+  abstract renderAsync(): Promise<void>;
 }

@@ -20,9 +20,10 @@
             },
         };
 
-        function rendering() {
-            console.log('rendering');
-            return true;
+        async function rendering(args) {
+            console.log('rendering', args);
+
+            //args.prevent = await Promise.resolve(true);
         }
         function rendered() {
             console.log('rendered');

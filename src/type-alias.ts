@@ -1,8 +1,13 @@
+import IContext from "./context/IContext";
 import ISource from "./data/ISource";
 import { MergeType } from "./enum";
 import { EventHandler } from "./event/EventHandler";
 import IDictionary from "./IDictionary";
 import IConnectionSetting from "./options/IConnectionSetting";
+
+export const AsyncFunction = eval(
+  "Object.getPrototypeOf(async function () {}).constructor"
+);
 
 export declare type SourceId = string;
 export declare type SourceHandler = EventHandler<ISource>;
@@ -30,4 +35,13 @@ export declare type ServerResponse = {
 export declare type ServerData<T> = {
   data: Array<T>;
   mergeType: MergeType;
+};
+
+export declare type CallbackArgument = {
+  context: IContext;
+  node: Node;
+};
+
+export declare type RenderingCallbackArgument = CallbackArgument & {
+  prevent: boolean;
 };

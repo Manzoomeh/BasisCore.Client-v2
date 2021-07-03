@@ -1,35 +1,50 @@
 import IContext from "../context/IContext";
+import { CallbackArgument, RenderingCallbackArgument } from "../type-alias";
 import { NonRangeableComponent } from "./NonRangeableComponent";
 
 export default abstract class CommandComponent extends NonRangeableComponent<Element> {
   public readonly core: string;
-  private onRendering: (param: any) => boolean;
-  private onRendered: (param: any) => void;
+  private onRenderingAsync: (args: Partial<RenderingCallbackArgument>) => void;
+  private onRenderedAsync: (args: Partial<CallbackArgument>) => void;
+  private onProcessingAsync: (args: Partial<CallbackArgument>) => void;
+  private onProcessedAsync: (args: Partial<CallbackArgument>) => void;
+
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.core = this.node.getAttribute("core");
-    //console.log(`${this.core} - ctor`);
   }
 
   public async initializeAsync(): Promise<void> {
     const onRendering = await this.getAttributeValueAsync("OnRendering");
     if (onRendering) {
-      try {
-        this.onRendering = new Function(
-          "param",
-          `return ${onRendering}(param);`
-        ) as any;
-      } catch {
-        /*nothing*/
-      }
+      this.onRenderingAsync = new Function(
+        "callbackArgument",
+        `return ${onRendering}(callbackArgument);`
+      ) as any;
     }
+
     const onRendered = await this.getAttributeValueAsync("OnRendered");
     if (onRendered) {
-      try {
-        this.onRendered = new Function("param", `${onRendered}(param);`) as any;
-      } catch {
-        /*nothing*/
-      }
+      this.onRenderedAsync = new Function(
+        "callbackArgument",
+        `return ${onRendered}(callbackArgument);`
+      ) as any;
+    }
+
+    const onProcessing = await this.getAttributeValueAsync("OnProcessing");
+    if (onProcessing) {
+      this.onProcessingAsync = new Function(
+        "callbackArgument",
+        `return ${onProcessing}(callbackArgument);`
+      ) as any;
+    }
+
+    const onProcessed = await this.getAttributeValueAsync("OnProcessed");
+    if (onProcessed) {
+      this.onProcessedAsync = new Function(
+        "callbackArgument",
+        `return ${onProcessed}(callbackArgument);`
+      ) as any;
     }
     const value = await this.getAttributeValueAsync("triggers");
     const keys = value?.split(" ");
@@ -44,19 +59,28 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
     return value ?? true;
   }
 
-  public async renderAsync(): Promise<boolean> {
-    let rendered = false;
-    const canRender = await this.getCanRenderAsync(this.context);
-    //console.log(`${this.core} - if`, canRender);
+  public async renderAsync(): Promise<void> {
+    let canRender = await this.getCanRenderAsync(this.context);
+    if (canRender && this.onRenderingAsync) {
+      let renderingArgs =
+        this.createCallbackArgument<RenderingCallbackArgument>();
+      renderingArgs.prevent = false;
+      await this.onRenderingAsync(renderingArgs);
+      canRender = !renderingArgs.prevent;
+    }
     if (canRender) {
-      if (!this.onRendering || this.onRendering(this.node)) {
-        rendered = await this.runAsync();
-        if (rendered && this.onRendered) {
-          this.onRendered(this.node);
-        }
+      const rendered = await this.runAsync();
+      if (rendered && this.onRenderedAsync) {
+        await this.onRenderedAsync(this.createCallbackArgument());
       }
     }
-    return rendered;
   }
   protected abstract runAsync(): Promise<boolean>;
+
+  protected createCallbackArgument<T extends CallbackArgument>(): Partial<T> {
+    return {
+      context: this.context,
+      node: this.node,
+    } as unknown as Partial<T>;
+  }
 }
