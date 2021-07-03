@@ -1,4 +1,4 @@
-import IContext from "./context/IContext";
+import { CallbackArgument } from "./CallbackArgument";
 import ISource from "./data/ISource";
 import { MergeType } from "./enum";
 import { EventHandler } from "./event/EventHandler";
@@ -35,13 +35,4 @@ export declare type ServerResponse = {
 export declare type ServerData<T> = {
   data: Array<T>;
   mergeType: MergeType;
-};
-
-export declare type CallbackArgument = {
-  context: IContext;
-  node: Node;
-};
-
-export declare type RenderingCallbackArgument = CallbackArgument & {
-  prevent: boolean;
 };

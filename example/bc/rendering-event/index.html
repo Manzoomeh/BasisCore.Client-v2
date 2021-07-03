@@ -23,10 +23,10 @@
         async function rendering(args) {
             console.log('rendering', args);
 
-            //args.prevent = await Promise.resolve(true);
+            args.prevent = await Promise.resolve(false);
         }
-        function rendered() {
-            console.log('rendered');
+        function rendered(args) {
+            console.log('rendered', args);
         }
 
     </script>

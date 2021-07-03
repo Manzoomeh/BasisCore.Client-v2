@@ -22,8 +22,8 @@
             console.table(source.rows);
         }
 
-        async function fn(response, context) {
-
+        async function fn(args) {
+            const response = args.response;
             /*
             response is Response interface.
             for more information about Response interface, visit  https://developer.mozilla.org/en-US/docs/Web/API/Response
@@ -32,7 +32,7 @@
             Create Data with $bc.util.source.data(id,row[],mergeType) helper 
             */
             const json = await response.json();
-            return [$bc.util.source.data('api.users', json.data)]
+            args.results = [$bc.util.source.data('api.users', json.data)]
 
         }
     </script>

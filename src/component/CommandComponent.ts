@@ -1,13 +1,17 @@
 import IContext from "../context/IContext";
-import { CallbackArgument, RenderingCallbackArgument } from "../type-alias";
+import {
+  CallbackArgument,
+  RenderedCallbackArgument,
+  RenderingCallbackArgument,
+} from "../CallbackArgument";
 import { NonRangeableComponent } from "./NonRangeableComponent";
 
 export default abstract class CommandComponent extends NonRangeableComponent<Element> {
   public readonly core: string;
-  private onRenderingAsync: (args: Partial<RenderingCallbackArgument>) => void;
-  private onRenderedAsync: (args: Partial<CallbackArgument>) => void;
-  private onProcessingAsync: (args: Partial<CallbackArgument>) => void;
-  private onProcessedAsync: (args: Partial<CallbackArgument>) => void;
+  private onRenderingAsync: (args: RenderingCallbackArgument) => Promise<void>;
+  private onRenderedAsync: (args: RenderedCallbackArgument) => Promise<void>;
+  protected onProcessingAsync: (args: CallbackArgument) => Promise<void>;
+  protected onProcessedAsync: (args: CallbackArgument) => Promise<void>;
 
   constructor(element: Element, context: IContext) {
     super(element, context);
@@ -62,25 +66,35 @@ export default abstract class CommandComponent extends NonRangeableComponent<Ele
   public async renderAsync(): Promise<void> {
     let canRender = await this.getCanRenderAsync(this.context);
     if (canRender && this.onRenderingAsync) {
-      let renderingArgs =
-        this.createCallbackArgument<RenderingCallbackArgument>();
-      renderingArgs.prevent = false;
+      const renderingArgs =
+        this.createCallbackArgument<RenderingCallbackArgument>({
+          prevent: false,
+        });
       await this.onRenderingAsync(renderingArgs);
       canRender = !renderingArgs.prevent;
     }
+    let rendered = false;
     if (canRender) {
-      const rendered = await this.runAsync();
-      if (rendered && this.onRenderedAsync) {
-        await this.onRenderedAsync(this.createCallbackArgument());
-      }
+      rendered = await this.runAsync();
+    }
+    if (this.onRenderedAsync) {
+      await this.onRenderedAsync(
+        this.createCallbackArgument<RenderedCallbackArgument>({
+          rendered: rendered,
+        })
+      );
     }
   }
+
   protected abstract runAsync(): Promise<boolean>;
 
-  protected createCallbackArgument<T extends CallbackArgument>(): Partial<T> {
+  protected createCallbackArgument<T extends CallbackArgument>(
+    data?: Partial<T>
+  ): T {
     return {
       context: this.context,
       node: this.node,
-    } as unknown as Partial<T>;
+      ...data,
+    } as unknown as T;
   }
 }
