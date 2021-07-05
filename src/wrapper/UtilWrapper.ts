@@ -46,4 +46,8 @@ export default class UtilWrapper implements IUtilWrapper {
   public defaultsDeep<T>(data: Partial<T>, defaults: Partial<T>): T {
     return defaultsDeep(this.cloneDeep(data), defaults);
   }
+
+  public toNode(rawHtml: string): Node {
+    return document.createRange().createContextualFragment(rawHtml);
+  }
 }

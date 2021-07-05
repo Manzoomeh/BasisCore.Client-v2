@@ -3,6 +3,7 @@ import Util from "../Util";
 import ArrayToken from "./base/ArrayToken";
 import ObjectToken from "./base/ObjectToken";
 import ValueToken from "./base/ValueToken";
+import CodeBlockToken from "./CodeBlockToken";
 import BooleanArray from "./boolean/BooleanArray";
 import BooleanObject from "./boolean/BooleanObject";
 import BooleanValue from "./boolean/BooleanValue";
@@ -49,38 +50,84 @@ export default class TokenUtil {
     );
   }
 
+  // public static ToToken<T>(
+  //   content: string,
+  //   context: IContext,
+  //   newValueToken: { (data: string): ValueToken<T> },
+  //   newObjectToken: { (data: string): ObjectToken<T> },
+  //   newArrayToken: { (...data: IToken<string>[]): ArrayToken<T> }
+  // ): IToken<T> {
+  //   //https://javascript.info/regexp-methods
+  //   var regex = context.options.getDefault<RegExp>("binding.regex");
+  //   var retVal: IToken<T>;
+  //   if (Util.HasValue(content)) {
+  //     var match = content.match(regex);
+  //     if (!match) {
+  //       retVal = newValueToken(content);
+  //     } else {
+  //       var list = new Array<any>();
+  //       do {
+  //         if (match.index != 0) {
+  //           list.push(newValueToken(match.input.substring(0, match.index)));
+  //         }
+  //         list.push(newObjectToken(match[1]));
+  //         content = content.substring(match.index + match[0].length);
+  //         match = content.match(regex);
+  //       } while (match);
+  //       if (content.length > 0) {
+  //         list.push(newValueToken(content));
+  //       }
+  //       if (list.length == 1) {
+  //         retVal = list[0];
+  //       } else {
+  //         retVal = newArrayToken(...list);
+  //       }
+  //     }
+  //   }
+  //   return retVal;
+  // }
   public static ToToken<T>(
-    data: string,
+    content: string,
     context: IContext,
     newValueToken: { (data: string): ValueToken<T> },
     newObjectToken: { (data: string): ObjectToken<T> },
     newArrayToken: { (...data: IToken<string>[]): ArrayToken<T> }
   ): IToken<T> {
     //https://javascript.info/regexp-methods
-    var tmp = context.options.getDefault<RegExp>("binding.regex");
+
     var retVal: IToken<T>;
-    if (Util.HasValue(data)) {
-      var match = data.match(tmp);
-      if (!match) {
-        retVal = newValueToken(data);
-      } else {
-        var list = new Array<any>();
-        do {
+    if (content) {
+      const regex = context.options.getDefault<RegExp>("binding.regex");
+      const blockRegex = context.options.getDefault<RegExp>(
+        "binding.block-regex"
+      );
+      var list = new Array<any>();
+      do {
+        let match = content.match(regex);
+        if (!match) {
+          match = content.match(blockRegex);
+          if (!match) {
+            list.push(newValueToken(content));
+            break;
+          } else {
+            if (match.index != 0) {
+              list.push(newValueToken(content.substring(0, match.index)));
+            }
+            list.push(new CodeBlockToken(match[1], context));
+            content = content.substring(match.index + match[0].length);
+          }
+        } else {
           if (match.index != 0) {
-            list.push(newValueToken(match.input.substring(0, match.index)));
+            list.push(newValueToken(content.substring(0, match.index)));
           }
           list.push(newObjectToken(match[1]));
-          data = data.substring(match.index + match[0].length);
-          match = data.match(tmp);
-        } while (match);
-        if (data.length > 0) {
-          list.push(newValueToken(data));
+          content = content.substring(match.index + match[0].length);
         }
-        if (list.length == 1) {
-          retVal = list[0];
-        } else {
-          retVal = newArrayToken(...list);
-        }
+      } while (content.length > 0);
+      if (list.length == 1) {
+        retVal = list[0];
+      } else {
+        retVal = newArrayToken(...list);
       }
     }
     return retVal;

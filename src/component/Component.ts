@@ -36,7 +36,7 @@ export default abstract class Component<TNode extends Node>
   }
 
   protected addTrigger(sourceIds: Array<SourceId>) {
-    sourceIds.forEach((sourceId) =>
+    sourceIds?.forEach((sourceId) =>
       this.context.addOnSourceSetHandler(sourceId, this.onTrigger.bind(this))
     );
   }
