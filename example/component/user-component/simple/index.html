@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+</head>
+
+<body>
+    <button bc-value="0" bc-triggers="click" name="event.click">Click to refresh</button>
+    <Basis core="usercomponent" manager="UserManager" run="atclient" triggers="event.click">
+
+    </Basis>
+    <script>
+
+        class UserManager {
+            constructor(owner) {
+                console.log('constructor');
+                this.owner = owner;
+            }
+
+            async initializeAsync() {
+                console.log('initializeAsync');
+            }
+
+            async runAsync() {
+                console.log('runAsync');
+                const date = new Date()
+                const node = this.owner.toNode(`<div>${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()} <div>`);
+                this.owner.setContent(node)
+            }
+        }
+    </script>
+</body>
+
+</html>

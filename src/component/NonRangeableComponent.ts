@@ -9,28 +9,6 @@ export abstract class NonRangeableComponent<
     super(element, context);
   }
 
-  public async initializeAsync(): Promise<void> {
-    const rendering = await this.getAttributeValueAsync("bc-rendering");
-    if (rendering) {
-      try {
-        this.onRendering = new Function(
-          "node",
-          `return ${rendering}(node);`
-        ) as any;
-      } catch {
-        /*nothing*/
-      }
-    }
-
-    const rendered = await this.getAttributeValueAsync("bc-rendered");
-    if (rendered) {
-      try {
-        this.onRendered = new Function("node", `${rendered}(node);`) as any;
-      } catch {
-        /*nothing*/
-      }
-    }
-  }
   protected async getAttributeValueAsync(
     attributeName: string,
     defaultValue: string = null

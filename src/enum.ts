@@ -9,12 +9,6 @@ export enum FaceRowType {
   Even,
 }
 
-export enum AppendType {
-  before,
-  after,
-  replace,
-}
-
 export enum MergeType {
   replace,
   append,

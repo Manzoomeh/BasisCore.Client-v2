@@ -13,7 +13,7 @@
 
     <button name="events.fetch" bc-triggers="click" bc-value="null">Fetch API</button>
 
-    <Basis core="api" url="data/book.json" method="get" run="atclient" bc-trigger-on="events.fetch">
+    <Basis core="api" url="data/book.json" method="get" run="atclient" triggers="events.fetch">
     </Basis>
 
     <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>

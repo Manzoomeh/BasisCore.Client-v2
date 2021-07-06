@@ -11,7 +11,6 @@ export default abstract class HTMLElementComponent<
   }
 
   public async initializeAsync(): Promise<void> {
-    await super.initializeAsync();
     const value = await this.getAttributeValueAsync("bc-triggers");
     if (value) {
       const triggers = value.split(" ");

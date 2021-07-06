@@ -59,8 +59,8 @@
     <fieldset>
         <legend>All</legend>
         [##demo.sql.value|( )##]
-        <Basis core="print" datamembername="user.list" run="atclient" bc-pre-process="manipulation"
-            bc-trigger-on="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
+        <Basis core="print" datamembername="user.list" run="atclient" OnProcessing="manipulation"
+            triggers="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
             <layout>
                 <script type="text/template">
                 <table>

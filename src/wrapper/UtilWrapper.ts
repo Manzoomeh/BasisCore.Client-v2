@@ -2,11 +2,12 @@ import cloneDeep from "lodash.clonedeep";
 import ISourceWrapper from "./ISourceWrapper";
 import IUtilWrapper from "./IUtilWrapper";
 import { SourceWrapper } from "./SourceWrapper";
+import defaultsDeep from "lodash.defaultsdeep";
 
 export default class UtilWrapper implements IUtilWrapper {
   readonly source: ISourceWrapper = new SourceWrapper();
 
-  public cloneDeep(obj): any {
+  public cloneDeep<T>(obj: T): T {
     return cloneDeep(obj);
   }
 
@@ -40,5 +41,13 @@ export default class UtilWrapper implements IUtilWrapper {
       return Promise.resolve(eval(objectName));
     }
     return retVal;
+  }
+
+  public defaultsDeep<T>(data: Partial<T>, defaults: Partial<T>): T {
+    return defaultsDeep(this.cloneDeep(data), defaults);
+  }
+
+  public toNode(rawHtml: string): Node {
+    return document.createRange().createContextualFragment(rawHtml);
   }
 }

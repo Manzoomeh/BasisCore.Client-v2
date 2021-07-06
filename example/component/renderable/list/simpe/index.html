@@ -10,56 +10,45 @@
 </head>
 
 <body>
-    <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
+    <basis core="list" datamembername="local.data" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
         <layout>
-            <ul data-hi>
-                @child
-            </ul>
+            <div>
+                <div>
+                    @child
+                </div>
+            </div>
         </layout>
-        <face level="end" replace="true">
-            <li data-end-like><a href="/@name@">[(bold) @id - @name ]</a></li>
+        <face>
+            <span>@id@</span>
         </face>
-        <face level="2">
-            <li data-end-like>
-                <a href="/@name@">@id - @name Level2</a>
-                <ul>
-                    @child
-                </ul>
-            </li>
-        </face>
-        <face replace="true">
-            <li data-else class="dropdown_233">
-                [(lInk) @name@|/@name@]
-                <ul>
-                    @child
-                </ul>
-            </li>
-        </face>
-        <replace tagname="linK">
-            <a href="@val2"> Click For @val1 [##local.print.id##]</a>
-        </replace>
-
-        <replace tagname="bold">
-            <b class="u-fade js-anim @val2"> @val1 </b>
-        </replace>
-        <replace tagname="bold">
-            <b class="u-fade js-anim @val2"> @val1 </b>
-        </replace>
+        <divider rowcount="4">
+            <script type="text/template">
+            </div><div></script>
+        </divider>
+        <incomplete>
+            <span>x</span>
+        </incomplete>
+        <else-layout>empty</else-layout>
     </basis>
 
     <script>
-
-        $bc.setSource("local.tree", [
-            { id: 1, name: "ali", pid: null },
-            { id: 2, name: "amir", pid: 1 },
-            { id: 3, name: "hassan", pid: 1 },
-            { id: 4, name: "javad", pid: 2 },
-            { id: 5, name: "reza", pid: 4 },
+        const host = {
+            dbLibPath: '/alasql.min.js'
+        }
+        $bc.setSource("local.data", [
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+            { id: 6 },
+            { id: 7 },
+            { id: 8 },
+            { id: 9 },
         ]);
 
-        setTimeout(() => {
-            $bc.setSource("local.print", { id: 1356.3, name: "ali", pid: null });
-        }, 3000);
+
+
 
     </script>
 </body>

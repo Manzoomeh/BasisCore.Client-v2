@@ -1,5 +1,5 @@
 ﻿import { FaceRowType } from "../../../enum";
-import ITemplate from "./ITemplate";
+import ITemplate from "./template/ITemplate";
 
 export default class Face {
   Name: string;

@@ -50,9 +50,8 @@ export default class TreeComponent extends RenderableComponent {
         dividerTemplate,
         incompleteTemplate
       );
-      rootRecords.forEach((row) => {
-        rootRenderParam.data = row;
-        retVal += this.renderLevel(
+      for (const row of rootRecords) {
+        retVal += await this.renderLevelAsync(
           dataSource,
           rootRenderParam,
           1,
@@ -62,14 +61,15 @@ export default class TreeComponent extends RenderableComponent {
           dividerTemplate,
           incompleteTemplate,
           principalKey,
-          foreignKey
+          foreignKey,
+          row
         );
-      });
+      }
     }
     return retVal;
   }
 
-  private renderLevel(
+  private async renderLevelAsync(
     dataSource: ISource,
     parentRenderParam: RenderParam,
     level: number,
@@ -79,20 +79,19 @@ export default class TreeComponent extends RenderableComponent {
     dividerTemplate: string,
     incompleteTemplate: string,
     principalKey: string,
-    foreignKey: string
-  ): string {
-    var retVal = "";
+    foreignKey: string,
+    data: any[]
+  ): Promise<string> {
     var childRenderResult = "";
-    var childRows = DataUtil.ApplySimpleFilter(
+    const childRows = DataUtil.ApplySimpleFilter(
       dataSource.rows,
       foreignKey,
-      parentRenderParam.data[principalKey]
+      data[principalKey]
     );
 
-    var groups: { [key: string]: any } = {};
     if (childRows.length != 0) {
       var newLevel = level + 1;
-      var childRenderParam = new RenderParam(
+      const childRenderParam = new RenderParam(
         replaces,
         childRows.length,
         dividerRowCount,
@@ -100,9 +99,8 @@ export default class TreeComponent extends RenderableComponent {
         incompleteTemplate
       );
 
-      childRows.forEach((row) => {
-        childRenderParam.data = row;
-        childRenderResult += this.renderLevel(
+      for (const row of childRows) {
+        childRenderResult += await this.renderLevelAsync(
           dataSource,
           childRenderParam,
           newLevel,
@@ -112,27 +110,15 @@ export default class TreeComponent extends RenderableComponent {
           dividerTemplate,
           incompleteTemplate,
           principalKey,
-          foreignKey
+          foreignKey,
+          row
         );
-      });
-      groups[""] = childRenderResult;
-
+      }
       parentRenderParam.setLevel([`${level}`]);
     } else {
-      groups[""] = "";
       parentRenderParam.setLevel([`${level}`, "end"]);
     }
-    retVal = faces.render(parentRenderParam);
-    if (retVal) {
-      Object.getOwnPropertyNames(groups).forEach(
-        (key) =>
-          (retVal = retVal.replace(
-            `@child${key ? `(${key})` : ""}`,
-            groups[key]
-          ))
-      );
-    }
-
-    return retVal;
+    const retVal = await faces.renderAsync(parentRenderParam, data);
+    return retVal?.replace(`@child`, childRenderResult);
   }
 }

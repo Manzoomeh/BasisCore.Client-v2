@@ -1,4 +1,8 @@
 import { inject, injectable } from "tsyringe";
+import {
+  APIProcessedCallbackArgument,
+  APIProcessingCallbackArgument,
+} from "../../CallbackArgument";
 import IContext from "../../context/IContext";
 import Data from "../../data/Data";
 import Source from "../../data/Source";
@@ -10,8 +14,6 @@ import SourceComponent from "./SourceComponent";
 export default class APIComponent extends SourceComponent {
   readonly urlToken: IToken<string>;
   readonly methodToken: IToken<string>;
-  readonly preProcessCallbackToken: IToken<string>;
-  readonly postProcessCallbackToken: IToken<string>;
   readonly bodyToken: IToken<string>;
   readonly nameToken: IToken<string>;
   constructor(
@@ -21,18 +23,15 @@ export default class APIComponent extends SourceComponent {
     super(element, context);
     this.urlToken = this.getAttributeToken("url");
     this.methodToken = this.getAttributeToken("method");
-    this.preProcessCallbackToken = this.getAttributeToken("pre-process");
-    this.postProcessCallbackToken = this.getAttributeToken("post-process");
     this.bodyToken = this.getAttributeToken("body");
     this.nameToken = this.getAttributeToken("name");
   }
 
-  protected async runAsync(): Promise<void> {
+  protected async runAsync(): Promise<boolean> {
     const method = (
       await this.methodToken?.getValueAsync()
     )?.toUpperCase() as HttpMethod;
     const url = await this.urlToken?.getValueAsync();
-
     let response: Response;
     const body = await this.bodyToken?.getValueAsync();
     const init: RequestInit = {
@@ -43,32 +42,26 @@ export default class APIComponent extends SourceComponent {
       body: body,
     };
     const request = new Request(url, init);
-
-    const preProcessCallback =
-      await this.preProcessCallbackToken?.getValueAsync();
-
-    if (preProcessCallback) {
-      const preProcessCallbackFn = new Function(
-        "request",
-        "context",
-        `return ${preProcessCallback}(request,context);`
-      );
-      const result = preProcessCallbackFn(request, this.context);
-      response = result instanceof Promise ? await result : result;
-    } else {
-      response = await fetch(url, init);
+    if (this.onProcessingAsync) {
+      const args = this.createCallbackArgument<APIProcessingCallbackArgument>({
+        request: request,
+      });
+      await this.onProcessingAsync(args);
+      if (args.response) {
+        response = await args.response;
+      }
     }
-    const postProcessCallback =
-      await this.postProcessCallbackToken?.getValueAsync();
+    if (!response) {
+      response = await fetch(request);
+    }
     let dataList: Data[];
-    if (postProcessCallback) {
-      const postProcessCallbackFn = new Function(
-        "response",
-        "context",
-        `return ${postProcessCallback}(response,context);`
-      );
-      const result = postProcessCallbackFn(response, this.context);
-      dataList = result instanceof Promise ? await result : result;
+    if (this.onProcessedAsync) {
+      const args = this.createCallbackArgument<APIProcessedCallbackArgument>({
+        request: request,
+        response: response,
+      });
+      await this.onProcessedAsync(args);
+      dataList = args.results;
     } else {
       const json: ServerResponse = await response.json();
       if (typeof json?.sources === "object") {
@@ -90,5 +83,6 @@ export default class APIComponent extends SourceComponent {
       const source = new Source(data.id, data.rows, data.mergeType);
       this.context.setSource(source);
     });
+    return true;
   }
 }

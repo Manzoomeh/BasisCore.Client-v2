@@ -14,8 +14,7 @@
     <fieldset>
         <legend>repeater.AppendType = before</legend>
         <ul>
-            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="before"
-                bc-trigger-on="event.render">
+            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render">
                 <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
             </basis>
         </ul>
@@ -23,8 +22,7 @@
     <fieldset>
         <legend>repeater.AppendType = after</legend>
         <ul>
-            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="after"
-                bc-trigger-on="event.render">
+            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render">
                 <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
             </basis>
         </ul>
@@ -32,8 +30,7 @@
     <fieldset>
         <legend>repeater.AppendType = Replace</legend>
         <ul>
-            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" bc-append-type="replace"
-                bc-trigger-on="event.render">
+            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render">
                 <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
             </basis>
         </ul>

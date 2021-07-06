@@ -28,18 +28,18 @@ export default class ViewComponent extends RenderableComponent {
   ): Promise<string> {
     var retVal = "";
     if (dataSource.rows.length != 0) {
-      var token = this.node.GetStringToken("groupcol", this.context);
-      var groupColumn = await (
+      const token = this.getAttributeToken("groupcol");
+      const groupColumn = (
         await TokenUtil.GetValueOrSystemDefaultAsync(
           token,
           this.context,
           "ViewCommand.GroupColumn"
         )
       ).toLowerCase();
-      var groupList = dataSource.rows
+      const groupList = dataSource.rows
         .map((x) => x[groupColumn])
         .filter((x, i, arr) => arr.indexOf(x) === i);
-      var rootRenderParam = new RenderParam(
+      const rootRenderParam = new RenderParam(
         replaces,
         groupList.length,
         dividerRowcount,
@@ -48,16 +48,19 @@ export default class ViewComponent extends RenderableComponent {
       );
       rootRenderParam.setLevel(["1"]);
 
-      groupList.forEach((group, _i, _) => {
-        var childItems = DataUtil.ApplySimpleFilter(
+      for (const group of groupList) {
+        const childItems = DataUtil.ApplySimpleFilter(
           dataSource.rows,
           groupColumn,
           group
         );
-        rootRenderParam.data = childItems[0];
-        var level1Result: string = faces.render(rootRenderParam);
-        var level2Result = "";
-        var childRenderParam = new RenderParam(
+
+        const level1Result = await faces.renderAsync(
+          rootRenderParam,
+          childItems[0]
+        );
+        let level2Result = "";
+        const childRenderParam = new RenderParam(
           replaces,
           childItems.length,
           dividerRowcount,
@@ -65,15 +68,14 @@ export default class ViewComponent extends RenderableComponent {
           incompleteTemplate
         );
         childRenderParam.setLevel(["2"]);
-        childItems.forEach((row, _i, _) => {
-          childRenderParam.data = row;
-          var renderResult = faces.render(childRenderParam);
+        for (const row of childItems) {
+          const renderResult = await faces.renderAsync(childRenderParam, row);
           if (renderResult) {
             level2Result += renderResult;
           }
-        });
+        }
         retVal += level1Result.replace("@child", level2Result);
-      });
+      }
     }
     return retVal;
   }

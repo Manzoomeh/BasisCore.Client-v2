@@ -11,6 +11,7 @@ export default class ComponentCollection {
   static readonly knowHtmlElement = ["form", "input", "select"];
   readonly context: IContext;
   readonly regex: RegExp;
+  readonly blockRegex: RegExp;
   readonly container: DependencyContainer;
   private _initializeTask: Promise<void>;
 
@@ -25,6 +26,9 @@ export default class ComponentCollection {
     this.container = container;
     this.context = context;
     this.regex = this.context.options.getDefault<RegExp>("binding.regex");
+    this.blockRegex = this.context.options.getDefault<RegExp>(
+      "binding.codeblock-regex"
+    );
     //console.log("ComponentCollection - ctor");
   }
 
@@ -101,27 +105,35 @@ export default class ComponentCollection {
   private extractTextComponent(node: Text, components: Array<IComponent>) {
     if (node.textContent.trim().length != 0) {
       do {
-        const match = node.textContent.match(this.regex);
+        let match = node.textContent.match(this.regex);
         if (!match) {
+          match = node.textContent.match(this.blockRegex);
+        }
+        if (match) {
+          var com = new TextComponent(
+            node,
+            this.context,
+            match.index,
+            match.index + match[0].length
+          );
+          components.push(com);
+        } else {
           break;
         }
-        var com = new TextComponent(
-          node,
-          this.context,
-          match.index,
-          match.index + match[0].length
-        );
-        components.push(com);
       } while (true);
     }
   }
+
   private async extractAttributeComponent(
     element: Element,
     components: Array<IComponent>
   ) {
     for (const pair of element.attributes) {
       if (pair.value.trim().length != 0) {
-        var match = pair.value.match(this.regex);
+        let match = pair.value.match(this.regex);
+        if (!match) {
+          match = pair.value.match(this.blockRegex);
+        }
         if (match) {
           const com = new AttributeComponent(element, this.context, pair);
           components.push(com);

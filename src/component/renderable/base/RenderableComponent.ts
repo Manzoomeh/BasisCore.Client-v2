@@ -2,7 +2,6 @@ import { DependencyContainer } from "tsyringe";
 import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
-import { AppendType } from "../../../enum";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
@@ -28,10 +27,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     this.reservedKeys = reservedKeys;
   }
 
-  async renderSourceAsync(
-    source: ISource,
-    appendType: AppendType
-  ): Promise<void> {
+  async renderSourceAsync(source: ISource): Promise<void> {
     var result: string = null;
     if (source.rows) {
       var rawIncompleteTemplate = this.node
@@ -78,11 +74,11 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     }
     const content = this.range.createContextualFragment(result);
     const childNodes = [...content.childNodes];
-    this.setContent(content, appendType);
+    this.setContent(content);
     await this.collection.processNodesAsync(childNodes, false);
   }
 
-  protected renderDataPartAsync(
+  protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
     replaces: ReplaceCollection,
@@ -90,21 +86,17 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     dividerTemplate: string,
     incompleteTemplate: string
   ): Promise<string> {
-    return new Promise((resolve) => {
-      var param = new RenderParam(
-        replaces,
-        dataSource.rows.length,
-        dividerRowcount,
-        dividerTemplate,
-        incompleteTemplate
-      );
-
-      const result = dataSource.rows.reduce((r, row) => {
-        param.data = row;
-        r += faces.render(param);
-        return r;
-      }, "");
-      resolve(result);
-    });
+    let result = new Array<string>();
+    const param = new RenderParam(
+      replaces,
+      dataSource.rows.length,
+      dividerRowcount,
+      dividerTemplate,
+      incompleteTemplate
+    );
+    for (const row of dataSource.rows) {
+      result.push(await faces.renderAsync(param, row));
+    }
+    return result.join("");
   }
 }

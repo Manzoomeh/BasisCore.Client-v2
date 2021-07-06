@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+</head>
+
+<body>
+
+
+    {{
+    return await fn($bc);
+    }}
+
+
+    <script>
+
+        const host = {
+            sources: {
+                'inlinesource.print': [
+                    {
+                        id: 1, name: 'qamsari', tags: ["A", "B", "C"]
+                    },
+                    {
+                        id: 3, name: 'akaberi', tags: ["A", "F"]
+                    },
+                    {
+                        id: 3, name: 'amir', tags: ["B", "T"]
+                    }
+                ]
+            }
+        }
+
+        async function fn($bc) {
+            const data = await $bc.waitToGetSourceAsync('inlinesource.print');
+            let retVal = "";
+            data.rows.forEach(data => {
+                const lis = data.tags.reduce((total, tag) => total += `<li>${tag}</li>`, '');
+                retVal += `<li>${data.name}<ul>${lis}</ul></li>`
+                return retVal;
+            });
+            return `<ul>${retVal}</ul>`;
+        }
+    </script>
+</body>
+
+</html>

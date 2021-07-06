@@ -1,8 +1,13 @@
+import { CallbackArgument } from "./CallbackArgument";
 import ISource from "./data/ISource";
 import { MergeType } from "./enum";
 import { EventHandler } from "./event/EventHandler";
 import IDictionary from "./IDictionary";
 import IConnectionSetting from "./options/IConnectionSetting";
+
+export const AsyncFunction = eval(
+  "Object.getPrototypeOf(async function () {}).constructor"
+);
 
 export declare type SourceId = string;
 export declare type SourceHandler = EventHandler<ISource>;

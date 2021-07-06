@@ -10,7 +10,38 @@
 </head>
 
 <body>
+    <basis core="view" datamembername="local.user" run="atclient">
+        <face level="1">
+            <ul>
+                <li>@question <ul> @child@</ul>
+                </li>
+            </ul>
+        </face>
+        <face level="2">
+            <li>
+                @answer {{
+                return await fn($bc,$data);
+                }}
+            </li>
+        </face>
+    </basis>
 
+    <script>
+
+        $bc.setSource("local.user", [
+            { id: 1, question: "FaName", answer: "ali", prpid: "1", pid: null, tags: ["A", "C", "D"] },
+            { id: 2, question: "FaName", answer: "amir", prpid: "1", pid: 1, tags: ["A", "B", "E"] },
+            { id: 3, question: "FaName", answer: "hassan", prpid: "1", pid: 1, tags: ["E", "D"] },
+            { id: 4, question: "EnName", answer: "Amir", prpid: "2", pid: 2, tags: ["F", "A"] },
+            { id: 5, question: "EnName", answer: "Ali", prpid: "2", pid: 4, tags: ["D", "B", "A"] },
+        ]);
+
+        async function fn(_, $data) {
+            //console.log($data);
+            const lis = $data.tags.sort().reduce((total, tag) => total += `<li>${tag}</li>`, '');
+            return `${$data.prpid}<ul>${lis}</ul>`
+        }
+    </script>
 </body>
 
 </html>

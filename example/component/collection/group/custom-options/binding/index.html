@@ -10,8 +10,8 @@
 </head>
 
 <body>
-    <basis core="repeater" name="rep" datamembername="page.data" run="atclient" bc-append-type="after">
-        <basis core="group" run="atclient" bc-options="[##rep.current.options##]">
+    <basis core="repeater" name="rep" datamembername="page.data" run="atclient">
+        <basis core="group" run="atclient" options="[##rep.current.options##]">
             <fieldset>
                 <legend>[##rep.current.title##]</legend>
                 <basis core="print" datamembername="data.test" run="atclient">

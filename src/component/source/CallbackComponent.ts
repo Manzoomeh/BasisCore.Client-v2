@@ -1,7 +1,7 @@
 ﻿import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
-import { Priority, AppendType } from "../../enum";
+import { Priority } from "../../enum";
 import SourceBaseComponent from "../SourceBaseComponent";
 
 @injectable()
@@ -17,10 +17,7 @@ export default class CallbackComponent extends SourceBaseComponent {
     super(element, context);
     this.container = container;
   }
-  protected async renderSourceAsync(
-    dataSource: ISource,
-    appendType: AppendType
-  ): Promise<void> {
+  protected async renderSourceAsync(dataSource: ISource): Promise<void> {
     var methodName = await this.getAttributeValueAsync("method");
     var method = eval(methodName);
     try {

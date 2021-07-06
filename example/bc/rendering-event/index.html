@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <basis core="call" file="called.html" pagesize="" run="atclient" bc-rendering="rendering" bc-rendered="rendered">
+    <basis core="call" file="called.html" pagesize="" run="atclient" OnRendering="rendering" OnRendered="rendered">
     </basis>
     <script>
         const host = {
@@ -20,12 +20,13 @@
             },
         };
 
-        function rendering() {
-            console.log('rendering');
-            return true;
+        async function rendering(args) {
+            console.log('rendering', args);
+
+            args.prevent = await Promise.resolve(false);
         }
-        function rendered() {
-            console.log('rendered');
+        function rendered(args) {
+            console.log('rendered', args);
         }
 
     </script>

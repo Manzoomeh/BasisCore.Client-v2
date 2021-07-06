@@ -15,7 +15,7 @@
     </basis>
     <basis core="callback" run="AtClient" datamembername="stream.data" method="onSource"></basis>
 
-    <Basis core="print" datamembername="stream.data" run="atclient" bc-pre-process="manipulation">
+    <Basis core="print" datamembername="stream.data" run="atclient" OnProcessing="manipulation">
         <layout>
             <script type="text/template">
           <table width="100%">

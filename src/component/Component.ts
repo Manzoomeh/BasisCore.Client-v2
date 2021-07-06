@@ -14,32 +14,30 @@ export default abstract class Component<TNode extends Node>
     return this._busy;
   }
 
-  protected onRendering: (node: TNode) => boolean;
-  protected onRendered: (node: TNode) => void;
-
   constructor(node: TNode, context: IContext) {
     this.node = node;
     this.context = context;
   }
-  public async processAsync(): Promise<void> {
-    if (!this.busy) {
+  public processAsync(): Promise<void> {
+    return this.onTrigger();
+  }
+
+  protected async onTrigger(): Promise<void> {
+    if (!this._busy) {
       this._busy = true;
+      console.log("start", this.node);
       try {
-        if (!this.onRendering || this.onRendering(this.node)) {
-          await this.renderAsync();
-          if (this.onRendered) {
-            this.onRendered(this.node);
-          }
-        }
+        await this.renderAsync();
       } finally {
         this._busy = false;
+        console.log("end", this.node);
       }
     }
   }
 
   protected addTrigger(sourceIds: Array<SourceId>) {
-    sourceIds.forEach((sourceId) =>
-      this.context.addOnSourceSetHandler(sourceId, (x) => this.processAsync())
+    sourceIds?.forEach((sourceId) =>
+      this.context.addOnSourceSetHandler(sourceId, this.onTrigger.bind(this))
     );
   }
 

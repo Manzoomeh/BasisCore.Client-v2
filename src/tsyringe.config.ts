@@ -17,6 +17,7 @@ import ViewComponent from "./component/renderable/ViewComponent";
 import APIComponent from "./component/source/APIComponent";
 import CallbackComponent from "./component/source/CallbackComponent";
 import DbSourceComponent from "./component/source/DbSourceComponent";
+import { UserDefineComponent } from "./component/UserDefineComponent";
 import LocalContext from "./context/LocalContext";
 
 import ConsoleLogger from "./logger/ConsoleLogger";
@@ -44,3 +45,4 @@ container.register("form", { useToken: HTMLFormComponent });
 container.register("unknown-html", { useToken: HTMLIUnknownComponent });
 
 container.register("api", { useToken: APIComponent });
+container.register("usercomponent", { useToken: UserDefineComponent });

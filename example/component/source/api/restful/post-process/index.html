@@ -11,13 +11,13 @@
 
 <body>
 
-    <Basis core="api" url="data/book.json" method="get" run="atclient" post-process="fn">
+    <Basis core="api" url="data/book.json" method="get" run="atclient" OnProcessed="fn">
     </Basis>
 
     <basis core="callback" run="AtClient" datamembername="my-book.type" method="onSource"></basis>
 
     <script>
-        async function fn(response, context) {
+        async function fn(args) {
 
             /*
            response is Response interface.
@@ -26,6 +26,8 @@
            return type must be of type Data[] or Promise<Data[]> interface.
            Create Data with $bc.util.source.data(id,row[],mergeType) helper 
            */
+            console.log(args);
+            const response = args.response;
             const json = await response.json();
             dataList = Object.keys(json?.sources)
                 .map((key) => {
@@ -45,7 +47,7 @@
                             x.data.mergeType
                         )
                 );
-            return dataList;
+            args.results = dataList;
         }
 
         function onSource(source) {
