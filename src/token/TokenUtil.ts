@@ -99,7 +99,7 @@ export default class TokenUtil {
     if (content) {
       const regex = context.options.getDefault<RegExp>("binding.regex");
       const blockRegex = context.options.getDefault<RegExp>(
-        "binding.block-regex"
+        "binding.codeblock-regex"
       );
       var list = new Array<any>();
       do {

@@ -27,7 +27,7 @@ export default class ComponentCollection {
     this.context = context;
     this.regex = this.context.options.getDefault<RegExp>("binding.regex");
     this.blockRegex = this.context.options.getDefault<RegExp>(
-      "binding.block-regex"
+      "binding.codeblock-regex"
     );
     //console.log("ComponentCollection - ctor");
   }

@@ -8,15 +8,15 @@ export default class FaceCollection extends Array<Face> {
     super(...faces);
     (<any>Object).setPrototypeOf(this, FaceCollection.prototype);
   }
-  public render(param: RenderParam): string {
+  public async renderAsync(param: RenderParam, data: any[]): Promise<string> {
     var retVal: string = "";
     if (this.length == 0) {
-      retVal = param.data[0].toString();
+      retVal = data[0].toString();
       param.setRendered();
     } else {
       var rowType = param.rowType;
       var firstMatchFace = this.filter((x) => {
-        var con1 = x.RelatedRows.some((x) => Util.Equal(x, param.data));
+        var con1 = x.RelatedRows.some((x) => Util.Equal(x, data));
         var con2 = x.RowType == FaceRowType.NotSet || x.RowType == rowType;
         var con3 =
           x.Levels == null ||
@@ -24,19 +24,13 @@ export default class FaceCollection extends Array<Face> {
         return con1 && con2 && con3;
       })[0];
       if (firstMatchFace != null) {
-        //if (firstMatchFace.FormattedTemplate != null) {
-        // retVal = FaceCollection.format(
-        //   firstMatchFace.FormattedTemplate,
-        //   param.data
-        // );
-        retVal = firstMatchFace.template.getValue(param.data);
+        retVal = await firstMatchFace.template.getValueAsync(data);
         if (firstMatchFace.ApplyReplace && param.replaces != null) {
           retVal = param.replaces.apply(retVal);
         }
         if (firstMatchFace.ApplyFunction) {
           //TODO:add function
         }
-        //}
         param.setRendered();
         if (param.mustApplyDivider) {
           retVal += param.dividerTemplate;

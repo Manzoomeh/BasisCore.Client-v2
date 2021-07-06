@@ -3,19 +3,15 @@ import { AsyncFunction } from "../type-alias";
 import IToken from "./IToken";
 export default class CodeBlockToken implements IToken<any> {
   context: IContext;
-  private readonly content: string;
   private readonly fn: Function;
-  private readonly data?: any;
 
-  constructor(content: string, context: IContext, data?: any) {
-    this.content = content;
+  constructor(expression: string, context: IContext) {
     this.context = context;
-    this.data = data;
     this.fn = new AsyncFunction(
       "$bc",
       "$data",
       `try{
-        ${this.content}
+        ${expression}
       }catch(e){
         console.error(e);
         return e;
@@ -25,7 +21,10 @@ export default class CodeBlockToken implements IToken<any> {
   }
 
   public async getValueAsync(wait?: boolean): Promise<any> {
-    return (await this.fn(this.context, this.data)) ?? "";
+    return (await this.fn(this.context)) ?? "";
+  }
+  public async executeAsync(data?: any): Promise<any> {
+    return (await this.fn(this.context, data)) ?? "";
   }
 
   public getSourceNames(): string[] {

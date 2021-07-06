@@ -4,9 +4,9 @@ import IToken from "../../../token/IToken";
 import Util from "../../../Util";
 import Face from "./Face";
 import FaceCollection from "./FaceCollection";
-import ITemplate from "./ITemplate";
+import ITemplate from "./template/ITemplate";
 import RawFace from "./RawFace";
-import ContentTemplate from "./ContentTemplate";
+import ContentTemplate from "./template/ContentTemplate";
 import ISource from "../../../data/ISource";
 import IBCUtil from "../../../wrapper/IBCUtil";
 
@@ -36,6 +36,7 @@ export default class RawFaceCollection extends Array<RawFace> {
         ? source.rows
         : await $bc.util.source.filterAsync(source, filter, context);
       const templateParser: ITemplate = new ContentTemplate(
+        context,
         x.Template,
         reservedKeys
       );

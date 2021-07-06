@@ -2,7 +2,6 @@
 import ReplaceCollection from "./ReplaceCollection";
 
 export default class RenderParam {
-  data: any[];
   readonly replaces: ReplaceCollection;
   Levels: string[];
   readonly _renderableCount: number = 0;
