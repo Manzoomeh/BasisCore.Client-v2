@@ -1,8 +1,10 @@
 import IContext from "../../context/IContext";
+import ISource from "../../data/ISource";
 import IToken from "../../token/IToken";
-import { NonRangeableComponent } from "../NonRangeableComponent";
+import Component from "../Component";
+import { ElementBaseComponent } from "../ElementBaseComponent";
 
-export class AttributeComponent extends NonRangeableComponent<Element> {
+export class AttributeComponent extends Component<Element> {
   readonly attribute: Attr;
   readonly token: IToken<string>;
   constructor(element: Element, context: IContext, attribute: Attr) {
@@ -17,7 +19,7 @@ export class AttributeComponent extends NonRangeableComponent<Element> {
     this.setContent(value ?? "");
   }
 
-  public async renderAsync(): Promise<void> {
+  public async renderAsync(source?: ISource): Promise<void> {
     const content = await this.token.getValueAsync();
     this.setContent(content);
   }

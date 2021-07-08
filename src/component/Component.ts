@@ -1,4 +1,5 @@
 import IContext from "../context/IContext";
+import ISource from "../data/ISource";
 import { Priority } from "../enum";
 import { SourceId } from "../type-alias";
 import IComponent from "./IComponent";
@@ -22,25 +23,23 @@ export default abstract class Component<TNode extends Node>
     return this.onTrigger();
   }
 
-  protected async onTrigger(): Promise<void> {
+  protected async onTrigger(source?: ISource): Promise<void> {
     if (!this._busy) {
       this._busy = true;
-      console.log("start", this.node);
       try {
-        await this.renderAsync();
+        await this.renderAsync(source);
       } finally {
         this._busy = false;
-        console.log("end", this.node);
       }
     }
   }
 
-  protected addTrigger(sourceIds: Array<SourceId>) {
+  public addTrigger(sourceIds: Array<SourceId>) {
     sourceIds?.forEach((sourceId) =>
       this.context.addOnSourceSetHandler(sourceId, this.onTrigger.bind(this))
     );
   }
 
   abstract initializeAsync(): Promise<void>;
-  abstract renderAsync(): Promise<void>;
+  abstract renderAsync(source?: ISource): Promise<void>;
 }

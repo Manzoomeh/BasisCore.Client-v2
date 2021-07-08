@@ -1,9 +1,9 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import HTMLElementComponent from "./HTMLElementComponent";
+import HTMLComponent from "./HTMLComponent";
 
 @injectable()
-export default class HTMLInputComponent extends HTMLElementComponent<HTMLInputElement> {
+export default class HTMLInputComponent extends HTMLComponent<HTMLInputElement> {
   constructor(
     @inject("element") element: HTMLInputElement,
     @inject("context") context: IContext
@@ -17,6 +17,10 @@ export default class HTMLInputComponent extends HTMLElementComponent<HTMLInputEl
       switch (this.node.type) {
         case "checkbox": {
           value = (this.node as any).checked;
+          break;
+        }
+        case "file": {
+          value = (this.node as any).files;
           break;
         }
         default: {

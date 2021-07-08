@@ -1,9 +1,9 @@
 import { inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
-import HTMLElementComponent from "./HTMLElementComponent";
+import HTMLComponent from "./HTMLComponent";
 
 @injectable()
-export default class HTMLFormComponent extends HTMLElementComponent<HTMLFormElement> {
+export default class HTMLFormComponent extends HTMLComponent<HTMLFormElement> {
   constructor(
     @inject("element") element: HTMLFormElement,
     @inject("context") context: IContext

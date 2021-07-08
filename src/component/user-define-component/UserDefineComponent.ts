@@ -1,9 +1,14 @@
 import { inject, DependencyContainer, injectable } from "tsyringe";
-import IContext from "../context/IContext";
-import CommandComponent from "./CommandComponent";
+import IContext from "../../context/IContext";
+import ISource from "../../data/ISource";
+import { MergeType } from "../../enum";
+import { SourceId } from "../../type-alias";
+import CommandComponent from "../CommandComponent";
+import IComponentManager from "./IComponentManager";
+import IUserDefineComponent from "./IUserDefineComponent";
 
 @injectable()
-export class UserDefineComponent
+export default class UserDefineComponent
   extends CommandComponent
   implements IUserDefineComponent
 {
@@ -35,9 +40,9 @@ export class UserDefineComponent
       await this.manager.initializeAsync();
     }
   }
-  protected runAsync(): Promise<boolean> {
+  protected runAsync(source?: ISource): Promise<boolean> {
     return this.manager.runAsync
-      ? this.manager.runAsync()
+      ? this.manager.runAsync(source)
       : Promise.resolve(true);
   }
 
@@ -57,13 +62,13 @@ export class UserDefineComponent
   public getSetting<T>(key: string, defaultValue: T): T {
     return this.context.options.getSetting<T>(key, defaultValue);
   }
-}
-interface IUserDefineComponent {
-  toNode(rawHtml: string): Node;
-  setContent(newContent: Node): void;
-}
 
-interface IComponentManager {
-  initializeAsync(): Promise<void>;
-  runAsync(): Promise<boolean>;
+  public setSource(
+    sourceId: SourceId,
+    data: any,
+    mergeType?: MergeType,
+    preview?: boolean
+  ): void {
+    this.context.setAsSource(sourceId, data, mergeType, preview);
+  }
 }

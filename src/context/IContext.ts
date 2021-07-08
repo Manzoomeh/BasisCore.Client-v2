@@ -33,7 +33,7 @@ export default interface IContext {
     data: any,
     mergeType?: MergeType,
     preview?: boolean
-  );
+  ): void;
   setSource(source: ISource, preview?: boolean): void;
   addOnSourceSetHandler(
     sourceId: SourceId,
