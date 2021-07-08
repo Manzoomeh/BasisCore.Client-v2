@@ -51,7 +51,6 @@ export default class ComponentCollection {
     components: Array<IComponent>,
     ignoreNonePriority: boolean
   ): Promise<void> {
-    //console.log("ComponentCollection.runAsync");
     const priorityMap = components.reduce((map, component) => {
       if (!ignoreNonePriority || component.priority != Priority.None) {
         let list = map.get(component.priority);
@@ -86,12 +85,8 @@ export default class ComponentCollection {
   private extractBasisCommands(node: Node, components: Array<IComponent>) {
     const pair = this.findRootLevelComponentNode(node);
     for (const item of pair.coreList) {
-      components.push(
-        this.createCommandComponent(
-          item,
-          item.getAttribute("core").toLowerCase()
-        )
-      );
+      const core = item.getAttribute("core").split(".", 2)[0].toLowerCase();
+      components.push(this.createCommandComponent(item, core));
     }
     for (const item of pair.tagList) {
       const tagName = item.tagName.toLowerCase();

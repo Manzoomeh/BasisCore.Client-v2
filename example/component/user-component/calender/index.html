@@ -10,10 +10,10 @@
 </head>
 
 <body>
-    <Basis core="usercomponent" manager="UserManager" run="atclient"></Basis>
+    <Basis core="component.local.Calender" run="atclient"></Basis>
     <script>
 
-        class UserManager {
+        class Calender {
             static get style() {
                 return `<style data-calender-style>
     /*calendar*/
@@ -74,7 +74,7 @@ align-items: center; cursor: pointer;}
             async initializeAsync() {
                 const style = document.querySelector('[data-calender-style]');
                 if (!style) {
-                    document.head.append(this.owner.toNode(UserManager.style))
+                    document.head.append(this.owner.toNode(Calender.style))
                 }
 
                 const node = this.owner.toNode(`<div style="display: flex; justify-content: center; margin-top: 50px;">

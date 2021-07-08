@@ -6,16 +6,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/basiscore.min.js"></script>
-    <script src="http://localhost:3001/basiscore.watermarkComponent.js"></script>
     <title>Print Command - Simple</title>
+    <script>
+        const host = {
+            repositories: {
+                "bc.watermark": "https://github.com/Manzoomeh/Components/releases/download/v2.0-alpha/basiscore.watermark.component.js",
+            }
+        }
+    </script>
 </head>
 
 <body>
+    <Basis core="component.bc.watermark" run="atclient" wm-element="#main-svg" wm-background="watermark.bg"
+        wm-items="watermark.items" wm-btn="#result" wm-resultId="wm.k">
+    </Basis>
     <fieldset>
         <legend>Watermark Image</legend>
-        <input type="file" bc-triggers="change" name="watermark.bg" OnProcessing="OnSelectImage" />
+        <input type="file" bc-triggers="change" name="watermark.bg" />
     </fieldset>
-    <form bc-triggers="submit" name="watermark.items" OnProcessing="onSubmitForm">
+    <form bc-triggers="submit" name="watermark.items">
         <fieldset>
             <legend>Watermark Element(s)</legend>
             <fieldset id="element-holder">
@@ -146,23 +155,17 @@
                 </div>
             </template>
             <br />
-            <button type="button" onclick="addWatermarkElement(`text-template`)">Add Text</button>
-            <button type="button" onclick="addWatermarkElement('logo-template')">Add Logo</button>
+            <button type="button" onclick="addWatermarkElementToForm(`text-template`)">Add Text</button>
+            <button type="button" onclick="addWatermarkElementToForm('logo-template')">Add Logo</button>
         </fieldset>
 
         <input type="submit" value="apply" />
-
-
     </form>
     <fieldset>
         <legend>Watermark Preview</legend>
-        <Basis core="usercomponent" manager="watermarkComponent.UserComponent" run="atclient" wm-element="#main-svg"
-            wm-background="watermark.bg" wm-items="watermark.items" wm-btn="#result" wm-resultId="wm.k">
-        </Basis>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="main-svg" width="0"
+            height="0"></svg>
     </fieldset>
-
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="main-svg" width="0"
-        height="0"></svg>
     <fieldset>
         <legend>Watermark Result</legend>
         <button id="result">Generate</button>
@@ -170,39 +173,30 @@
         <img src="[##wm.k.value##]" />
     </fieldset>
     <script>
-
-        async function OnSelectImage(args) {
-            args.value = await watermarkComponent.Util.GetBase64Image(args.value[0]);
-        }
-
-        async function onSubmitForm(args) {
-            const elements = [];
-            if (args.value?._root?.elements) {
-                for (const element of args.value?._root?.elements) {
-
-                    if (element.Type === "LOGO") {
-                        const imageOption = await watermarkComponent.Util.GetBase64Image(element.File);
-                        const p = { ...imageOption, ...element };
-                        elements.push(p);
-                    } else {
-                        elements.push(element);
-                    }
-                }
-            }
-            args.value = elements;
-        }
-
         let watermarkKeyCounter = 1
-        function addWatermarkElement(type) {
+        function addWatermarkElementToForm(type) {
             const template = document.getElementById(type);
             const templateCopy = document.importNode(template.content, true);
-            templateCopy.querySelector('[data-key]').attributes['value'].value = watermarkKeyCounter.toString();
-            templateCopy.querySelectorAll('[name]').forEach(element => {
-                element.attributes["name"].value = element.attributes["name"].value.replace('[x]', watermarkKeyCounter.toString());
-            });
-            templateCopy.querySelector('[data-btn-remove]').addEventListener('click', e => e.target.parentNode.remove());
+            templateCopy
+                .querySelector('[data-key]')
+                .attributes['value'].value = watermarkKeyCounter.toString();
+            templateCopy
+                .querySelectorAll('[name]')
+                .forEach(element => {
+                    element
+                        .attributes["name"]
+                        .value = element
+                            .attributes["name"]
+                            .value
+                            .replace('[x]', watermarkKeyCounter.toString());
+                });
+            templateCopy
+                .querySelector('[data-btn-remove]')
+                .addEventListener('click', e => e.target.parentNode.remove());
             watermarkKeyCounter++;
-            document.getElementById("element-holder").append(templateCopy);
+            document
+                .getElementById("element-holder")
+                .append(templateCopy);
         }
     </script>
 </body>

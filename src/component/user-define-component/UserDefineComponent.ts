@@ -3,17 +3,19 @@ import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
 import { MergeType } from "../../enum";
 import { SourceId } from "../../type-alias";
+import IBCUtil from "../../wrapper/IBCUtil";
 import CommandComponent from "../CommandComponent";
 import IComponentManager from "./IComponentManager";
 import IUserDefineComponent from "./IUserDefineComponent";
 
+declare const $bc: IBCUtil;
 @injectable()
 export default class UserDefineComponent
   extends CommandComponent
   implements IUserDefineComponent
 {
   readonly container: DependencyContainer;
-  readonly manager: IComponentManager;
+  private manager: IComponentManager;
   readonly range: Range;
 
   constructor(
@@ -26,16 +28,13 @@ export default class UserDefineComponent
     this.range = new Range();
     this.range.selectNode(element);
     this.range.extractContents();
-    const managerType = this.node.attributes["manager"].value;
-    const factoryWrapperFn = new Function(
-      "component",
-      `return new ${managerType}(component);`
-    );
-    this.manager = factoryWrapperFn(this);
   }
 
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
+    const lib = this.core.slice(this.core.indexOf(".") + 1);
+    const manager = await $bc.util.getComponentAsync(this.context, lib);
+    this.manager = Reflect.construct(manager, [this]);
     if (this.manager.initializeAsync) {
       await this.manager.initializeAsync();
     }

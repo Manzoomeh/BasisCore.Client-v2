@@ -12,7 +12,7 @@
 <body>
     <button bc-value="0" bc-triggers="click" name="event.click">Click to refresh</button>
     <br />
-    <Basis core="usercomponent" manager="UserManager" run="atclient" triggers="event.click"></Basis>
+    <Basis core="component.local.DemoWithSetting" run="atclient" triggers="event.click"></Basis>
     <script>
         const host = {
             settings: {
@@ -22,7 +22,7 @@
                 }
             }
         }
-        class UserManager {
+        class DemoWithSetting {
             constructor(owner) {
                 this.owner = owner;
                 this.defaultSetting = {

@@ -43,7 +43,7 @@ export default abstract class HTMLComponent<
       id = args.id;
       value = args.value;
     }
-    this.context.setAsSource(id ?? "cms.unknown", value);
+    this.context.setAsSource(id ?? "cms.unknown", { value: value });
     if (this.onProcessedAsync) {
       const args = super.createCallbackArgument<HtmlCallbackArgument>({
         id: id,
@@ -53,20 +53,6 @@ export default abstract class HTMLComponent<
     }
     return true;
   }
-
-  // protected async onEventTriggerAsync(event: Event) {
-  //   event.preventDefault();
-  //   if (!this.busy) {
-  //     this._busy = true;
-  //     try {
-  //       const id = await this.getSourceIdAsync();
-  //       const value = await this.getSourceValueAsync(event);
-  //       this.context.setAsSource(id ?? "cms.unknown", value);
-  //     } finally {
-  //       this._busy = false;
-  //     }
-  //   }
-  // }
 
   protected async getBcProperty(name: string): Promise<string> {
     let retVal = await this.getAttributeValueAsync(`bc-${name}`);

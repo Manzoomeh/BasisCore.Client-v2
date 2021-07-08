@@ -1,3 +1,4 @@
+import IContext from "../context/IContext";
 import ISourceWrapper from "./ISourceWrapper";
 
 export default interface IUtilWrapper {
@@ -5,6 +6,7 @@ export default interface IUtilWrapper {
   defaultsDeep<T>(data: Partial<T>, defaults: Partial<T>): T;
   getLibAsync(objectName: string, url: string): Promise<any>;
   toNode(rawHtml: string): Node;
+  getComponentAsync(context: IContext, key: string): Promise<any>;
 
   source: ISourceWrapper;
 }

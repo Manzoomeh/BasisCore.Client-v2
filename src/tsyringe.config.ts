@@ -45,4 +45,4 @@ container.register("form", { useToken: HTMLFormComponent });
 container.register("unknown-html", { useToken: HTMLIUnknownComponent });
 
 container.register("api", { useToken: APIComponent });
-container.register("usercomponent", { useToken: UserDefineComponent });
+container.register("component", { useToken: UserDefineComponent });

@@ -18,6 +18,7 @@ export class HostOptions implements IContextHostOptions {
   sources: { [key: string]: any[][] };
   dbLibPath: string;
   originalOptions: Partial<IHostOptions>;
+  repositories: IDictionary<string>;
 
   private static _defaultSettings: Partial<IHostOptions>;
 
@@ -38,6 +39,7 @@ export class HostOptions implements IContextHostOptions {
           "default.ViewCommand.GroupColumn": "prpid",
           "default.source.heartbeatVerb": "GET",
         },
+        repositories: {},
       };
       if (typeof host != "undefined") {
         defaults = defaultsDeep(cloneDeep(host), defaults);
