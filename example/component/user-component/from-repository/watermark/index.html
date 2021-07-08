@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+    <script>
+        const host = {
+            repositories: {
+                "bc.watermark": "https://github.com/Manzoomeh/Components/releases/download/v2.0-alpha/basiscore.watermark.component.js",
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <Basis core="component.bc.watermark" run="atclient" wm-element="#main-svg" wm-background="watermark.bg"
+        wm-items="watermark.items" wm-btn="#result" wm-resultId="wm.k">
+    </Basis>
+    <fieldset>
+        <legend>Watermark Image</legend>
+        <input type="file" bc-triggers="change" name="watermark.bg" />
+    </fieldset>
+    <form bc-triggers="submit" name="watermark.items">
+        <fieldset>
+            <legend>Watermark Element(s)</legend>
+            <fieldset id="element-holder">
+                <legend>Watermark Elements</legend>
+            </fieldset>
+            <template id="text-template">
+                <div>
+                    <input type="hidden" name="_root.elements__[x].Type" value="TEXT" />
+                    <input type="hidden" name="_root.elements__[x].Key" data-key value="0000" />
+                    <label>Content
+                        <input type="text" name="_root.elements__[x].Text" id="_root.elements__[x].Text" value="Sample"
+                            required />
+                    </label>
+                    <label>Font
+                        <select name="_root.elements__[x].FontFamily" id="_root.elements__[x].FontFamily" required>
+                            <option value="Courier" style="font-family:Courier">Courier</option>
+                            <option value="Asset" style="font-family: asset;">Asset</option>
+                            <option value="Arial" style="font-family: Arial">Arial</option>
+                        </select>
+                    </label>
+                    <label>Size
+                        <select name="_root.elements__[x].FontSize" id="_root.elements__[x].FontSize" required>
+                            <option value="30">30</option>
+                            <option value="50">50</option>
+                            <option value="70">70</option>
+                            <option value="80">80</option>
+                            <option value="100">100</option>
+                        </select>
+                    </label>
+                    <label>Rotate
+                        <select name="_root.elements__[x].Rotate" id="_root.elements__[x].Rotate" required>
+                            <option value="0">0</option>
+                            <option value="45">45</option>
+                            <option value="90">90</option>
+                            <option value="135">135</option>
+                            <option value="180">180</option>
+                            <option value="225">225</option>
+                            <option value="270">270</option>
+                            <option value="315">315</option>
+                        </select>
+                    </label>
+                    <label>Opacity
+                        <select name="_root.elements__[x].Opacity" id="_root.elements__[x].Opacity" required>
+                            <option value="1">1</option>
+                            <option value="0.8">0.8</option>
+                            <option value="0.7">0.7</option>
+                            <option value="0.5">0.5</option>
+                            <option value="0.3">0.3</option>
+                        </select>
+                    </label>
+                    <label>Color<input type="color" name="_root.elements__[x].Color"
+                            id="_root.elements__[x].Color" /></label>
+                    <label>Tile Mode
+                        <select name="_root.elements__[x].TileMode" id="_root.elements__[x].TileMode" required>
+                            <option value="NONE">None</option>
+                            <option value="BOX">Box</option>
+                            <option value="FLOWER">Flower</option>
+                        </select>
+                    </label>
+                    <label>Span
+                        <select name="_root.elements__[x].Span" id="_root.elements__[x].Span" required>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="75">75</option>
+                            <option value="100">100</option>
+                            <option value="125">125</option>
+                        </select>
+                    </label>
+                    <input type="button" value="remove" data-btn-remove />
+                </div>
+            </template>
+            <template id="logo-template">
+                <div>
+                    <input type="hidden" name="_root.elements__[x].Type" value="LOGO" />
+                    <input type="hidden" name="_root.elements__[x].Key" data-key value="0000" />
+                    <label>Image File
+                        <input type="file" name="_root.elements__[x].File" id="_root.elements__[x].File" required />
+                    </label>
+                    <label>Rotate
+                        <select name="_root.elements__[x].Rotate" id="_root.elements__[x].Rotate" required>
+                            <option value="0">0</option>
+                            <option value="45">45</option>
+                            <option value="90">90</option>
+                            <option value="135">135</option>
+                            <option value="180">180</option>
+                            <option value="225">225</option>
+                            <option value="270">270</option>
+                            <option value="315">315</option>
+                        </select>
+                    </label>
+                    <label>Size
+                        <select name="_root.elements__[x].Scale" id="_root.elements__[x].Scale" required>
+                            <option value="1">1</option>
+                            <option value="0.5">0.5</option>
+                            <option value="0.25">0.25</option>
+                            <option value="1.5">1.5</option>
+                            <option value="1.25">1.25</option>
+                            <option value="1.75">1.75</option>
+                            <option value="2">2</option>
+                        </select>
+                    </label>
+                    <label>Opacity
+                        <select name="_root.elements__[x].Opacity" id="_root.elements__[x].Opacity" required>
+                            <option value="1">1</option>
+                            <option value="0.3">0.3</option>
+                            <option value="0.5">0.5</option>
+                            <option value="0.7">0.7</option>
+                            <option value="0.8">0.8</option>
+                        </select>
+                    </label>
+                    <label>Tile Mode
+                        <select name="_root.elements__[x].TileMode" id="_root.elements__[x].TileMode" required>
+                            <option value="NONE">None</option>
+                            <option value="BOX">Box</option>
+                            <option value="FLOWER">Flower</option>
+                        </select>
+                    </label>
+                    <label>Span
+                        <select name="_root.elements__[x].Span" id="_root.elements__[x].Span" required>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="75">75</option>
+                            <option value="100">100</option>
+                            <option value="125">125</option>
+                        </select>
+                    </label>
+                    <input type="button" value="remove" data-btn-remove />
+                </div>
+            </template>
+            <br />
+            <button type="button" onclick="addWatermarkElementToForm(`text-template`)">Add Text</button>
+            <button type="button" onclick="addWatermarkElementToForm('logo-template')">Add Logo</button>
+        </fieldset>
+
+        <input type="submit" value="apply" />
+    </form>
+    <fieldset>
+        <legend>Watermark Preview</legend>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="main-svg" width="0"
+            height="0"></svg>
+    </fieldset>
+    <fieldset>
+        <legend>Watermark Result</legend>
+        <button id="result">Generate</button>
+        <br />
+        <img src="[##wm.k.value##]" />
+    </fieldset>
+    <script>
+        let watermarkKeyCounter = 1
+        function addWatermarkElementToForm(type) {
+            const template = document.getElementById(type);
+            const templateCopy = document.importNode(template.content, true);
+            templateCopy
+                .querySelector('[data-key]')
+                .attributes['value'].value = watermarkKeyCounter.toString();
+            templateCopy
+                .querySelectorAll('[name]')
+                .forEach(element => {
+                    element
+                        .attributes["name"]
+                        .value = element
+                            .attributes["name"]
+                            .value
+                            .replace('[x]', watermarkKeyCounter.toString());
+                });
+            templateCopy
+                .querySelector('[data-btn-remove]')
+                .addEventListener('click', e => e.target.parentNode.remove());
+            watermarkKeyCounter++;
+            document
+                .getElementById("element-holder")
+                .append(templateCopy);
+        }
+    </script>
+</body>
+
+</html>

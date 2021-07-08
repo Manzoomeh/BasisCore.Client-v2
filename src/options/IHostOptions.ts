@@ -8,4 +8,5 @@ export default interface IHostOptions {
   settings: IDictionary<string | any | IConnectionSetting>;
   sources: { [key: string]: Array<any[]> };
   dbLibPath: string;
+  repositories: IDictionary<string>;
 }
