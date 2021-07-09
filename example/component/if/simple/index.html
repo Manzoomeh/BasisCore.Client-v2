@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+</head>
+
+<body>
+    <fieldset>
+        <legend>if = true</legend>
+        <Basis core="print" datamembername="inlinesource.print" run="atclient" if="true">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) </span>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
+        <legend>if = false</legend>
+        <Basis core="print" datamembername="inlinesource.print" run="atclient" if="false">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) </span>
+            </face>
+        </Basis>
+    </fieldset>
+    <script>
+        $bc.setSource('inlinesource.print', [
+            {
+                id: 1, name: 'qamsari', prpid: null
+            },
+            {
+                id: 3, name: 'akaberi', prpid: 1
+            },
+            {
+                id: 3, name: 'amir', prpid: 3
+            }
+        ])
+    </script>
+</body>
+
+</html>
