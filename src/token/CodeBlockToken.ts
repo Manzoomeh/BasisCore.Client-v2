@@ -17,7 +17,6 @@ export default class CodeBlockToken implements IToken<any> {
         return e;
       }`
     );
-    console.log("bt");
   }
 
   public async getValueAsync(wait?: boolean): Promise<any> {

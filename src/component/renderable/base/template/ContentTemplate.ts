@@ -53,8 +53,8 @@ export default class ContentTemplate implements ITemplate {
         );
       }
       startIndex = index + finding.length;
-      if (preChar) {
-        const expression = matchResult[2] ?? matchResult[3];
+      const expression = matchResult[2] ?? matchResult[3];
+      if (expression) {
         this.contents.push(
           new ExpressionTemplate(expression, this.reservedKeys)
         );
