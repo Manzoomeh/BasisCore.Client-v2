@@ -41,7 +41,6 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       );
       var rawReplaces = RawReplaceCollection.Create(this.node, this.context);
       var rawFaces = RawFaceCollection.Create(this.node, this.context);
-
       var faces = await rawFaces.processAsync(
         source,
         this.context,
@@ -74,8 +73,8 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     }
     const content = this.range.createContextualFragment(result);
     const childNodes = [...content.childNodes];
-    this.setContent(content);
-    await this.collection.processNodesAsync(childNodes, false);
+    this.setContent(content, false);
+    await this.collection.processNodesAsync(childNodes);
   }
 
   protected async renderDataPartAsync(

@@ -20,7 +20,7 @@ export default class HTMLInputComponent extends HTMLComponent<HTMLInputElement> 
           break;
         }
         case "file": {
-          value = (this.node as any).files;
+          value = { value: (this.node as any).files };
           break;
         }
         default: {

@@ -10,8 +10,8 @@
 </head>
 
 <body>
-    <input type="button" value="Set Source" onclick="fn()" />
-    <Basis core="print" datamembername="local.print" run="atclient" if="">
+    <input type="button" value="Set Source" onclick="clickHandler()" />
+    <Basis core="print" datamembername="local.print" run="atclient">
         <layout>
             <script type="text/template">
             <ul>@child</ul>
@@ -25,14 +25,13 @@
     </Basis>
     <script>
         var i = 0;
-        function fn() {
+        function clickHandler() {
             $bc.setSource(
                 "local.print", { id: i, name: `btn-t=${i}` }, MergeType.replace
             );
             i += 1;
         }
-        fn();
-        //setInterval(fn, 1000);
+        clickHandler();
     </script>
 </body>
 

@@ -68,7 +68,7 @@
 
 
     </fieldset>
-    <basis core="callback" run="AtClient" datamembername="cms.form" method="onSource"></basis>
+    <basis core="callback" run="AtClient" triggers="cms.form"></basis>
 
     <script>
         let id = 1
@@ -81,10 +81,6 @@
             });
             id++;
             document.getElementById("phone-holder").append(copy);
-        }
-
-        function onSource(source) {
-            console.table(source.rows);
         }
     </script>
 

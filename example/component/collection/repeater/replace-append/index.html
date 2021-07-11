@@ -6,38 +6,55 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/basiscore.min.js"></script>
-    <title>Repeater Command - Simple</title>
+    <title>Repeater Command - Binding</title>
 </head>
 
 <body>
     <input type="button" value="Set Source" onclick="set()" />
+    <input type="button" value="trigger" name="event.render" bc-triggers="click" bc-value="0" />
     <fieldset>
-        <legend>repeater.AppendType = before</legend>
-        <ul>
-            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render">
-                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-            </basis>
-        </ul>
-    </fieldset>
-    <fieldset>
-        <legend>repeater.AppendType = after</legend>
-        <ul>
-            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render">
-                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-            </basis>
-        </ul>
-    </fieldset>
-    <fieldset>
-        <legend>repeater.AppendType = Replace</legend>
-        <ul>
-            <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render">
-                <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
-            </basis>
-        </ul>
-    </fieldset>
+        <legend>Source.MergeType= replace</legend>
+        <fieldset>
+            <legend>repeater.replace = true</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend>repeater.replace = false</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render"
+                    replace="false">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
 
+    </fieldset>
+    <fieldset>
+        <legend>Source.MergeType = append</legend>
+        <fieldset>
+            <legend>repeater.replace = true</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="append.data" run="atclient" triggers="event.render">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend>repeater.replace = false</legend>
+            <ul>
+                <basis core="repeater" name="rep" datamembername="append.data" run="atclient" triggers="event.render"
+                    replace="false">
+                    <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+                </basis>
+            </ul>
+        </fieldset>
+
+    </fieldset>
     <script>
-
         let i = 0;
         function set() {
             $bc.setSource(
@@ -46,12 +63,19 @@
                     { id: i, name: `data ${i}` },
                     { id: i + 1, name: `data ${i + 1}` },
                     { id: i + 2, name: `data ${i + 2}` },
-                ]
+                ], MergeType.replace
             );
-
-            i += 1;
+            $bc.setSource(
+                "append.data",
+                [
+                    { id: i, name: `data ${i}` },
+                    { id: i + 1, name: `data ${i + 1}` },
+                    { id: i + 2, name: `data ${i + 2}` },
+                ]
+                , MergeType.append
+            );
+            i += 3;
         }
-        //setInterval(set, 3000);
         set();
     </script>
 </body>

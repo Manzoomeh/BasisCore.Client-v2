@@ -37,7 +37,6 @@
         ]);
 
         async function fn(_, $data) {
-            //console.log($data);
             const lis = $data.tags.sort().reduce((total, tag) => total += `<li>${tag}</li>`, '');
             return `${$data.prpid}<ul>${lis}</ul>`
         }

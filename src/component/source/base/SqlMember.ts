@@ -1,8 +1,5 @@
 import IContext from "../../../context/IContext";
-import IBasisCore from "../../../IBasisCore";
 import InMemoryMember from "./InMemoryMember";
-
-declare var $bc: IBasisCore;
 
 export default class SqlMember extends InMemoryMember {
   constructor(element: Element, context: IContext) {
@@ -11,7 +8,7 @@ export default class SqlMember extends InMemoryMember {
 
   async ParseDataAsync(): Promise<Array<any>> {
     var rawContent = this.element.textContent.ToStringToken(this.context);
-    var sql = await rawContent.getValueAsync(); //Util.GetValueOrDefaultAsync(rawContent, context.Context);
+    var sql = await rawContent.getValueAsync();
 
     var rawDataMemberNames = this.element.GetStringToken(
       "datamembername",
@@ -19,9 +16,7 @@ export default class SqlMember extends InMemoryMember {
     );
     var sources = new Array<string>();
     if (rawDataMemberNames) {
-      console.log("rawDataMemberNames", rawDataMemberNames);
-      sources = (await rawDataMemberNames.getValueAsync()) // Util.GetValueOrDefaultAsync(rawDataMemberNames, context.Context)
-        .split(",");
+      sources = (await rawDataMemberNames.getValueAsync()).split(",");
     } else {
       sources = this.GetSqlSources(sql);
     }

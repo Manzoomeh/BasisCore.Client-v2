@@ -21,9 +21,8 @@ export enum JoinType {
 }
 
 export enum Priority {
-  higher,
   high,
   normal,
-  Low,
-  None,
+  low,
+  none,
 }

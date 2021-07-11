@@ -26,7 +26,6 @@ export default abstract class Context implements IContext {
     this.logger = logger;
     this.options = options;
     this.onDataSourceSet = new EventManager<ISource>();
-    //console.log("context - ctor");
   }
   abstract getOrLoadDbLibAsync(): Promise<any>;
 

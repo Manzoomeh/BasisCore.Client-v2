@@ -8,7 +8,7 @@ import ISource from "../data/ISource";
 import IToken from "../token/IToken";
 import Component from "./Component";
 
-export abstract class ElementBaseComponent<
+export default abstract class ElementBaseComponent<
   TElement extends Element
 > extends Component<TElement> {
   protected onRenderingAsync: (

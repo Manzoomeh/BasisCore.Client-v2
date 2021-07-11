@@ -23,14 +23,10 @@ export default class GroupComponent extends CommandComponent {
     const content = document.createDocumentFragment();
     this.childNodes = [...element.childNodes];
     this.childNodes.forEach((node) => content.appendChild(node));
-    const range = document.createRange();
-    range.selectNode(element);
-    range.deleteContents();
-    range.insertNode(content);
+    this.range.insertNode(content);
   }
 
   public async runAsync(): Promise<boolean> {
-    //console.log("group - runAsync");
     if (this.oldLocalContext) {
       this.oldLocalContext.dispose();
     }
@@ -51,7 +47,7 @@ export default class GroupComponent extends CommandComponent {
     }
     childContainer.register("context", { useValue: this.oldLocalContext });
     this.collection = childContainer.resolve(ComponentCollection);
-    await this.collection.processNodesAsync(this.childNodes, false);
+    await this.collection.processNodesAsync(this.childNodes);
     return true;
   }
 }

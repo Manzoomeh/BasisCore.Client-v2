@@ -32,7 +32,7 @@ export default class RepeaterComponent extends SourceBaseComponent {
       var fragment = document.createDocumentFragment();
       const childNodes = [...template.childNodes];
       childNodes.forEach((node) => fragment.appendChild(node));
-      this.setContent(fragment);
+      this.setContent(fragment, true);
       const childContainer = this.container.createChildContainer();
       childContainer.register("OwnerContext", { useValue: this.context });
       childContainer.register("container", { useValue: childContainer });
@@ -42,7 +42,7 @@ export default class RepeaterComponent extends SourceBaseComponent {
       localContext.setAsSource(`${name}.current`, row, dataSource.mergeType);
       childContainer.register("context", { useValue: localContext });
       const collection = childContainer.resolve(ComponentCollection);
-      await collection.processNodesAsync(childNodes, false);
+      await collection.processNodesAsync(childNodes);
     }
   }
 }

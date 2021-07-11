@@ -74,28 +74,28 @@
             }
         }
 
-        function update(currentSource, context, appendType) {
-            const source = $bc.util.clone(currentSource);
+        function update(args) {
+            const source = $bc.util.cloneDeep(args.source);
             source.rows.forEach(row => {
                 row.id += 100;
                 row.name = `new ${row.name}`
             });
-            return { source, appendType };
+            args.source = source;
         }
 
-        async function change(source, context) {
-            return { source: await context.waitToGetSourceAsync('inlinesource.print1') };
+        async function change(args) {
+            args.source = await args.context.waitToGetSourceAsync('inlinesource.print1');
         }
 
-        function filter(source, context) {
-            const rows = source.rows.filter(x => x.id > 3)
-            const newSource = $bc.util.source.new('inlinesource.print2', rows)
-            return { source: newSource };
+        function filter(args) {
+            const rows = args.source.rows.filter(x => x.id > 3)
+            const source = $bc.util.source.new('inlinesource.print2', rows)
+            args.source = source;
         }
 
-        function dynamic(source, context) {
-            const newSource = $bc.util.source.new('inlinesource.print2', [{ id: 301, name: 'Dynamic-data#1' }, { id: 302, name: 'Dynamic-data#2' }])
-            return { source: newSource }
+        function dynamic(args) {
+            const source = $bc.util.source.new('inlinesource.print2', [{ id: 301, name: 'Dynamic-data#1' }, { id: 302, name: 'Dynamic-data#2' }])
+            args.source = source;
         }
     </script>
 </body>

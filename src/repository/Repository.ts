@@ -28,7 +28,7 @@ export default class Repository implements IContextRepository {
       this.repository.delete(source.id);
     }
     this.eventManager.get(source.id)?.Trigger(source);
-    this.logger.logInformation(`${source.id} Added from owner context.`);
+    this.logger.logInformation(`${source.id} Added from owner context...`);
   }
 
   private setSourceEx(source: ISource) {
@@ -50,7 +50,7 @@ export default class Repository implements IContextRepository {
       this.logger.logSource(source);
     }
     this.eventManager.get(source.id)?.Trigger(source);
-    this.logger.logInformation(`${source.id} Added.`);
+    this.logger.logInformation(`${source.id} Added...`);
   }
 
   public addHandler(sourceId: SourceId, handler: SourceHandler): SourceHandler {
@@ -62,7 +62,7 @@ export default class Repository implements IContextRepository {
     }
     const added = handlers.Add(handler);
     if (added) {
-      this.logger.logInformation(`handler Added for ${key}.`);
+      this.logger.logInformation(`handler Added for ${key}...`);
     }
     return added;
   }
@@ -74,8 +74,7 @@ export default class Repository implements IContextRepository {
   public waitToGetAsync(sourceId: SourceId): Promise<ISource> {
     return new Promise<ISource>((resolve) => {
       sourceId = sourceId?.toLowerCase();
-      this.logger.logInformation("wait for %s", sourceId);
-
+      this.logger.logInformation(`wait for ${sourceId}`);
       let handler = this.resolves.get(sourceId);
       if (!handler) {
         handler = new EventManager<ISource>();

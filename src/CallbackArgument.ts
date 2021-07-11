@@ -32,3 +32,7 @@ export declare type HtmlCallbackArgument = CallbackArgument & {
   id: string;
   value: any;
 };
+
+export declare type SourceCallbackArgument = CallbackArgument & {
+  source?: ISource;
+};

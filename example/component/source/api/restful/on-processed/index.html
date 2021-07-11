@@ -14,7 +14,7 @@
     <Basis core="api" url="data/book.json" method="get" run="atclient" OnProcessed="fn">
     </Basis>
 
-    <basis core="callback" run="AtClient" datamembername="my-book.type" method="onSource"></basis>
+    <basis core="callback" run="AtClient" triggers="my-book.type" method="onSource"></basis>
 
     <script>
         async function fn(args) {
@@ -50,8 +50,8 @@
             args.results = dataList;
         }
 
-        function onSource(source) {
-            console.table(source.rows);
+        function onSource(args) {
+            console.table(args.source.rows);
         }
 
     </script>

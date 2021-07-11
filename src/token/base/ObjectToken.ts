@@ -60,7 +60,7 @@ export default abstract class ObjectToken<TType> implements IToken<TType> {
             try {
               value = item.extractValue(source);
             } catch (ex) {
-              //console.error(ex);
+              /*Nothing*/
             }
             if (value != null && value !== "") {
               retVal = value as TType; //this.tryParse(value);

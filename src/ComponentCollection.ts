@@ -29,17 +29,13 @@ export default class ComponentCollection {
     this.blockRegex = this.context.options.getDefault<RegExp>(
       "binding.codeblock-regex"
     );
-    //console.log("ComponentCollection - ctor");
   }
 
-  public async processNodesAsync(
-    nodes: Array<Node>,
-    ignoreNonePriority: boolean
-  ): Promise<void> {
+  public async processNodesAsync(nodes: Array<Node>): Promise<void> {
     const components = this.extractComponent(nodes);
     this._initializeTask = this.initializeAsync(components);
     await this._initializeTask;
-    await this.runAsync(components, ignoreNonePriority);
+    await this.runAsync(components);
   }
 
   private async initializeAsync(components: Array<IComponent>): Promise<void> {
@@ -47,12 +43,9 @@ export default class ComponentCollection {
     await Promise.all(tasks);
   }
 
-  private async runAsync(
-    components: Array<IComponent>,
-    ignoreNonePriority: boolean
-  ): Promise<void> {
+  private async runAsync(components: Array<IComponent>): Promise<void> {
     const priorityMap = components.reduce((map, component) => {
-      if (!ignoreNonePriority || component.priority != Priority.None) {
+      if (component.priority != Priority.none) {
         let list = map.get(component.priority);
         if (!list) {
           list = new Array<IComponent>();
@@ -62,14 +55,11 @@ export default class ComponentCollection {
       }
       return map;
     }, new Map<Priority, Array<IComponent>>());
-    for (const enumValue in Priority) {
-      if (isNaN(Number(enumValue))) {
-        const key: any = Priority[enumValue];
-        const relatedComponent = priorityMap.get(key);
-        if (relatedComponent) {
-          const taskList = relatedComponent.map((x) => x.processAsync());
-          await Promise.all(taskList);
-        }
+    for (const priority of [Priority.high, Priority.normal, Priority.low]) {
+      const relatedComponent = priorityMap.get(priority);
+      if (relatedComponent) {
+        const taskList = relatedComponent.map((x) => x.processAsync());
+        await Promise.all(taskList);
       }
     }
   }
@@ -82,6 +72,7 @@ export default class ComponentCollection {
     });
     return components;
   }
+
   private extractBasisCommands(node: Node, components: Array<IComponent>) {
     const pair = this.findRootLevelComponentNode(node);
     for (const item of pair.coreList) {
@@ -97,6 +88,7 @@ export default class ComponentCollection {
       components.push(this.createCommandComponent(item, key));
     }
   }
+
   private extractTextComponent(node: Text, components: Array<IComponent>) {
     if (node.textContent.trim().length != 0) {
       do {
@@ -136,6 +128,7 @@ export default class ComponentCollection {
       }
     }
   }
+
   private extractTextBaseComponents(
     element: Node,
     components: Array<IComponent>
@@ -172,6 +165,7 @@ export default class ComponentCollection {
     childContainer.register("container", { useValue: childContainer });
     return childContainer.resolve<CommandComponent>(token);
   }
+
   private findRootLevelComponentNode(rootElement: Node): {
     coreList: Array<Element>;
     tagList: Array<Element>;
@@ -189,7 +183,6 @@ export default class ComponentCollection {
       }
       child.childNodes.forEach(process);
     };
-
     process(rootElement);
     return { coreList, tagList };
   }

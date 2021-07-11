@@ -29,16 +29,15 @@
     </fieldset>
     <fieldset>
         <legend>Last Update</legend>
-        <Basis core="print" datamembername="user.list" run="atclient">
+        <Basis core="print" dataMemberName="user.list" run="atclient">
             <layout>
                 <script type="text/template">
             <table>
                 <thead>
-                    
                     <tr>
-                        <td   >Id</td>
-                        <td >Name</td>
-                        <td >Age</td>
+                        <td>Id</td>
+                        <td>Name</td>
+                        <td>Age</td>
                     </tr>
                 </thead>
                 <tbody>@child</tbody>
@@ -101,17 +100,18 @@
         let preWhere = null;
         let orderPart = null;
         let wherePart = null;
-        async function manipulation(_, context) {
-            const source = context.tryToGetSource('user.list');
+        async function manipulation(args) {
+            console.log('ttt', args);
+            const source = args.context.tryToGetSource('user.list');
             let retVal = source;
 
-            const where = context.tryToGetSource('demo.filter-name');
+            const where = args.context.tryToGetSource('demo.filter-name');
             if (where && preWhere !== where) {
                 const nameValue = where.rows[0].value;
                 wherePart = nameValue ? `where name like '%${nameValue}%'` : ''
             }
 
-            const sort = context.tryToGetSource('demo.sort-by');
+            const sort = args.context.tryToGetSource('demo.sort-by');
             if (sort && preSort !== sort) {
                 const sortCol = sort.rows[0].value;
                 let sortType = 'asc';
@@ -126,9 +126,9 @@
 
             const sql = `select * from ? ${wherePart ?? ""} ${orderPart ?? ""}`;
             $bc.setSource('demo.sql', sql);
-            retVal = await $bc.util.source.runSqlAsync(source, sql, context);
+            retVal = await $bc.util.source.runSqlAsync(source, sql, args.context);
 
-            return { source: retVal };
+            args.source = retVal;
         }
 
     </script>

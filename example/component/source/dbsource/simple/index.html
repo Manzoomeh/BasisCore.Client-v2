@@ -16,14 +16,13 @@
         <member name="type" type="list" request="print" preview="true"></member>
     </basis>
 
-    <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>
-    <basis core="callback" run="AtClient" datamembername="book.type" method="onSource"></basis>
+    <basis core="callback" run="AtClient" triggers="book.list book.type" method="onSource"></basis>
 
     <script>
         var host = {
             debug: false,
             autoRender: true,
-            'DbLibPath': 'http://cdn.basiscore.net/_js/alasql.min.js',
+            'DbLibPath': '/alasql.min.js',
             settings: {
                 'connection.web.bookapi': 'data/book.json',
                 'default.dmnid': 2668
@@ -32,8 +31,8 @@
         }
 
 
-        function onSource(source) {
-            console.table(source.rows);
+        function onSource(args) {
+            console.table(args.source.rows);
         }
     </script>
 </body>

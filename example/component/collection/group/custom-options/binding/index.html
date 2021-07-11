@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <basis core="repeater" name="rep" datamembername="page.data" run="atclient">
+    <basis core="repeater" name="rep" datamembername="page.data" run="atclient" replace="false">
         <basis core="group" run="atclient" options="[##rep.current.options##]">
             <fieldset>
                 <legend>[##rep.current.title##]</legend>

@@ -9,8 +9,9 @@ export default abstract class Component<TNode extends Node>
 {
   readonly node: TNode;
   readonly context: IContext;
-  readonly priority: Priority = Priority.normal;
-  protected _busy: boolean = false;
+  readonly priority: Priority = Priority.low;
+  protected allowMultiProcess: boolean = false;
+  private _busy: boolean = false;
   public get busy(): boolean {
     return this._busy;
   }
@@ -19,12 +20,13 @@ export default abstract class Component<TNode extends Node>
     this.node = node;
     this.context = context;
   }
+
   public processAsync(): Promise<void> {
     return this.onTrigger();
   }
 
   protected async onTrigger(source?: ISource): Promise<void> {
-    if (!this._busy) {
+    if (!this._busy || this.allowMultiProcess) {
       this._busy = true;
       try {
         await this.renderAsync(source);

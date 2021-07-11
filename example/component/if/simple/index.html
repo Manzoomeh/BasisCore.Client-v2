@@ -29,17 +29,21 @@
         </Basis>
     </fieldset>
     <script>
-        $bc.setSource('inlinesource.print', [
-            {
-                id: 1, name: 'qamsari', prpid: null
-            },
-            {
-                id: 3, name: 'akaberi', prpid: 1
-            },
-            {
-                id: 3, name: 'amir', prpid: 3
+        const host = {
+            sources: {
+                'inlinesource.print': [
+                    {
+                        id: 1, name: 'qamsari', prpid: null
+                    },
+                    {
+                        id: 3, name: 'akaberi', prpid: 1
+                    },
+                    {
+                        id: 3, name: 'amir', prpid: 3
+                    }
+                ]
             }
-        ])
+        }
     </script>
 </body>
 

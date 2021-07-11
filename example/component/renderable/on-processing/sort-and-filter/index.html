@@ -45,7 +45,6 @@
             </script>
         </face>
     </Basis>
-    <basis core="callback" run="AtClient" datamembername="local.print" method="onSource"></basis>
     <script>
         const MIN_ID = 1000;
         const MAX_ID = 1500;
@@ -71,16 +70,16 @@
         let preWhere = null;
         let orderPart = null;
         let wherePart = null;
-        async function manipulation(source, context) {
-            let retVal = source;
+        async function manipulation(args) {
+            let retVal = args.source;
 
-            const where = context.tryToGetSource('demo.filter-name');
+            const where = args.context.tryToGetSource('demo.filter-name');
             if (where && preWhere !== where) {
                 const nameValue = where.rows[0].value;
                 wherePart = nameValue ? `where name like '%${nameValue}%'` : ''
             }
 
-            const sort = context.tryToGetSource('demo.sort-by');
+            const sort = args.context.tryToGetSource('demo.sort-by');
             if (sort && preSort !== sort) {
                 const sortCol = sort.rows[0].value;
                 let sortType = 'asc';
@@ -95,14 +94,11 @@
 
             const sql = `select top 10 * from ? ${wherePart ?? ""} ${orderPart ?? ""}`;
             $bc.setSource('demo.sql', sql);
-            retVal = await $bc.util.source.runSqlAsync(source, sql, context);
+            retVal = await $bc.util.source.runSqlAsync(args.source, sql, args.context);
 
-            return { source: retVal };
+            args.source = retVal;
         }
 
-        function onSource(source) {
-            console.table(source.rows);
-        }
     </script>
 </body>
 

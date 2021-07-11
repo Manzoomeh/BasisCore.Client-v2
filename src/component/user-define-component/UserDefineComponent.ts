@@ -16,7 +16,6 @@ export default class UserDefineComponent
 {
   readonly container: DependencyContainer;
   private manager: IComponentManager;
-  readonly range: Range;
 
   constructor(
     @inject("element") element: Element,
@@ -25,9 +24,6 @@ export default class UserDefineComponent
   ) {
     super(element, context);
     this.container = container;
-    this.range = new Range();
-    this.range.selectNode(element);
-    this.range.extractContents();
   }
 
   public async initializeAsync(): Promise<void> {

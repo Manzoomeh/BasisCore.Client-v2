@@ -3,13 +3,13 @@ import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
 import { Priority } from "../../enum";
 import { SourceId } from "../../type-alias";
-import { ElementBaseComponent } from "../ElementBaseComponent";
+import ElementBaseComponent from "../ElementBaseComponent";
 
 export default abstract class HTMLComponent<
   TElement extends HTMLElement
 > extends ElementBaseComponent<TElement> {
   protected triggers: string;
-  readonly priority: Priority = Priority.None;
+  readonly priority: Priority = Priority.none;
 
   constructor(element: TElement, context: IContext) {
     super(element, context);
@@ -43,7 +43,7 @@ export default abstract class HTMLComponent<
       id = args.id;
       value = args.value;
     }
-    this.context.setAsSource(id ?? "cms.unknown", { value: value });
+    this.context.setAsSource(id ?? "cms.unknown", value);
     if (this.onProcessedAsync) {
       const args = super.createCallbackArgument<HtmlCallbackArgument>({
         id: id,
