@@ -14,10 +14,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   public async processAsync(): Promise<void> {
     this.sourceId = await this.getAttributeValueAsync("dataMemberName");
     this.addTrigger([this.sourceId]);
-    const source = this.context.tryToGetSource(this.sourceId);
-    if (source) {
-      await super.processAsync();
-    }
+    await super.processAsync();
   }
 
   public async runAsync(source?: ISource): Promise<boolean> {

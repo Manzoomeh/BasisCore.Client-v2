@@ -1,6 +1,5 @@
 ﻿import IContext from "../../../context/IContext";
 import IToken from "../../../token/IToken";
-import StringValue from "../../../token/string/StringValue";
 
 export default class RawFace {
   readonly ApplyReplace: IToken<boolean>;
