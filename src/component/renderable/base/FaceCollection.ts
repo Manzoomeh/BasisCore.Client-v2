@@ -37,18 +37,18 @@ export default class FaceCollection extends Array<Face> {
         //   //TODO:add function
         // }
         param.setRendered();
-        if (param.mustApplyDivider) {
-          retVal += param.dividerTemplate;
-        }
-        if (param.isEnd) {
-          var tmp = param.emptyCell;
-          if (param.incompleteTemplate) {
-            while (tmp > 1) {
-              retVal += param.incompleteTemplate;
-              tmp--;
-            }
-          }
-        }
+        // if (param.mustApplyDivider) {
+        //   retVal += param.dividerTemplate;
+        // }
+        // if (param.isEnd) {
+        //   var tmp = param.emptyCell;
+        //   if (param.incompleteTemplate) {
+        //     while (tmp > 1) {
+        //       retVal += param.incompleteTemplate;
+        //       tmp--;
+        //     }
+        //   }
+        // }
       } else {
         param.setIgnored();
       }

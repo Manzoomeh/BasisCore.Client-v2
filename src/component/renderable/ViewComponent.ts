@@ -6,7 +6,7 @@ import TokenUtil from "../../token/TokenUtil";
 import FaceCollection from "./base/FaceCollection";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
-import ReplaceCollection from "./base/ReplaceCollection";
+//import ReplaceCollection from "./base/ReplaceCollection";
 
 @injectable()
 export default class ViewComponent extends RenderableComponent {
@@ -21,10 +21,10 @@ export default class ViewComponent extends RenderableComponent {
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    replaces: ReplaceCollection,
-    dividerRowcount: number,
-    dividerTemplate: string,
-    incompleteTemplate: string,
+    // replaces: ReplaceCollection,
+    // dividerRowcount: number,
+    // dividerTemplate: string,
+    // incompleteTemplate: string,
     canRenderAsync: (data: any, key: any) => Promise<Node[]>,
     keyField
   ): Promise<string> {
@@ -42,11 +42,11 @@ export default class ViewComponent extends RenderableComponent {
         .map((x) => x[groupColumn])
         .filter((x, i, arr) => arr.indexOf(x) === i);
       const rootRenderParam = new RenderParam(
-        replaces,
-        groupList.length,
-        dividerRowcount,
-        dividerTemplate,
-        incompleteTemplate,
+        // replaces,
+        // groupList.length,
+        // dividerRowcount,
+        // dividerTemplate,
+        // incompleteTemplate,
         canRenderAsync,
         keyField
       );
@@ -65,11 +65,11 @@ export default class ViewComponent extends RenderableComponent {
         );
         let level2Result = "";
         const childRenderParam = new RenderParam(
-          replaces,
-          childItems.length,
-          dividerRowcount,
-          dividerTemplate,
-          incompleteTemplate,
+          //replaces,
+          //childItems.length,
+          //dividerRowcount,
+          //dividerTemplate,
+          //incompleteTemplate,
           canRenderAsync,
           keyField
         );

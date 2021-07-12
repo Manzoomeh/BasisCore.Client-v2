@@ -5,7 +5,7 @@ import ISource from "../../data/ISource";
 import FaceCollection from "./base/FaceCollection";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
-import ReplaceCollection from "./base/ReplaceCollection";
+//import ReplaceCollection from "./base/ReplaceCollection";
 
 @injectable()
 export default class TreeComponent extends RenderableComponent {
@@ -20,10 +20,10 @@ export default class TreeComponent extends RenderableComponent {
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    replaces: ReplaceCollection,
-    dividerRowCount: number,
-    dividerTemplate: string,
-    incompleteTemplate: string,
+    // replaces: ReplaceCollection,
+    // dividerRowCount: number,
+    // dividerTemplate: string,
+    // incompleteTemplate: string,
     canRenderAsync: (data: any, key: any) => Promise<Node[]>,
     keyField
   ): Promise<string> {
@@ -46,11 +46,11 @@ export default class TreeComponent extends RenderableComponent {
         );
       }
       var rootRenderParam = new RenderParam(
-        replaces,
-        rootRecords.length,
-        dividerRowCount,
-        dividerTemplate,
-        incompleteTemplate,
+        // replaces,
+        // rootRecords.length,
+        // dividerRowCount,
+        // dividerTemplate,
+        // incompleteTemplate,
         canRenderAsync,
         keyField
       );
@@ -60,10 +60,10 @@ export default class TreeComponent extends RenderableComponent {
           rootRenderParam,
           1,
           faces,
-          replaces,
-          dividerRowCount,
-          dividerTemplate,
-          incompleteTemplate,
+          // replaces,
+          // dividerRowCount,
+          // dividerTemplate,
+          // incompleteTemplate,
           principalKey,
           foreignKey,
           canRenderAsync,
@@ -80,10 +80,10 @@ export default class TreeComponent extends RenderableComponent {
     parentRenderParam: RenderParam,
     level: number,
     faces: FaceCollection,
-    replaces: ReplaceCollection,
-    dividerRowCount: number,
-    dividerTemplate: string,
-    incompleteTemplate: string,
+    // replaces: ReplaceCollection,
+    // dividerRowCount: number,
+    // dividerTemplate: string,
+    // incompleteTemplate: string,
     principalKey: string,
     foreignKey: string,
     canRenderAsync: (data: any, key: any) => Promise<Node[]>,
@@ -100,11 +100,11 @@ export default class TreeComponent extends RenderableComponent {
     if (childRows.length != 0) {
       var newLevel = level + 1;
       const childRenderParam = new RenderParam(
-        replaces,
-        childRows.length,
-        dividerRowCount,
-        dividerTemplate,
-        incompleteTemplate,
+        // replaces,
+        // childRows.length,
+        // dividerRowCount,
+        // dividerTemplate,
+        // incompleteTemplate,
         canRenderAsync,
         keyField
       );
@@ -115,10 +115,10 @@ export default class TreeComponent extends RenderableComponent {
           childRenderParam,
           newLevel,
           faces,
-          replaces,
-          dividerRowCount,
-          dividerTemplate,
-          incompleteTemplate,
+          // replaces,
+          // dividerRowCount,
+          // dividerTemplate,
+          // incompleteTemplate,
           principalKey,
           foreignKey,
           canRenderAsync,

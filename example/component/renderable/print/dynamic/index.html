@@ -27,7 +27,7 @@
         var i = 0;
         function clickHandler() {
             $bc.setSource(
-                "local.print", { id: i, name: `btn-t=${i}` }, MergeType.replace
+                "local.print", { id: i, name: `btn-t=${i}` }, MergeType.append
             );
             i += 1;
         }
