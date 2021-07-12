@@ -4,12 +4,14 @@ import ReplaceCollection from "./ReplaceCollection";
 export default class RenderParam {
   readonly replaces: ReplaceCollection;
   Levels: string[];
-  readonly _renderableCount: number = 0;
+  private readonly _renderableCount: number = 0;
   _renderedCount: number;
-  readonly _cellPerRow: number = 0;
+  private readonly _cellPerRow: number = 0;
   readonly dividerTemplate: string;
   readonly incompleteTemplate: string;
-  _renderedCell: number;
+  readonly keyFieldName?: string;
+  readonly mustRenderAsync: (data: any, key: any) => Promise<Node[]>;
+  private _renderedCell: number;
   get isEnd(): boolean {
     return this._renderableCount == this._renderedCount;
   }
@@ -29,13 +31,17 @@ export default class RenderParam {
     renderableCount: number,
     recordPerRow: number,
     dividerTemplate: string,
-    incompleteTemplate: string
+    incompleteTemplate: string,
+    mustRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    keyFieldName?: string
   ) {
     this.replaces = replaces;
     this._cellPerRow = recordPerRow;
     this._renderableCount = renderableCount;
     this.dividerTemplate = dividerTemplate;
     this.incompleteTemplate = incompleteTemplate;
+    this.mustRenderAsync = mustRenderAsync;
+    this.keyFieldName = keyFieldName ?? "id";
     this._renderedCount = 0;
   }
   setLevel(levels: string[]) {

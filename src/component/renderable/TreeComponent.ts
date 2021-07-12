@@ -23,7 +23,9 @@ export default class TreeComponent extends RenderableComponent {
     replaces: ReplaceCollection,
     dividerRowCount: number,
     dividerTemplate: string,
-    incompleteTemplate: string
+    incompleteTemplate: string,
+    canRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    keyField
   ): Promise<string> {
     var retVal = "";
     if (dataSource.rows.length != 0) {
@@ -48,7 +50,9 @@ export default class TreeComponent extends RenderableComponent {
         rootRecords.length,
         dividerRowCount,
         dividerTemplate,
-        incompleteTemplate
+        incompleteTemplate,
+        canRenderAsync,
+        keyField
       );
       for (const row of rootRecords) {
         retVal += await this.renderLevelAsync(
@@ -62,6 +66,8 @@ export default class TreeComponent extends RenderableComponent {
           incompleteTemplate,
           principalKey,
           foreignKey,
+          canRenderAsync,
+          keyField,
           row
         );
       }
@@ -80,6 +86,8 @@ export default class TreeComponent extends RenderableComponent {
     incompleteTemplate: string,
     principalKey: string,
     foreignKey: string,
+    canRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    keyField,
     data: any[]
   ): Promise<string> {
     var childRenderResult = "";
@@ -96,7 +104,9 @@ export default class TreeComponent extends RenderableComponent {
         childRows.length,
         dividerRowCount,
         dividerTemplate,
-        incompleteTemplate
+        incompleteTemplate,
+        canRenderAsync,
+        keyField
       );
 
       for (const row of childRows) {
@@ -111,6 +121,8 @@ export default class TreeComponent extends RenderableComponent {
           incompleteTemplate,
           principalKey,
           foreignKey,
+          canRenderAsync,
+          keyField,
           row
         );
       }

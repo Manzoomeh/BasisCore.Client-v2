@@ -2,16 +2,16 @@
 import IToken from "../../../token/IToken";
 
 export default class RawFace {
-  readonly ApplyReplace: IToken<boolean>;
-  readonly ApplyFunction: IToken<boolean>;
+  // readonly ApplyReplace: IToken<boolean>;
+  // readonly ApplyFunction: IToken<boolean>;
   readonly Level: IToken<string>;
   readonly RowType: IToken<string>;
   readonly Filter: IToken<string>;
   readonly Template: string;
 
   constructor(element: Element, context: IContext) {
-    this.ApplyReplace = element.GetBooleanToken("replace", context);
-    this.ApplyFunction = element.GetBooleanToken("function", context);
+    // this.ApplyReplace = element.GetBooleanToken("replace", context);
+    // this.ApplyFunction = element.GetBooleanToken("function", context);
     this.Level = element.GetStringToken("level", context);
     this.RowType = element.GetStringToken("rowtype", context);
     this.Filter = element.GetStringToken("filter", context);

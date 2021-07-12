@@ -24,7 +24,9 @@ export default class ViewComponent extends RenderableComponent {
     replaces: ReplaceCollection,
     dividerRowcount: number,
     dividerTemplate: string,
-    incompleteTemplate: string
+    incompleteTemplate: string,
+    canRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    keyField
   ): Promise<string> {
     var retVal = "";
     if (dataSource.rows.length != 0) {
@@ -44,7 +46,9 @@ export default class ViewComponent extends RenderableComponent {
         groupList.length,
         dividerRowcount,
         dividerTemplate,
-        incompleteTemplate
+        incompleteTemplate,
+        canRenderAsync,
+        keyField
       );
       rootRenderParam.setLevel(["1"]);
 
@@ -65,7 +69,9 @@ export default class ViewComponent extends RenderableComponent {
           childItems.length,
           dividerRowcount,
           dividerTemplate,
-          incompleteTemplate
+          incompleteTemplate,
+          canRenderAsync,
+          keyField
         );
         childRenderParam.setLevel(["2"]);
         for (const row of childItems) {
