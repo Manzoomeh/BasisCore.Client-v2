@@ -35,10 +35,10 @@ export default class UserDefineComponent
       await this.manager.initializeAsync();
     }
   }
-  protected runAsync(source?: ISource): Promise<boolean> {
+  protected runAsync(source?: ISource): Promise<any> {
     return this.manager.runAsync
       ? this.manager.runAsync(source)
-      : Promise.resolve(true);
+      : Promise.resolve();
   }
 
   public toNode(rawHtml: string): Node {

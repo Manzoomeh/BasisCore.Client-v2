@@ -73,17 +73,17 @@ export default abstract class ElementBaseComponent<
       await this.onRenderingAsync(renderingArgs);
       canRender = !renderingArgs.prevent;
     }
-    let rendered = false;
+    let runResult: any = null;
     if (canRender) {
-      rendered = await this.runAsync(source);
-    }
-    if (this.onRenderedAsync) {
-      await this.onRenderedAsync(
-        this.createCallbackArgument<RenderedCallbackArgument>({
-          rendered: rendered,
-          source: source,
-        })
-      );
+      runResult = await this.runAsync(source);
+      if (runResult !== null && this.onRenderedAsync) {
+        await this.onRenderedAsync(
+          this.createCallbackArgument<RenderedCallbackArgument>({
+            result: runResult,
+            source: source,
+          })
+        );
+      }
     }
   }
 
@@ -117,5 +117,5 @@ export default abstract class ElementBaseComponent<
     } as unknown as T;
   }
 
-  protected abstract runAsync(source?: ISource): Promise<boolean>;
+  protected abstract runAsync(source?: ISource): Promise<any>;
 }

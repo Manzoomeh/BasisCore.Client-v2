@@ -17,8 +17,8 @@ export default abstract class SourceBaseComponent extends CommandComponent {
     await super.processAsync();
   }
 
-  public async runAsync(source?: ISource): Promise<boolean> {
-    let rendered = false;
+  public async runAsync(source?: ISource): Promise<any> {
+    let result: any = null;
     if (source?.id !== this.sourceId) {
       source = this.context.tryToGetSource(this.sourceId);
     }
@@ -30,22 +30,25 @@ export default abstract class SourceBaseComponent extends CommandComponent {
         await this.onProcessingAsync(args);
         source = args.source;
       }
-      await this.renderSourceAsync(source);
-      rendered = true;
+      result = await this.renderSourceAsync(source);
     }
-    return rendered;
+    return result;
   }
 
   protected setContent(newContent: Node, append: boolean) {
     if (append) {
-      const currentContent = this.range.extractContents();
-      currentContent.appendChild(newContent);
-      this.range.insertNode(currentContent);
+      if (newContent) {
+        const currentContent = this.range.extractContents();
+        currentContent.appendChild(newContent);
+        this.range.insertNode(currentContent);
+      }
     } else {
       this.range.deleteContents();
-      this.range.insertNode(newContent);
+      if (newContent) {
+        this.range.insertNode(newContent);
+      }
     }
   }
 
-  protected abstract renderSourceAsync(dataSource: ISource): Promise<void>;
+  protected abstract renderSourceAsync(dataSource: ISource): Promise<any>;
 }

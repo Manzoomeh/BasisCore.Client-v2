@@ -11,53 +11,58 @@
 
 <body>
     <input type="button" value="Set Source" onclick="clickHandler()" />
-    <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
+    <basis core="callback" triggers="local.tree" run="atclient"></basis>
+    <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient"
+        OnRendered="OnRendered">
         <layout>
             <ul data-hi>
                 @child
             </ul>
         </layout>
-        <face level="end" replace="true">
-            <li data-end-like><a href="/@name@">[(bold)@id@-@name@]</a></li>
+        <face level="end">
+            <li data-end-like>@id@ - @name@</li>
         </face>
         <face level="2">
             <li data-end-like>
-                <a href="/@name@">@id - @name Level2</a>
+                @id - @name Level2
                 <ul>
                     @child
                 </ul>
             </li>
         </face>
-        <face replace="true">
+        <face>
             <li data-else class="dropdown_233">
-                [(link) @id@|/@name@]
+                @id@ - @name@
                 <ul>
                     @child
                 </ul>
             </li>
         </face>
-        <replace tagname="linK">
-            <a href="@val2"> Click For @val1 </a>
-        </replace>
 
-        <replace tagname="bold">
-            <b class="u-fade js-anim @val2"> @val1 </b>
-        </replace>
-        <replace tagname="bold">
-            <b class="u-fade js-anim @val2"> @val1 </b>
-        </replace>
     </basis>
     <script>
         var i = 0;
         function clickHandler() {
             $bc.setSource("local.tree", [
-                { id: 1, name: `ali-${i}`, pid: null },
-                { id: 2, name: `amir-${i}`, pid: 1 },
-                { id: 3, name: `hassan-${i}`, pid: 1 },
-                { id: 4, name: `javad-${i}`, pid: 2 },
-                { id: 5, name: `reza-${i}`, pid: 4 },
+                { id: 1, name: `ali-${i}`, pid: null, status: 1 },
+                { id: 2, name: `amir-${i}`, pid: 1, status: 1 },
+                { id: 3, name: `hassan-${i}`, pid: 1, status: 1 },
+                { id: 4, name: `javad-${i}`, pid: 2, status: 0 },
+                { id: 5, name: `reza-${i}`, pid: 4, status: 1 },
             ]);
             i += 1;
+        }
+        let b = false;
+        function OnRendered(args) {
+            if (!b) {
+                alert("set style only one time");
+                args.result.forEach(element => {
+                    if (element.querySelectorAll) {
+                        Array.from(element.querySelectorAll('li')).forEach(element => element.style.color = "red");
+                    }
+                });
+                b = true;
+            }
         }
     </script>
 </body>

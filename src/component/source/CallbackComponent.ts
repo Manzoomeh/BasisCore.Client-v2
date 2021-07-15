@@ -20,7 +20,7 @@ export default class CallbackComponent extends CommandComponent {
     this.methodToken = this.getAttributeToken("method");
   }
 
-  protected async runAsync(source?: ISource): Promise<boolean> {
+  protected async runAsync(source?: ISource): Promise<any> {
     let retVal = true;
     if (this.methodToken) {
       const methodName = await this.methodToken.getValueAsync();
@@ -35,7 +35,7 @@ export default class CallbackComponent extends CommandComponent {
           `error in execute callback method '${methodName}'.`,
           e
         );
-        retVal = false;
+        retVal = e;
       }
     } else {
       console.log(source);

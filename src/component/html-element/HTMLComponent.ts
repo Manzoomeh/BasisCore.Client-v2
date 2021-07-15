@@ -26,11 +26,11 @@ export default abstract class HTMLComponent<
     }
   }
 
-  protected runAsync(source?: ISource): Promise<boolean> {
+  protected runAsync(source?: ISource): Promise<void> {
     return this.onEventTriggerAsync();
   }
 
-  protected async onEventTriggerAsync(event?: Event): Promise<boolean> {
+  protected async onEventTriggerAsync(event?: Event): Promise<void> {
     event?.preventDefault();
     let id = await this.getSourceIdAsync();
     let value = await this.getSourceValueAsync(event);
@@ -51,7 +51,6 @@ export default abstract class HTMLComponent<
       });
       await this.onProcessedAsync(args);
     }
-    return true;
   }
 
   protected async getBcProperty(name: string): Promise<string> {

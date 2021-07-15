@@ -1,10 +1,11 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import Util from "../../Util";
+import FaceRenderResult from "./base/FaceRenderResult";
 import RenderableComponent from "./base/RenderableComponent";
 
 @injectable()
-export default class ListComponent extends RenderableComponent {
+export default class ListComponent extends RenderableComponent<FaceRenderResult> {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
@@ -33,8 +34,8 @@ export default class ListComponent extends RenderableComponent {
       let contentTemplate = "";
       const key = Date.now().toString(36);
       let index = cellCount;
-      this.generatedNodeList.forEach((node) => {
-        contentTemplate += `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
+      this.renderResultList.forEach((node) => {
+        contentTemplate += `<basis-core-template-tag id="${key}" data-type="result"></basis-core-template-tag>`;
         index--;
         if (index == 0) {
           contentTemplate += dividerTemplate;
@@ -45,26 +46,27 @@ export default class ListComponent extends RenderableComponent {
         contentTemplate += incompleteTemplate;
         index--;
       }
-      const rawLayoutTemplate = this.node
+      let layoutTemplate = await this.node
         .querySelector("layout")
-        ?.GetTemplateToken(this.context);
-      let layoutTemplate = await rawLayoutTemplate?.getValueAsync();
+        ?.GetTemplateToken(this.context)
+        ?.getValueAsync();
       layoutTemplate = layoutTemplate
         ? Util.ReplaceEx(layoutTemplate, "@child", contentTemplate)
         : contentTemplate;
 
       retVal = this.range.createContextualFragment(layoutTemplate);
       const items = [
-        ...retVal.querySelectorAll(`basis-core-template-tag#${key}`),
+        ...retVal.querySelectorAll(
+          `basis-core-template-tag#${key}[data-type="result"]`
+        ),
       ];
 
       index = 0;
-      this.generatedNodeList.forEach((node) => {
+      this.renderResultList.forEach((node) => {
         const range = new Range();
-        console.log(items[index]);
         range.selectNode(items[index]);
         range.deleteContents();
-        node.forEach((x) => range.insertNode(x));
+        node.AppendTo(range);
         index++;
       });
     } else {

@@ -26,7 +26,7 @@ export default class GroupComponent extends CommandComponent {
     this.range.insertNode(content);
   }
 
-  public async runAsync(): Promise<boolean> {
+  public async runAsync(): Promise<void> {
     if (this.oldLocalContext) {
       this.oldLocalContext.dispose();
     }
@@ -48,6 +48,5 @@ export default class GroupComponent extends CommandComponent {
     childContainer.register("context", { useValue: this.oldLocalContext });
     this.collection = childContainer.resolve(ComponentCollection);
     await this.collection.processNodesAsync(this.childNodes);
-    return true;
   }
 }

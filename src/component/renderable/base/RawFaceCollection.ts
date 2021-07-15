@@ -13,11 +13,15 @@ import IBCUtil from "../../../wrapper/IBCUtil";
 declare const $bc: IBCUtil;
 
 export default class RawFaceCollection extends Array<RawFace> {
-  static Create(element: Element, context: IContext): RawFaceCollection {
+  static Create(
+    element: Element,
+    context: IContext,
+    placeHolder?: string
+  ): RawFaceCollection {
     var retVal = new RawFaceCollection();
     element
       .querySelectorAll("face")
-      .forEach((x) => retVal.push(new RawFace(x, context)));
+      .forEach((x) => retVal.push(new RawFace(x, context, placeHolder)));
     return retVal;
   }
 

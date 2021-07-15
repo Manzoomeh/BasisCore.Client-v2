@@ -7,15 +7,19 @@ import Util from "../../../Util";
 import IBCUtil from "../../../wrapper/IBCUtil";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
+import FaceRenderResult from "./FaceRenderResult";
+import FaceRenderResultList from "./FaceRenderResultList";
 import RawFaceCollection from "./RawFaceCollection";
 import RenderParam from "./RenderParam";
 
 declare const $bc: IBCUtil;
-export default abstract class RenderableComponent extends SourceBaseComponent {
+export default abstract class RenderableComponent<
+  TRenderResult extends FaceRenderResult
+> extends SourceBaseComponent {
   readonly container: DependencyContainer;
   readonly collection: ComponentCollection;
   readonly reservedKeys: Array<string>;
-  protected generatedNodeList: Map<any, Node[]>;
+  protected renderResultList: FaceRenderResultList<TRenderResult>;
   readonly keyFieldToken: IToken<string>;
 
   constructor(
@@ -166,24 +170,30 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
   //   // await this.collection.processNodesAsync(childNodes);
   // }
 
-  async renderSourceAsync(source: ISource): Promise<void> {
+  async renderSourceAsync(source: ISource): Promise<Node[]> {
     if (source.rows) {
-      var rawFaces = RawFaceCollection.Create(this.node, this.context);
+      var rawFaces = RawFaceCollection.Create(
+        this.node,
+        this.context,
+        this.reservedKeys ? this.reservedKeys[0] : null
+      );
       var faces = await rawFaces.processAsync(
         source,
         this.context,
         this.reservedKeys
       );
       const keyField = await this.keyFieldToken?.getValueAsync();
-      await this.renderDataPartAsync_(
+      const newRenderResultList = await this.renderDataPartAsync_(
         source,
         faces,
         this.CanRenderAsync.bind(this),
         keyField
       );
+      this.renderResultList = newRenderResultList;
     }
+
     let container: DocumentFragment = null;
-    if (this.generatedNodeList.size > 0) {
+    if (this.renderResultList.size > 0) {
       container = await this.createContentAsync();
     } else {
       var rawElseLayout = this.node
@@ -195,7 +205,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       }
     }
     //console.log(container);
-
+    const generatedNodes = [...container.childNodes];
     this.setContent(container, false);
     // if (this.Nodes) {
     //   var rawLayout = this.node
@@ -213,6 +223,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     // const childNodes = [...content.childNodes];
     // this.setContent(content, false);
     // await this.collection.processNodesAsync(childNodes);
+    return generatedNodes;
   }
 
   // protected createContent_back(
@@ -272,9 +283,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
       `basis-core-template-tag#${key}`
     );
     const tmp = this.range.createContextualFragment("");
-    this.generatedNodeList.forEach((node) =>
-      node.forEach((x) => tmp.appendChild(x))
-    );
+    this.renderResultList.forEach((result) => result.AppendTo(tmp));
     const range = new Range();
     range.selectNode(childContainer);
     range.deleteContents();
@@ -283,8 +292,13 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
   }
 
   protected async CanRenderAsync(data: any, key: any): Promise<any> {
-    let node = this.generatedNodeList?.get(key);
+    let node = this.renderResultList?.get(key);
     if (node) {
+      try {
+        if (data.status == 1) {
+          node = null;
+        }
+      } catch {}
     }
     return node;
   }
@@ -296,7 +310,7 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     // dividerRowcount: number,
     // dividerTemplate: string,
     // incompleteTemplate: string,
-    canRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    canRenderAsync: (data: any, key: any) => Promise<FaceRenderResult>,
     keyField
   ): Promise<string> {
     let result = new Array<string>();
@@ -316,20 +330,31 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     return result.join("");
   }
 
+  protected FaceRenderResultFactory(
+    key: any,
+    doc: DocumentFragment
+  ): TRenderResult {
+    return new FaceRenderResult(key, doc) as TRenderResult;
+  }
+
   protected async renderDataPartAsync_(
     dataSource: ISource,
     faces: FaceCollection,
-    canRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    canRenderAsync: (data: any, key: any) => Promise<TRenderResult>,
     keyField
-  ): Promise<void> {
-    const param = new RenderParam(canRenderAsync, keyField);
-    const tempGeneratedNodeList = new Map<any, Node[]>();
+  ): Promise<FaceRenderResultList<TRenderResult>> {
+    const param = new RenderParam<TRenderResult>(canRenderAsync, keyField);
+    const newRenderResultList = new FaceRenderResultList<TRenderResult>();
     for (const row of dataSource.rows) {
-      const renderResult = await faces.renderAsync_(param, row);
-      if (renderResult.nodes) {
-        tempGeneratedNodeList.set(renderResult.key, renderResult.nodes);
+      const renderResult = await faces.renderAsync_<TRenderResult>(
+        param,
+        row,
+        this.FaceRenderResultFactory
+      );
+      if (renderResult) {
+        newRenderResultList.set(renderResult.key, renderResult);
       }
     }
-    this.generatedNodeList = tempGeneratedNodeList;
+    return newRenderResultList;
   }
 }

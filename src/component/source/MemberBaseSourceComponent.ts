@@ -25,12 +25,11 @@ export default abstract class MemberBaseSourceComponent<
     this.id = await this.getAttributeValueAsync("name");
   }
 
-  protected async runAsync(): Promise<boolean> {
+  protected async runAsync(): Promise<void> {
     this.oldConnectionName = null;
     if (this.members.length > 0) {
       await this.loadDataAsync();
     }
-    return true;
   }
 
   private async processLoadedDataSet(dataList: Array<Data>) {

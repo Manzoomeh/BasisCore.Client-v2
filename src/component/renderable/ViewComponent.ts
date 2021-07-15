@@ -4,12 +4,13 @@ import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
 import TokenUtil from "../../token/TokenUtil";
 import FaceCollection from "./base/FaceCollection";
+import FaceRenderResult from "./base/FaceRenderResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
 //import ReplaceCollection from "./base/ReplaceCollection";
 
 @injectable()
-export default class ViewComponent extends RenderableComponent {
+export default class ViewComponent extends RenderableComponent<FaceRenderResult> {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
@@ -25,7 +26,7 @@ export default class ViewComponent extends RenderableComponent {
     // dividerRowcount: number,
     // dividerTemplate: string,
     // incompleteTemplate: string,
-    canRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    canRenderAsync: (data: any, key: any) => Promise<FaceRenderResult>,
     keyField
   ): Promise<string> {
     var retVal = "";

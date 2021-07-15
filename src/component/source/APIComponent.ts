@@ -27,7 +27,7 @@ export default class APIComponent extends SourceComponent {
     this.nameToken = this.getAttributeToken("name");
   }
 
-  protected async runAsync(): Promise<boolean> {
+  protected async runAsync(): Promise<void> {
     const method = (
       await this.methodToken?.getValueAsync()
     )?.toUpperCase() as HttpMethod;
@@ -83,6 +83,5 @@ export default class APIComponent extends SourceComponent {
       const source = new Source(data.id, data.rows, data.mergeType);
       this.context.setSource(source);
     });
-    return true;
   }
 }

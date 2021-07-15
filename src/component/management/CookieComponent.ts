@@ -15,7 +15,7 @@ export default class CookieComponent extends CommandComponent {
     super(element, context);
   }
 
-  public async runAsync(): Promise<boolean> {
+  public async runAsync(): Promise<void> {
     var name = await this.getAttributeValueAsync("name");
     var value = await this.getAttributeValueAsync("value");
     var maxAge = await this.getAttributeValueAsync("max-age");
@@ -28,6 +28,5 @@ export default class CookieComponent extends CommandComponent {
       str += `;path=${path.trim()}`;
     }
     document.cookie = str;
-    return true;
   }
 }

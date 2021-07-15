@@ -1,7 +1,8 @@
 ﻿import { FaceRowType } from "../../../enum";
+import FaceRenderResult from "./FaceRenderResult";
 //import ReplaceCollection from "./ReplaceCollection";
 
-export default class RenderParam {
+export default class RenderParam<TRenderResult extends FaceRenderResult> {
   //readonly replaces: ReplaceCollection;
   Levels: string[];
   //private readonly _renderableCount: number = 0;
@@ -10,7 +11,7 @@ export default class RenderParam {
   // readonly dividerTemplate: string;
   // readonly incompleteTemplate: string;
   readonly keyFieldName?: string;
-  readonly mustRenderAsync: (data: any, key: any) => Promise<Node[]>;
+  readonly mustRenderAsync: (data: any, key: any) => Promise<TRenderResult>;
   //private _renderedCell: number;
   // get isEnd(): boolean {
   //   return this._renderableCount == this._renderedCount;
@@ -27,7 +28,7 @@ export default class RenderParam {
   //   );
   // }
   constructor(
-    mustRenderAsync: (data: any, key: any) => Promise<Node[]>,
+    mustRenderAsync: (data: any, key: any) => Promise<TRenderResult>,
     keyFieldName?: string
   ) {
     this.mustRenderAsync = mustRenderAsync;

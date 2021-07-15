@@ -20,7 +20,7 @@ export default class CallComponent extends CommandComponent {
     this.container = container;
   }
 
-  protected async runAsync(): Promise<boolean> {
+  protected async runAsync(): Promise<void> {
     const filename = await this.getAttributeValueAsync("file");
     const pageSize = await this.getAttributeValueAsync("pagesize");
     const method = (
@@ -60,6 +60,5 @@ export default class CallComponent extends CommandComponent {
     this.range.insertNode(content);
     const collection = this.container.resolve(ComponentCollection);
     await collection.processNodesAsync(childNodes);
-    return true;
   }
 }

@@ -2,7 +2,7 @@
 import Util from "../../../Util";
 import IBCUtil from "../../../wrapper/IBCUtil";
 import Face from "./Face";
-import IRenderResult from "./IRenderResult";
+import FaceRenderResult from "./FaceRenderResult";
 import RenderParam from "./RenderParam";
 
 declare const $bc: IBCUtil;
@@ -13,7 +13,10 @@ export default class FaceCollection extends Array<Face> {
     (<any>Object).setPrototypeOf(this, FaceCollection.prototype);
   }
 
-  public async renderAsync(param: RenderParam, data: any[]): Promise<string> {
+  public async renderAsync(
+    param: any /*RenderParam*/,
+    data: any[]
+  ): Promise<string> {
     var retVal: string = "";
     if (this.length == 0) {
       retVal = data[0].toString();
@@ -56,11 +59,12 @@ export default class FaceCollection extends Array<Face> {
     return retVal;
   }
 
-  public async renderAsync_(
-    param: RenderParam,
-    data: object
-  ): Promise<IRenderResult> {
-    let nodes: Node[] = null;
+  public async renderAsync_<TRenderResult extends FaceRenderResult>(
+    param: RenderParam<TRenderResult>,
+    data: object,
+    factory: (key: any, node: DocumentFragment) => TRenderResult
+  ): Promise<TRenderResult> {
+    let retVal: TRenderResult = null;
     const key = Reflect.get(data, param.keyFieldName);
     if (this.length == 0) {
       param.setRendered();
@@ -75,16 +79,17 @@ export default class FaceCollection extends Array<Face> {
         return con1 && con2 && con3;
       })[0];
       if (firstMatchFace != null) {
-        nodes = await param.mustRenderAsync(data, key);
-        if (!nodes) {
+        retVal = await param.mustRenderAsync(data, key);
+        if (!retVal) {
           const rawHtml = await firstMatchFace.template.getValueAsync(data);
-          nodes = [...$bc.util.toNode(rawHtml).childNodes];
+          const renderResult = $bc.util.toNode(rawHtml);
+          retVal = factory(key, renderResult);
         }
         param.setRendered();
       } else {
         param.setIgnored();
       }
     }
-    return { key, nodes };
+    return retVal;
   }
 }

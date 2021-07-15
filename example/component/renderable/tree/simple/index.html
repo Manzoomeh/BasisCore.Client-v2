@@ -17,7 +17,7 @@
             </ul>
         </layout>
         <face level="end" replace="true">
-            <li data-end-like><a href="/@name@">[(bold)@id@-@name@]</a></li>
+            <li data-end-like><a href="/@name@">@id@ - @name@</a></li>
         </face>
         <face level="2">
             <li data-end-like>
@@ -29,22 +29,13 @@
         </face>
         <face replace="true">
             <li data-else class="dropdown_233">
-                [(link) @id@|/@name@]
+                @id@ - @name@
                 <ul>
                     @child
                 </ul>
             </li>
         </face>
-        <replace tagname="linK">
-            <a href="@val2"> Click For @val1 </a>
-        </replace>
 
-        <replace tagname="bold">
-            <b class="u-fade js-anim @val2"> @val1 </b>
-        </replace>
-        <replace tagname="bold">
-            <b class="u-fade js-anim @val2"> @val1 </b>
-        </replace>
     </basis>
 
     <script>
