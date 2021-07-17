@@ -10,8 +10,12 @@ export default class RenderParam<TRenderResult extends FaceRenderResult> {
   //private readonly _cellPerRow: number = 0;
   // readonly dividerTemplate: string;
   // readonly incompleteTemplate: string;
-  readonly keyFieldName?: string;
-  readonly mustRenderAsync: (data: any, key: any) => Promise<TRenderResult>;
+  //readonly keyFieldName?: string;
+  readonly mustRenderAsync: (
+    data: any,
+    key: any,
+    groupName?: string
+  ) => Promise<TRenderResult>;
   //private _renderedCell: number;
   // get isEnd(): boolean {
   //   return this._renderableCount == this._renderedCount;
@@ -28,11 +32,15 @@ export default class RenderParam<TRenderResult extends FaceRenderResult> {
   //   );
   // }
   constructor(
-    mustRenderAsync: (data: any, key: any) => Promise<TRenderResult>,
-    keyFieldName?: string
+    mustRenderAsync: (
+      data: any,
+      key: any,
+      groupName?: string
+    ) => Promise<TRenderResult>
+    //keyFieldName?: string
   ) {
     this.mustRenderAsync = mustRenderAsync;
-    this.keyFieldName = keyFieldName ?? "id";
+    //this.keyFieldName = keyFieldName ?? "id";
     this._renderedCount = 0;
   }
   setLevel(levels: string[]) {

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+</head>
+
+<body>
+    <button bc-value=" " name="event.refresh" bc-triggers="click">Refresh Component</button>
+    <button onclick="onclickNew()">Refresh Data</button>
+    <fieldset>
+        <legend>Without set keyField</legend>
+        <Basis core="print" datamembername="inlineSource.print" run="atclient" triggers="event.refresh">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) <button
+                        onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                        color</button>
+                </span>
+            </face>
+        </Basis>
+    </fieldset>
+
+    <fieldset>
+        <legend>With set keyField to null (none exist field)</legend>
+        <Basis core="print" datamembername="inlineSource.print" run="atclient" triggers="event.refresh" keyField="null">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) <button
+                        onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                        color</button></span>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
+        <legend>With set keyField</legend>
+        <Basis core="print" datamembername="inlineSource.print" run="atclient" triggers="event.refresh" keyField="id">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) <button
+                        onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                        color</button></span>
+            </face>
+        </Basis>
+    </fieldset>
+    <script>
+        const host = {
+            sources: {
+                'inlineSource.print': [
+                    {
+                        id: 1, name: 'qamsari'
+                    },
+                    {
+                        id: 2, name: 'akaberi'
+                    },
+                    {
+                        id: 3, name: 'amir'
+                    }
+                ]
+            }
+        }
+        function onclickNew() {
+            console.log('f');
+            $bc.setSource('inlineSource.print', [
+                {
+                    id: 1, name: 'qamsari'
+                },
+                {
+                    id: 2, name: 'akaberi'
+                },
+                {
+                    id: 3, name: 'amir'
+                }
+            ])
+        }
+    </script>
+</body>
+
+</html>

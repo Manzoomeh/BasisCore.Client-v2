@@ -34,7 +34,6 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
   ): Promise<FaceRenderResultList<TreeFaceRenderResult>> {
     const tempGeneratedNodeList =
       new FaceRenderResultList<TreeFaceRenderResult>();
-    var retVal = "";
     if (dataSource.rows.length != 0) {
       var foreignKey = await this.getAttributeValueAsync(
         "parentidcol",
@@ -53,8 +52,7 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
         );
       }
       var rootRenderParam = new RenderParam<TreeFaceRenderResult>(
-        canRenderAsync,
-        keyField
+        canRenderAsync
       );
       var content = this.range.createContextualFragment("");
       for (const row of rootRecords) {
@@ -118,40 +116,42 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
       data[principalKey]
     );
 
-    if (childRows.length != 0) {
-      var newLevel = level + 1;
-      const childRenderParam = new RenderParam<TreeFaceRenderResult>(
-        canRenderAsync,
-        keyField
-      );
-
-      for (const row of childRows) {
-        const childResult = await this.renderLevelAsync(
-          dataSource,
-          childRenderParam,
-          newLevel,
-          faces,
-          principalKey,
-          foreignKey,
-          tempGeneratedNodeList,
-          canRenderAsync,
-          keyField,
-          row
-        );
-        childResult.AppendTo(childRenderResult);
-      }
-      parentRenderParam.setLevel([`${level}`]);
-    } else {
-      parentRenderParam.setLevel([`${level}`, "end"]);
-    }
+    parentRenderParam.setLevel(
+      childRows.length != 0 ? [`${level}`] : [`${level}`, "end"]
+    );
+    const parentKey = this.getKeyValue(data, keyField);
     const renderResult = await faces.renderAsync_<TreeFaceRenderResult>(
       parentRenderParam,
       data,
+      parentKey,
       this.FaceRenderResultFactory
     );
-    if (renderResult.nodes) {
+    if (renderResult) {
       tempGeneratedNodeList.set(renderResult.key, renderResult);
-      renderResult.setChild(childRenderResult);
+      renderResult.setContent(null);
+      if (childRows.length != 0) {
+        var newLevel = level + 1;
+        const childRenderParam = new RenderParam<TreeFaceRenderResult>(
+          canRenderAsync
+        );
+
+        for (const row of childRows) {
+          const childResult = await this.renderLevelAsync(
+            dataSource,
+            childRenderParam,
+            newLevel,
+            faces,
+            principalKey,
+            foreignKey,
+            tempGeneratedNodeList,
+            canRenderAsync,
+            keyField,
+            row
+          );
+          childResult.AppendTo(childRenderResult);
+        }
+      }
+      renderResult.setContent(childRenderResult);
     }
     return renderResult;
   }

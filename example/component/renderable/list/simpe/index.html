@@ -22,7 +22,9 @@
                 </div>
             </layout>
             <face filter="id < 10">
-                <span>@id ( @name ) </span>
+
+                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
+                    ) </span>
             </face>
             <else-layout>
                 empty
@@ -47,7 +49,8 @@
                 </div>
             </layout>
             <face filter="id < 10">
-                <span>@id ( @name ) </span>
+                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
+                    ) </span>
             </face>
         </Basis>
     </fieldset>
@@ -55,7 +58,8 @@
         <legend>List - Simple</legend>
         <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
             <face filter="id < 10">
-                <span>@id ( @name ) </span>
+                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
+                    ) </span>
             </face>
         </Basis>
     </fieldset>
@@ -63,7 +67,8 @@
         <legend>List - With else-layout</legend>
         <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
             <face filter="id < 10">
-                <span>@id ( @name ) </span>
+                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
+                    ) </span>
             </face>
             <else-layout>
                 empty
@@ -74,7 +79,8 @@
         <legend>List - With divider incomplete</legend>
         <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
             <face filter="id < 10">
-                <span>@id ( @name ) </span>
+                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
+                    ) </span>
             </face>
             <divider rowcount="4">
                 <script type="text/template">

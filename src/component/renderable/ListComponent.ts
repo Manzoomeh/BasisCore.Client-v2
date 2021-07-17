@@ -34,7 +34,7 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
       let contentTemplate = "";
       const key = Date.now().toString(36);
       let index = cellCount;
-      this.renderResultList.forEach((node) => {
+      this.renderResultList.getGroup().forEach((node) => {
         contentTemplate += `<basis-core-template-tag id="${key}" data-type="result"></basis-core-template-tag>`;
         index--;
         if (index == 0) {
@@ -62,7 +62,7 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
       ];
 
       index = 0;
-      this.renderResultList.forEach((node) => {
+      this.renderResultList.getGroup().forEach((node) => {
         const range = new Range();
         range.selectNode(items[index]);
         range.deleteContents();

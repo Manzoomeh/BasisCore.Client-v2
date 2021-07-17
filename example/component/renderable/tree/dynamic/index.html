@@ -13,29 +13,27 @@
     <input type="button" value="Set Source" onclick="clickHandler()" />
     <basis core="callback" triggers="local.tree" run="atclient"></basis>
     <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient"
-        OnRendered="OnRendered">
+        keyField="id">
         <layout>
-            <ul data-hi>
-                @child
-            </ul>
+            <ul data-hi>@child </ul>
         </layout>
         <face level="end">
-            <li data-end-like>@id@ - @name@</li>
+            <li id="@id@" data-end>@id@ - @name@<button
+                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                    color</button></li>
         </face>
         <face level="2">
-            <li data-end-like>
-                @id - @name Level2
-                <ul>
-                    @child
-                </ul>
+            <li id="@id@" data-lvl1>@id - @name Level2 <button
+                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                    color</button>
+                <ul>@child</ul>
             </li>
         </face>
         <face>
-            <li data-else class="dropdown_233">
-                @id@ - @name@
-                <ul>
-                    @child
-                </ul>
+            <li id="@id@" data-else>@id@ - @name@<button
+                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                    color</button>
+                <ul>@child</ul>
             </li>
         </face>
 
@@ -44,26 +42,15 @@
         var i = 0;
         function clickHandler() {
             $bc.setSource("local.tree", [
-                { id: 1, name: `ali-${i}`, pid: null, status: 1 },
-                { id: 2, name: `amir-${i}`, pid: 1, status: 1 },
-                { id: 3, name: `hassan-${i}`, pid: 1, status: 1 },
-                { id: 4, name: `javad-${i}`, pid: 2, status: 0 },
-                { id: 5, name: `reza-${i}`, pid: 4, status: 1 },
+                { id: 1, name: `ali-${i}`, pid: null, status: 0 },
+                { id: 2, name: `amir-${i}`, pid: 1, status: 0 },
+                { id: 3, name: `hassan-${i}`, pid: 1, status: 0 },
+                { id: 4, name: `javad-${i}`, pid: 2, status: 1 },
+                { id: 5, name: `reza-${i}`, pid: 4, status: 0 },
             ]);
             i += 1;
         }
-        let b = false;
-        function OnRendered(args) {
-            if (!b) {
-                alert("set style only one time");
-                args.result.forEach(element => {
-                    if (element.querySelectorAll) {
-                        Array.from(element.querySelectorAll('li')).forEach(element => element.style.color = "red");
-                    }
-                });
-                b = true;
-            }
-        }
+        clickHandler();
     </script>
 </body>
 

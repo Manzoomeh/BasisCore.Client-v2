@@ -10,10 +10,11 @@
 </head>
 
 <body>
+    <basis core="callback" triggers="local.user" run="atclient"></basis>
     <basis core="view" datamembername="local.user" run="atclient">
         <face level="1">
             <ul>
-                <li>@question <ul> @child@</ul>
+                <li>@question <ul> @child </ul>
                 </li>
             </ul>
         </face>
@@ -29,11 +30,11 @@
     <script>
 
         $bc.setSource("local.user", [
-            { id: 1, question: "FaName", answer: "ali", prpid: "1", pid: null, tags: ["A", "C", "D"] },
-            { id: 2, question: "FaName", answer: "amir", prpid: "1", pid: 1, tags: ["A", "B", "E"] },
-            { id: 3, question: "FaName", answer: "hassan", prpid: "1", pid: 1, tags: ["E", "D"] },
-            { id: 4, question: "EnName", answer: "Amir", prpid: "2", pid: 2, tags: ["F", "A"] },
-            { id: 5, question: "EnName", answer: "Ali", prpid: "2", pid: 4, tags: ["D", "B", "A"] },
+            { id: 1, question: "FaName", answer: "ali", prpid: "1", pid: null, tags: ["A", "C", "D"], status: 1 },
+            { id: 2, question: "FaName", answer: "amir", prpid: "1", pid: 1, tags: ["A", "B", "E"], status: 1 },
+            { id: 3, question: "FaName", answer: "hassan", prpid: "1", pid: 1, tags: ["E", "D"], status: 1 },
+            { id: 4, question: "EnName", answer: "Amir", prpid: "2", pid: 2, tags: ["F", "A"], status: 1 },
+            { id: 5, question: "EnName", answer: "Ali", prpid: "2", pid: 4, tags: ["D", "B", "A"], status: 1 },
         ]);
 
         async function fn(_, $data) {

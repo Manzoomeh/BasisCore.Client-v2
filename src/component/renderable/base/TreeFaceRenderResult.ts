@@ -2,36 +2,42 @@ import FaceRenderResult from "./FaceRenderResult";
 
 export default class TreeFaceRenderResult extends FaceRenderResult {
   //readonly childContainer: Element;
-  private range: Range;
+  private contentRange: Range;
   readonly doc: DocumentFragment;
-  private childNodes: Node[] = null;
+  private contentNodes: Node[] = null;
   constructor(key: any, doc: DocumentFragment) {
     super(key, doc);
+    //console.log("new", key, this);
     this.doc = doc;
     const childContainer = doc.querySelector(
       'basis-core-template-tag[data-type="child"]'
     );
 
     if (childContainer) {
-      this.range = new Range();
-      this.range.selectNode(childContainer);
-      this.range.deleteContents();
+      this.contentRange = new Range();
+      this.contentRange.selectNode(childContainer);
+      this.contentRange.deleteContents();
     }
   }
 
-  setChild(child: DocumentFragment): void {
-    if (this.range) {
-      if (this.childNodes?.length > 0) {
-        this.range = new Range();
-        this.range.setStartBefore(this.childNodes[0]);
-        this.range.setEndAfter(this.childNodes[this.childNodes.length - 1]);
+  setContent(content: DocumentFragment): void {
+    if (this.contentRange) {
+      const oldContentNodes = this.contentNodes;
+      if (oldContentNodes?.length > 0) {
+        this.contentRange.detach();
+        this.contentRange = new Range();
+        this.contentRange.setStartBefore(oldContentNodes[0]);
+        this.contentRange.setEndAfter(
+          oldContentNodes[oldContentNodes.length - 1]
+        );
+        this.contentRange?.deleteContents();
       }
-
-      this.childNodes = [...child.childNodes];
-      this.range?.deleteContents();
-
-      if (child) {
-        this.range?.insertNode(child);
+      if (content) {
+        this.contentNodes = [...content.childNodes];
+        this.contentRange?.insertNode(content);
+      } else {
+        this.contentRange?.deleteContents();
+        this.contentNodes = null;
       }
     }
   }
