@@ -65,11 +65,13 @@
         <br />
         cms.form._root.phones[2]?.number: [##cms.form._root.phones[1]?.number##]
         <br />
+        {{return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0] );}}
 
         <basis core="callback" run="AtClient" triggers="cms.form"></basis>
 
         <basis core="call" file="called.html" pagesize="" run="atclient" method="post" if="[##cms.form##]"
-            triggers="cms.form" app-json="{{return JSON.stringify(await $bc.waitToGetSourceAsync('cms.form') );}}">
+            triggers="cms.form"
+            app-json="{{return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0] );}}">
         </basis>
         <script>
             const host = {
