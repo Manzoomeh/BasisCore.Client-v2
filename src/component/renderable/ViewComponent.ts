@@ -3,14 +3,13 @@ import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
 import TokenUtil from "../../token/TokenUtil";
-import Util from "../../Util";
 import FaceCollection from "./base/FaceCollection";
-import FaceRenderResult from "./base/FaceRenderResult";
 import FaceRenderResultList from "./base/FaceRenderResultList";
+import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
+import { RenderResultSelector } from "./base/RenderResultSelector";
 import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
-//import ReplaceCollection from "./base/ReplaceCollection";
 
 @injectable()
 export default class ViewComponent extends RenderableComponent<TreeFaceRenderResult> {
@@ -28,13 +27,12 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
   ): TreeFaceRenderResult {
     return new TreeFaceRenderResult(key, doc);
   }
-
-  protected async renderDataPartAsync_(
+  protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    canRenderAsync: (data: any, key: any) => Promise<TreeFaceRenderResult>,
+    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
     keyFieldName
-  ): Promise<FaceRenderResultList<TreeFaceRenderResult>> {
+  ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
     const newRenderResultList =
       new FaceRenderResultList<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
@@ -53,7 +51,7 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
         canRenderAsync
       );
       rootRenderParam.setLevel(["1"]);
-      var content = this.range.createContextualFragment(" ");
+      var content = new Array<DocumentFragment>();
 
       for (const group of groupList) {
         const childItems = DataUtil.ApplySimpleFilter(
@@ -63,7 +61,7 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
         );
         const data = childItems[0];
         const key = this.getKeyValue(data, keyFieldName);
-        const level1Result = await faces.renderAsync_<TreeFaceRenderResult>(
+        const level1Result = await faces.renderAsync<TreeFaceRenderResult>(
           rootRenderParam,
           data,
           key,
@@ -82,7 +80,7 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
 
           for (const row of childItems) {
             const dataKey = this.getKeyValue(row, keyFieldName);
-            const renderResult = await faces.renderAsync_<TreeFaceRenderResult>(
+            const renderResult = await faces.renderAsync<TreeFaceRenderResult>(
               childRenderParam,
               row,
               dataKey,
@@ -92,32 +90,15 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
             renderResult.AppendTo(childRenderResult);
           }
           level1Result.setContent(childRenderResult);
-          level1Result.AppendTo(content);
+          const doc = this.range.createContextualFragment("");
+          level1Result.AppendTo(doc);
+          content.push(doc);
         }
       }
     }
-    this.renderResult = content;
-    return newRenderResultList;
-  }
-  private renderResult: DocumentFragment;
-  protected async createContentAsync(): Promise<DocumentFragment> {
-    const rawLayout = this.node
-      .querySelector("layout")
-      ?.GetTemplateToken(this.context);
-    let layoutTemplate = await rawLayout?.getValueAsync();
-    const key = Date.now().toString(36);
-    const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
-    layoutTemplate = layoutTemplate
-      ? Util.ReplaceEx(layoutTemplate, "@child", elementHolder)
-      : elementHolder;
-    const layout = this.range.createContextualFragment(layoutTemplate);
-    const childContainer = layout.querySelector(
-      `basis-core-template-tag#${key}`
+    return new RenderDataPartResult<TreeFaceRenderResult>(
+      content,
+      newRenderResultList
     );
-    const range = new Range();
-    range.selectNode(childContainer);
-    range.deleteContents();
-    range.insertNode(this.renderResult);
-    return layout;
   }
 }

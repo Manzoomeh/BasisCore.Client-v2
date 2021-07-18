@@ -15,15 +15,7 @@ export default class FaceRenderResultList<T extends FaceRenderResult> {
     group.set(key ?? value, value);
   }
 
-  public getGroup(groupName: string = "default"): Map<any, T> | undefined {
-    return this.groups[groupName];
-  }
-
   public get(key: any, groupName: string = "default"): T | undefined {
-    return this.getGroup(groupName).get(key);
-  }
-
-  public size(groupName: string = "default"): number {
-    return this.getGroup(groupName).size;
+    return this.groups[groupName]?.get(key);
   }
 }

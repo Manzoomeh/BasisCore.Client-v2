@@ -2,11 +2,12 @@ import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
-import Util from "../../Util";
 import FaceCollection from "./base/FaceCollection";
 import FaceRenderResultList from "./base/FaceRenderResultList";
+import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
+import { RenderResultSelector } from "./base/RenderResultSelector";
 import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
 
 @injectable()
@@ -26,12 +27,12 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
     return new TreeFaceRenderResult(key, doc);
   }
 
-  protected async renderDataPartAsync_(
+  protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    canRenderAsync: (data: any, key: any) => Promise<TreeFaceRenderResult>,
+    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
     keyField
-  ): Promise<FaceRenderResultList<TreeFaceRenderResult>> {
+  ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
     const tempGeneratedNodeList =
       new FaceRenderResultList<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
@@ -54,7 +55,7 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
       var rootRenderParam = new RenderParam<TreeFaceRenderResult>(
         canRenderAsync
       );
-      var content = this.range.createContextualFragment("");
+      var content = new Array<DocumentFragment>();
       for (const row of rootRecords) {
         const tmp = await this.renderLevelAsync(
           dataSource,
@@ -68,35 +69,17 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
           keyField,
           row
         );
-        tmp.AppendTo(content);
+        const doc = this.range.createContextualFragment("");
+        tmp.AppendTo(doc);
+        content.push(doc);
       }
-      this.renderResult = content;
-      return tempGeneratedNodeList;
+      return new RenderDataPartResult<TreeFaceRenderResult>(
+        content,
+        tempGeneratedNodeList
+      );
     }
   }
 
-  private renderResult: DocumentFragment;
-
-  protected async createContentAsync(): Promise<DocumentFragment> {
-    const rawLayout = this.node
-      .querySelector("layout")
-      ?.GetTemplateToken(this.context);
-    let layoutTemplate = await rawLayout?.getValueAsync();
-    const key = Date.now().toString(36);
-    const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
-    layoutTemplate = layoutTemplate
-      ? Util.ReplaceEx(layoutTemplate, "@child", elementHolder)
-      : elementHolder;
-    const layout = this.range.createContextualFragment(layoutTemplate);
-    const childContainer = layout.querySelector(
-      `basis-core-template-tag#${key}`
-    );
-    const range = new Range();
-    range.selectNode(childContainer);
-    range.deleteContents();
-    range.insertNode(this.renderResult);
-    return layout;
-  }
   private async renderLevelAsync(
     dataSource: ISource,
     parentRenderParam: RenderParam<TreeFaceRenderResult>,
@@ -105,7 +88,7 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
     principalKey: string,
     foreignKey: string,
     tempGeneratedNodeList: FaceRenderResultList<TreeFaceRenderResult>,
-    canRenderAsync: (data: any, key: any) => Promise<TreeFaceRenderResult>,
+    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
     keyField,
     data: object
   ): Promise<TreeFaceRenderResult> {
@@ -120,7 +103,7 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
       childRows.length != 0 ? [`${level}`] : [`${level}`, "end"]
     );
     const parentKey = this.getKeyValue(data, keyField);
-    const renderResult = await faces.renderAsync_<TreeFaceRenderResult>(
+    const renderResult = await faces.renderAsync<TreeFaceRenderResult>(
       parentRenderParam,
       data,
       parentKey,

@@ -4,15 +4,15 @@ import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import IToken from "../../../token/IToken";
 import Util from "../../../Util";
-import IBCUtil from "../../../wrapper/IBCUtil";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
 import FaceRenderResult from "./FaceRenderResult";
 import FaceRenderResultList from "./FaceRenderResultList";
+import RenderDataPartResult from "./IRenderDataPartResult";
 import RawFaceCollection from "./RawFaceCollection";
 import RenderParam from "./RenderParam";
+import { RenderResultSelector } from "./RenderResultSelector";
 
-declare const $bc: IBCUtil;
 export default abstract class RenderableComponent<
   TRenderResult extends FaceRenderResult
 > extends SourceBaseComponent {
@@ -36,6 +36,7 @@ export default abstract class RenderableComponent<
   }
 
   async renderSourceAsync(source: ISource): Promise<Node[]> {
+    let renderResult: DocumentFragment[];
     if (source.rows) {
       var rawFaces = RawFaceCollection.Create(
         this.node,
@@ -48,51 +49,50 @@ export default abstract class RenderableComponent<
         this.reservedKeys
       );
       const keyField = await this.keyFieldToken?.getValueAsync();
-      const newRenderResultList = await this.renderDataPartAsync_(
+      const newRenderResultList = await this.renderDataPartAsync(
         source,
         faces,
         this.CanRenderAsync.bind(this),
         keyField
       );
-      this.renderResultList = newRenderResultList;
+      this.renderResultList = newRenderResultList.repository;
+      renderResult = newRenderResultList.result;
     }
+    return await this.createContentAsync(renderResult);
+  }
 
-    let container: DocumentFragment = null;
-    if (this.renderResultList.size() > 0) {
-      container = await this.createContentAsync();
+  protected async createContentAsync(
+    renderResult?: DocumentFragment[]
+  ): Promise<ChildNode[]> {
+    let container: DocumentFragment;
+    if (renderResult?.length > 0) {
+      const rawLayout = this.node
+        .querySelector("layout")
+        ?.GetTemplateToken(this.context);
+      let layoutTemplate = await rawLayout?.getValueAsync();
+      const key = Date.now().toString(36);
+      const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
+      layoutTemplate = layoutTemplate
+        ? Util.ReplaceEx(layoutTemplate, "@child", elementHolder)
+        : elementHolder;
+      container = this.range.createContextualFragment(layoutTemplate);
+      const childContainer = container.querySelector(
+        `basis-core-template-tag#${key}`
+      );
+      const range = new Range();
+      range.selectNode(childContainer);
+      range.deleteContents();
+      renderResult.forEach((doc) => range.insertNode(doc));
     } else {
       var rawElseLayout = this.node
         .querySelector("else-layout")
         ?.GetTemplateToken(this.context);
       const result = await rawElseLayout?.getValueAsync();
-      container = this.range.createContextualFragment(result ?? " ");
+      container = this.range.createContextualFragment(result ?? "");
     }
     const generatedNodes = [...container.childNodes];
     this.setContent(container, false);
     return generatedNodes;
-  }
-
-  protected async createContentAsync(): Promise<DocumentFragment> {
-    const rawLayout = this.node
-      .querySelector("layout")
-      ?.GetTemplateToken(this.context);
-    let layoutTemplate = await rawLayout?.getValueAsync();
-    const key = Date.now().toString(36);
-    const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
-    layoutTemplate = layoutTemplate
-      ? Util.ReplaceEx(layoutTemplate, "@child", elementHolder)
-      : elementHolder;
-    const layout = this.range.createContextualFragment(layoutTemplate);
-    const childContainer = layout.querySelector(
-      `basis-core-template-tag#${key}`
-    );
-    const tmp = this.range.createContextualFragment("");
-    this.renderResultList.getGroup().forEach((result) => result.AppendTo(tmp));
-    const range = new Range();
-    range.selectNode(childContainer);
-    range.deleteContents();
-    range.insertNode(tmp);
-    return layout;
   }
 
   protected async CanRenderAsync(
@@ -120,30 +120,34 @@ export default abstract class RenderableComponent<
   protected getKeyValue(data: any, keyFieldName: string): any {
     return keyFieldName ? Reflect.get(data, keyFieldName) : data;
   }
-  protected async renderDataPartAsync_(
+
+  protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    canRenderAsync: (
-      data: any,
-      key: any,
-      groupName?: string
-    ) => Promise<TRenderResult>,
+    canRenderAsync: RenderResultSelector<TRenderResult>,
     keyField
-  ): Promise<FaceRenderResultList<TRenderResult>> {
+  ): Promise<RenderDataPartResult<TRenderResult>> {
     const param = new RenderParam<TRenderResult>(canRenderAsync);
     const newRenderResultList = new FaceRenderResultList<TRenderResult>();
+    const renderResult = new Array<DocumentFragment>();
     for (const row of dataSource.rows) {
       const dataKey = this.getKeyValue(row, keyField);
-      const renderResult = await faces.renderAsync_<TRenderResult>(
+      const rowRenderResult = await faces.renderAsync<TRenderResult>(
         param,
         row,
         dataKey,
         this.FaceRenderResultFactory
       );
-      if (renderResult) {
-        newRenderResultList.set(renderResult.key, renderResult);
+      if (rowRenderResult) {
+        newRenderResultList.set(rowRenderResult.key, rowRenderResult);
+        const doc = this.range.createContextualFragment("");
+        rowRenderResult.AppendTo(doc);
+        renderResult.push(doc);
       }
     }
-    return newRenderResultList;
+    return new RenderDataPartResult<TRenderResult>(
+      renderResult,
+      newRenderResultList
+    );
   }
 }
