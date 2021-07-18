@@ -18,11 +18,13 @@ export default abstract class ElementBaseComponent<
   protected onProcessingAsync: (args: CallbackArgument) => Promise<void>;
   protected onProcessedAsync: (args: CallbackArgument) => Promise<void>;
 
+  protected ifToken: IToken<string>;
   constructor(element: TElement, context: IContext) {
     super(element, context);
   }
 
   public async initializeAsync(): Promise<void> {
+    this.ifToken = this.getAttributeToken("if");
     const onRendering = await this.getAttributeValueAsync("OnRendering");
     if (onRendering) {
       this.onRenderingAsync = new Function(
@@ -61,9 +63,19 @@ export default abstract class ElementBaseComponent<
     }
   }
 
+  protected async getIfValueAsync(): Promise<boolean> {
+    const rawValue = await this.ifToken?.getValueAsync();
+    let retVal = true;
+    if (rawValue != null && rawValue != undefined) {
+      const fn: () => boolean = new Function(
+        `try{return ${rawValue};}catch{return false;}`
+      ) as any;
+      retVal = fn();
+    }
+    return retVal;
+  }
   public async renderAsync(source?: ISource): Promise<void> {
-    const token = this.node.GetBooleanToken("if", this.context);
-    let canRender = (await token?.getValueAsync()) ?? true;
+    let canRender = await this.getIfValueAsync();
     if (canRender && this.onRenderingAsync) {
       const renderingArgs =
         this.createCallbackArgument<RenderingCallbackArgument>({

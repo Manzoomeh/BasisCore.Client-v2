@@ -11,6 +11,24 @@
 
 <body>
     <fieldset>
+        <legend>if = 1==1</legend>
+        <Basis core="print" datamembername="inlinesource.print" run="atclient" if="1==1">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) </span>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
+        <legend>if = [##cms.userA.id##]==15</legend>
+        <Basis core="print" datamembername="inlinesource.print" run="atclient" if=" [##cms.userA.id##]==15">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) </span>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
         <legend>if = {{return await idGraterThanTen($bc,'cms.userA')}}</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient"
             if="{{return await idGraterThanTen($bc,'cms.userA')}}">

@@ -25,6 +25,7 @@ export default class TokenUtil {
       (...x) => new StringArray(context, ...x)
     );
   }
+
   public static ToIntegerToken(
     data: string,
     context: IContext
@@ -37,6 +38,7 @@ export default class TokenUtil {
       (...x) => new IntegerArray(context, ...x)
     );
   }
+
   public static ToBooleanToken(
     data: string,
     context: IContext
@@ -50,42 +52,6 @@ export default class TokenUtil {
     );
   }
 
-  // public static ToToken<T>(
-  //   content: string,
-  //   context: IContext,
-  //   newValueToken: { (data: string): ValueToken<T> },
-  //   newObjectToken: { (data: string): ObjectToken<T> },
-  //   newArrayToken: { (...data: IToken<string>[]): ArrayToken<T> }
-  // ): IToken<T> {
-  //   //https://javascript.info/regexp-methods
-  //   var regex = context.options.getDefault<RegExp>("binding.regex");
-  //   var retVal: IToken<T>;
-  //   if (Util.HasValue(content)) {
-  //     var match = content.match(regex);
-  //     if (!match) {
-  //       retVal = newValueToken(content);
-  //     } else {
-  //       var list = new Array<any>();
-  //       do {
-  //         if (match.index != 0) {
-  //           list.push(newValueToken(match.input.substring(0, match.index)));
-  //         }
-  //         list.push(newObjectToken(match[1]));
-  //         content = content.substring(match.index + match[0].length);
-  //         match = content.match(regex);
-  //       } while (match);
-  //       if (content.length > 0) {
-  //         list.push(newValueToken(content));
-  //       }
-  //       if (list.length == 1) {
-  //         retVal = list[0];
-  //       } else {
-  //         retVal = newArrayToken(...list);
-  //       }
-  //     }
-  //   }
-  //   return retVal;
-  // }
   public static ToToken<T>(
     content: string,
     context: IContext,
@@ -94,7 +60,6 @@ export default class TokenUtil {
     newArrayToken: { (...data: IToken<string>[]): ArrayToken<T> }
   ): IToken<T> {
     //https://javascript.info/regexp-methods
-
     var retVal: IToken<T>;
     if (content) {
       const regex = context.options.getDefault<RegExp>("binding.regex");
@@ -132,13 +97,6 @@ export default class TokenUtil {
     }
     return retVal;
   }
-
-  // public static async GetValueOrDefaultAsync<T>(
-  //   token: IToken<T>,
-  //   defaultValue: T = null
-  // ): Promise<T> {
-  //   return (await token?.getValueAsync()) || defaultValue;
-  // }
 
   static async GetValueOrSystemDefaultAsync<T>(
     token: IToken<string>,
