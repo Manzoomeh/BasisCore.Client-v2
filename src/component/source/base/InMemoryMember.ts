@@ -1,5 +1,4 @@
 import IContext from "../../../context/IContext";
-import { MergeType } from "../../../enum";
 import { SourceId } from "../../../type-alias";
 import Member from "./Member";
 
@@ -10,7 +9,7 @@ export default abstract class InMemoryMember extends Member {
   async AddDataSourceExAsync(sourceId: SourceId): Promise<void> {
     var data = await this.ParseDataAsync(this.context);
     if (data) {
-      super.addDataSourceAsync(data, sourceId, MergeType.replace);
+      super.addDataSourceAsync(data, sourceId);
     }
   }
 

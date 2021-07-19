@@ -1,7 +1,7 @@
 import { inject, DependencyContainer, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
+import ISourceOptions from "../../context/ISourceOptions";
 import ISource from "../../data/ISource";
-import { MergeType } from "../../enum";
 import { SourceId } from "../../type-alias";
 import IBCUtil from "../../wrapper/IBCUtil";
 import CommandComponent from "../CommandComponent";
@@ -61,9 +61,9 @@ export default class UserDefineComponent
   public setSource(
     sourceId: SourceId,
     data: any,
-    mergeType?: MergeType,
+    options?: ISourceOptions,
     preview?: boolean
   ): void {
-    this.context.setAsSource(sourceId, data, mergeType, preview);
+    this.context.setAsSource(sourceId, data, options, preview);
   }
 }

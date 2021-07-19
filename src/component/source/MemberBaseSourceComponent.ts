@@ -45,7 +45,7 @@ export default abstract class MemberBaseSourceComponent<
     }
     memberObjList.forEach(async (member, index) => {
       const source = dataList[index];
-      await member.addDataSourceAsync(source.rows, this.id, source.mergeType);
+      await member.addDataSourceAsync(source.rows, this.id, source.options);
     });
   }
 

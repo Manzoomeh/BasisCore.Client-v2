@@ -74,6 +74,7 @@ export default abstract class ElementBaseComponent<
     }
     return retVal;
   }
+
   public async renderAsync(source?: ISource): Promise<void> {
     let canRender = await this.getIfValueAsync();
     if (canRender && this.onRenderingAsync) {

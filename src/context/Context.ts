@@ -7,9 +7,9 @@ import IContextRepository from "../repository/IContextRepository";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
 import { EventHandler } from "../event/EventHandler";
-import { MergeType } from "../enum";
 import Data from "../data/Data";
 import Source from "../data/Source";
+import ISourceOptions from "./ISourceOptions";
 
 export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
@@ -78,10 +78,10 @@ export default abstract class Context implements IContext {
   public setAsSource(
     sourceId: SourceId,
     data: any,
-    mergeType?: MergeType,
+    options?: ISourceOptions,
     preview?: boolean
   ) {
-    var source = new Source(sourceId, data, mergeType);
+    var source = new Source(sourceId, data, options);
     this.setSource(source, preview);
   }
 

@@ -1,6 +1,5 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
-import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
 import { ServerResponse } from "../../type-alias";
@@ -92,14 +91,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
                     data: json.sources[key],
                   };
                 })
-                .map(
-                  (x) =>
-                    new Data(
-                      x.key,
-                      x.data.data,
-                      x.data.mergeType ?? MergeType.replace
-                    )
-                );
+                .map((x) => new Data(x.key, x.data.data, x.data.options));
               if (dataList.length > 0) {
                 onDataReceived(dataList);
               }

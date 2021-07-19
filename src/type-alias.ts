@@ -1,4 +1,5 @@
 import { CallbackArgument } from "./CallbackArgument";
+import ISourceOptions from "./context/ISourceOptions";
 import ISource from "./data/ISource";
 import { MergeType } from "./enum";
 import { EventHandler } from "./event/EventHandler";
@@ -34,5 +35,5 @@ export declare type ServerResponse = {
 };
 export declare type ServerData<T> = {
   data: Array<T>;
-  mergeType: MergeType;
+  options: ISourceOptions;
 };

@@ -2,9 +2,10 @@ import BasisCore from "./BasisCore";
 import BCWrapper from "./wrapper/BCWrapper";
 import ISource from "./data/ISource";
 import Source from "./data/Source";
-import { MergeType, OriginType } from "./enum";
+import { OriginType } from "./enum";
 import IBasisCore from "./IBasisCore";
 import { SourceId } from "./type-alias";
+import ISourceOptions from "./context/ISourceOptions";
 
 export default class BCLinker {
   private cors: Array<IBasisCore> = new Array<IBasisCore>();
@@ -45,12 +46,10 @@ export default class BCLinker {
         source.origin == OriginType.internal &&
         this.filter.indexOf(source.id) == -1
       ) {
-        var newSource = new Source(
-          source.id,
-          source.rows,
-          source.mergeType,
-          OriginType.external
-        );
+        var newSource = new Source(source.id, source.rows, {
+          mergeType: source.mergeType,
+          origin: OriginType.external,
+        });
         this.cors
           .filter((x) => x != basisCore)
           .forEach((core) => core.context.setSource(newSource));
@@ -67,10 +66,10 @@ export default class BCLinker {
   public setSource(
     sourceId: SourceId,
     data: any,
-    mergeType?: MergeType,
+    options?: ISourceOptions,
     preview?: boolean
   ): BCLinker {
-    const source = new Source(sourceId, data, mergeType);
+    const source = new Source(sourceId, data, options);
     this.cors.forEach((core) => core.context.setSource(source, preview));
     return this;
   }

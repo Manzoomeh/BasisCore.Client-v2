@@ -39,7 +39,11 @@ export default class RepeaterComponent extends SourceBaseComponent {
       const localContext =
         childContainer.resolve<ILocalContext>("ILocalContext");
       this.oldChildContexts.push(localContext);
-      localContext.setAsSource(`${name}.current`, row, dataSource.mergeType);
+      localContext.setAsSource(
+        `${name}.current`,
+        row,
+        dataSource.cloneOptions()
+      );
       childContainer.register("context", { useValue: localContext });
       const collection = childContainer.resolve(ComponentCollection);
       await collection.processNodesAsync(childNodes);

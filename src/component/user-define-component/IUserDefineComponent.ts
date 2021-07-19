@@ -1,4 +1,4 @@
-import { MergeType } from "../../enum";
+import ISourceOptions from "../../context/ISourceOptions";
 import IToken from "../../token/IToken";
 import { SourceId } from "../../type-alias";
 
@@ -15,7 +15,7 @@ export default interface IUserDefineComponent {
   setSource(
     sourceId: SourceId,
     data: any,
-    mergeType?: MergeType,
+    options?: ISourceOptions,
     preview?: boolean
   ): void;
 }

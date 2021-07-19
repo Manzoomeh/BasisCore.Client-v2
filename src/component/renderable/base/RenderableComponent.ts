@@ -1,6 +1,7 @@
 import { DependencyContainer } from "tsyringe";
 import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
+import ISourceOptions from "../../../context/ISourceOptions";
 import ISource from "../../../data/ISource";
 import IToken from "../../../token/IToken";
 import Util from "../../../Util";
@@ -19,8 +20,7 @@ export default abstract class RenderableComponent<
   readonly container: DependencyContainer;
   readonly collection: ComponentCollection;
   readonly reservedKeys: Array<string>;
-  protected renderResultList: FaceRenderResultList<TRenderResult>;
-  readonly keyFieldToken: IToken<string>;
+  private renderResultList: FaceRenderResultList<TRenderResult>;
 
   constructor(
     element: Element,
@@ -32,7 +32,6 @@ export default abstract class RenderableComponent<
     this.container = container;
     this.collection = container.resolve(ComponentCollection);
     this.reservedKeys = reservedKeys;
-    this.keyFieldToken = this.getAttributeToken("keyField");
   }
 
   async renderSourceAsync(source: ISource): Promise<Node[]> {
@@ -48,12 +47,11 @@ export default abstract class RenderableComponent<
         this.context,
         this.reservedKeys
       );
-      const keyField = await this.keyFieldToken?.getValueAsync();
       const newRenderResultList = await this.renderDataPartAsync(
         source,
         faces,
-        this.CanRenderAsync.bind(this),
-        keyField
+        this.CanRenderAsync.bind(this, source.statusFieldName),
+        source.keyFieldName
       );
       this.renderResultList = newRenderResultList.repository;
       renderResult = newRenderResultList.result;
@@ -96,17 +94,20 @@ export default abstract class RenderableComponent<
   }
 
   protected async CanRenderAsync(
+    statusFiledName: string,
     data: any,
     key: any,
     groupName?: string
   ): Promise<any> {
     let node = this.renderResultList?.get(key, groupName);
     if (node) {
-      try {
-        if (data.status == 1) {
-          node = null;
-        }
-      } catch {}
+      if (statusFiledName) {
+        try {
+          if (Reflect.get(data, statusFiledName) === 1) {
+            node = null;
+          }
+        } catch {}
+      }
     }
     return node;
   }
