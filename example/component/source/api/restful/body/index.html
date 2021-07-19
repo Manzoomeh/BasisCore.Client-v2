@@ -14,12 +14,11 @@
     <Basis core="api" url="data/book.json" method="post" run="atclient" body="{myid=44}">
     </Basis>
 
-    <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>
-    <basis core="callback" run="AtClient" datamembername="book.type" method="onSource"></basis>
+    <basis core="callback" run="AtClient" triggers="book.list book.type" method="onSource"></basis>
 
     <script>
-        function onSource(source) {
-            console.table(source.rows);
+        function onSource(args) {
+            console.table(args.source.rows);
         }
     </script>
 </body>

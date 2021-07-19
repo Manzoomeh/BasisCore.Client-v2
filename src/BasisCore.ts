@@ -3,7 +3,7 @@ import { DependencyContainer, inject, injectable } from "tsyringe";
 import ComponentCollection from "./ComponentCollection";
 import { SourceId } from "./type-alias";
 import BasisCoreRootContext from "./context/BasisCoreRootContext";
-import { MergeType } from "./enum";
+import ISourceOptions from "./context/ISourceOptions";
 
 @injectable()
 export default class BasisCore implements IBasisCore {
@@ -19,12 +19,12 @@ export default class BasisCore implements IBasisCore {
     container.register("root.context", { useValue: context });
     container.register("context", { useToken: "root.context" });
     this.content = container.resolve(ComponentCollection);
-    this.content.processNodesAsync(nodes, true);
+    this.content.processNodesAsync(nodes);
   }
 
-  public setSource(sourceId: SourceId, data: any, mergeType: MergeType) {
+  public setSource(sourceId: SourceId, data: any, options?: ISourceOptions) {
     this.content.initializeTask.then((_) => {
-      this.context.setAsSource(sourceId, data, mergeType);
+      this.context.setAsSource(sourceId, data, options);
     });
   }
 }

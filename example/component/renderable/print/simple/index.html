@@ -10,50 +10,29 @@
 </head>
 
 <body>
-    [##cms.user.name##]
-    <Basis core="print" datamembername="inlinesource.print" run="atclient" if="">
+    <Basis core="print" datamembername="inlineSource.print" run="atclient">
         <face>
             <br />
             <span>@id ( name is:@name@ ) </span>
         </face>
     </Basis>
+
     <script>
         const host = {
             sources: {
-                'cms.user': [{
-                    id: 22, name: 'qamsari', rkey: 123
-                }
-                ],
-                'inlinesource.print': [
+                'inlineSource.print': [
                     {
-                        id: 1, name: 'qamsari', prpid: null
+                        id: 1, name: 'qamsari'
                     },
                     {
-                        id: 3, name: 'akaberi', prpid: 1
+                        id: 2, name: 'akaberi'
                     },
                     {
-                        id: 3, name: 'amir', prpid: 3
+                        id: 3, name: 'amir'
                     }
                 ]
             }
         }
-
-        // $bc.setSource('cms.user', {
-        //     id: 22,
-        //     name: 'qamsari',
-        //     rkey: 123
-        // })
-        // $bc.setSource('inlinesource.print', [
-        //     {
-        //         id: 1, name: 'qamsari', prpid: null
-        //     },
-        //     {
-        //         id: 3, name: 'akaberi', prpid: 1
-        //     },
-        //     {
-        //         id: 3, name: 'amir', prpid: 3
-        //     }
-        // ])
     </script>
 </body>
 

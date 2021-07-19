@@ -65,11 +65,5 @@ export default class BasisCoreRootContext extends RootContext {
       date3: `${ye}.${mo}.${da}`,
     };
     this.setAsSource("cms.cms", cms);
-
-    if (this.options.sources) {
-      Object.getOwnPropertyNames(this.options.sources).forEach((key) => {
-        this.setAsSource(key.toLowerCase(), this.options.sources[key]);
-      });
-    }
   }
 }

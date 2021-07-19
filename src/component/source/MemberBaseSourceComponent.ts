@@ -1,6 +1,7 @@
 import IContext from "../../context/IContext";
 import Data from "../../data/Data";
 import ClientException from "../../exception/ClientException";
+import StreamPromise from "../../options/connection-options/StreamPromise";
 import { SourceId } from "../../type-alias";
 import Member from "./base/Member";
 import SourceComponent from "./SourceComponent";
@@ -15,6 +16,7 @@ export default abstract class MemberBaseSourceComponent<
 
   constructor(element: Element, context: IContext) {
     super(element, context);
+    this.allowMultiProcess = true;
     this.members = [...this.node.querySelectorAll("member")];
   }
 
@@ -23,12 +25,11 @@ export default abstract class MemberBaseSourceComponent<
     this.id = await this.getAttributeValueAsync("name");
   }
 
-  protected async runAsync(): Promise<boolean> {
+  protected async runAsync(): Promise<void> {
     this.oldConnectionName = null;
     if (this.members.length > 0) {
       await this.loadDataAsync();
     }
-    return true;
   }
 
   private async processLoadedDataSet(dataList: Array<Data>) {
@@ -44,7 +45,7 @@ export default abstract class MemberBaseSourceComponent<
     }
     memberObjList.forEach(async (member, index) => {
       const source = dataList[index];
-      await member.addDataSourceAsync(source.rows, this.id, source.mergeType);
+      await member.addDataSourceAsync(source.rows, this.id, source.options);
     });
   }
 
@@ -65,12 +66,14 @@ export default abstract class MemberBaseSourceComponent<
       command: await command.getValueAsync(),
       dmnid: this.context.options.getDefault("dmnid"),
     };
-    this._busy = false;
-    await this.context.loadDataAsync(
+    const promiseObj = this.context.loadDataAsync(
       this.id,
       connectionName,
       params,
       this.processLoadedDataSet.bind(this)
     );
+    if (!(promiseObj instanceof StreamPromise)) {
+      await promiseObj;
+    }
   }
 }

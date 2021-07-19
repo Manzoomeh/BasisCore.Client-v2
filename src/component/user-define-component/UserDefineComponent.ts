@@ -1,7 +1,7 @@
 import { inject, DependencyContainer, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
+import ISourceOptions from "../../context/ISourceOptions";
 import ISource from "../../data/ISource";
-import { MergeType } from "../../enum";
 import { SourceId } from "../../type-alias";
 import IBCUtil from "../../wrapper/IBCUtil";
 import CommandComponent from "../CommandComponent";
@@ -16,7 +16,6 @@ export default class UserDefineComponent
 {
   readonly container: DependencyContainer;
   private manager: IComponentManager;
-  readonly range: Range;
 
   constructor(
     @inject("element") element: Element,
@@ -25,9 +24,6 @@ export default class UserDefineComponent
   ) {
     super(element, context);
     this.container = container;
-    this.range = new Range();
-    this.range.selectNode(element);
-    this.range.extractContents();
   }
 
   public async initializeAsync(): Promise<void> {
@@ -39,10 +35,10 @@ export default class UserDefineComponent
       await this.manager.initializeAsync();
     }
   }
-  protected runAsync(source?: ISource): Promise<boolean> {
+  protected runAsync(source?: ISource): Promise<any> {
     return this.manager.runAsync
       ? this.manager.runAsync(source)
-      : Promise.resolve(true);
+      : Promise.resolve();
   }
 
   public toNode(rawHtml: string): Node {
@@ -65,9 +61,9 @@ export default class UserDefineComponent
   public setSource(
     sourceId: SourceId,
     data: any,
-    mergeType?: MergeType,
+    options?: ISourceOptions,
     preview?: boolean
   ): void {
-    this.context.setAsSource(sourceId, data, mergeType, preview);
+    this.context.setAsSource(sourceId, data, options, preview);
   }
 }

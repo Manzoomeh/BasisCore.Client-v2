@@ -43,14 +43,14 @@
         <member name="list" type="list" request="print" preview="true"></member>
     </basis>
 
-    <basis core="callback" run="AtClient" datamembername="book.list" method="onSource"></basis>
+    <basis core="callback" run="AtClient" triggers="book.list"></basis>
 
 
     <script>
         const host = {
             dbLibPath: '/alasql.min.js',
             settings: {
-                'connection.web.schoolapi': 'http://localhost:3000/data/schoolapi',
+                'connection.web.schoolapi': 'data/schoolapi',
                 'default.dmnid': 2668
             },
         }
@@ -67,9 +67,6 @@
             "age": MIN_AGE
         });
 
-        function onSource(source) {
-            console.table(source.rows);
-        }
 
     </script>
 </body>

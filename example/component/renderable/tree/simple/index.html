@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Tree Command - Simple</title>
+</head>
+
+<body>
+    <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
+        <layout>
+            <ul data-hi>
+                @child
+            </ul>
+        </layout>
+        <face level="end" replace="true">
+            <li data-end-like><a href="/@name@">@id@ - @name@</a></li>
+        </face>
+        <face level="2">
+            <li data-end-like>
+                <a href="/@name@">@id - @name Level2</a>
+                <ul>
+                    @child
+                </ul>
+            </li>
+        </face>
+        <face replace="true">
+            <li data-else class="dropdown_233">
+                @id@ - @name@
+                <ul>
+                    @child
+                </ul>
+            </li>
+        </face>
+
+    </basis>
+
+    <script>
+        const host = {
+            sources: {
+                "local.tree": [
+                    { id: 1, name: "ali1", pid: null },
+                    { id: 2, name: "amir", pid: 1 },
+                    { id: 3, name: "hassan", pid: 1 },
+                    { id: 4, name: "javad", pid: 2 },
+                    { id: 5, name: "reza", pid: 4 },
+                ]
+            }
+        }
+    </script>
+</body>
+
+</html>

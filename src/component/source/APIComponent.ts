@@ -27,7 +27,7 @@ export default class APIComponent extends SourceComponent {
     this.nameToken = this.getAttributeToken("name");
   }
 
-  protected async runAsync(): Promise<boolean> {
+  protected async runAsync(): Promise<void> {
     const method = (
       await this.methodToken?.getValueAsync()
     )?.toUpperCase() as HttpMethod;
@@ -72,7 +72,7 @@ export default class APIComponent extends SourceComponent {
               data: json.sources[key],
             };
           })
-          .map((x) => new Data(x.key, x.data.data, x.data.mergeType));
+          .map((x) => new Data(x.key, x.data.data, x.data.options));
       } else {
         const name = await this.nameToken.getValueAsync();
         dataList = [new Data(name, json)];
@@ -80,9 +80,8 @@ export default class APIComponent extends SourceComponent {
     }
 
     dataList?.forEach((data) => {
-      const source = new Source(data.id, data.rows, data.mergeType);
+      const source = new Source(data.id, data.rows, data.options);
       this.context.setSource(source);
     });
-    return true;
   }
 }

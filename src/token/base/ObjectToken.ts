@@ -60,7 +60,7 @@ export default abstract class ObjectToken<TType> implements IToken<TType> {
             try {
               value = item.extractValue(source);
             } catch (ex) {
-              //console.error(ex);
+              /*Nothing*/
             }
             if (value != null && value !== "") {
               retVal = value as TType; //this.tryParse(value);
@@ -69,14 +69,14 @@ export default abstract class ObjectToken<TType> implements IToken<TType> {
               continue;
             }
           } else {
-            retVal = source as any; //this.tryParse(source ? "true" : "false");
+            retVal = this.tryParse(source ? "true" : "false");
             break;
           }
         } else {
           const result = await this.context.checkSourceHeartbeatAsync(
             item.source
           );
-          retVal = result as any; //this.tryParse(result.toString());
+          retVal = this.tryParse(result.toString());
           break;
         }
       }

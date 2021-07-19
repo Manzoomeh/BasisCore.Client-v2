@@ -9,14 +9,22 @@
     <title>Print Command - Simple</title>
 </head>
 
+<input bc-triggers="keyup" name="cms.text1" />
+
 <body style="display:{{return 'block';}}">
     {{
     const data = await $bc.waitToGetSourceAsync('cms.cms');
     console.log(data.rows[0].time);
     }}
+    <br />
     {{
     const date = new Date();
     return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    }}
+    <br />
+    {{
+    const data = $bc.tryToGetSource('cms.text1');
+    return data? data.rows[0].value:'not set';
     }}
 </body>
 

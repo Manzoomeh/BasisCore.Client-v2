@@ -1,5 +1,4 @@
-import BCLinker from "../BCLinker";
-import { MergeType } from "../enum";
+import ISourceOptions from "../context/ISourceOptions";
 import IHostOptions from "../options/IHostOptions";
 import { SourceId } from "../type-alias";
 import BCWrapper from "./BCWrapper";
@@ -13,8 +12,7 @@ export default interface IBCWrapperFactory extends IBCUtil {
   addFragment(param: any): BCWrapper;
   setOptions(options: IHostOptions): BCWrapper;
   run(): BCWrapper;
-  setSource(sourceId: SourceId, data: any, mergeType?: MergeType);
-  linker(): BCLinker;
+  setSource(sourceId: SourceId, data: any, options?: ISourceOptions);
   //Ops... comment for prevent error
   //new(): BCWrapper;
 }

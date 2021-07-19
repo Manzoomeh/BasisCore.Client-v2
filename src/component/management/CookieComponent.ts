@@ -13,14 +13,9 @@ export default class CookieComponent extends CommandComponent {
     @inject("context") context: IContext
   ) {
     super(element, context);
-    const range = document.createRange();
-    range.selectNode(element);
-    range.deleteContents();
   }
-  public initializeAsync(): Promise<void> {
-    return super.initializeAsync();
-  }
-  public async runAsync(): Promise<boolean> {
+
+  public async runAsync(): Promise<void> {
     var name = await this.getAttributeValueAsync("name");
     var value = await this.getAttributeValueAsync("value");
     var maxAge = await this.getAttributeValueAsync("max-age");
@@ -33,6 +28,5 @@ export default class CookieComponent extends CommandComponent {
       str += `;path=${path.trim()}`;
     }
     document.cookie = str;
-    return true;
   }
 }

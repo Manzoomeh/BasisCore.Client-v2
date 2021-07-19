@@ -4,7 +4,7 @@ import IHostOptions from "../options/IHostOptions";
 import ClientException from "../exception/ClientException";
 import { SourceId } from "../type-alias";
 import EventManager from "../event/EventManager";
-import { MergeType } from "../enum";
+import ISourceOptions from "../context/ISourceOptions";
 
 export default class BCWrapper {
   private readonly elementList: Array<Element> = new Array<Element>();
@@ -64,11 +64,11 @@ export default class BCWrapper {
     return this;
   }
 
-  public setSource(sourceId: SourceId, data: any, mergeType: MergeType) {
+  public setSource(sourceId: SourceId, data: any, options?: ISourceOptions) {
     if (!this._basiscore) {
       this.run();
     } else {
-      this._basiscore.setSource(sourceId, data, mergeType);
+      this._basiscore.setSource(sourceId, data, options);
     }
   }
 }

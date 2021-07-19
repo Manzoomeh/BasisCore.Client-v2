@@ -14,12 +14,12 @@
     <Basis core="api" url="https://reqres.in/api/users" method="get" run="atclient" OnProcessed="fn">
     </Basis>
 
-    <basis core="callback" run="AtClient" datamembername="api.users" method="onSource"></basis>
+    <basis core="callback" run="AtClient" triggers="api.users" method="onSource"></basis>
 
 
     <script>
-        function onSource(source) {
-            console.table(source.rows);
+        function onSource(args) {
+            console.table(args.source.rows);
         }
 
         async function fn(args) {

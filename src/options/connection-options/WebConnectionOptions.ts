@@ -1,6 +1,5 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
-import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
 import { ConnectionSetting, HttpMethod, SourceId } from "../../type-alias";
@@ -43,9 +42,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
       parameters
     );
     var json = this.ParseJsonString(rawJson);
-    onDataReceived(
-      json.Tables.map((x) => new Data(x.Key, x.Value, MergeType.replace))
-    );
+    onDataReceived(json.Tables.map((x) => new Data(x.Key, x.Value)));
   }
 
   async loadPageAsync(

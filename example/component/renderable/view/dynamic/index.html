@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>View Command - Simple</title>
+</head>
+
+<body>
+    <input type="button" value="Set Source" onclick="clickHandler()" />
+    <basis core="callback" triggers="local.user" run="atclient"></basis>
+    <fieldset>
+        <legend>Without set keyField</legend>
+        <basis core="view" datamembername="local.user" run="atclient">
+            <face level="1">
+                <script type="text/template">
+        <ul data-l1>
+            <li>@question :<button
+                onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                color</button><ul> @child </ul>
+            </li>
+        </ul>
+    </script>
+            </face>
+            <face level="2">
+                <li data-l2>
+                    @answer
+                    <button
+                        onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                        color</button>
+                    {{
+                    return await fn($bc,$data);
+                    }}
+                </li>
+            </face>
+    </fieldset>
+    <fieldset>
+        <legend>With set keyField</legend>
+        <basis core="view" datamembername="local.user" run="atclient" keyField="id">
+            <face level="1">
+                <script type="text/template">
+        <ul data-l1>
+            <li>@question :<button
+                onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                color</button><ul> @child </ul>
+            </li>
+        </ul>
+    </script>
+            </face>
+            <face level="2">
+                <li data-l2>
+                    @answer
+                    <button
+                        onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                        color</button>
+                    {{
+                    return await fn($bc,$data);
+                    }}
+                </li>
+            </face>
+        </basis>
+    </fieldset>
+    <script>
+        var i = 0;
+        function clickHandler() {
+            $bc.setSource("local.user", [
+                { id: 1, question: "FaName", answer: "ali", prpid: "1", pid: null, tags: ["A", "C", "D"], status: 0 },
+                { id: 2, question: "FaName", answer: "amir", prpid: "1", pid: 1, tags: ["A", "B", "E"], status: 0 },
+                { id: 3, question: "FaName", answer: "hassan", prpid: "1", pid: 1, tags: ["E", "D"], status: 0 },
+                { id: 4, question: "EnName", answer: "Amir", prpid: "2", pid: 2, tags: ["F", "A"], status: 0 },
+                { id: 5, question: "EnName", answer: "Ali", prpid: "2", pid: 4, tags: ["D", "B", "A"], status: 1 },
+            ]);
+            i += 1;
+        }
+        clickHandler();
+
+        async function fn(_, $data) {
+            const lis = $data.tags.sort().reduce((total, tag) => total += `<li>${tag}</li>`, '');
+            return `${$data.prpid}<ul>${lis}</ul>`
+        }
+
+        // let isFirstTurn = true;
+        // function OnRendered(args) {
+        //     if (isFirstTurn) {
+        //         //alert("set style only one time");
+        //         args.result.forEach(element => {
+        //             if (element.querySelectorAll) {
+        //                 Array.from(element.querySelectorAll('li')).forEach(element => element.style.color = "red");
+        //             }
+        //         });
+        //         isFirstTurn = false;
+        //     }
+        // }
+    </script>
+</body>
+
+</html>

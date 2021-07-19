@@ -65,28 +65,37 @@
         <br />
         cms.form._root.phones[2]?.number: [##cms.form._root.phones[1]?.number##]
         <br />
+        {{return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0] );}}
 
+        <basis core="callback" run="AtClient" triggers="cms.form"></basis>
 
-    </fieldset>
-    <basis core="callback" run="AtClient" datamembername="cms.form" method="onSource"></basis>
+        <basis core="call" file="called.html" pagesize="" run="atclient" method="post" if="[##cms.form##]"
+            triggers="cms.form"
+            app-json="{{return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0] );}}">
+        </basis>
+        <script>
+            const host = {
+                settings: {
+                    "default.call.verb": "get",
+                    "connection.web.callcommand": "call/",
+                },
+            };
 
-    <script>
-        let id = 1
-        function addPhone() {
-            const template = document.getElementById("phone-template");
-            const copy = document.importNode(template.content, true);
-            console.log(copy.querySelectorAll('[name]'))
-            copy.querySelectorAll('[name]').forEach(element => {
-                element.attributes["name"].value = element.attributes["name"].value.replace('[x]', id.toString());
-            });
-            id++;
-            document.getElementById("phone-holder").append(copy);
-        }
+        </script>
 
-        function onSource(source) {
-            console.table(source.rows);
-        }
-    </script>
+        <script>
+            let id = 1
+            function addPhone() {
+                const template = document.getElementById("phone-template");
+                const copy = document.importNode(template.content, true);
+                console.log(copy.querySelectorAll('[name]'))
+                copy.querySelectorAll('[name]').forEach(element => {
+                    element.attributes["name"].value = element.attributes["name"].value.replace('[x]', id.toString());
+                });
+                id++;
+                document.getElementById("phone-holder").append(copy);
+            }
+        </script>
 
 </body>
 

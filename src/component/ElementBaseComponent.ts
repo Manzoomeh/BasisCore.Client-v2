@@ -8,7 +8,7 @@ import ISource from "../data/ISource";
 import IToken from "../token/IToken";
 import Component from "./Component";
 
-export abstract class ElementBaseComponent<
+export default abstract class ElementBaseComponent<
   TElement extends Element
 > extends Component<TElement> {
   protected onRenderingAsync: (
@@ -18,11 +18,13 @@ export abstract class ElementBaseComponent<
   protected onProcessingAsync: (args: CallbackArgument) => Promise<void>;
   protected onProcessedAsync: (args: CallbackArgument) => Promise<void>;
 
+  protected ifToken: IToken<string>;
   constructor(element: TElement, context: IContext) {
     super(element, context);
   }
 
   public async initializeAsync(): Promise<void> {
+    this.ifToken = this.getAttributeToken("if");
     const onRendering = await this.getAttributeValueAsync("OnRendering");
     if (onRendering) {
       this.onRenderingAsync = new Function(
@@ -61,9 +63,20 @@ export abstract class ElementBaseComponent<
     }
   }
 
+  protected async getIfValueAsync(): Promise<boolean> {
+    const rawValue = await this.ifToken?.getValueAsync();
+    let retVal = true;
+    if (rawValue != null && rawValue != undefined) {
+      const fn: () => boolean = new Function(
+        `try{return ${rawValue};}catch{return false;}`
+      ) as any;
+      retVal = fn();
+    }
+    return retVal;
+  }
+
   public async renderAsync(source?: ISource): Promise<void> {
-    const token = this.node.GetBooleanToken("if", this.context);
-    let canRender = (await token?.getValueAsync()) ?? true;
+    let canRender = await this.getIfValueAsync();
     if (canRender && this.onRenderingAsync) {
       const renderingArgs =
         this.createCallbackArgument<RenderingCallbackArgument>({
@@ -73,17 +86,17 @@ export abstract class ElementBaseComponent<
       await this.onRenderingAsync(renderingArgs);
       canRender = !renderingArgs.prevent;
     }
-    let rendered = false;
+    let runResult: any = null;
     if (canRender) {
-      rendered = await this.runAsync(source);
-    }
-    if (this.onRenderedAsync) {
-      await this.onRenderedAsync(
-        this.createCallbackArgument<RenderedCallbackArgument>({
-          rendered: rendered,
-          source: source,
-        })
-      );
+      runResult = await this.runAsync(source);
+      if (runResult !== null && this.onRenderedAsync) {
+        await this.onRenderedAsync(
+          this.createCallbackArgument<RenderedCallbackArgument>({
+            result: runResult,
+            source: source,
+          })
+        );
+      }
     }
   }
 
@@ -117,5 +130,5 @@ export abstract class ElementBaseComponent<
     } as unknown as T;
   }
 
-  protected abstract runAsync(source?: ISource): Promise<boolean>;
+  protected abstract runAsync(source?: ISource): Promise<any>;
 }

@@ -1,17 +1,27 @@
 ﻿import { FaceRowType } from "../../../enum";
 import Util from "../../../Util";
+import IBCUtil from "../../../wrapper/IBCUtil";
 import Face from "./Face";
+import FaceRenderResult from "./FaceRenderResult";
 import RenderParam from "./RenderParam";
+
+declare const $bc: IBCUtil;
 
 export default class FaceCollection extends Array<Face> {
   constructor(...faces: Face[]) {
     super(...faces);
     (<any>Object).setPrototypeOf(this, FaceCollection.prototype);
   }
-  public async renderAsync(param: RenderParam, data: any[]): Promise<string> {
-    var retVal: string = "";
+
+  public async renderAsync<TRenderResult extends FaceRenderResult>(
+    param: RenderParam<TRenderResult>,
+    data: object,
+    dataKey: any,
+    factory: (key: any, node: DocumentFragment) => TRenderResult,
+    groupName?: string
+  ): Promise<TRenderResult> {
+    let retVal: TRenderResult = null;
     if (this.length == 0) {
-      retVal = data[0].toString();
       param.setRendered();
     } else {
       var rowType = param.rowType;
@@ -24,42 +34,17 @@ export default class FaceCollection extends Array<Face> {
         return con1 && con2 && con3;
       })[0];
       if (firstMatchFace != null) {
-        retVal = await firstMatchFace.template.getValueAsync(data);
-        if (firstMatchFace.ApplyReplace && param.replaces != null) {
-          retVal = param.replaces.apply(retVal);
-        }
-        if (firstMatchFace.ApplyFunction) {
-          //TODO:add function
+        retVal = await param.mustRenderAsync(data, dataKey, groupName);
+        if (!retVal) {
+          const rawHtml = await firstMatchFace.template.getValueAsync(data);
+          const renderResult = $bc.util.toNode(rawHtml);
+          retVal = factory(dataKey, renderResult);
         }
         param.setRendered();
-        if (param.mustApplyDivider) {
-          retVal += param.dividerTemplate;
-        }
-        if (param.isEnd) {
-          var tmp = param.emptyCell;
-          if (param.incompleteTemplate) {
-            while (tmp > 1) {
-              retVal += param.incompleteTemplate;
-              tmp--;
-            }
-          }
-        }
       } else {
         param.setIgnored();
       }
     }
     return retVal;
-  }
-  private static format(format: string, object: any): string {
-    var items = Object.getOwnPropertyNames(object)
-      .map<{ value: any; pattern: string }>((x, i) => {
-        return {
-          value: Util.HasValue(object[x]) ? object[x] : "",
-          pattern: `@col${i + 1}`,
-        };
-      })
-      .reverse();
-    items.forEach((x) => (format = Util.ReplaceEx(format, x.pattern, x.value)));
-    return format;
   }
 }

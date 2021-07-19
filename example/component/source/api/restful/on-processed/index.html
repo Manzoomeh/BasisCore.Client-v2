@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>API Command - REST - Simple</title>
+</head>
+
+<body>
+
+    <Basis core="api" url="data/book.json" method="get" run="atclient" OnProcessed="fn">
+    </Basis>
+
+    <basis core="callback" run="AtClient" triggers="my-book.type" method="onSource"></basis>
+
+    <script>
+        async function fn(args) {
+
+            /*
+           response is Response interface.
+           for more information about Response interface, visit  https://developer.mozilla.org/en-US/docs/Web/API/Response
+           
+           return type must be of type Data[] or Promise<Data[]> interface.
+           Create Data with $bc.util.source.data(id,row[],mergeType) helper 
+           */
+            console.log(args);
+            const response = args.response;
+            const json = await response.json();
+            dataList = Object.keys(json?.sources)
+                .map((key) => {
+                    return {
+                        key: key,
+                        data: json.sources[key],
+                    };
+                })
+                .map(
+                    (x) =>
+                        $bc.util.source.data(
+                            `my-${x.key}`,
+                            x.data.data.map(x => {
+                                x.id *= 10;
+                                return x;
+                            }),
+                            x.data.mergeType
+                        )
+                );
+            args.results = dataList;
+        }
+
+        function onSource(args) {
+            console.table(args.source.rows);
+        }
+
+    </script>
+</body>
+
+</html>

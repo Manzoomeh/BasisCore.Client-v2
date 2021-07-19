@@ -4,6 +4,7 @@ import IToken from "./IToken";
 export default class CodeBlockToken implements IToken<any> {
   context: IContext;
   private readonly fn: Function;
+  private readonly sourceNames: string[];
 
   constructor(expression: string, context: IContext) {
     this.context = context;
@@ -17,7 +18,15 @@ export default class CodeBlockToken implements IToken<any> {
         return e;
       }`
     );
-    console.log("bt");
+
+    const r = /\$bc\.(?:waitToGetSourceAsync|tryToGetSource)\('(.*)'\)/g;
+    const matches = (<any>expression).matchAll(r);
+    if (matches) {
+      this.sourceNames = new Array<string>();
+      for (const match of matches) {
+        this.sourceNames.push(match[1]);
+      }
+    }
   }
 
   public async getValueAsync(wait?: boolean): Promise<any> {
@@ -28,10 +37,10 @@ export default class CodeBlockToken implements IToken<any> {
   }
 
   public getSourceNames(): string[] {
-    return null;
+    return this.sourceNames;
   }
 
   public getDefault() {
-    throw new Error("Method not implemented.");
+    return "";
   }
 }

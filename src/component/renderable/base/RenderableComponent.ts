@@ -1,19 +1,27 @@
 import { DependencyContainer } from "tsyringe";
 import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
+import ISourceOptions from "../../../context/ISourceOptions";
 import ISource from "../../../data/ISource";
+import { DataStatus } from "../../../enum";
+import IToken from "../../../token/IToken";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
+import FaceRenderResult from "./FaceRenderResult";
+import FaceRenderResultList from "./FaceRenderResultList";
+import RenderDataPartResult from "./IRenderDataPartResult";
 import RawFaceCollection from "./RawFaceCollection";
-import RawReplaceCollection from "./RawReplaceCollection";
 import RenderParam from "./RenderParam";
-import ReplaceCollection from "./ReplaceCollection";
+import { RenderResultSelector } from "./RenderResultSelector";
 
-export default abstract class RenderableComponent extends SourceBaseComponent {
+export default abstract class RenderableComponent<
+  TRenderResult extends FaceRenderResult
+> extends SourceBaseComponent {
   readonly container: DependencyContainer;
   readonly collection: ComponentCollection;
   readonly reservedKeys: Array<string>;
+  private renderResultList: FaceRenderResultList<TRenderResult>;
 
   constructor(
     element: Element,
@@ -27,76 +35,119 @@ export default abstract class RenderableComponent extends SourceBaseComponent {
     this.reservedKeys = reservedKeys;
   }
 
-  async renderSourceAsync(source: ISource): Promise<void> {
-    var result: string = null;
+  async renderSourceAsync(source: ISource): Promise<Node[]> {
+    let renderResult: DocumentFragment[];
     if (source.rows) {
-      var rawIncompleteTemplate = this.node
-        .querySelector("incomplete")
-        ?.GetTemplateToken(this.context);
-      var divider = this.node.querySelector("divider");
-      var rawDividerTemplate = divider?.GetTemplateToken(this.context);
-      var rawDividerRowCount = divider?.GetIntegerToken(
-        "rowcount",
-        this.context
+      var rawFaces = RawFaceCollection.Create(
+        this.node,
+        this.context,
+        this.reservedKeys ? this.reservedKeys[0] : null
       );
-      var rawReplaces = RawReplaceCollection.Create(this.node, this.context);
-      var rawFaces = RawFaceCollection.Create(this.node, this.context);
-
       var faces = await rawFaces.processAsync(
         source,
         this.context,
         this.reservedKeys
       );
-      var replaces = await rawReplaces.ProcessAsync(this.context);
-      var dividerRowCount = (await rawDividerRowCount?.getValueAsync()) ?? 0;
-      var dividerTemplate = await rawDividerTemplate?.getValueAsync();
-      var incompleteTemplate = await rawIncompleteTemplate?.getValueAsync();
-      result = await this.renderDataPartAsync(
+      const newRenderResultList = await this.renderDataPartAsync(
         source,
         faces,
-        replaces,
-        dividerRowCount,
-        dividerTemplate,
-        incompleteTemplate
+        this.CanRenderAsync.bind(this, source.statusFieldName),
+        source.keyFieldName
       );
+      this.renderResultList = newRenderResultList.repository;
+      renderResult = newRenderResultList.result;
     }
-    if (source.rows == null || (Util.HasValue(result) && result.length > 0)) {
-      var rawLayout = this.node
+    return await this.createContentAsync(renderResult);
+  }
+
+  protected async createContentAsync(
+    renderResult?: DocumentFragment[]
+  ): Promise<ChildNode[]> {
+    let container: DocumentFragment;
+    if (renderResult?.length > 0) {
+      const rawLayout = this.node
         .querySelector("layout")
         ?.GetTemplateToken(this.context);
-      var layout = (await rawLayout?.getValueAsync()) ?? "@child";
-      result = Util.ReplaceEx(layout, "@child", result ?? "");
+      let layoutTemplate = await rawLayout?.getValueAsync();
+      const key = Date.now().toString(36);
+      const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
+      layoutTemplate = layoutTemplate
+        ? Util.ReplaceEx(layoutTemplate, "@child", elementHolder)
+        : elementHolder;
+      container = this.range.createContextualFragment(layoutTemplate);
+      const childContainer = container.querySelector(
+        `basis-core-template-tag#${key}`
+      );
+      renderResult.forEach((doc) => childContainer.appendChild(doc));
     } else {
       var rawElseLayout = this.node
         .querySelector("else-layout")
         ?.GetTemplateToken(this.context);
-      result = (await rawElseLayout?.getValueAsync()) ?? "";
+      const result = await rawElseLayout?.getValueAsync();
+      container = this.range.createContextualFragment(result ?? "");
     }
-    const content = this.range.createContextualFragment(result);
-    const childNodes = [...content.childNodes];
-    this.setContent(content);
-    await this.collection.processNodesAsync(childNodes, false);
+    const generatedNodes = [...container.childNodes];
+    this.setContent(container, false);
+    return generatedNodes;
+  }
+
+  protected async CanRenderAsync(
+    statusFiledName: string,
+    data: any,
+    key: any,
+    groupName?: string
+  ): Promise<any> {
+    let node = this.renderResultList?.get(key, groupName);
+    if (node) {
+      if (statusFiledName) {
+        try {
+          if (Reflect.get(data, statusFiledName) == DataStatus.edited) {
+            node = null;
+          }
+        } catch {}
+      }
+    }
+    return node;
+  }
+
+  protected FaceRenderResultFactory(
+    key: any,
+    doc: DocumentFragment
+  ): TRenderResult {
+    return new FaceRenderResult(key, doc) as TRenderResult;
+  }
+
+  protected getKeyValue(data: any, keyFieldName: string): any {
+    return keyFieldName ? Reflect.get(data, keyFieldName) : data;
   }
 
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    replaces: ReplaceCollection,
-    dividerRowcount: number,
-    dividerTemplate: string,
-    incompleteTemplate: string
-  ): Promise<string> {
-    let result = new Array<string>();
-    const param = new RenderParam(
-      replaces,
-      dataSource.rows.length,
-      dividerRowcount,
-      dividerTemplate,
-      incompleteTemplate
-    );
+    canRenderAsync: RenderResultSelector<TRenderResult>,
+    keyField
+  ): Promise<RenderDataPartResult<TRenderResult>> {
+    const param = new RenderParam<TRenderResult>(canRenderAsync);
+    const newRenderResultList = new FaceRenderResultList<TRenderResult>();
+    const renderResult = new Array<DocumentFragment>();
     for (const row of dataSource.rows) {
-      result.push(await faces.renderAsync(param, row));
+      const dataKey = this.getKeyValue(row, keyField);
+      const rowRenderResult = await faces.renderAsync<TRenderResult>(
+        param,
+        row,
+        dataKey,
+        this.FaceRenderResultFactory
+      );
+      if (rowRenderResult) {
+        newRenderResultList.set(rowRenderResult.key, rowRenderResult);
+        const doc = this.range.createContextualFragment("");
+        rowRenderResult.AppendTo(doc);
+        renderResult.push(doc);
+      }
     }
-    return result.join("");
+    return new RenderDataPartResult<TRenderResult>(
+      renderResult,
+      newRenderResultList
+    );
   }
 }

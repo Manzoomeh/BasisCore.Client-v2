@@ -11,7 +11,7 @@
 
 <body>
     [##data.time.value|(not set)##]
-    <basis core="cookie" name="last-time" value="[##data.time.value|(none)##]" max-age="55" path="" run="atclient"
+    <basis core="cookie" name="last_time" value="[##data.time.value|(none)##]" max-age="55" path="" run="atclient"
         triggers="data.time">
     </basis>
 
@@ -19,11 +19,6 @@
     <script>
         function setTimeSource() {
             const date = new Date();
-            const source = {
-                hh: date.getHours(),
-                mm: date.getMinutes(),
-                ss: date.getSeconds()
-            };
             $bc.setSource('data.time', date.getUTCMilliseconds())
         }
         setTimeSource();

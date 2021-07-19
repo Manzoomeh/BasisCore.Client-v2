@@ -3,12 +3,15 @@ import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
 import FaceCollection from "./base/FaceCollection";
+import FaceRenderResultList from "./base/FaceRenderResultList";
+import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
-import ReplaceCollection from "./base/ReplaceCollection";
+import { RenderResultSelector } from "./base/RenderResultSelector";
+import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
 
 @injectable()
-export default class TreeComponent extends RenderableComponent {
+export default class TreeComponent extends RenderableComponent<TreeFaceRenderResult> {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
@@ -17,15 +20,21 @@ export default class TreeComponent extends RenderableComponent {
     super(element, context, container, ["child"]);
   }
 
+  protected FaceRenderResultFactory(
+    key: any,
+    doc: DocumentFragment
+  ): TreeFaceRenderResult {
+    return new TreeFaceRenderResult(key, doc);
+  }
+
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    replaces: ReplaceCollection,
-    dividerRowCount: number,
-    dividerTemplate: string,
-    incompleteTemplate: string
-  ): Promise<string> {
-    var retVal = "";
+    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
+    keyField
+  ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
+    const tempGeneratedNodeList =
+      new FaceRenderResultList<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
       var foreignKey = await this.getAttributeValueAsync(
         "parentidcol",
@@ -40,85 +49,93 @@ export default class TreeComponent extends RenderableComponent {
       );
       if (rootRecords.length == 0) {
         throw new Error(
-          `Tree Command Has No Root Record In Data Member '${dataSource.id}' With '${nullValue}' Value In '${foreignKey}' Column That Set In NullValue Attribute.`
+          `Tree command has no root record in data member '${dataSource.id}' with '${nullValue}' value in '${foreignKey}' column that set in NullValue attribute.`
         );
       }
-      var rootRenderParam = new RenderParam(
-        replaces,
-        rootRecords.length,
-        dividerRowCount,
-        dividerTemplate,
-        incompleteTemplate
+      var rootRenderParam = new RenderParam<TreeFaceRenderResult>(
+        canRenderAsync
       );
+      var content = new Array<DocumentFragment>();
       for (const row of rootRecords) {
-        retVal += await this.renderLevelAsync(
+        const tmp = await this.renderLevelAsync(
           dataSource,
           rootRenderParam,
           1,
           faces,
-          replaces,
-          dividerRowCount,
-          dividerTemplate,
-          incompleteTemplate,
           principalKey,
           foreignKey,
+          tempGeneratedNodeList,
+          canRenderAsync,
+          keyField,
           row
         );
+        const doc = this.range.createContextualFragment("");
+        tmp.AppendTo(doc);
+        content.push(doc);
       }
+      return new RenderDataPartResult<TreeFaceRenderResult>(
+        content,
+        tempGeneratedNodeList
+      );
     }
-    return retVal;
   }
 
   private async renderLevelAsync(
     dataSource: ISource,
-    parentRenderParam: RenderParam,
+    parentRenderParam: RenderParam<TreeFaceRenderResult>,
     level: number,
     faces: FaceCollection,
-    replaces: ReplaceCollection,
-    dividerRowCount: number,
-    dividerTemplate: string,
-    incompleteTemplate: string,
     principalKey: string,
     foreignKey: string,
-    data: any[]
-  ): Promise<string> {
-    var childRenderResult = "";
+    tempGeneratedNodeList: FaceRenderResultList<TreeFaceRenderResult>,
+    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
+    keyField,
+    data: object
+  ): Promise<TreeFaceRenderResult> {
+    var childRenderResult = this.range.createContextualFragment(" ");
     const childRows = DataUtil.ApplySimpleFilter(
       dataSource.rows,
       foreignKey,
       data[principalKey]
     );
 
-    if (childRows.length != 0) {
-      var newLevel = level + 1;
-      const childRenderParam = new RenderParam(
-        replaces,
-        childRows.length,
-        dividerRowCount,
-        dividerTemplate,
-        incompleteTemplate
-      );
-
-      for (const row of childRows) {
-        childRenderResult += await this.renderLevelAsync(
-          dataSource,
-          childRenderParam,
-          newLevel,
-          faces,
-          replaces,
-          dividerRowCount,
-          dividerTemplate,
-          incompleteTemplate,
-          principalKey,
-          foreignKey,
-          row
+    parentRenderParam.setLevel(
+      childRows.length != 0 ? [`${level}`] : [`${level}`, "end"]
+    );
+    const parentKey = this.getKeyValue(data, keyField);
+    const renderResult = await faces.renderAsync<TreeFaceRenderResult>(
+      parentRenderParam,
+      data,
+      parentKey,
+      this.FaceRenderResultFactory
+    );
+    if (renderResult) {
+      tempGeneratedNodeList.set(renderResult.key, renderResult);
+      renderResult.setContent(null);
+      if (childRows.length != 0) {
+        var newLevel = level + 1;
+        const childRenderParam = new RenderParam<TreeFaceRenderResult>(
+          canRenderAsync
         );
+
+        for (const row of childRows) {
+          const childResult = await this.renderLevelAsync(
+            dataSource,
+            childRenderParam,
+            newLevel,
+            faces,
+            principalKey,
+            foreignKey,
+            tempGeneratedNodeList,
+            canRenderAsync,
+            keyField,
+            row
+          );
+          childResult.AppendTo(childRenderResult);
+        }
       }
-      parentRenderParam.setLevel([`${level}`]);
-    } else {
-      parentRenderParam.setLevel([`${level}`, "end"]);
+      renderResult.setContent(childRenderResult);
     }
-    const retVal = await faces.renderAsync(parentRenderParam, data);
-    return retVal?.replace(`@child`, childRenderResult);
+    return renderResult;
   }
 }

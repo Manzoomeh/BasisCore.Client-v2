@@ -3,7 +3,7 @@ import ITemplate from "./ITemplate";
 export class ExpressionTemplate implements ITemplate {
   private readonly rawExpression: string;
   private readonly reservedKeys: Array<string>;
-  private getValue1: (...data: any) => string;
+  private getValue: (...data: any) => string;
 
   constructor(rawExpression: string, reservedKeys: Array<string>) {
     this.rawExpression = rawExpression;
@@ -11,9 +11,9 @@ export class ExpressionTemplate implements ITemplate {
   }
 
   getValueAsync(data: any): Promise<string> {
-    if (!this.getValue1) {
+    if (!this.getValue) {
       try {
-        this.getValue1 = new Function(
+        this.getValue = new Function(
           ...Object.keys(data),
           `${
             this.reservedKeys
@@ -29,6 +29,6 @@ export class ExpressionTemplate implements ITemplate {
         throw ex;
       }
     }
-    return Promise.resolve(this.getValue1(...Object.values(data)));
+    return Promise.resolve(this.getValue(...Object.values(data)));
   }
 }

@@ -1,10 +1,10 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
-import { MergeType } from "../../enum";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
 import { ServerResponse } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
+import StreamPromise from "./StreamPromise";
 
 export default class WebSocketConnectionOptions extends ConnectionOptions {
   readonly url: string;
@@ -39,7 +39,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
       activeSockets.delete(sourceId);
     }
 
-    return new Promise((resolve, reject) => {
+    return new StreamPromise((resolve, reject) => {
       let retry = 0;
       function initAndConnect(reconnect: boolean) {
         retry++;
@@ -47,11 +47,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
         let error = null;
         socket.onopen = (e) => {
           activeSockets.set(sourceId, socket);
-          context.logger.logInformation(
-            "%s %s",
-            url,
-            reconnect ? "Reconnected" : "Connected"
-          );
+          console.log("%s %s", url, reconnect ? "Reconnected" : "Connected");
           socket.send(JSON.stringify(parameters));
         };
         socket.onclose = (e) => {
@@ -95,14 +91,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
                     data: json.sources[key],
                   };
                 })
-                .map(
-                  (x) =>
-                    new Data(
-                      x.key,
-                      x.data.data,
-                      x.data.mergeType ?? MergeType.replace
-                    )
-                );
+                .map((x) => new Data(x.key, x.data.data, x.data.options));
               if (dataList.length > 0) {
                 onDataReceived(dataList);
               }

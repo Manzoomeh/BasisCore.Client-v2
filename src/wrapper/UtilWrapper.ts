@@ -56,7 +56,7 @@ export default class UtilWrapper implements IUtilWrapper {
     return defaultsDeep(this.cloneDeep(data), defaults);
   }
 
-  public toNode(rawHtml: string): Node {
+  public toNode(rawHtml: string): DocumentFragment {
     return document.createRange().createContextualFragment(rawHtml);
   }
 

@@ -1,8 +1,3 @@
-export enum OriginType {
-  internal,
-  external,
-}
-
 export enum FaceRowType {
   NotSet = 0,
   Odd,
@@ -21,9 +16,14 @@ export enum JoinType {
 }
 
 export enum Priority {
-  higher,
   high,
   normal,
-  Low,
-  None,
+  low,
+  none,
+}
+
+export enum DataStatus {
+  added = 0,
+  edited = 1,
+  deleted = 2,
 }

@@ -1,11 +1,10 @@
 import IHostOptions from "../options/IHostOptions";
 import { SourceId } from "../type-alias";
-import BCLinker from "../BCLinker";
 import UtilWrapper from "./UtilWrapper";
-import { MergeType } from "../enum";
 import BCWrapper from "./BCWrapper";
 import IBCWrapperFactory from "./IBCWrapperFactory";
 import IUtilWrapper from "./IUtilWrapper";
+import ISourceOptions from "../context/ISourceOptions";
 
 export default class BCWrapperFactory implements IBCWrapperFactory {
   private _global: BCWrapper;
@@ -30,12 +29,8 @@ export default class BCWrapperFactory implements IBCWrapperFactory {
     return this.global.run();
   }
 
-  public setSource(sourceId: SourceId, data: any, mergeType?: MergeType) {
-    return this.run().setSource(sourceId, data, mergeType);
-  }
-
-  public linker(): BCLinker {
-    return new BCLinker();
+  public setSource(sourceId: SourceId, data: any, options?: ISourceOptions) {
+    return this.run().setSource(sourceId, data, options);
   }
 
   public new(): BCWrapper {

@@ -39,22 +39,14 @@ export default class ContentTemplate implements ITemplate {
       const finding = matchResult[0];
       const preChar = matchResult[1];
       const index = matchResult.index + (preChar?.length ?? 0);
-      // console.log(
-      //   "g",
-      //   matchResult[0],
-      //   startIndex,
-      //   index,
-      //   index + finding.length,
-      //   this.template[index + finding.length]
-      // );
       if (startIndex != index) {
         this.contents.push(
           new StringTemplate(this.template.slice(startIndex, index))
         );
       }
       startIndex = index + finding.length;
-      if (preChar) {
-        const expression = matchResult[2] ?? matchResult[3];
+      const expression = matchResult[2] ?? matchResult[3];
+      if (expression) {
         this.contents.push(
           new ExpressionTemplate(expression, this.reservedKeys)
         );
@@ -67,7 +59,6 @@ export default class ContentTemplate implements ITemplate {
     if (startIndex != this.template.length) {
       this.contents.push(new StringTemplate(this.template.slice(startIndex)));
     }
-    //console.log(this.contents);
   }
 
   public async getValueAsync(data: any): Promise<string> {

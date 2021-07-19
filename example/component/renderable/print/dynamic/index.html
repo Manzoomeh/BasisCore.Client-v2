@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Interval with replace</title>
+</head>
+
+<body>
+    <input type="button" value="Set Source" onclick="clickHandler()" />
+    <Basis core="print" datamembername="local.print" run="atclient">
+        <layout>
+            <script type="text/template">
+            <ul>@child</ul>
+        </script>
+        </layout>
+        <face>
+            <li>
+                <span>@id ( @name ) </span>
+            </li>
+        </face>
+    </Basis>
+    <script>
+        var i = 0;
+        function clickHandler() {
+            $bc.setSource(
+                "local.print", { id: i, name: `btn-t=${i}` }
+            );
+            i += 1;
+        }
+        clickHandler();
+    </script>
+</body>
+
+</html>

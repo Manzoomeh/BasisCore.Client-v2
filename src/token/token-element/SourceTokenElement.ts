@@ -13,10 +13,6 @@ export default class SourceTokenElement<TType> implements ITokenElement {
     this.member = parts[1].toLowerCase();
     this.column = parts.length > 2 ? parts.slice(2).join(".") : null;
     this.expression = expression;
-    // console.log(
-    //   expression,
-    //   `const ${this.source}={${this.member}:source.rows.length == 1? source.rows[0]:source.rows}; return ${expression}??null;`
-    // );
     this.extractValue = new Function(
       "source",
       `let retVal = null;

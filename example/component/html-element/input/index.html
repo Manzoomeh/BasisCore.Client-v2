@@ -39,7 +39,7 @@
     [##cms.date.value|(not set)##]
 
     <br />
-    <input type="file" bc-triggers="change input" name="cms.file" />
+    <input type="file" bc-triggers="change" name="cms.file" />
     [##cms.file.value|(not set)##]
 
     <br />
@@ -79,13 +79,10 @@
 
     </form>
 
-    <basis core="callback" run="AtClient" datamembername="cms.form" method="onSource"></basis>
+    <basis core="callback" run="AtClient"
+        triggers="cms.text cms.text1 cms.text2 cms.cbox cms.g1 cms.color cms.date cms.file cms.number cms.range cms.time cms.cmb cms.form">
+    </basis>
 
-    <script>
-        function onSource(source) {
-            console.table(source.rows);
-        }
-    </script>
 </body>
 
 </html>

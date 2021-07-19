@@ -31,7 +31,7 @@
       </Basis>
       [##local.name.value|(not set)##]
       <form bc-triggers="submit" name="local.name">
-        <label>Name: <input type="text" name="value" value="[##local.name.value##]" /></label>
+        <label>Name: <input type="text" name="value" value="[##local.name.value##]" bc-triggers="change" /></label>
         <input type="submit" />
       </form>
       <basis core="group" run="atclient">

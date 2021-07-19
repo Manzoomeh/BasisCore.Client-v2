@@ -1,12 +1,14 @@
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
+import { Priority } from "../../enum";
 import IToken from "../../token/IToken";
 import Component from "../Component";
-import { ElementBaseComponent } from "../ElementBaseComponent";
 
 export class AttributeComponent extends Component<Element> {
   readonly attribute: Attr;
   readonly token: IToken<string>;
+  readonly priority: Priority = Priority.none;
+
   constructor(element: Element, context: IContext, attribute: Attr) {
     super(element, context);
     this.attribute = attribute;

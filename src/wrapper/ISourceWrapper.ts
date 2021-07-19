@@ -1,7 +1,7 @@
 import IContext from "../context/IContext";
+import ISourceOptions from "../context/ISourceOptions";
 import Data from "../data/Data";
 import ISource from "../data/ISource";
-import { MergeType } from "../enum";
 import { SourceId } from "../type-alias";
 
 export default interface ISourceWrapper {
@@ -21,5 +21,5 @@ export default interface ISourceWrapper {
     context: IContext
   ): Promise<ISource>;
 
-  data(id: SourceId, data: any, mergeType?: MergeType): Data;
+  data(id: SourceId, data: any, options?: ISourceOptions): Data;
 }

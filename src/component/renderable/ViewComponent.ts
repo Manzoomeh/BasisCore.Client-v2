@@ -4,12 +4,15 @@ import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
 import TokenUtil from "../../token/TokenUtil";
 import FaceCollection from "./base/FaceCollection";
+import FaceRenderResultList from "./base/FaceRenderResultList";
+import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
-import ReplaceCollection from "./base/ReplaceCollection";
+import { RenderResultSelector } from "./base/RenderResultSelector";
+import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
 
 @injectable()
-export default class ViewComponent extends RenderableComponent {
+export default class ViewComponent extends RenderableComponent<TreeFaceRenderResult> {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
@@ -18,15 +21,20 @@ export default class ViewComponent extends RenderableComponent {
     super(element, context, container, ["child"]);
   }
 
+  protected FaceRenderResultFactory(
+    key: any,
+    doc: DocumentFragment
+  ): TreeFaceRenderResult {
+    return new TreeFaceRenderResult(key, doc);
+  }
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection,
-    replaces: ReplaceCollection,
-    dividerRowcount: number,
-    dividerTemplate: string,
-    incompleteTemplate: string
-  ): Promise<string> {
-    var retVal = "";
+    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
+    keyFieldName
+  ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
+    const newRenderResultList =
+      new FaceRenderResultList<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
       const token = this.getAttributeToken("groupcol");
       const groupColumn = (
@@ -39,14 +47,11 @@ export default class ViewComponent extends RenderableComponent {
       const groupList = dataSource.rows
         .map((x) => x[groupColumn])
         .filter((x, i, arr) => arr.indexOf(x) === i);
-      const rootRenderParam = new RenderParam(
-        replaces,
-        groupList.length,
-        dividerRowcount,
-        dividerTemplate,
-        incompleteTemplate
+      const rootRenderParam = new RenderParam<TreeFaceRenderResult>(
+        canRenderAsync
       );
       rootRenderParam.setLevel(["1"]);
+      var content = new Array<DocumentFragment>();
 
       for (const group of groupList) {
         const childItems = DataUtil.ApplySimpleFilter(
@@ -54,29 +59,46 @@ export default class ViewComponent extends RenderableComponent {
           groupColumn,
           group
         );
-
-        const level1Result = await faces.renderAsync(
+        const data = childItems[0];
+        const key = this.getKeyValue(data, keyFieldName);
+        const level1Result = await faces.renderAsync<TreeFaceRenderResult>(
           rootRenderParam,
-          childItems[0]
+          data,
+          key,
+          this.FaceRenderResultFactory,
+          "group"
         );
-        let level2Result = "";
-        const childRenderParam = new RenderParam(
-          replaces,
-          childItems.length,
-          dividerRowcount,
-          dividerTemplate,
-          incompleteTemplate
-        );
-        childRenderParam.setLevel(["2"]);
-        for (const row of childItems) {
-          const renderResult = await faces.renderAsync(childRenderParam, row);
-          if (renderResult) {
-            level2Result += renderResult;
+        if (level1Result) {
+          newRenderResultList.set(level1Result.key, level1Result, "group");
+          level1Result.setContent(null);
+
+          const childRenderParam = new RenderParam<TreeFaceRenderResult>(
+            canRenderAsync
+          );
+          childRenderParam.setLevel(["2"]);
+          var childRenderResult = this.range.createContextualFragment(" ");
+
+          for (const row of childItems) {
+            const dataKey = this.getKeyValue(row, keyFieldName);
+            const renderResult = await faces.renderAsync<TreeFaceRenderResult>(
+              childRenderParam,
+              row,
+              dataKey,
+              this.FaceRenderResultFactory
+            );
+            newRenderResultList.set(renderResult.key, renderResult);
+            renderResult.AppendTo(childRenderResult);
           }
+          level1Result.setContent(childRenderResult);
+          const doc = this.range.createContextualFragment("");
+          level1Result.AppendTo(doc);
+          content.push(doc);
         }
-        retVal += level1Result.replace("@child", level2Result);
       }
     }
-    return retVal;
+    return new RenderDataPartResult<TreeFaceRenderResult>(
+      content,
+      newRenderResultList
+    );
   }
 }

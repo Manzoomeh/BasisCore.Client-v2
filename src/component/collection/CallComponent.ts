@@ -8,9 +8,8 @@ import { HttpMethod } from "../../type-alias";
 @injectable()
 export default class CallComponent extends CommandComponent {
   private defaultAttributeNames = ["core", "run", "file", "method"];
-  readonly range: Range;
   private readonly container: DependencyContainer;
-  readonly priority: Priority = Priority.higher;
+  readonly priority: Priority = Priority.high;
 
   constructor(
     @inject("element") element: Element,
@@ -19,12 +18,9 @@ export default class CallComponent extends CommandComponent {
   ) {
     super(element, context);
     this.container = container;
-    this.range = document.createRange();
-    this.range.selectNode(element);
-    this.range.deleteContents();
   }
 
-  protected async runAsync(): Promise<boolean> {
+  protected async runAsync(): Promise<void> {
     const filename = await this.getAttributeValueAsync("file");
     const pageSize = await this.getAttributeValueAsync("pagesize");
     const method = (
@@ -63,7 +59,6 @@ export default class CallComponent extends CommandComponent {
     this.range.deleteContents();
     this.range.insertNode(content);
     const collection = this.container.resolve(ComponentCollection);
-    await collection.processNodesAsync(childNodes, false);
-    return true;
+    await collection.processNodesAsync(childNodes);
   }
 }

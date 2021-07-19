@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Print Command - Simple</title>
+</head>
+
+<body>
+    <button onclick="ReSetSource()">Set Source</button>
+    <fieldset>
+        <legend>Append</legend>
+        <Basis core="print" datamembername="inlineSource.append" run="atclient">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) </span>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
+        <legend>Replace</legend>
+        <Basis core="print" datamembername="inlineSource.replace" run="atclient">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) </span>
+            </face>
+        </Basis>
+    </fieldset>
+    <basis core="callback" run="atClient" triggers="inlineSource.replace inlineSource.append"></basis>
+
+    <script>
+        const host = {
+            sources: {
+                'inlineSource.append': [
+                    {
+                        id: 1, name: 'qamsari'
+                    },
+                    {
+                        id: 2, name: 'akaberi'
+                    },
+                    {
+                        id: 3, name: 'amir'
+                    }
+                ],
+                'inlineSource.replace': [
+                    {
+                        id: 1, name: 'qamsari'
+                    },
+                    {
+                        id: 2, name: 'akaberi'
+                    },
+                    {
+                        id: 3, name: 'amir'
+                    }
+                ]
+            }
+        }
+
+
+        let i = 4;
+        function ReSetSource() {
+            $bc.setSource('inlineSource.append', { id: i, name: `name-${i}` }, { mergeType: MergeType.append })
+            $bc.setSource('inlineSource.replace', { id: i, name: `name-${i}` }, { mergeType: MergeType.replace })
+            i += 1;
+        }
+
+    </script>
+</body>
+
+</html>

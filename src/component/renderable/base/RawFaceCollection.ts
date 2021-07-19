@@ -13,11 +13,15 @@ import IBCUtil from "../../../wrapper/IBCUtil";
 declare const $bc: IBCUtil;
 
 export default class RawFaceCollection extends Array<RawFace> {
-  static Create(element: Element, context: IContext): RawFaceCollection {
+  static Create(
+    element: Element,
+    context: IContext,
+    placeHolder?: string
+  ): RawFaceCollection {
     var retVal = new RawFaceCollection();
     element
       .querySelectorAll("face")
-      .forEach((x) => retVal.push(new RawFace(x, context)));
+      .forEach((x) => retVal.push(new RawFace(x, context, placeHolder)));
     return retVal;
   }
 
@@ -27,8 +31,8 @@ export default class RawFaceCollection extends Array<RawFace> {
     reservedKeys: Array<string>
   ): Promise<FaceCollection> {
     var facesTask = this.map(async (x) => {
-      var applyReplace = (await x.ApplyReplace?.getValueAsync()) ?? faces;
-      var applyFunction = (await x.ApplyFunction?.getValueAsync()) ?? false;
+      // var applyReplace = (await x.ApplyReplace?.getValueAsync()) ?? faces;
+      // var applyFunction = (await x.ApplyFunction?.getValueAsync()) ?? false;
       var rowType = await this.GetRowTypeAsync(x.RowType);
       var levels = (await x.Level?.getValueAsync())?.split("|") ?? null;
       var filter = await x.Filter?.getValueAsync();
@@ -41,8 +45,8 @@ export default class RawFaceCollection extends Array<RawFace> {
         reservedKeys
       );
       return <Face>{
-        ApplyFunction: applyFunction,
-        ApplyReplace: applyReplace,
+        // ApplyFunction: applyFunction,
+        // ApplyReplace: applyReplace,
         RowType: rowType,
         Levels: levels,
         RelatedRows: relatedRows,

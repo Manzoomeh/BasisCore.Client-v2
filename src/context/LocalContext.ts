@@ -20,8 +20,6 @@ export default class LocalContext extends Context implements ILocalContext {
     @inject("HostOptions") options: HostOptions
   ) {
     super(repository, options, owner.logger);
-
-    //console.log("ctor", options);
     this.owner = owner;
     this.handler = this.owner.onDataSourceSet.Add(
       this.setSourceFromOwner.bind(this)

@@ -7,9 +7,9 @@ import IContextRepository from "../repository/IContextRepository";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
 import { EventHandler } from "../event/EventHandler";
-import { MergeType } from "../enum";
 import Data from "../data/Data";
 import Source from "../data/Source";
+import ISourceOptions from "./ISourceOptions";
 
 export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
@@ -26,7 +26,6 @@ export default abstract class Context implements IContext {
     this.logger = logger;
     this.options = options;
     this.onDataSourceSet = new EventManager<ISource>();
-    //console.log("context - ctor");
   }
   abstract getOrLoadDbLibAsync(): Promise<any>;
 
@@ -79,16 +78,16 @@ export default abstract class Context implements IContext {
   public setAsSource(
     sourceId: SourceId,
     data: any,
-    mergeType?: MergeType,
+    options?: ISourceOptions,
     preview?: boolean
   ) {
-    var source = new Source(sourceId, data, mergeType);
+    var source = new Source(sourceId, data, options);
     this.setSource(source, preview);
   }
 
   public setSource(source: ISource, preview?: boolean): void {
-    this.repository.setSource(source, preview);
-    this.onDataSourceSetHandler(source);
+    const resultSource = this.repository.setSource(source, preview);
+    this.onDataSourceSetHandler(resultSource);
   }
 
   public setSourceFromOwner(source: ISource) {

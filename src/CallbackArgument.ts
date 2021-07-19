@@ -13,8 +13,8 @@ export declare type RenderingCallbackArgument = CallbackArgument & {
 };
 
 export declare type RenderedCallbackArgument = CallbackArgument & {
-  rendered: boolean;
   source?: ISource;
+  result?: any;
 };
 
 export declare type APIProcessingCallbackArgument = CallbackArgument & {
@@ -31,4 +31,8 @@ export declare type APIProcessedCallbackArgument = CallbackArgument & {
 export declare type HtmlCallbackArgument = CallbackArgument & {
   id: string;
   value: any;
+};
+
+export declare type SourceCallbackArgument = CallbackArgument & {
+  source?: ISource;
 };

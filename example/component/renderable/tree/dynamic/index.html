@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.min.js"></script>
+    <title>Tree Command - Simple</title>
+</head>
+
+<body>
+    <input type="button" value="Set Source" onclick="clickHandler()" />
+    <basis core="callback" triggers="local.tree" run="atclient"></basis>
+    <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient"
+        keyField="id">
+        <layout>
+            <ul data-hi>@child </ul>
+        </layout>
+        <face level="end">
+            <li id="@id@" data-end>@id@ - @name@<button
+                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                    color</button></li>
+        </face>
+        <face level="2">
+            <li id="@id@" data-lvl1>@id - @name Level2 <button
+                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                    color</button>
+                <ul>@child</ul>
+            </li>
+        </face>
+        <face>
+            <li id="@id@" data-else>@id@ - @name@<button
+                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                    color</button>
+                <ul>@child</ul>
+            </li>
+        </face>
+
+    </basis>
+    <script>
+        var i = 0;
+        function clickHandler() {
+            $bc.setSource("local.tree", [
+                { id: 1, name: `ali-${i}`, pid: null, status: 0 },
+                { id: 2, name: `amir-${i}`, pid: 1, status: 0 },
+                { id: 3, name: `hassan-${i}`, pid: 1, status: 0 },
+                { id: 4, name: `javad-${i}`, pid: 2, status: 1 },
+                { id: 5, name: `reza-${i}`, pid: 4, status: 0 },
+            ], {
+                keyFieldName: "id",
+                statusFieldName: "status"
+            });
+            i += 1;
+        }
+        clickHandler();
+    </script>
+</body>
+
+</html>

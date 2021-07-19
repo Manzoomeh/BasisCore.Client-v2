@@ -1,11 +1,11 @@
 import Data from "../data/Data";
 import ISource from "../data/ISource";
-import { MergeType } from "../enum";
 import { EventHandler } from "../event/EventHandler";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import IContextHostOptions from "../options/IContextHostOptions";
 import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
+import ISourceOptions from "./ISourceOptions";
 
 export default interface IContext {
   logger: ILogger;
@@ -31,7 +31,7 @@ export default interface IContext {
   setAsSource(
     sourceId: SourceId,
     data: any,
-    mergeType?: MergeType,
+    options?: ISourceOptions,
     preview?: boolean
   ): void;
   setSource(source: ISource, preview?: boolean): void;
