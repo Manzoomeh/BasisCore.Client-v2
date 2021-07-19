@@ -1,8 +1,3 @@
-import { SourceId } from "../type-alias";
-import Source from "./Source";
-import ISource from "./ISource";
-import { MergeType, OriginType } from "../enum";
-
 export default class DataUtil {
   static ApplySimpleFilter(data: any[], columnName: string, columnValue: any) {
     var retVal: any[];
@@ -20,6 +15,5 @@ export default class DataUtil {
     data.forEach((row) => {
       row.rownumber = index++;
     });
-    //data.updateColumnList();
   }
 }

@@ -1,8 +1,7 @@
-import { MergeType, OriginType } from "../enum";
+import { MergeType } from "../enum";
 
 export default interface ISourceOptions {
   mergeType?: MergeType;
   keyFieldName?: string;
   statusFieldName?: string;
-  origin?: OriginType;
 }

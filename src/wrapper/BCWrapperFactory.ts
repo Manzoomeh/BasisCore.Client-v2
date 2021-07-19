@@ -1,6 +1,5 @@
 import IHostOptions from "../options/IHostOptions";
 import { SourceId } from "../type-alias";
-import BCLinker from "../BCLinker";
 import UtilWrapper from "./UtilWrapper";
 import BCWrapper from "./BCWrapper";
 import IBCWrapperFactory from "./IBCWrapperFactory";
@@ -32,10 +31,6 @@ export default class BCWrapperFactory implements IBCWrapperFactory {
 
   public setSource(sourceId: SourceId, data: any, options?: ISourceOptions) {
     return this.run().setSource(sourceId, data, options);
-  }
-
-  public linker(): BCLinker {
-    return new BCLinker();
   }
 
   public new(): BCWrapper {

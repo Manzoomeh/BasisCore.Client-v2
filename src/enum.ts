@@ -1,8 +1,3 @@
-export enum OriginType {
-  internal,
-  external,
-}
-
 export enum FaceRowType {
   NotSet = 0,
   Odd,

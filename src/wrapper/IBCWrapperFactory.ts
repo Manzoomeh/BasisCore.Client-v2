@@ -1,4 +1,3 @@
-import BCLinker from "../BCLinker";
 import ISourceOptions from "../context/ISourceOptions";
 import IHostOptions from "../options/IHostOptions";
 import { SourceId } from "../type-alias";
@@ -14,7 +13,6 @@ export default interface IBCWrapperFactory extends IBCUtil {
   setOptions(options: IHostOptions): BCWrapper;
   run(): BCWrapper;
   setSource(sourceId: SourceId, data: any, options?: ISourceOptions);
-  linker(): BCLinker;
   //Ops... comment for prevent error
   //new(): BCWrapper;
 }

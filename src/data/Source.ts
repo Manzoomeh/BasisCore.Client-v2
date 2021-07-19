@@ -1,12 +1,11 @@
 import ISourceOptions from "../context/ISourceOptions";
-import { MergeType, OriginType } from "../enum";
+import { MergeType } from "../enum";
 import { SourceId } from "../type-alias";
 import ISource from "./ISource";
 
 export default class Source implements ISource {
   keyFieldName: string;
   statusFieldName: string;
-  readonly origin: OriginType;
   readonly mergeType: MergeType;
   protected _rows: Array<any>;
   private _id: SourceId;
@@ -17,15 +16,8 @@ export default class Source implements ISource {
     return this._rows;
   }
 
-  constructor(
-    id: SourceId,
-    data: any,
-    options?: ISourceOptions
-    //mergeType: MergeType = MergeType.replace,
-    //origin: OriginType = OriginType.internal
-  ) {
+  constructor(id: SourceId, data: any, options?: ISourceOptions) {
     this._id = id.toLowerCase();
-    this.origin = options?.origin ?? OriginType.internal;
     this.mergeType = options?.mergeType ?? MergeType.replace;
     this.keyFieldName = options?.keyFieldName;
     this.statusFieldName = options?.statusFieldName;
@@ -43,7 +35,6 @@ export default class Source implements ISource {
       keyFieldName: this.keyFieldName,
       mergeType: this.mergeType,
       statusFieldName: this.statusFieldName,
-      origin: this.origin,
     };
   }
 }
