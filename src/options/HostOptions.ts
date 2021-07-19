@@ -6,6 +6,7 @@ import IContextHostOptions from "./IContextHostOptions";
 import IHostOptions from "./IHostOptions";
 import defaultsDeep from "lodash.defaultsdeep";
 import cloneDeep from "lodash.clonedeep";
+import { SourceData } from "../type-alias";
 
 declare const host: IHostOptions;
 
@@ -15,7 +16,7 @@ export class HostOptions implements IContextHostOptions {
   autoRender: boolean;
   serviceWorker: boolean;
   settings: IDictionary<any>;
-  sources: { [key: string]: any[][] };
+  sources: IDictionary<SourceData>;
   dbLibPath: string;
   originalOptions: Partial<IHostOptions>;
   repositories: IDictionary<string>;

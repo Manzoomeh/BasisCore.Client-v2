@@ -1,6 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import ISource from "../data/ISource";
-import { MergeType } from "../enum";
+import { DataStatus, MergeType } from "../enum";
 import EventManager from "../event/EventManager";
 import ILogger from "../logger/ILogger";
 import { SourceId, SourceHandler } from "../type-alias";
@@ -31,26 +31,60 @@ export default class Repository implements IContextRepository {
     this.logger.logInformation(`${source.id} Added from owner context...`);
   }
 
-  private setSourceEx(source: ISource) {
-    if (source.mergeType == MergeType.replace) {
-      this.repository.set(source.id, source);
-    } else if (source.mergeType == MergeType.append) {
-      const oldSource = this.repository.get(source.id);
+  private setSourceEx(newSource: ISource): ISource {
+    let retVal = newSource;
+    if (newSource.mergeType == MergeType.replace) {
+      this.repository.set(newSource.id, newSource);
+    } else if (newSource.mergeType == MergeType.append) {
+      const oldSource = this.repository.get(newSource.id);
       if (oldSource) {
-        source.rows.forEach((row) => oldSource.rows.push(row));
+        //update or insert
+        retVal = oldSource;
+        if (newSource.keyFieldName && oldSource.keyFieldName) {
+          newSource.rows.forEach((row) => {
+            const newRowKey = Reflect.get(row, newSource.keyFieldName);
+            const newRowStatus = newSource.statusFieldName
+              ? Reflect.get(row, newSource.statusFieldName)
+              : DataStatus.added;
+            if (newRowStatus == DataStatus.added) {
+              oldSource.rows.push(row);
+            } else {
+              const oldRowIndex = oldSource.rows.findIndex(
+                (x) => Reflect.get(x, oldSource.keyFieldName) == newRowKey
+              );
+              if (oldRowIndex !== -1) {
+                if (newRowStatus == DataStatus.deleted) {
+                  oldSource.rows.splice(oldRowIndex, 1);
+                } else if (newRowStatus == DataStatus.edited) {
+                  oldSource.rows.splice(oldRowIndex, 1, row);
+                }
+              }
+            }
+          });
+        } else {
+          oldSource.rows.splice(
+            oldSource.rows.length,
+            newSource.rows.length,
+            ...newSource.rows
+          );
+        }
       } else {
-        this.repository.set(source.id, source);
+        this.repository.set(newSource.id, newSource);
       }
     }
+    return retVal;
   }
 
-  public setSource(source: ISource, preview?: boolean) {
-    this.setSourceEx(source);
+  public setSource(source: ISource, preview?: boolean): ISource {
+    const resultSource = this.setSourceEx(source);
     if (preview) {
       this.logger.logSource(source);
     }
-    this.eventManager.get(source.id)?.Trigger(source);
-    this.logger.logInformation(`${source.id} Added...`);
+    this.eventManager.get(resultSource.id)?.Trigger(resultSource);
+    this.logger.logInformation(
+      `${resultSource.id} ${source === resultSource ? "Added" : "Updated"}...`
+    );
+    return resultSource;
   }
 
   public addHandler(sourceId: SourceId, handler: SourceHandler): SourceHandler {

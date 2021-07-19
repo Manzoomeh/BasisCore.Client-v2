@@ -3,6 +3,7 @@ import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
 import ISourceOptions from "../../../context/ISourceOptions";
 import ISource from "../../../data/ISource";
+import { DataStatus } from "../../../enum";
 import IToken from "../../../token/IToken";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
@@ -77,10 +78,7 @@ export default abstract class RenderableComponent<
       const childContainer = container.querySelector(
         `basis-core-template-tag#${key}`
       );
-      const range = new Range();
-      range.selectNode(childContainer);
-      range.deleteContents();
-      renderResult.forEach((doc) => range.insertNode(doc));
+      renderResult.forEach((doc) => childContainer.appendChild(doc));
     } else {
       var rawElseLayout = this.node
         .querySelector("else-layout")
@@ -103,7 +101,7 @@ export default abstract class RenderableComponent<
     if (node) {
       if (statusFiledName) {
         try {
-          if (Reflect.get(data, statusFiledName) === 1) {
+          if (Reflect.get(data, statusFiledName) == DataStatus.edited) {
             node = null;
           }
         } catch {}
@@ -118,6 +116,7 @@ export default abstract class RenderableComponent<
   ): TRenderResult {
     return new FaceRenderResult(key, doc) as TRenderResult;
   }
+
   protected getKeyValue(data: any, keyFieldName: string): any {
     return keyFieldName ? Reflect.get(data, keyFieldName) : data;
   }

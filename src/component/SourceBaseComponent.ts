@@ -12,7 +12,9 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   }
 
   public async processAsync(): Promise<void> {
-    this.sourceId = await this.getAttributeValueAsync("dataMemberName");
+    this.sourceId = (
+      await this.getAttributeValueAsync("dataMemberName")
+    )?.toLowerCase();
     this.addTrigger([this.sourceId]);
     await super.processAsync();
   }

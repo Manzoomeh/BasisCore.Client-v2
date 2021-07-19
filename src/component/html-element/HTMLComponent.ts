@@ -1,7 +1,8 @@
 import { HtmlCallbackArgument } from "../../CallbackArgument";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
-import { Priority } from "../../enum";
+import { MergeType, Priority } from "../../enum";
+import IToken from "../../token/IToken";
 import { SourceId } from "../../type-alias";
 import ElementBaseComponent from "../ElementBaseComponent";
 
@@ -10,9 +11,15 @@ export default abstract class HTMLComponent<
 > extends ElementBaseComponent<TElement> {
   protected triggers: string;
   readonly priority: Priority = Priority.none;
+  readonly keyFieldNameToken: IToken<string>;
+  readonly statusFieldNameToken: IToken<string>;
+  readonly mergeTypeToken: IToken<string>;
 
   constructor(element: TElement, context: IContext) {
     super(element, context);
+    this.keyFieldNameToken = this.getAttributeToken("bc-keyField");
+    this.statusFieldNameToken = this.getAttributeToken("bc-statusField");
+    this.mergeTypeToken = this.getAttributeToken("bc-merge");
   }
 
   public async initializeAsync(): Promise<void> {
@@ -43,7 +50,19 @@ export default abstract class HTMLComponent<
       id = args.id;
       value = args.value;
     }
-    this.context.setAsSource(id ?? "cms.unknown", value);
+    let mergeType;
+    if (this.mergeTypeToken) {
+      const rawValue = await this.mergeTypeToken.getValueAsync();
+      if (rawValue) {
+        mergeType = MergeType[rawValue.toLowerCase()];
+      }
+    }
+
+    this.context.setAsSource(id ?? "cms.unknown", value, {
+      keyFieldName: await this.keyFieldNameToken?.getValueAsync(),
+      statusFieldName: await this.statusFieldNameToken?.getValueAsync(),
+      mergeType: mergeType,
+    });
     if (this.onProcessedAsync) {
       const args = super.createCallbackArgument<HtmlCallbackArgument>({
         id: id,

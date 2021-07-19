@@ -14,7 +14,7 @@
     <button onclick="onclickNew()">Refresh Data</button>
     <fieldset>
         <legend>Without set keyField</legend>
-        <Basis core="print" datamembername="inlineSource.print" run="atclient" triggers="event.refresh">
+        <Basis core="print" datamembername="inlineSource.whitOutKey" run="atclient" triggers="event.refresh">
             <face>
                 <br />
                 <span>@id ( name is:@name@ ) <button
@@ -26,8 +26,8 @@
     </fieldset>
 
     <fieldset>
-        <legend>With set keyField to null (none exist field)</legend>
-        <Basis core="print" datamembername="inlineSource.print" run="atclient" triggers="event.refresh" keyField="null">
+        <legend>With set key Field to null (none exist field)</legend>
+        <Basis core="print" datamembername="inlineSource.whitNullKey" run="atclient" triggers="event.refresh">
             <face>
                 <br />
                 <span>@id ( name is:@name@ ) <button
@@ -37,8 +37,19 @@
         </Basis>
     </fieldset>
     <fieldset>
-        <legend>With set keyField</legend>
-        <Basis core="print" datamembername="inlineSource.print" run="atclient" triggers="event.refresh" keyField="id">
+        <legend>With set key Field</legend>
+        <Basis core="print" datamembername="inlineSource.whitKey" run="atclient" triggers="event.refresh">
+            <face>
+                <br />
+                <span>@id ( name is:@name@ ) <button
+                        onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                        color</button></span>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
+        <legend>With status Field</legend>
+        <Basis core="print" datamembername="inlineSource.whitStatus" run="atclient" triggers="event.refresh">
             <face>
                 <br />
                 <span>@id ( name is:@name@ ) <button
@@ -50,7 +61,7 @@
     <script>
         const host = {
             sources: {
-                'inlineSource.print': [
+                'inlineSource.whitOutKey': [
                     {
                         id: 1, name: 'qamsari'
                     },
@@ -60,12 +71,60 @@
                     {
                         id: 3, name: 'amir'
                     }
-                ]
+                ],
+                'inlineSource.whitKey': {
+                    options: {
+                        keyFieldName: "id"
+                    },
+                    data: [
+                        {
+                            id: 1, name: 'qamsari'
+                        },
+                        {
+                            id: 2, name: 'akaberi'
+                        },
+                        {
+                            id: 3, name: 'amir'
+                        }
+                    ]
+                },
+                'inlineSource.whitNullKey': {
+                    options: {
+                        keyFieldName: "null"
+                    },
+                    data: [
+                        {
+                            id: 1, name: 'qamsari'
+                        },
+                        {
+                            id: 2, name: 'akaberi'
+                        },
+                        {
+                            id: 3, name: 'amir'
+                        }
+                    ]
+                },
+                'inlineSource.whitStatus': {
+                    options: {
+                        keyFieldName: "id",
+                        statusFieldName: "status"
+                    },
+                    data: [
+                        {
+                            id: 1, name: 'qamsari', "status": 0
+                        },
+                        {
+                            id: 2, name: 'akaberi', "status": 0
+                        },
+                        {
+                            id: 3, name: 'amir', "status": 0
+                        }
+                    ]
+                },
             }
         }
         function onclickNew() {
-            console.log('f');
-            $bc.setSource('inlineSource.print', [
+            $bc.setSource('inlineSource.whitOutKey', [
                 {
                     id: 1, name: 'qamsari'
                 },
@@ -75,8 +134,50 @@
                 {
                     id: 3, name: 'amir'
                 }
-            ])
+            ]);
+            $bc.setSource('inlineSource.whitKey', [
+                {
+                    id: 1, name: 'qamsari'
+                },
+                {
+                    id: 2, name: 'akaberi'
+                },
+                {
+                    id: 3, name: 'amir'
+                }
+            ], {
+                keyFieldName: "id"
+            });
+            $bc.setSource('inlineSource.whitNullKey', [
+                {
+                    id: 1, name: 'qamsari'
+                },
+                {
+                    id: 2, name: 'akaberi'
+                },
+                {
+                    id: 3, name: 'amir'
+                }
+            ], {
+                keyFieldName: "null"
+            });
+            $bc.setSource('inlineSource.whitStatus', [
+                {
+                    id: 1, name: `qamsari${i}`, "status": 0
+                },
+                {
+                    id: 2, name: `akaberi${i}`, "status": 1
+                },
+                {
+                    id: 3, name: `amir${i}`, "status": 0
+                }
+            ], {
+                keyFieldName: "id",
+                statusFieldName: "status"
+            });
+            i++;
         }
+        let i = 0
     </script>
 </body>
 

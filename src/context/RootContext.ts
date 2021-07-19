@@ -69,7 +69,12 @@ export default abstract class RootContext extends Context {
   private addHostOptionsSource() {
     if (this.options.sources) {
       Object.getOwnPropertyNames(this.options.sources).forEach((key) => {
-        this.setAsSource(key.toLowerCase(), this.options.sources[key]);
+        const source = this.options.sources[key];
+        if (source instanceof Array) {
+          this.setAsSource(key.toLowerCase(), source);
+        } else {
+          this.setAsSource(key.toLowerCase(), source.data, source.options);
+        }
       });
     }
   }

@@ -86,8 +86,8 @@ export default abstract class Context implements IContext {
   }
 
   public setSource(source: ISource, preview?: boolean): void {
-    this.repository.setSource(source, preview);
-    this.onDataSourceSetHandler(source);
+    const resultSource = this.repository.setSource(source, preview);
+    this.onDataSourceSetHandler(resultSource);
   }
 
   public setSourceFromOwner(source: ISource) {

@@ -1,4 +1,5 @@
 import IDictionary from "../IDictionary";
+import { SourceData } from "../type-alias";
 import IConnectionSetting from "./IConnectionSetting";
 
 export default interface IHostOptions {
@@ -6,7 +7,7 @@ export default interface IHostOptions {
   autoRender: boolean;
   serviceWorker: boolean;
   settings: IDictionary<string | any | IConnectionSetting>;
-  sources: { [key: string]: Array<any[]> };
+  sources: IDictionary<SourceData>;
   dbLibPath: string;
   repositories: IDictionary<string>;
 }

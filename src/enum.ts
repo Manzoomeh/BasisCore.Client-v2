@@ -21,3 +21,9 @@ export enum Priority {
   low,
   none,
 }
+
+export enum DataStatus {
+  added = 0,
+  edited = 1,
+  deleted = 2,
+}
