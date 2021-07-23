@@ -32,14 +32,16 @@ export default class Repository implements IContextRepository {
   }
 
   private setSourceEx(newSource: ISource): ISource {
-    let retVal = newSource;
+    const oldSource = this.repository.get(newSource.id);
     if (newSource.mergeType == MergeType.replace) {
-      this.repository.set(newSource.id, newSource);
+      if (oldSource) {
+        oldSource.replace(newSource);
+      } else {
+        this.repository.set(newSource.id, newSource);
+      }
     } else if (newSource.mergeType == MergeType.append) {
-      const oldSource = this.repository.get(newSource.id);
       if (oldSource) {
         //update or insert
-        retVal = oldSource;
         if (newSource.keyFieldName && oldSource.keyFieldName) {
           newSource.rows.forEach((row) => {
             const newRowKey = Reflect.get(row, newSource.keyFieldName);
@@ -47,32 +49,28 @@ export default class Repository implements IContextRepository {
               ? Reflect.get(row, newSource.statusFieldName)
               : DataStatus.added;
             if (newRowStatus == DataStatus.added) {
-              oldSource.rows.push(row);
+              oldSource.addRow(row);
             } else {
               const oldRowIndex = oldSource.rows.findIndex(
                 (x) => Reflect.get(x, oldSource.keyFieldName) == newRowKey
               );
               if (oldRowIndex !== -1) {
                 if (newRowStatus == DataStatus.deleted) {
-                  oldSource.rows.splice(oldRowIndex, 1);
+                  oldSource.removeRowFormIndex(oldRowIndex);
                 } else if (newRowStatus == DataStatus.edited) {
-                  oldSource.rows.splice(oldRowIndex, 1, row);
+                  oldSource.replaceRowFromIndex(oldRowIndex, row);
                 }
               }
             }
           });
         } else {
-          oldSource.rows.splice(
-            oldSource.rows.length,
-            newSource.rows.length,
-            ...newSource.rows
-          );
+          oldSource.addRows(newSource.rows);
         }
       } else {
         this.repository.set(newSource.id, newSource);
       }
     }
-    return retVal;
+    return oldSource ?? newSource;
   }
 
   public setSource(source: ISource, preview?: boolean): ISource {

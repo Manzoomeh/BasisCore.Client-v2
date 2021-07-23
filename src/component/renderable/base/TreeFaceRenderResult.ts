@@ -1,18 +1,16 @@
 import FaceRenderResult from "./FaceRenderResult";
 
 export default class TreeFaceRenderResult extends FaceRenderResult {
-  //readonly childContainer: Element;
   private contentRange: Range;
   readonly doc: DocumentFragment;
   private contentNodes: Node[] = null;
-  constructor(key: any, doc: DocumentFragment) {
-    super(key, doc);
-    //console.log("new", key, this);
+
+  constructor(key: any, version: number, doc: DocumentFragment) {
+    super(key, version, doc);
     this.doc = doc;
     const childContainer = doc.querySelector(
       'basis-core-template-tag[data-type="child"]'
     );
-
     if (childContainer) {
       this.contentRange = new Range();
       this.contentRange.selectNode(childContainer);

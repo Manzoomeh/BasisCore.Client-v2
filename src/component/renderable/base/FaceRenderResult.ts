@@ -1,8 +1,11 @@
 export default class FaceRenderResult {
-  key: any;
+  readonly key: any;
+  readonly version: number;
   readonly nodes: Node[];
-  constructor(key: any, doc: DocumentFragment) {
+
+  constructor(key: any, version: number, doc: DocumentFragment) {
     this.key = key;
+    this.version = version;
     this.nodes = [...doc.childNodes];
   }
 

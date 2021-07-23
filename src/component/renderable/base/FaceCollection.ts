@@ -15,10 +15,7 @@ export default class FaceCollection extends Array<Face> {
 
   public async renderAsync<TRenderResult extends FaceRenderResult>(
     param: RenderParam<TRenderResult>,
-    data: object,
-    dataKey: any,
-    factory: (key: any, node: DocumentFragment) => TRenderResult,
-    groupName?: string
+    data: object
   ): Promise<TRenderResult> {
     let retVal: TRenderResult = null;
     if (this.length == 0) {
@@ -33,12 +30,15 @@ export default class FaceCollection extends Array<Face> {
           x.Levels.some((y) => param.Levels.some((x) => x == y));
         return con1 && con2 && con3;
       })[0];
-      if (firstMatchFace != null) {
-        retVal = await param.mustRenderAsync(data, dataKey, groupName);
-        if (!retVal) {
+      if (firstMatchFace) {
+        const [dataKey, version, preRenderResult] =
+          await param.getRenderedResultAsync(data);
+        if (preRenderResult) {
+          retVal = preRenderResult;
+        } else {
           const rawHtml = await firstMatchFace.template.getValueAsync(data);
           const renderResult = $bc.util.toNode(rawHtml);
-          retVal = factory(dataKey, renderResult);
+          retVal = param.factory(dataKey, version, renderResult);
         }
         param.setRendered();
       } else {

@@ -134,7 +134,9 @@
                 {
                     id: 3, name: 'amir'
                 }
-            ]);
+            ], {
+                mergeType: MergeType.append
+            });
             $bc.setSource('inlineSource.whitKey', [
                 {
                     id: 1, name: 'qamsari'
@@ -146,7 +148,8 @@
                     id: 3, name: 'amir'
                 }
             ], {
-                keyFieldName: "id"
+                keyFieldName: "id",
+                mergeType: MergeType.append
             });
             $bc.setSource('inlineSource.whitNullKey', [
                 {
@@ -159,7 +162,8 @@
                     id: 3, name: 'amir'
                 }
             ], {
-                keyFieldName: "null"
+                keyFieldName: "null",
+                mergeType: MergeType.append
             });
             $bc.setSource('inlineSource.whitStatus', [
                 {
@@ -173,7 +177,8 @@
                 }
             ], {
                 keyFieldName: "id",
-                statusFieldName: "status"
+                statusFieldName: "status",
+                mergeType: MergeType.append
             });
             i++;
         }

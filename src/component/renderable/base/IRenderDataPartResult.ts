@@ -1,11 +1,11 @@
 import FaceRenderResult from "./FaceRenderResult";
-import FaceRenderResultList from "./FaceRenderResultList";
+import FaceRenderResultRepository from "./FaceRenderResultRepository";
 
 export default class RenderDataPartResult<
   TRenderResult extends FaceRenderResult
 > {
   constructor(
     readonly result: DocumentFragment[],
-    readonly repository: FaceRenderResultList<TRenderResult>
+    readonly repository: FaceRenderResultRepository<TRenderResult>
   ) {}
 }

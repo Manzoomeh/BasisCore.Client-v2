@@ -4,11 +4,10 @@ import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
 import TokenUtil from "../../token/TokenUtil";
 import FaceCollection from "./base/FaceCollection";
-import FaceRenderResultList from "./base/FaceRenderResultList";
+import FaceRenderResultRepository from "./base/FaceRenderResultRepository";
 import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
-import { RenderResultSelector } from "./base/RenderResultSelector";
 import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
 
 @injectable()
@@ -21,20 +20,12 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
     super(element, context, container, ["child"]);
   }
 
-  protected FaceRenderResultFactory(
-    key: any,
-    doc: DocumentFragment
-  ): TreeFaceRenderResult {
-    return new TreeFaceRenderResult(key, doc);
-  }
   protected async renderDataPartAsync(
     dataSource: ISource,
-    faces: FaceCollection,
-    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
-    keyFieldName
+    faces: FaceCollection
   ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
     const newRenderResultList =
-      new FaceRenderResultList<TreeFaceRenderResult>();
+      new FaceRenderResultRepository<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
       const token = this.getAttributeToken("groupcol");
       const groupColumn = (
@@ -48,7 +39,10 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
         .map((x) => x[groupColumn])
         .filter((x, i, arr) => arr.indexOf(x) === i);
       const rootRenderParam = new RenderParam<TreeFaceRenderResult>(
-        canRenderAsync
+        dataSource,
+        this.renderResultRepository,
+        (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc),
+        "root"
       );
       rootRenderParam.setLevel(["1"]);
       var content = new Array<DocumentFragment>();
@@ -60,31 +54,26 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
           group
         );
         const data = childItems[0];
-        const key = this.getKeyValue(data, keyFieldName);
         const level1Result = await faces.renderAsync<TreeFaceRenderResult>(
           rootRenderParam,
-          data,
-          key,
-          this.FaceRenderResultFactory,
-          "group"
+          data
         );
         if (level1Result) {
-          newRenderResultList.set(level1Result.key, level1Result, "group");
+          newRenderResultList.set(level1Result.key, level1Result, "root");
           level1Result.setContent(null);
 
           const childRenderParam = new RenderParam<TreeFaceRenderResult>(
-            canRenderAsync
+            dataSource,
+            this.renderResultRepository,
+            (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc)
           );
           childRenderParam.setLevel(["2"]);
           var childRenderResult = this.range.createContextualFragment(" ");
 
           for (const row of childItems) {
-            const dataKey = this.getKeyValue(row, keyFieldName);
             const renderResult = await faces.renderAsync<TreeFaceRenderResult>(
               childRenderParam,
-              row,
-              dataKey,
-              this.FaceRenderResultFactory
+              row
             );
             newRenderResultList.set(renderResult.key, renderResult);
             renderResult.AppendTo(childRenderResult);

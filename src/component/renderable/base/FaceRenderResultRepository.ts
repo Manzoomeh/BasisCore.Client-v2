@@ -1,6 +1,6 @@
 import FaceRenderResult from "./FaceRenderResult";
 
-export default class FaceRenderResultList<T extends FaceRenderResult> {
+export default class FaceRenderResultRepository<T extends FaceRenderResult> {
   private readonly groups: Map<string, Map<any, T>> = new Map<
     string,
     Map<any, T>

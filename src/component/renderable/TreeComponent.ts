@@ -3,11 +3,10 @@ import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
 import FaceCollection from "./base/FaceCollection";
-import FaceRenderResultList from "./base/FaceRenderResultList";
+import FaceRenderResultRepository from "./base/FaceRenderResultRepository";
 import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
-import { RenderResultSelector } from "./base/RenderResultSelector";
 import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
 
 @injectable()
@@ -22,19 +21,18 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
 
   protected FaceRenderResultFactory(
     key: any,
+    version: number,
     doc: DocumentFragment
   ): TreeFaceRenderResult {
-    return new TreeFaceRenderResult(key, doc);
+    return new TreeFaceRenderResult(key, version, doc);
   }
 
   protected async renderDataPartAsync(
     dataSource: ISource,
-    faces: FaceCollection,
-    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
-    keyField
+    faces: FaceCollection
   ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
     const tempGeneratedNodeList =
-      new FaceRenderResultList<TreeFaceRenderResult>();
+      new FaceRenderResultRepository<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
       var foreignKey = await this.getAttributeValueAsync(
         "parentidcol",
@@ -53,7 +51,9 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
         );
       }
       var rootRenderParam = new RenderParam<TreeFaceRenderResult>(
-        canRenderAsync
+        dataSource,
+        this.renderResultRepository,
+        (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc)
       );
       var content = new Array<DocumentFragment>();
       for (const row of rootRecords) {
@@ -65,8 +65,6 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
           principalKey,
           foreignKey,
           tempGeneratedNodeList,
-          canRenderAsync,
-          keyField,
           row
         );
         const doc = this.range.createContextualFragment("");
@@ -87,9 +85,7 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
     faces: FaceCollection,
     principalKey: string,
     foreignKey: string,
-    tempGeneratedNodeList: FaceRenderResultList<TreeFaceRenderResult>,
-    canRenderAsync: RenderResultSelector<TreeFaceRenderResult>,
-    keyField,
+    tempGeneratedNodeList: FaceRenderResultRepository<TreeFaceRenderResult>,
     data: object
   ): Promise<TreeFaceRenderResult> {
     var childRenderResult = this.range.createContextualFragment(" ");
@@ -102,12 +98,9 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
     parentRenderParam.setLevel(
       childRows.length != 0 ? [`${level}`] : [`${level}`, "end"]
     );
-    const parentKey = this.getKeyValue(data, keyField);
     const renderResult = await faces.renderAsync<TreeFaceRenderResult>(
       parentRenderParam,
-      data,
-      parentKey,
-      this.FaceRenderResultFactory
+      data
     );
     if (renderResult) {
       tempGeneratedNodeList.set(renderResult.key, renderResult);
@@ -115,7 +108,9 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
       if (childRows.length != 0) {
         var newLevel = level + 1;
         const childRenderParam = new RenderParam<TreeFaceRenderResult>(
-          canRenderAsync
+          dataSource,
+          this.renderResultRepository,
+          (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc)
         );
 
         for (const row of childRows) {
@@ -127,8 +122,6 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
             principalKey,
             foreignKey,
             tempGeneratedNodeList,
-            canRenderAsync,
-            keyField,
             row
           );
           childResult.AppendTo(childRenderResult);

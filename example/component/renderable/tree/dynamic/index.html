@@ -10,10 +10,12 @@
 </head>
 
 <body>
-    <input type="button" value="Set Source" onclick="clickHandler()" />
+    <input type="button" value="Set Source" onclick="setSourceHandler()" />
+    <input type="button" value="edit Source" onclick="editSourceHandler()" />
+    <input type="button" value="remove Source" onclick="removeSourceHandler()" />
+
     <basis core="callback" triggers="local.tree" run="atclient"></basis>
-    <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient"
-        keyField="id">
+    <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
         <layout>
             <ul data-hi>@child </ul>
         </layout>
@@ -39,21 +41,63 @@
 
     </basis>
     <script>
-        var i = 0;
-        function clickHandler() {
+
+        const host = {
+            sources: {
+                "local.tree": {
+                    data: [
+                        { id: 1, name: `ali-0`, pid: null, status: 0 },
+                        { id: 2, name: `amir-0`, pid: 1, status: 0 },
+                        { id: 3, name: `hassan-0`, pid: 1, status: 0 },
+                        { id: 4, name: `javad-0`, pid: 2, status: 0 },
+                        { id: 5, name: `reza-0`, pid: 4, status: 0 },
+                    ],
+                    options: {
+                        keyFieldName: "id",
+                        statusFieldName: "status",
+                        mergeType: MergeType.append
+                    }
+                }
+            }
+        };
+        var i = 1;
+        function setSourceHandler() {
             $bc.setSource("local.tree", [
                 { id: 1, name: `ali-${i}`, pid: null, status: 0 },
                 { id: 2, name: `amir-${i}`, pid: 1, status: 0 },
                 { id: 3, name: `hassan-${i}`, pid: 1, status: 0 },
-                { id: 4, name: `javad-${i}`, pid: 2, status: 1 },
+                { id: 4, name: `javad-${i}`, pid: 2, status: 0 },
                 { id: 5, name: `reza-${i}`, pid: 4, status: 0 },
             ], {
                 keyFieldName: "id",
-                statusFieldName: "status"
+                statusFieldName: "status",
+                mergeType: MergeType.replace
             });
             i += 1;
         }
-        clickHandler();
+        function editSourceHandler() {
+            $bc.setSource("local.tree", [
+                { id: 4, name: `javad-${i}`, pid: 2, status: 1 },
+
+            ], {
+                keyFieldName: "id",
+                statusFieldName: "status",
+                mergeType: MergeType.append
+            });
+            i += 1;
+        }
+        function removeSourceHandler() {
+            $bc.setSource("local.tree", [
+                { id: 5, status: 2 },
+
+            ], {
+                keyFieldName: "id",
+                statusFieldName: "status",
+                mergeType: MergeType.append
+            });
+            i += 1;
+        }
+        //clickHandler();
     </script>
 </body>
 

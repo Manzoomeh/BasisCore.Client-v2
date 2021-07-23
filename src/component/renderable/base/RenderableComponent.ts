@@ -1,19 +1,15 @@
 import { DependencyContainer } from "tsyringe";
 import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
-import ISourceOptions from "../../../context/ISourceOptions";
 import ISource from "../../../data/ISource";
-import { DataStatus } from "../../../enum";
-import IToken from "../../../token/IToken";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
 import FaceRenderResult from "./FaceRenderResult";
-import FaceRenderResultList from "./FaceRenderResultList";
+import FaceRenderResultRepository from "./FaceRenderResultRepository";
 import RenderDataPartResult from "./IRenderDataPartResult";
 import RawFaceCollection from "./RawFaceCollection";
 import RenderParam from "./RenderParam";
-import { RenderResultSelector } from "./RenderResultSelector";
 
 export default abstract class RenderableComponent<
   TRenderResult extends FaceRenderResult
@@ -21,7 +17,7 @@ export default abstract class RenderableComponent<
   readonly container: DependencyContainer;
   readonly collection: ComponentCollection;
   readonly reservedKeys: Array<string>;
-  private renderResultList: FaceRenderResultList<TRenderResult>;
+  protected renderResultRepository: FaceRenderResultRepository<TRenderResult>;
 
   constructor(
     element: Element,
@@ -48,13 +44,8 @@ export default abstract class RenderableComponent<
         this.context,
         this.reservedKeys
       );
-      const newRenderResultList = await this.renderDataPartAsync(
-        source,
-        faces,
-        this.CanRenderAsync.bind(this, source.statusFieldName),
-        source.keyFieldName
-      );
-      this.renderResultList = newRenderResultList.repository;
+      const newRenderResultList = await this.renderDataPartAsync(source, faces);
+      this.renderResultRepository = newRenderResultList.repository;
       renderResult = newRenderResultList.result;
     }
     return await this.createContentAsync(renderResult);
@@ -91,52 +82,21 @@ export default abstract class RenderableComponent<
     return generatedNodes;
   }
 
-  protected async CanRenderAsync(
-    statusFiledName: string,
-    data: any,
-    key: any,
-    groupName?: string
-  ): Promise<any> {
-    let node = this.renderResultList?.get(key, groupName);
-    if (node) {
-      if (statusFiledName) {
-        try {
-          if (Reflect.get(data, statusFiledName) == DataStatus.edited) {
-            node = null;
-          }
-        } catch {}
-      }
-    }
-    return node;
-  }
-
-  protected FaceRenderResultFactory(
-    key: any,
-    doc: DocumentFragment
-  ): TRenderResult {
-    return new FaceRenderResult(key, doc) as TRenderResult;
-  }
-
-  protected getKeyValue(data: any, keyFieldName: string): any {
-    return keyFieldName ? Reflect.get(data, keyFieldName) : data;
-  }
-
   protected async renderDataPartAsync(
     dataSource: ISource,
-    faces: FaceCollection,
-    canRenderAsync: RenderResultSelector<TRenderResult>,
-    keyField
+    faces: FaceCollection
   ): Promise<RenderDataPartResult<TRenderResult>> {
-    const param = new RenderParam<TRenderResult>(canRenderAsync);
-    const newRenderResultList = new FaceRenderResultList<TRenderResult>();
+    const param = new RenderParam<TRenderResult>(
+      dataSource,
+      this.renderResultRepository,
+      (key, ver, doc) => new FaceRenderResult(key, ver, doc)
+    );
+    const newRenderResultList = new FaceRenderResultRepository<TRenderResult>();
     const renderResult = new Array<DocumentFragment>();
     for (const row of dataSource.rows) {
-      const dataKey = this.getKeyValue(row, keyField);
       const rowRenderResult = await faces.renderAsync<TRenderResult>(
         param,
-        row,
-        dataKey,
-        this.FaceRenderResultFactory
+        row
       );
       if (rowRenderResult) {
         newRenderResultList.set(rowRenderResult.key, rowRenderResult);

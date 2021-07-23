@@ -13,7 +13,7 @@
     <input type="button" value="Set Source" onclick="clickHandler()" />
     <fieldset>
         <legend>List - Full</legend>
-        <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
+        <Basis core="list" datamembername="local.print" run="atclient">
             <layout>
                 <div>
                     <div>
@@ -21,7 +21,7 @@
                     </div>
                 </div>
             </layout>
-            <face filter="id < 10">
+            <face filter="id <12">
 
                 <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
                     ) </span>
@@ -40,7 +40,7 @@
     </fieldset>
     <fieldset>
         <legend>List - With layout</legend>
-        <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
+        <Basis core="list" datamembername="local.print" run="atclient">
             <layout>
                 <div>
                     <div>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
             </layout>
-            <face filter="id < 10">
+            <face filter="id <12">
                 <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
                     ) </span>
             </face>
@@ -56,8 +56,8 @@
     </fieldset>
     <fieldset>
         <legend>List - Simple</legend>
-        <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
-            <face filter="id < 10">
+        <Basis core="list" datamembername="local.print" run="atclient">
+            <face filter="id <12">
                 <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
                     ) </span>
             </face>
@@ -65,8 +65,8 @@
     </fieldset>
     <fieldset>
         <legend>List - With else-layout</legend>
-        <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
-            <face filter="id < 10">
+        <Basis core="list" datamembername="local.print" run="atclient">
+            <face filter="id <12">
                 <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
                     ) </span>
             </face>
@@ -77,8 +77,8 @@
     </fieldset>
     <fieldset>
         <legend>List - With divider incomplete</legend>
-        <Basis core="list" datamembername="local.print" run="atclient" keyField="id">
-            <face filter="id < 10">
+        <Basis core="list" datamembername="local.print" run="atclient">
+            <face filter="id <12">
                 <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
                     ) </span>
             </face>
@@ -91,29 +91,55 @@
             </incomplete>
         </Basis>
     </fieldset>
-
+    <basis core="callback" triggers="local.print" run="atclient"></basis>
     <script>
         const host = {
             dbLibPath: '/alasql.min.js'
         }
         var i = 0;
         function clickHandler() {
+            const rows = []
+
+            if (i >= 15) {
+                rows.push({ id: i - 15, status: 2 });
+            } else {
+                rows.push({ id: i, name: `btn-t=${i}`, status: 0 });
+            }
             $bc.setSource(
-                "local.print", [
-                { id: i, name: `btn-t=${i}` },
-                { id: i + 1, name: `btn-t=${i + 1}` },
-                { id: i + 2, name: `btn-t=${i + 2}` },
-                { id: i + 3, name: `btn-t=${i + 3}` },
-                { id: i + 4, name: `btn-t=${i + 4}` },
-                { id: i + 5, name: `btn-t=${i + 5}` },
-                { id: i + 6, name: `btn-t=${i + 6}` },
-                { id: i + 7, name: `btn-t=${i + 7}` },
-                { id: i + 8, name: `btn-t=${i + 8}` },
-                { id: i + 9, name: `btn-t=${i + 9}` }]
-                , { mergeType: MergeType.replace }
+                "local.print", rows
+                , {
+                    keyFieldName: "id",
+                    statusFieldName: "status",
+                    mergeType: MergeType.append
+                }
             );
             i += 1;
         }
+        // function clickHandler() {
+        //     const first = { id: i, name: `btn-t=${i}`, status: 0 }
+        //     if (i > 0) {
+        //         first.status = 2;
+        //     }
+        //     $bc.setSource(
+        //         "local.print", [
+        //         first,
+        //         { id: i + 1, name: `btn-t=${i + 1}`, status: 0 },
+        //         { id: i + 2, name: `btn-t=${i + 2}`, status: 0 },
+        //         { id: i + 3, name: `btn-t=${i + 3}`, status: 0 },
+        //         { id: i + 4, name: `btn-t=${i + 4}`, status: 0 },
+        //         { id: i + 5, name: `btn-t=${i + 5}`, status: 0 },
+        //         { id: i + 6, name: `btn-t=${i + 6}`, status: 0 },
+        //         { id: i + 7, name: `btn-t=${i + 7}`, status: 0 },
+        //         { id: i + 8, name: `btn-t=${i + 8}`, status: 0 },
+        //         { id: i + 9, name: `btn-t=${i + 9}`, status: 0 }]
+        //         , {
+        //             keyFieldName: "id",
+        //             statusFieldName: "status",
+        //             mergeType: MergeType.append
+        //         }
+        //     );
+        //     i += 1;
+        // }
         clickHandler();
     </script>
 </body>
