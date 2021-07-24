@@ -9,7 +9,7 @@ import ElementBaseComponent from "../ElementBaseComponent";
 export default abstract class HTMLComponent<
   TElement extends HTMLElement
 > extends ElementBaseComponent<TElement> {
-  protected triggers: string;
+  protected eventTriggers: string;
   readonly priority: Priority = Priority.none;
   readonly keyFieldNameToken: IToken<string>;
   readonly statusFieldNameToken: IToken<string>;
@@ -26,9 +26,12 @@ export default abstract class HTMLComponent<
     await super.initializeAsync();
     const value = await this.getAttributeValueAsync("bc-triggers");
     if (value) {
-      const triggers = value.split(" ");
-      triggers?.forEach((type) =>
-        this.node.addEventListener(type, this.onEventTriggerAsync.bind(this))
+      const eventTriggers = value.split(" ");
+      eventTriggers?.forEach((eventName) =>
+        this.node.addEventListener(
+          eventName,
+          this.onEventTriggerAsync.bind(this)
+        )
       );
     }
   }

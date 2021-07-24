@@ -2,13 +2,11 @@
 import { SourceCallbackArgument } from "../../CallbackArgument";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
-import { Priority } from "../../enum";
 import IToken from "../../token/IToken";
 import CommandComponent from "../CommandComponent";
 
 @injectable()
 export default class CallbackComponent extends CommandComponent {
-  readonly priority: Priority = Priority.none;
   readonly methodToken: IToken<string>;
 
   constructor(
@@ -22,24 +20,39 @@ export default class CallbackComponent extends CommandComponent {
 
   protected async runAsync(source?: ISource): Promise<any> {
     let retVal = true;
+    let callbackFunction: (arg: ISource) => void = null;
     if (this.methodToken) {
       const methodName = await this.methodToken.getValueAsync();
       const method = eval(methodName);
-      const arg = this.createCallbackArgument<SourceCallbackArgument>({
-        source: source,
-      });
-      try {
-        Reflect.apply(method, null, [arg]);
-      } catch (e) {
-        this.context.logger.logError(
-          `error in execute callback method '${methodName}'.`,
-          e
-        );
-        retVal = e;
-      }
+      callbackFunction = (arg) => {
+        const param = this.createCallbackArgument<SourceCallbackArgument>({
+          source: arg,
+        });
+        try {
+          Reflect.apply(method, null, [param]);
+        } catch (e) {
+          this.context.logger.logError(
+            `error in execute callback method '${methodName}'.`,
+            e
+          );
+          retVal = e;
+        }
+      };
     } else {
-      console.log(source);
-      console.table(source?.rows);
+      callbackFunction = (arg) => {
+        console.log(arg);
+        console.table(arg?.rows);
+      };
+    }
+    if (source) {
+      callbackFunction(source);
+    } else {
+      this.triggers.forEach((sourceId) => {
+        const source = this.context.tryToGetSource(sourceId);
+        if (source) {
+          callbackFunction(source);
+        }
+      });
     }
     return retVal;
   }

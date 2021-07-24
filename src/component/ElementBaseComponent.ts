@@ -17,8 +17,12 @@ export default abstract class ElementBaseComponent<
   protected onRenderedAsync: (args: RenderedCallbackArgument) => Promise<void>;
   protected onProcessingAsync: (args: CallbackArgument) => Promise<void>;
   protected onProcessedAsync: (args: CallbackArgument) => Promise<void>;
-
   protected ifToken: IToken<string>;
+
+  private _triggers: string[];
+  public get triggers(): string[] {
+    return this._triggers;
+  }
   constructor(element: TElement, context: IContext) {
     super(element, context);
   }
@@ -57,10 +61,8 @@ export default abstract class ElementBaseComponent<
       ) as any;
     }
     const value = await this.getAttributeValueAsync("triggers");
-    const keys = value?.split(" ");
-    if (keys) {
-      this.addTrigger(keys);
-    }
+    this._triggers = value?.split(" ");
+    this.addTrigger(this._triggers);
   }
 
   protected async getIfValueAsync(): Promise<boolean> {
