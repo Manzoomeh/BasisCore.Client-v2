@@ -1,6 +1,6 @@
 ﻿import IContext from "../../context/IContext";
 import ConfigNotFoundException from "../../exception/ConfigNotFoundException";
-import { HostSetting } from "../../type-alias";
+import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 import LocalStorageConnectionOptions from "./LocalStorageConnectionOptions";
 import RESTConnectionOptions from "./RESTConnectionOptions";
@@ -9,7 +9,7 @@ import WebSocketConnectionOptions from "./WebSocketConnectionOptions";
 
 export default class ConnectionOptionsManager {
   private readonly connections: Map<string, ConnectionOptions> = new Map();
-  constructor(hostSettings: HostSetting, context: IContext) {
+  constructor(hostSettings: IDictionary<any>, context: IContext) {
     Object.getOwnPropertyNames(hostSettings)
       .map((x) => {
         var parts = x.split(".", 3);

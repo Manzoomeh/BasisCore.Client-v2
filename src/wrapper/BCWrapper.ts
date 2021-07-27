@@ -5,8 +5,9 @@ import ClientException from "../exception/ClientException";
 import { SourceId } from "../type-alias";
 import EventManager from "../event/EventManager";
 import ISourceOptions from "../context/ISourceOptions";
+import IBCWrapper from "./IBCWrapper";
 
-export default class BCWrapper {
+export default class BCWrapper implements IBCWrapper {
   private readonly elementList: Array<Element> = new Array<Element>();
   private hostSetting?: Partial<IHostOptions> = null;
   private _basiscore: IBasisCore = null;
@@ -16,9 +17,9 @@ export default class BCWrapper {
     return this._basiscore;
   }
 
-  public addFragment(selector: string): BCWrapper;
-  public addFragment(element: Element): BCWrapper;
-  public addFragment(param: any): BCWrapper {
+  public addFragment(selector: string): IBCWrapper;
+  public addFragment(element: Element): IBCWrapper;
+  public addFragment(param: any): IBCWrapper {
     if (this._basiscore) {
       throw new ClientException(
         "Can't add fragment for already builded bc object."
@@ -35,7 +36,7 @@ export default class BCWrapper {
     }
   }
 
-  public setOptions(options: Partial<IHostOptions>): BCWrapper {
+  public setOptions(options: Partial<IHostOptions>): IBCWrapper {
     if (this._basiscore) {
       throw new ClientException(
         "Can't set option for already builded bc object."
@@ -45,7 +46,7 @@ export default class BCWrapper {
     return this;
   }
 
-  public run(): BCWrapper {
+  public run(): IBCWrapper {
     if (!this._basiscore) {
       const childContainer = container.createChildContainer();
       childContainer.register("IHostOptions", {
@@ -64,11 +65,16 @@ export default class BCWrapper {
     return this;
   }
 
-  public setSource(sourceId: SourceId, data: any, options?: ISourceOptions) {
+  public setSource(
+    sourceId: SourceId,
+    data: any,
+    options?: ISourceOptions
+  ): IBCWrapper {
     if (!this._basiscore) {
       this.run();
     } else {
       this._basiscore.setSource(sourceId, data, options);
     }
+    return this;
   }
 }

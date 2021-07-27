@@ -5,35 +5,41 @@ import BCWrapper from "./BCWrapper";
 import IBCWrapperFactory from "./IBCWrapperFactory";
 import IUtilWrapper from "./IUtilWrapper";
 import ISourceOptions from "../context/ISourceOptions";
+import IBCUtil from "./IBCUtil";
+import IBCWrapper from "./IBCWrapper";
 
-export default class BCWrapperFactory implements IBCWrapperFactory {
-  private _global: BCWrapper;
-  public readonly all: Array<BCWrapper> = new Array<BCWrapper>();
-  public get global(): BCWrapper {
+export default class BCWrapperFactory implements IBCWrapperFactory, IBCUtil {
+  private _global: IBCWrapper;
+  public readonly all: Array<IBCWrapper> = new Array<IBCWrapper>();
+  public get global(): IBCWrapper {
     return this._global ?? (this._global = this.new());
   }
 
   public readonly util: IUtilWrapper = new UtilWrapper();
 
-  public addFragment(selector: string): BCWrapper;
-  public addFragment(element: Element): BCWrapper;
-  public addFragment(param: any): BCWrapper {
+  public addFragment(selector: string): IBCWrapper;
+  public addFragment(element: Element): IBCWrapper;
+  public addFragment(param: any): IBCWrapper {
     return this.global.addFragment(param);
   }
 
-  public setOptions(options: IHostOptions): BCWrapper {
+  public setOptions(options: IHostOptions): IBCWrapper {
     return this.global.setOptions(options);
   }
 
-  public run(): BCWrapper {
+  public run(): IBCWrapper {
     return this.global.run();
   }
 
-  public setSource(sourceId: SourceId, data: any, options?: ISourceOptions) {
+  public setSource(
+    sourceId: SourceId,
+    data: any,
+    options?: ISourceOptions
+  ): IBCWrapper {
     return this.run().setSource(sourceId, data, options);
   }
 
-  public new(): BCWrapper {
+  public new(): IBCWrapper {
     var retVal = new BCWrapper();
     this.all.push(retVal);
     return retVal;

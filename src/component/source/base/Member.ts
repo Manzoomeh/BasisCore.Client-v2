@@ -12,11 +12,11 @@ declare var $bc: IBasisCore;
 
 export default abstract class Member {
   readonly name: string;
-  readonly preview: IToken<boolean>;
-  readonly sort: IToken<string>;
-  readonly postSql: IToken<string>;
+  readonly previewToken: IToken<boolean>;
+  readonly sortToken: IToken<string>;
+  readonly postSqlToken: IToken<string>;
   readonly extraAttributes: IDictionary<IToken<string>>;
-  readonly rawContent: IToken<string>;
+  readonly rawContentToken: IToken<string>;
   readonly element: Element;
   readonly context: IContext;
 
@@ -24,10 +24,10 @@ export default abstract class Member {
     this.context = context;
     this.element = element;
     this.name = element.getAttribute("name");
-    this.preview = element.GetBooleanToken("preview", context);
-    this.sort = element.GetStringToken("sort", context);
-    this.postSql = element.GetStringToken("postsql", context);
-    this.rawContent = element.textContent.ToStringToken(context);
+    this.previewToken = element.GetBooleanToken("preview", context);
+    this.sortToken = element.GetStringToken("sort", context);
+    this.postSqlToken = element.GetStringToken("postsql", context);
+    this.rawContentToken = element.textContent.ToStringToken(context);
   }
 
   public async addDataSourceAsync(
@@ -35,12 +35,12 @@ export default abstract class Member {
     sourceId: SourceId,
     options?: ISourceOptions
   ) {
-    var postSqlTask = this.postSql?.getValueAsync();
-    var sortTask = this.sort?.getValueAsync();
-    //var previewTask = this.preview?.getValueAsync();
+    var postSqlTask = this.postSqlToken?.getValueAsync();
+    var sortTask = this.sortToken?.getValueAsync();
+    var previewTask = this.previewToken?.getValueAsync();
     const id = `${sourceId}.${this.name}`.toLowerCase();
 
-    //const preview = await previewTask;
+    const preview = await previewTask;
     const sort = await sortTask;
     const postSql = await postSqlTask;
 
@@ -59,10 +59,6 @@ export default abstract class Member {
     }
     DataUtil.addRowNumber(data);
     const source = new Source(id, data, options);
-    this.context.setSource(source);
-
-    // if (preview || context.DebugContext.InDebugMode) {
-    //   context.AddPreview(source);
-    // }
+    this.context.setSource(source, preview);
   }
 }

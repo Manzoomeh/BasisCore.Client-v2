@@ -2,7 +2,6 @@ import ISourceOptions from "./context/ISourceOptions";
 import ISource from "./data/ISource";
 import { EventHandler } from "./event/EventHandler";
 import IDictionary from "./IDictionary";
-import IConnectionSetting from "./options/IConnectionSetting";
 
 export const AsyncFunction = eval(
   "Object.getPrototypeOf(async function () {}).constructor"
@@ -11,10 +10,6 @@ export const AsyncFunction = eval(
 export declare type SourceId = string;
 
 export declare type SourceHandler = EventHandler<ISource>;
-
-export declare type HostSetting = IDictionary<
-  string | any | IConnectionSetting
->;
 
 export declare type HttpMethod = "POST" | "GET";
 
@@ -41,9 +36,9 @@ export declare type ServerData<T> = {
   options: ISourceOptions;
 };
 
-export declare type SourceData =
-  | Array<any>
-  | {
-      options: ISourceOptions;
-      data: Array<any>;
-    };
+export declare type SourceData = Array<any> | ISourceData;
+
+export interface ISourceData {
+  options: ISourceOptions;
+  data: Array<any>;
+}
