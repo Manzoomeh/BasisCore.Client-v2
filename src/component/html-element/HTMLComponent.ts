@@ -75,19 +75,23 @@ export default abstract class HTMLComponent<
     }
   }
 
-  protected async getBcProperty(name: string): Promise<string> {
-    let retVal = await this.getAttributeValueAsync(`bc-${name}`);
+  protected async getSourceIdAsync(): Promise<SourceId> {
+    let retVal = await this.getAttributeValueAsync(`bc-name`);
     if (!retVal) {
-      retVal = await this.getAttributeValueAsync(name);
+      retVal = await this.getAttributeValueAsync("name");
     }
     return retVal;
   }
 
-  protected async getSourceIdAsync(): Promise<SourceId> {
-    return this.getBcProperty("name");
-  }
-
   protected async getSourceValueAsync(event: Event): Promise<any> {
-    return this.getBcProperty("value");
+    let retVal = await this.getAttributeValueAsync(`bc-value`);
+    if (!retVal) {
+      try {
+        retVal = (this.node as any).value;
+      } catch {
+        /*Nothing*/
+      }
+    }
+    return retVal;
   }
 }
