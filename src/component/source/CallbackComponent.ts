@@ -2,12 +2,14 @@
 import { SourceCallbackArgument } from "../../CallbackArgument";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
+import { Priority } from "../../enum";
 import IToken from "../../token/IToken";
 import CommandComponent from "../CommandComponent";
 
 @injectable()
 export default class CallbackComponent extends CommandComponent {
   readonly methodToken: IToken<string>;
+  readonly priority: Priority = Priority.none;
 
   constructor(
     @inject("element") element: Element,
