@@ -14,12 +14,16 @@ export class ExpressionTemplate implements ITemplate {
     if (!this.getValue) {
       try {
         this.getValue = new Function(
-          ...Object.keys(data),
+          "$functionArgumentData",
           `${
             this.reservedKeys
-              ?.map((key) => `const ${key}='@${key}';`)
-              .join("") ?? ""
-          }return ${this.rawExpression};`
+              ?.map((key) => `const ${key} = '@${key}'`)
+              .join(";") ?? ""
+          }
+          ${Object.getOwnPropertyNames(data)
+            .map((key) => `const ${key} = $functionArgumentData["${key}"]`)
+            .join(";")}
+            return ${this.rawExpression};`
         ) as any;
       } catch (ex) {
         console.error(
@@ -29,6 +33,6 @@ export class ExpressionTemplate implements ITemplate {
         throw ex;
       }
     }
-    return Promise.resolve(this.getValue(...Object.values(data)));
+    return Promise.resolve(this.getValue(data));
   }
 }
