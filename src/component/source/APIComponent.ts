@@ -74,7 +74,7 @@ export default class APIComponent extends SourceComponent {
           })
           .map((x) => new Data(x.key, x.data.data, x.data.options));
       } else {
-        const name = await this.nameToken.getValueAsync();
+        const name = (await this.nameToken?.getValueAsync()) ?? "cms.api";
         dataList = [new Data(name, json)];
       }
     }
