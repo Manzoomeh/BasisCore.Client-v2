@@ -14,7 +14,7 @@
     <button onclick="onclickNew()">Refresh Data</button>
     <fieldset>
         <legend>Without set keyField</legend>
-        <Basis core="print" datamembername="inlineSource.whitOutKey" run="atclient" triggers="event.refresh">
+        <Basis core="print" datamembername="inlineSource.withOutKey" run="atclient" triggers="event.refresh">
             <face>
                 <script type="text/template">
                 <div>
@@ -31,7 +31,7 @@
 
     <fieldset>
         <legend>With set key Field to null (none exist field)</legend>
-        <Basis core="print" datamembername="inlineSource.whitNullKey" run="atclient" triggers="event.refresh">
+        <Basis core="print" datamembername="inlineSource.withNullKey" run="atclient" triggers="event.refresh">
             <face>
                 <script type="text/template">
                     <div>
@@ -46,7 +46,7 @@
     </fieldset>
     <fieldset>
         <legend>With set key Field</legend>
-        <Basis core="print" datamembername="inlineSource.whitKey" run="atclient" triggers="event.refresh">
+        <Basis core="print" datamembername="inlineSource.withKey" run="atclient" triggers="event.refresh">
             <face>
                 <script type="text/template">
                     <div>
@@ -61,7 +61,7 @@
     </fieldset>
     <fieldset>
         <legend>With status Field</legend>
-        <Basis core="print" datamembername="inlineSource.whitStatus" run="atclient" triggers="event.refresh">
+        <Basis core="print" datamembername="inlineSource.withStatus" run="atclient" triggers="event.refresh">
             <face>
                 <script type="text/template">
                     <div>
@@ -77,7 +77,7 @@
     <script>
         const host = {
             sources: {
-                'inlineSource.whitOutKey': [
+                'inlineSource.withOutKey': [
                     {
                         id: 1, name: 'qamsari'
                     },
@@ -88,7 +88,7 @@
                         id: 3, name: 'amir'
                     }
                 ],
-                'inlineSource.whitKey': {
+                'inlineSource.withKey': {
                     options: {
                         keyFieldName: "id"
                     },
@@ -104,7 +104,7 @@
                         }
                     ]
                 },
-                'inlineSource.whitNullKey': {
+                'inlineSource.withNullKey': {
                     options: {
                         keyFieldName: "null"
                     },
@@ -120,7 +120,7 @@
                         }
                     ]
                 },
-                'inlineSource.whitStatus': {
+                'inlineSource.withStatus': {
                     options: {
                         keyFieldName: "id",
                         statusFieldName: "status"
@@ -140,7 +140,7 @@
             }
         }
         function onclickNew() {
-            $bc.setSource('inlineSource.whitOutKey', [
+            $bc.setSource('inlineSource.withOutKey', [
                 {
                     id: 1, name: 'qamsari'
                 },
@@ -153,7 +153,7 @@
             ], {
                 mergeType: MergeType.append
             });
-            $bc.setSource('inlineSource.whitKey', [
+            $bc.setSource('inlineSource.withKey', [
                 {
                     id: 1, name: 'qamsari'
                 },
@@ -167,7 +167,7 @@
                 keyFieldName: "id",
                 mergeType: MergeType.append
             });
-            $bc.setSource('inlineSource.whitNullKey', [
+            $bc.setSource('inlineSource.withNullKey', [
                 {
                     id: 1, name: 'qamsari'
                 },
@@ -181,7 +181,7 @@
                 keyFieldName: "null",
                 mergeType: MergeType.append
             });
-            $bc.setSource('inlineSource.whitStatus', [
+            $bc.setSource('inlineSource.withStatus', [
                 {
                     id: 1, name: `qamsari${i}`, "status": 0
                 },
