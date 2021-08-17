@@ -5,7 +5,7 @@ export default class RenderDataPartResult<
   TRenderResult extends FaceRenderResult
 > {
   constructor(
-    readonly result: DocumentFragment[],
+    readonly result: Array<TRenderResult>,
     readonly repository: FaceRenderResultRepository<TRenderResult>
   ) {}
 }

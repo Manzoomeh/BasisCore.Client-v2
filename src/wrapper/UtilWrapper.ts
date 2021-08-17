@@ -8,6 +8,7 @@ import ClientException from "../exception/ClientException";
 
 export default class UtilWrapper implements IUtilWrapper {
   readonly source: ISourceWrapper = new SourceWrapper();
+  readonly parser: DOMParser = new DOMParser();
 
   public cloneDeep<T>(obj: T): T {
     return cloneDeep(obj);
@@ -58,6 +59,36 @@ export default class UtilWrapper implements IUtilWrapper {
 
   public toNode(rawHtml: string): DocumentFragment {
     return document.createRange().createContextualFragment(rawHtml);
+  }
+
+  public toHTMLElement(rawXML: string): HTMLElement {
+    const xmlDocument = this.parser.parseFromString(rawXML, "application/xml");
+    const XMLElementToHTMLElementConvertor: {
+      (xmlElement: HTMLElement): HTMLElement;
+    } = (xmlElement) => {
+      const element = document.createElement(xmlElement.tagName);
+      if (xmlElement.attributes) {
+        for (let index = 0; index < xmlElement.attributes.length; index++) {
+          const attr = xmlElement.attributes[index];
+          element.setAttribute(attr.name, attr.value);
+        }
+      }
+      xmlElement.childNodes.forEach((child) => {
+        const childElement = child as HTMLElement;
+        if (childElement.nodeType === Node.TEXT_NODE) {
+          const textContent = child.nodeValue.trim();
+          if (textContent.length > 0) {
+            element.appendChild(document.createTextNode(textContent));
+          }
+        } else {
+          element.appendChild(XMLElementToHTMLElementConvertor(childElement));
+        }
+      });
+      return element;
+    };
+    return xmlDocument.documentElement.tagName === "parsererror"
+      ? xmlDocument.documentElement
+      : XMLElementToHTMLElementConvertor(xmlDocument.documentElement);
   }
 
   public async getComponentAsync(context: IContext, key: string): Promise<any> {

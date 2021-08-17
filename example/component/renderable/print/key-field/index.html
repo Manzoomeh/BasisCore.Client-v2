@@ -16,11 +16,15 @@
         <legend>Without set keyField</legend>
         <Basis core="print" datamembername="inlineSource.whitOutKey" run="atclient" triggers="event.refresh">
             <face>
-                <br />
-                <span>@id ( name is:@name@ ) <button
-                        onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
-                        color</button>
-                </span>
+                <script type="text/template">
+                <div>
+                    <br />
+                    <span>@id ( name is:@name@ ) <button
+                            onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                            color</button>
+                    </span>
+                </div>
+            </script>
             </face>
         </Basis>
     </fieldset>
@@ -29,10 +33,14 @@
         <legend>With set key Field to null (none exist field)</legend>
         <Basis core="print" datamembername="inlineSource.whitNullKey" run="atclient" triggers="event.refresh">
             <face>
+                <script type="text/template">
+                    <div>
                 <br />
                 <span>@id ( name is:@name@ ) <button
                         onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                         color</button></span>
+                    </div>
+                </script>
             </face>
         </Basis>
     </fieldset>
@@ -40,10 +48,14 @@
         <legend>With set key Field</legend>
         <Basis core="print" datamembername="inlineSource.whitKey" run="atclient" triggers="event.refresh">
             <face>
+                <script type="text/template">
+                    <div>
                 <br />
                 <span>@id ( name is:@name@ ) <button
                         onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                         color</button></span>
+                    </div>
+                </script>
             </face>
         </Basis>
     </fieldset>
@@ -51,10 +63,14 @@
         <legend>With status Field</legend>
         <Basis core="print" datamembername="inlineSource.whitStatus" run="atclient" triggers="event.refresh">
             <face>
+                <script type="text/template">
+                    <div>
                 <br />
                 <span>@id ( name is:@name@ ) <button
                         onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                         color</button></span>
+                    </div>
+                </script>
             </face>
         </Basis>
     </fieldset>

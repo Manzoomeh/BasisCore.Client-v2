@@ -14,8 +14,12 @@
         <legend>if = true</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" if="true">
             <face>
-                <br />
-                <span>@id ( name is:@name@ ) </span>
+                <script type="text/Template">
+                <div>
+                    <br />
+                    <span>@id ( name is:@name@ ) </span>
+                </div>
+                </script>
             </face>
         </Basis>
     </fieldset>
@@ -23,8 +27,12 @@
         <legend>if = false</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" if="false">
             <face>
-                <br />
-                <span>@id ( name is:@name@ ) </span>
+                <script type="text/Template">
+                    <div>
+                        <br />
+                        <span>@id ( name is:@name@ ) </span>
+                    </div>
+                </script>
             </face>
         </Basis>
     </fieldset>

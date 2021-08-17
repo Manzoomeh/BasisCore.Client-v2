@@ -22,7 +22,7 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
   protected FaceRenderResultFactory(
     key: any,
     version: number,
-    doc: DocumentFragment
+    doc: HTMLElement
   ): TreeFaceRenderResult {
     return new TreeFaceRenderResult(key, version, doc);
   }
@@ -55,9 +55,9 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
         this.renderResultRepository,
         (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc)
       );
-      var content = new Array<DocumentFragment>();
+      var renderResultList = new Array<TreeFaceRenderResult>();
       for (const row of rootRecords) {
-        const tmp = await this.renderLevelAsync(
+        const renderResult = await this.renderLevelAsync(
           dataSource,
           rootRenderParam,
           1,
@@ -67,12 +67,10 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
           tempGeneratedNodeList,
           row
         );
-        const doc = this.range.createContextualFragment("");
-        tmp.AppendTo(doc);
-        content.push(doc);
+        renderResultList.push(renderResult);
       }
       return new RenderDataPartResult<TreeFaceRenderResult>(
-        content,
+        renderResultList,
         tempGeneratedNodeList
       );
     }

@@ -45,7 +45,7 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
         "root"
       );
       rootRenderParam.setLevel(["1"]);
-      var content = new Array<DocumentFragment>();
+      var renderResultList = new Array<TreeFaceRenderResult>();
 
       for (const group of groupList) {
         const childItems = DataUtil.ApplySimpleFilter(
@@ -79,14 +79,12 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
             renderResult.AppendTo(childRenderResult);
           }
           level1Result.setContent(childRenderResult);
-          const doc = this.range.createContextualFragment("");
-          level1Result.AppendTo(doc);
-          content.push(doc);
+          renderResultList.push(level1Result);
         }
       }
     }
     return new RenderDataPartResult<TreeFaceRenderResult>(
-      content,
+      renderResultList,
       newRenderResultList
     );
   }

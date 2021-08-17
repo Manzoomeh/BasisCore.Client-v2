@@ -23,7 +23,6 @@ export default class ContentTemplate implements ITemplate {
   }
 
   private extractContents() {
-    //const r = /@([a-z\_]{1}[\w.(),'"\[\]]*)@?/gi;
     const faceRegex =
       this.context.options.getDefault<RegExp>("binding.face-regex");
     const blockRegex = this.context.options.getDefault<RegExp>(

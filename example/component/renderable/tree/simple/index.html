@@ -12,9 +12,11 @@
 <body>
     <basis core="tRee" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
         <layout>
-            <ul data-hi>
+            <script type="text/template">
+            <ul data-hi="">
                 @child
             </ul>
+        </script>
         </layout>
         <face level="end" replace="true">
             <li data-end-like><a href="/@name@">@id@ - @name@</a></li>

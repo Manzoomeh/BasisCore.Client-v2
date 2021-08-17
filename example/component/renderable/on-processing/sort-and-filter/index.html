@@ -29,6 +29,7 @@
                             <td name="demo.sort-by" bc-triggers="click" bc-value="id"  >Id</td>
                             <td name="demo.sort-by" bc-triggers="click" bc-value="name">Name</td>
                             <td name="demo.sort-by" bc-triggers="click" bc-value="age">Age</td>
+                            <td>#</td>
                         </tr>
                     </thead>
                     <tbody>@child</tbody>
@@ -41,6 +42,9 @@
                     <td>@id@</td>
                     <td>@name@</td>
                     <td>@age@</td>
+                    <td><button
+                        onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+                        color</button></td>
                 </tr>
             </script>
         </face>
@@ -63,7 +67,15 @@
 
         const host = {
             dbLibPath: '/alasql.min.js',
-            sources: { 'demo.data': dataList }
+            sources: {
+                'demo.data': {
+                    data: dataList,
+                    options: {
+                        mergeType: MergeType.Replace,
+                        keyFieldName: "id"
+                    }
+                }
+            }
         }
 
         let preSort = null;

@@ -14,8 +14,12 @@
         <legend>if source exist ([##cms.user##])</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" if="[##cms.user##]">
             <face>
+                <script type="text/Template">
+                    <div>
                 <br />
                 <span>@id ( name is:@name@ ) </span>
+            </div>
+        </script>
             </face>
         </Basis>
     </fieldset>
@@ -23,8 +27,12 @@
         <legend>if source not exist = ([##app.user##])</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" if="[##app.user##]">
             <face>
+                <script type="text/Template">
+                    <div>
                 <br />
                 <span>@id ( name is:@name@ ) </span>
+            </div>
+        </script>
             </face>
         </Basis>
     </fieldset>

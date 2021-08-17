@@ -37,7 +37,7 @@ export default class FaceCollection extends Array<Face> {
           retVal = preRenderResult;
         } else {
           const rawHtml = await firstMatchFace.template.getValueAsync(data);
-          const renderResult = $bc.util.toNode(rawHtml);
+          const renderResult = $bc.util.toHTMLElement(rawHtml);
           retVal = param.factory(dataKey, version, renderResult);
         }
         param.setRendered();

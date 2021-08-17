@@ -26,10 +26,9 @@ module.exports = {
   devServer: {
     static: path.resolve(__dirname, "example"),
     onBeforeSetupMiddleware: function (server) {
-      //console.log(app);
-      // server.app.post("/api/*.json", function (req, res) {
-      //   res.json(data);
-      // });
+      server.app.post("/api/*.json", function (req, res) {
+        res.send(`{ "a": "12", "e": "ali" ,"k":12}`);
+      });
       server.app.post("*", (req, res) => {
         res.redirect(req.originalUrl);
       });

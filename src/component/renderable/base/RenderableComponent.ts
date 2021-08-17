@@ -3,6 +3,7 @@ import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import Util from "../../../Util";
+import IBCUtil from "../../../wrapper/IBCUtil";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
 import FaceRenderResult from "./FaceRenderResult";
@@ -10,6 +11,8 @@ import FaceRenderResultRepository from "./FaceRenderResultRepository";
 import RenderDataPartResult from "./IRenderDataPartResult";
 import RawFaceCollection from "./RawFaceCollection";
 import RenderParam from "./RenderParam";
+
+declare const $bc: IBCUtil;
 
 export default abstract class RenderableComponent<
   TRenderResult extends FaceRenderResult
@@ -32,7 +35,7 @@ export default abstract class RenderableComponent<
   }
 
   async renderSourceAsync(source: ISource): Promise<Node[]> {
-    let renderResult: DocumentFragment[];
+    let renderResult: Array<TRenderResult>;
     if (source.rows) {
       var rawFaces = RawFaceCollection.Create(
         this.node,
@@ -52,32 +55,45 @@ export default abstract class RenderableComponent<
   }
 
   protected async createContentAsync(
-    renderResult?: DocumentFragment[]
+    renderResult?: Array<TRenderResult>
   ): Promise<ChildNode[]> {
-    let container: DocumentFragment;
+    let container: HTMLElement;
     if (renderResult?.length > 0) {
       const rawLayout = this.node
         .querySelector("layout")
         ?.GetTemplateToken(this.context);
       let layoutTemplate = await rawLayout?.getValueAsync();
-      const key = Date.now().toString(36);
-      const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
-      layoutTemplate = layoutTemplate
-        ? Util.ReplaceEx(layoutTemplate, "@child", elementHolder)
-        : elementHolder;
-      container = this.range.createContextualFragment(layoutTemplate);
-      const childContainer = container.querySelector(
-        `basis-core-template-tag#${key}`
-      );
-      renderResult.forEach((doc) => childContainer.appendChild(doc));
+      const range = new Range();
+      if (layoutTemplate) {
+        const key = Date.now().toString(36);
+        const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
+        layoutTemplate = Util.ReplaceEx(
+          layoutTemplate,
+          "@child",
+          elementHolder
+        );
+        container = $bc.util.toHTMLElement(layoutTemplate);
+        const childContainer = container.querySelector(
+          `basis-core-template-tag#${key}`
+        );
+        range.selectNode(childContainer);
+        range.deleteContents();
+      } else {
+        container = document.createElement("div");
+        range.setStart(container, 0);
+        range.setEnd(container, 0);
+      }
+      renderResult.forEach((element) => element.AppendTo(range));
     } else {
       var rawElseLayout = this.node
         .querySelector("else-layout")
         ?.GetTemplateToken(this.context);
       const result = await rawElseLayout?.getValueAsync();
-      container = this.range.createContextualFragment(result ?? "");
+      if (result) {
+        container = $bc.util.toHTMLElement(result);
+      }
     }
-    const generatedNodes = [...container.childNodes];
+    const generatedNodes = container ? [...container.childNodes] : [];
     this.setContent(container, false);
     return generatedNodes;
   }
@@ -92,7 +108,7 @@ export default abstract class RenderableComponent<
       (key, ver, doc) => new FaceRenderResult(key, ver, doc)
     );
     const newRenderResultList = new FaceRenderResultRepository<TRenderResult>();
-    const renderResult = new Array<DocumentFragment>();
+    const renderResult = new Array<TRenderResult>();
     for (const row of dataSource.rows) {
       const rowRenderResult = await faces.renderAsync<TRenderResult>(
         param,
@@ -100,9 +116,7 @@ export default abstract class RenderableComponent<
       );
       if (rowRenderResult) {
         newRenderResultList.set(rowRenderResult.key, rowRenderResult);
-        const doc = this.range.createContextualFragment("");
-        rowRenderResult.AppendTo(doc);
-        renderResult.push(doc);
+        renderResult.push(rowRenderResult);
       }
     }
     return new RenderDataPartResult<TRenderResult>(

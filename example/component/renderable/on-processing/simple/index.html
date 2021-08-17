@@ -14,8 +14,11 @@
         <legend>Orginal</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="">
             <face>
+                <script type="text/template">
+                    <div>
                 <span>@id ( @name ) </span>
-                <br />
+                <br /></div>
+            </script>
             </face>
         </Basis>
     </fieldset>
@@ -23,8 +26,11 @@
         <legend>Update</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="update">
             <face>
+                <script type="text/template">
+                    <div>
                 <span>@id ( @name ) </span>
-                <br />
+                <br /></div>
+                </script>
             </face>
         </Basis>
     </fieldset>
@@ -32,8 +38,10 @@
         <legend>Change</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="change">
             <face>
+                <script type="text/template">
+                    <div>
                 <span>@id ( @name ) </span>
-                <br />
+                <br /></div></script>
             </face>
         </Basis>
     </fieldset>
@@ -41,8 +49,10 @@
         <legend>Filter</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="filter">
             <face>
+                <script type="text/template">
+                    <div>
                 <span>@id ( @name ) </span>
-                <br />
+                <br /></div></script>
             </face>
         </Basis>
     </fieldset>
@@ -50,8 +60,10 @@
         <legend>Dynamic</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="dynamic">
             <face>
+                <script type="text/template">
+                    <div>
                 <span>@id ( @name ) </span>
-                <br />
+                <br /></div></script>
             </face>
         </Basis>
     </fieldset>

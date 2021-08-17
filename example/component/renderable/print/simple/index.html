@@ -12,8 +12,13 @@
 <body>
     <Basis core="print" datamembername="inlineSource.print" run="atclient">
         <face>
-            <br />
-            <span>@id ( name is:@name@ ) </span>
+            <script type="text/Template">
+            <div>
+                <img src="#" />
+                <br/>
+                <span>@id ( name is:@name@ ) </span>
+            </div>
+        </script>
         </face>
     </Basis>
 

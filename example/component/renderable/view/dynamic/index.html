@@ -16,7 +16,7 @@
     <basis core="view" datamembername="local.user" run="atclient">
         <face level="1">
             <script type="text/template">
-        <ul data-l1>
+        <ul data-l1="">
             <li>@question :<button
                 onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                 color</button><ul> @child </ul>
@@ -25,7 +25,7 @@
     </script>
         </face>
         <face level="2">
-            <li data-l2>
+            <li data-l2="">
                 @answer
                 <button onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                     color</button>

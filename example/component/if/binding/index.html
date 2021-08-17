@@ -14,8 +14,12 @@
         <legend>if = [##cms.if.trueVal##]</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" if="[##cms.if.trueVal##]">
             <face>
+                <script type="text/Template">
+                    <div>
                 <br />
                 <span>@id ( name is:@name@ ) </span>
+            </div>
+        </script>
             </face>
         </Basis>
     </fieldset>
@@ -23,8 +27,12 @@
         <legend>if = [##cms.if.falseVal##]</legend>
         <Basis core="print" datamembername="inlinesource.print" run="atclient" if="[##cms.if.falseVal##]">
             <face>
+                <script type="text/Template">
+                    <div>
                 <br />
                 <span>@id ( name is:@name@ ) </span>
+            </div>
+        </script>
             </face>
         </Basis>
     </fieldset>
