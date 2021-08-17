@@ -3,6 +3,7 @@ import IHostOptions from "../options/IHostOptions";
 import { SourceId } from "../type-alias";
 
 export default interface IBCWrapper {
+  elementList: Array<Element>;
   addFragment(selector: string): IBCWrapper;
   addFragment(element: Element): IBCWrapper;
   addFragment(param: any): IBCWrapper;

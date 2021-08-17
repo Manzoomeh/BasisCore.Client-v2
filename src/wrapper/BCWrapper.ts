@@ -8,7 +8,7 @@ import ISourceOptions from "../context/ISourceOptions";
 import IBCWrapper from "./IBCWrapper";
 
 export default class BCWrapper implements IBCWrapper {
-  private readonly elementList: Array<Element> = new Array<Element>();
+  readonly elementList: Array<Element> = new Array<Element>();
   private hostSetting?: Partial<IHostOptions> = null;
   private _basiscore: IBasisCore = null;
   public manager: EventManager<IBasisCore> = new EventManager<IBasisCore>();
@@ -47,20 +47,19 @@ export default class BCWrapper implements IBCWrapper {
   }
 
   public run(): IBCWrapper {
-    if (!this._basiscore) {
-      const childContainer = container.createChildContainer();
-      childContainer.register("IHostOptions", {
-        useValue: this.hostSetting ?? {},
-      });
-      childContainer.register("root.nodes", {
-        useValue:
-          this.elementList.length == 0
-            ? [document.documentElement]
-            : this.elementList,
-      });
-      childContainer.register("container", { useValue: childContainer });
-      this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
-      this.manager.Trigger(this._basiscore);
+    if (this.elementList.length != 0) {
+      if (!this._basiscore) {
+        const childContainer = container.createChildContainer();
+        childContainer.register("IHostOptions", {
+          useValue: this.hostSetting ?? {},
+        });
+        childContainer.register("root.nodes", {
+          useValue: this.elementList,
+        });
+        childContainer.register("container", { useValue: childContainer });
+        this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
+        this.manager.Trigger(this._basiscore);
+      }
     }
     return this;
   }

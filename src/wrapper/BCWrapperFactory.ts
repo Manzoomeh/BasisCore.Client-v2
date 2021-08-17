@@ -9,6 +9,7 @@ import IBCUtil from "./IBCUtil";
 import IBCWrapper from "./IBCWrapper";
 
 export default class BCWrapperFactory implements IBCWrapperFactory, IBCUtil {
+  elementList: Element[];
   private _global: IBCWrapper;
   public readonly all: Array<IBCWrapper> = new Array<IBCWrapper>();
   public get global(): IBCWrapper {
@@ -28,6 +29,9 @@ export default class BCWrapperFactory implements IBCWrapperFactory, IBCUtil {
   }
 
   public run(): IBCWrapper {
+    if (this.global.elementList.length == 0) {
+      this.global.addFragment(document.documentElement);
+    }
     return this.global.run();
   }
 
