@@ -12,7 +12,7 @@ export default class RawFace {
     this.Level = element.GetStringToken("level", context);
     this.RowType = element.GetStringToken("rowtype", context);
     this.Filter = element.GetStringToken("filter", context);
-    this.Template = element.getTemplate();
+    this.Template = element.getXMLTemplate();
     if (placeHolder) {
       this.Template = Util.ReplaceEx(
         this.Template,

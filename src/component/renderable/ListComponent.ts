@@ -1,8 +1,11 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import Util from "../../Util";
+import IBCUtil from "../../wrapper/IBCUtil";
 import FaceRenderResult from "./base/FaceRenderResult";
 import RenderableComponent from "./base/RenderableComponent";
+
+declare const $bc: IBCUtil;
 
 @injectable()
 export default class ListComponent extends RenderableComponent<FaceRenderResult> {
@@ -28,16 +31,19 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
         ?.GetIntegerToken("rowcount", this.context)
         ?.getValueAsync();
 
-      const incompleteTemplate = await this.node
+      const incompleteTemplateStr = await this.node
         .querySelector("incomplete")
-        ?.GetTemplateToken(this.context)
+        ?.GetXMLTemplateToken(this.context)
         ?.getValueAsync();
+      const incompleteTemplate = incompleteTemplateStr
+        ? $bc.util.toHTMLElement(incompleteTemplateStr)
+        : document.createElement("div");
 
       let contentTemplate = "";
       const key = Date.now().toString(36);
       let index = cellCount;
       renderResults.forEach((_) => {
-        contentTemplate += `<basis-core-template-tag id="${key}" data-type="result"></basis-core-template-tag>`;
+        contentTemplate += `<basis-core-template-list-item-tag data-type="${key}"></basis-core-template-list-item-tag>`;
         index--;
         if (index == 0) {
           contentTemplate += dividerTemplate;
@@ -45,23 +51,39 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
         }
       });
       while (index > 0 && index < cellCount) {
-        contentTemplate += incompleteTemplate;
+        contentTemplate += `<basis-core-template-list-item-tag data-type="${key}"></basis-core-template-list-item-tag>`;
+        const incompleteRenderResult = new FaceRenderResult(
+          null,
+          0,
+          incompleteTemplate.cloneNode(true) as HTMLElement
+        );
+        renderResults.push(incompleteRenderResult);
         index--;
       }
+      let doc: DocumentFragment;
       let layoutTemplate = await this.node
         .querySelector("layout")
-        ?.GetTemplateToken(this.context)
+        ?.GetXMLTemplateToken(this.context)
         ?.getValueAsync();
-      layoutTemplate = layoutTemplate
-        ? Util.ReplaceEx(layoutTemplate, "@child", contentTemplate)
-        : contentTemplate;
 
-      const content = this.range.createContextualFragment(layoutTemplate);
-      const items = [
-        ...content.querySelectorAll(
-          `basis-core-template-tag#${key}[data-type="result"]`
-        ),
-      ];
+      if (layoutTemplate) {
+        layoutTemplate = Util.ReplaceEx(
+          layoutTemplate,
+          "@child",
+          contentTemplate
+        );
+        doc = new DocumentFragment();
+        Array.from(
+          $bc.util.toNode(layoutTemplate).firstChild.childNodes
+        ).forEach((node) => doc.appendChild(node));
+      } else {
+        doc = $bc.util.toNode(contentTemplate);
+      }
+      const items = Array.from(
+        doc.querySelectorAll(
+          `basis-core-template-list-item-tag[data-type="${key}"]`
+        )
+      );
       index = 0;
       renderResults.forEach((result) => {
         const range = new Range();
@@ -69,8 +91,8 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
         range.deleteContents();
         result.AppendTo(range);
       });
-      retVal = [...content.childNodes];
-      this.setContent(content, false);
+      retVal = Array.from(doc.childNodes);
+      this.setContent(doc, false);
     } else {
       retVal = await super.createContentAsync(renderResults);
     }

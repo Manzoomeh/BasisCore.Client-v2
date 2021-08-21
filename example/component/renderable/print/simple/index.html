@@ -1,44 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="/basiscore.min.js"></script>
     <title>Print Command - Simple</title>
-</head>
+  </head>
 
-<body>
-    <Basis core="print" datamembername="inlineSource.print" run="atclient">
+  <body>
+    <fieldset>
+      <legend>Simple</legend>
+      <Basis core="print" datamembername="inlineSource.print" run="atclient">
         <face>
-            <script type="text/Template">
-            <div>
-                <img src="#" />
-                <br/>
-                <span>@id ( name is:@name@ ) </span>
-            </div>
-        </script>
+          <script type="text/Template">
+            <img src="#" />
+            <span>@id ( name is:@name@ ) </span>
+            <br/>
+          </script>
         </face>
-    </Basis>
+      </Basis>
+    </fieldset>
+    <fieldset>
+      <legend>With Layout</legend>
+
+      <Basis core="print" datamembername="inlineSource.print" run="atclient">
+        <layout>
+          <span data-u="">@child</span>
+          <span>w</span>
+        </layout>
+        <face>
+          <script type="text/Template">
+            <img src="#" />
+            <span>@id ( name is:@name@ ) </span>
+            <span>rr </span>
+            <br/>
+          </script>
+        </face>
+      </Basis>
+    </fieldset>
+    <fieldset>
+      <legend>with else-layout</legend>
+      <Basis core="print" datamembername="inlineSource.print" run="atclient">
+        <layout>
+          <span data-u="">@child</span>
+          <span>w</span>
+        </layout>
+        <face filter="1!=1">
+          <script type="text/Template">
+            <img src="#" />
+            <span>@id ( name is:@name@ ) </span>
+            <br/>
+          </script>
+        </face>
+        <else-layout>
+          <script type="text/template">
+            <br />
+            <span>Empty</span>
+            <br/>
+          </script>
+        </else-layout>
+      </Basis>
+    </fieldset>
 
     <script>
-        const host = {
-            sources: {
-                'inlineSource.print': [
-                    {
-                        id: 1, name: 'qamsari'
-                    },
-                    {
-                        id: 2, name: 'akaberi'
-                    },
-                    {
-                        id: 3, name: 'amir'
-                    }
-                ]
-            }
-        }
+      const host = {
+        sources: {
+          "inlineSource.print": [
+            {
+              id: 1,
+              name: "qamsari",
+            },
+            {
+              id: 2,
+              name: "akaberi",
+            },
+            {
+              id: 3,
+              name: "amir",
+            },
+          ],
+        },
+      };
     </script>
-</body>
-
+  </body>
 </html>

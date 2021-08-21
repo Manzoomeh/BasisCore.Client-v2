@@ -1,151 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="/basiscore.min.js"></script>
     <title>List Command - Simple</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <input type="button" value="Set Source" onclick="clickHandler()" />
     <fieldset>
-        <legend>List - Full</legend>
-        <Basis core="list" datamembername="local.print" run="atclient">
-            <layout>
-                <div>
-                    <div>
-                        @child
-                    </div>
-                </div>
-            </layout>
-            <face filter="id <12">
-
-                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
-                    ) </span>
-            </face>
-            <else-layout>
-                <span>
-                    empty
-                </span>
-            </else-layout>
-            <divider rowcount="4">
-                <script type="text/template">
-            </div><div></script>
-            </divider>
-            <incomplete>
-                <span>x</span>
-            </incomplete>
-        </Basis>
+      <legend>List - Full</legend>
+      <Basis core="list" datamembername="local.print" run="atclient">
+        <layout>
+          <div>@child</div>
+        </layout>
+        <face filter="id < 12">
+          <span
+            onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`"
+            >@id ( @name )
+          </span>
+        </face>
+        <else-layout> empty </else-layout>
+        <divider rowcount="4">
+          <script type="text/template">
+            </div><div>
+          </script>
+        </divider>
+        <incomplete>
+          <script type="text/template">
+            <img src="#"/>
+            x
+          </script>
+        </incomplete>
+      </Basis>
     </fieldset>
     <fieldset>
-        <legend>List - With layout</legend>
-        <Basis core="list" datamembername="local.print" run="atclient">
-            <layout>
-                <div>
-                    <div>
-                        @child
-                    </div>
-                </div>
-            </layout>
-            <face filter="id <12">
-                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
-                    ) </span>
-            </face>
-        </Basis>
+      <legend>List - With layout</legend>
+      <Basis core="list" datamembername="local.print" run="atclient">
+        <layout>
+          <div>
+            <div>@child</div>
+          </div>
+        </layout>
+        <face filter="id <12">
+          <span
+            onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`"
+            >@id ( @name )
+          </span>
+        </face>
+      </Basis>
     </fieldset>
     <fieldset>
-        <legend>List - Simple</legend>
-        <Basis core="list" datamembername="local.print" run="atclient">
-            <face filter="id <12">
-                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
-                    ) </span>
-            </face>
-        </Basis>
+      <legend>List - Simple</legend>
+      <Basis core="list" datamembername="local.print" run="atclient">
+        <face filter="id <12">
+          <span
+            onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`"
+            >@id ( @name )
+          </span>
+        </face>
+      </Basis>
     </fieldset>
     <fieldset>
-        <legend>List - With else-layout</legend>
-        <Basis core="list" datamembername="local.print" run="atclient">
-            <face filter="id <12">
-                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
-                    ) </span>
-            </face>
-            <else-layout>
-                <span>
-                    empty
-                </span>
-            </else-layout>
-        </Basis>
+      <legend>List - With else-layout</legend>
+      <Basis core="list" datamembername="local.print" run="atclient">
+        <face filter="id <12">
+          <span
+            onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`"
+            >@id ( @name )
+          </span>
+        </face>
+        <else-layout>
+          <span>ee</span>
+          <span> empty </span>
+        </else-layout>
+      </Basis>
     </fieldset>
     <fieldset>
-        <legend>List - With divider incomplete</legend>
-        <Basis core="list" datamembername="local.print" run="atclient">
-            <face filter="id <12">
-                <span onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name
-                    ) </span>
-            </face>
-            <divider rowcount="4">
-                <script type="text/template">
-            </div><div></script>
-            </divider>
-            <incomplete>
-                <span>x</span>
-            </incomplete>
-        </Basis>
+      <legend>List - With divider incomplete</legend>
+      <Basis core="list" datamembername="local.print" run="atclient">
+        <face filter="id <12">
+          <span
+            onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`"
+            >@id ( @name )
+          </span>
+        </face>
+        <divider rowcount="4">
+          <script type="text/template">
+            </div><div>
+          </script>
+        </divider>
+        <incomplete>
+          <span>x</span>
+        </incomplete>
+      </Basis>
     </fieldset>
     <basis core="callback" triggers="local.print" run="atclient"></basis>
     <script>
-        const host = {
-            dbLibPath: '/alasql.min.js'
-        }
-        var i = 0;
-        function clickHandler() {
-            const rows = []
+      const host = {
+        dbLibPath: "/alasql.min.js",
+      };
+      var i = 0;
+      function clickHandler() {
+        const rows = [];
 
-            if (i >= 15) {
-                rows.push({ id: i - 15, status: 2 });
-            } else {
-                rows.push({ id: i, name: `btn-t=${i}`, status: 0 });
-            }
-            $bc.setSource(
-                "local.print", rows
-                , {
-                    keyFieldName: "id",
-                    statusFieldName: "status",
-                    mergeType: MergeType.append
-                }
-            );
-            i += 1;
+        if (i >= 15) {
+          rows.push({ id: i - 15, status: 2 });
+        } else {
+          rows.push({ id: i, name: `btn-t=${i}`, status: 0 });
         }
-        // function clickHandler() {
-        //     const first = { id: i, name: `btn-t=${i}`, status: 0 }
-        //     if (i > 0) {
-        //         first.status = 2;
-        //     }
-        //     $bc.setSource(
-        //         "local.print", [
-        //         first,
-        //         { id: i + 1, name: `btn-t=${i + 1}`, status: 0 },
-        //         { id: i + 2, name: `btn-t=${i + 2}`, status: 0 },
-        //         { id: i + 3, name: `btn-t=${i + 3}`, status: 0 },
-        //         { id: i + 4, name: `btn-t=${i + 4}`, status: 0 },
-        //         { id: i + 5, name: `btn-t=${i + 5}`, status: 0 },
-        //         { id: i + 6, name: `btn-t=${i + 6}`, status: 0 },
-        //         { id: i + 7, name: `btn-t=${i + 7}`, status: 0 },
-        //         { id: i + 8, name: `btn-t=${i + 8}`, status: 0 },
-        //         { id: i + 9, name: `btn-t=${i + 9}`, status: 0 }]
-        //         , {
-        //             keyFieldName: "id",
-        //             statusFieldName: "status",
-        //             mergeType: MergeType.append
-        //         }
-        //     );
-        //     i += 1;
-        // }
-        clickHandler();
+        $bc.setSource("local.print", rows, {
+          keyFieldName: "id",
+          statusFieldName: "status",
+          mergeType: MergeType.append,
+        });
+        i += 1;
+      }
+      // function clickHandler() {
+      //     const first = { id: i, name: `btn-t=${i}`, status: 0 }
+      //     if (i > 0) {
+      //         first.status = 2;
+      //     }
+      //     $bc.setSource(
+      //         "local.print", [
+      //         first,
+      //         { id: i + 1, name: `btn-t=${i + 1}`, status: 0 },
+      //         { id: i + 2, name: `btn-t=${i + 2}`, status: 0 },
+      //         { id: i + 3, name: `btn-t=${i + 3}`, status: 0 },
+      //         { id: i + 4, name: `btn-t=${i + 4}`, status: 0 },
+      //         { id: i + 5, name: `btn-t=${i + 5}`, status: 0 },
+      //         { id: i + 6, name: `btn-t=${i + 6}`, status: 0 },
+      //         { id: i + 7, name: `btn-t=${i + 7}`, status: 0 },
+      //         { id: i + 8, name: `btn-t=${i + 8}`, status: 0 },
+      //         { id: i + 9, name: `btn-t=${i + 9}`, status: 0 }]
+      //         , {
+      //             keyFieldName: "id",
+      //             statusFieldName: "status",
+      //             mergeType: MergeType.append
+      //         }
+      //     );
+      //     i += 1;
+      // }
+      clickHandler();
     </script>
-</body>
-
+  </body>
 </html>

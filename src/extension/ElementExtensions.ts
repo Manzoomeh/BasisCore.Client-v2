@@ -9,10 +9,13 @@ declare global {
     GetBooleanToken(attributeName: string, context: IContext): IToken<boolean>;
     GetTemplateToken(context: IContext): IToken<string>;
     getTemplate(): string;
+    GetXMLTemplateToken(context: IContext): IToken<string>;
+    getXMLTemplate(): string;
     isBasisCore(): boolean;
     isBasisTag(): boolean;
   }
 }
+
 Object.defineProperty(Element.prototype, "GetStringToken", {
   value: function GetStringToken(attributeName: string, context: IContext) {
     var retVal: IToken<String>;
@@ -25,6 +28,7 @@ Object.defineProperty(Element.prototype, "GetStringToken", {
   writable: true,
   configurable: true,
 });
+
 Object.defineProperty(Element.prototype, "GetIntegerToken", {
   value: function GetIntegerToken(attributeName: string, context: IContext) {
     var retVal: IToken<number>;
@@ -37,6 +41,7 @@ Object.defineProperty(Element.prototype, "GetIntegerToken", {
   writable: true,
   configurable: true,
 });
+
 Object.defineProperty(Element.prototype, "GetBooleanToken", {
   value: function GetBooleanToken(attributeName: string, context: IContext) {
     var retVal: IToken<boolean>;
@@ -49,6 +54,7 @@ Object.defineProperty(Element.prototype, "GetBooleanToken", {
   writable: true,
   configurable: true,
 });
+
 Object.defineProperty(Element.prototype, "GetTemplateToken", {
   value: function GetTemplateToken(context: IContext) {
     var retVal: IToken<string>;
@@ -66,6 +72,7 @@ Object.defineProperty(Element.prototype, "GetTemplateToken", {
   writable: true,
   configurable: true,
 });
+
 Object.defineProperty(Element.prototype, "getTemplate", {
   value: function getTemplate() {
     var retVal: string;
@@ -83,6 +90,46 @@ Object.defineProperty(Element.prototype, "getTemplate", {
   writable: true,
   configurable: true,
 });
+
+Object.defineProperty(Element.prototype, "GetXMLTemplateToken", {
+  value: function GetXMLTemplateToken(context: IContext) {
+    var retVal: IToken<string>;
+    if (
+      this.children.length == 1 &&
+      Util.isEqual(this.children[0].nodeName, "script") &&
+      Util.isEqual(this.children[0].getAttribute("type"), "text/template")
+    ) {
+      retVal = this.children[0].outerHTML.ToStringToken(context);
+    } else {
+      retVal =
+        `<basis-core-template-tag>${this.innerHTML}</basis-core-template-tag>`.ToStringToken(
+          context
+        );
+    }
+    return retVal;
+  },
+  writable: true,
+  configurable: true,
+});
+
+Object.defineProperty(Element.prototype, "getXMLTemplate", {
+  value: function getXMLTemplate() {
+    var retVal: string;
+    if (
+      this.children.length == 1 &&
+      Util.isEqual(this.children[0].nodeName, "script") &&
+      Util.isEqual(this.children[0].getAttribute("type"), "text/template")
+    ) {
+      retVal = this.children[0].outerHTML;
+    } else {
+      retVal = `<basis-core-template-tag>${this.innerHTML}</basis-core-template-tag>`;
+    }
+    return retVal;
+  },
+  writable: true,
+  configurable: true,
+});
+
 Object.defineProperty(Element.prototype, "isBasisCore", {
   value: function isBasisCore() {
     try {
@@ -98,6 +145,7 @@ Object.defineProperty(Element.prototype, "isBasisCore", {
   writable: true,
   configurable: true,
 });
+
 Object.defineProperty(Element.prototype, "isBasisTag", {
   value: function isBasisTag() {
     try {

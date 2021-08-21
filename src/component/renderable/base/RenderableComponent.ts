@@ -57,44 +57,47 @@ export default abstract class RenderableComponent<
   protected async createContentAsync(
     renderResult?: Array<TRenderResult>
   ): Promise<ChildNode[]> {
-    let container: HTMLElement;
+    const doc = new DocumentFragment();
     if (renderResult?.length > 0) {
       const rawLayout = this.node
         .querySelector("layout")
-        ?.GetTemplateToken(this.context);
+        ?.GetXMLTemplateToken(this.context);
       let layoutTemplate = await rawLayout?.getValueAsync();
-      const range = new Range();
       if (layoutTemplate) {
         const key = Date.now().toString(36);
-        const elementHolder = `<basis-core-template-tag id="${key}"></basis-core-template-tag>`;
         layoutTemplate = Util.ReplaceEx(
           layoutTemplate,
           "@child",
-          elementHolder
+          `<basis-core-template-child-tag id="${key}"></basis-core-template-child-tag>`
         );
-        container = $bc.util.toHTMLElement(layoutTemplate);
-        const childContainer = container.querySelector(
-          `basis-core-template-tag#${key}`
+        this.appendTemplateToDoc(layoutTemplate, doc);
+        const childContainer = doc.querySelector(
+          `basis-core-template-child-tag#${key}`
         );
-        range.selectNode(childContainer);
-        range.deleteContents();
+        if (!childContainer) {
+          this.context.logger.logWarning(
+            "@child place holder not found in layout template"
+          );
+        } else {
+          const range = new Range();
+          range.selectNode(childContainer);
+          range.deleteContents();
+          renderResult.forEach((element) => element.AppendTo(range));
+        }
       } else {
-        container = document.createElement("div");
-        range.setStart(container, 0);
-        range.setEnd(container, 0);
+        renderResult.forEach((element) => element.AppendTo(doc));
       }
-      renderResult.forEach((element) => element.AppendTo(range));
     } else {
       var rawElseLayout = this.node
         .querySelector("else-layout")
-        ?.GetTemplateToken(this.context);
+        ?.GetXMLTemplateToken(this.context);
       const result = await rawElseLayout?.getValueAsync();
       if (result) {
-        container = $bc.util.toHTMLElement(result);
+        this.appendTemplateToDoc(result, doc);
       }
     }
-    const generatedNodes = container ? [...container.childNodes] : [];
-    this.setContent(container, false);
+    const generatedNodes = Array.from(doc.childNodes);
+    this.setContent(doc, false);
     return generatedNodes;
   }
 
@@ -123,5 +126,15 @@ export default abstract class RenderableComponent<
       renderResult,
       newRenderResultList
     );
+  }
+
+  protected appendTemplateToDoc(template: string, doc: DocumentFragment): void {
+    const tmpResult = $bc.util.toHTMLElement(template);
+    if (tmpResult.nodeName !== "parsererror") {
+      console.log(tmpResult.nodeName);
+      Array.from(tmpResult.childNodes).forEach((node) => doc.appendChild(node));
+    } else {
+      doc.appendChild(tmpResult);
+    }
   }
 }

@@ -1,19 +1,19 @@
 export default class FaceRenderResult {
   readonly key: any;
   readonly version: number;
-  readonly element: HTMLElement;
+  readonly nodes: Array<Node>;
 
   constructor(key: any, version: number, element: HTMLElement) {
     this.key = key;
     this.version = version;
-    this.element = element;
+    this.nodes = Array.from(element.childNodes);
   }
 
   public AppendTo(newParent: Node | Range): void {
     if (newParent instanceof Node) {
-      newParent.appendChild(this.element);
+      this.nodes.forEach((node) => newParent.appendChild(node));
     } else if (newParent instanceof Range) {
-      newParent.insertNode(this.element);
+      this.nodes.forEach((node) => newParent.insertNode(node));
     }
   }
 }

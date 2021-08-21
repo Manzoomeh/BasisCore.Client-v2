@@ -29,7 +29,7 @@ export class HostOptions implements IContextHostOptions {
         debug: false,
         autoRender: true,
         serviceWorker: false,
-        dbLibPath: "alasql.min.js",
+        dbLibPath: "/alasql.min.js",
         settings: {
           "default.binding.regex": /\[##([^#]*)##\]/,
           "default.binding.codeblock-regex": /{{((?:[^{}][{}]?)*)}}/,
