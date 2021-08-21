@@ -22,4 +22,6 @@ export default interface ISourceWrapper {
   ): Promise<ISource>;
 
   data(id: SourceId, data: any, options?: ISourceOptions): Data;
+  //exist but for conflict by new (constructor) remove from interface
+  //new(id: SourceId, data: any, options?: ISourceOptions): ISource;
 }

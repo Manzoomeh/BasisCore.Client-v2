@@ -23,13 +23,13 @@ export default class CallComponent extends CommandComponent {
   protected async runAsync(): Promise<void> {
     const filename = await this.getAttributeValueAsync("file");
     const pageSize = await this.getAttributeValueAsync("pagesize");
-    const method = (
-      await this.getAttributeValueAsync("method")
-    )?.toUpperCase() as HttpMethod;
     const command = await this.node.outerHTML
       .ToStringToken(this.context)
       .getValueAsync();
-
+    const methodValue = await this.getAttributeValueAsync("method");
+    const method = (
+      methodValue ?? this.context.options.getDefault<string>("call.verb")
+    ).toUpperCase() as HttpMethod;
     let parameters = null;
     if (method === "POST") {
       parameters = {};
