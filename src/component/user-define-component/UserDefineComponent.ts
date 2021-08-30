@@ -42,7 +42,7 @@ export default class UserDefineComponent
   }
 
   public toNode(rawHtml: string): Node {
-    return document.createRange().createContextualFragment(rawHtml);
+    return this.range.createContextualFragment(rawHtml);
   }
 
   public setContent(newContent: Node) {
@@ -65,5 +65,12 @@ export default class UserDefineComponent
     preview?: boolean
   ): void {
     this.context.setAsSource(sourceId, data, options, preview);
+  }
+
+  public tryToGetSource(sourceId: SourceId): ISource {
+    return this.context.tryToGetSource(sourceId);
+  }
+  public waitToGetSourceAsync(sourceId: SourceId): Promise<ISource> {
+    return this.context.waitToGetSourceAsync(sourceId);
   }
 }
