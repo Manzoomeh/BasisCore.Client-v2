@@ -26,4 +26,6 @@ export default interface IUserDefineComponent {
   ): void;
   tryToGetSource(sourceId: SourceId): ISource;
   waitToGetSourceAsync(sourceId: SourceId): Promise<ISource>;
+  getDefault<T>(key: string, defaultValue?: T): T;
+  getSetting<T>(key: string, defaultValue: T): T;
 }
