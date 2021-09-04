@@ -1,4 +1,5 @@
 import { inject, DependencyContainer, injectable } from "tsyringe";
+import ComponentCollection from "../../ComponentCollection";
 import IContext from "../../context/IContext";
 import ISourceOptions from "../../context/ISourceOptions";
 import ISource from "../../data/ISource";
@@ -72,5 +73,9 @@ export default class UserDefineComponent
   }
   public waitToGetSourceAsync(sourceId: SourceId): Promise<ISource> {
     return this.context.waitToGetSourceAsync(sourceId);
+  }
+  public async processNodesAsync(nodes: Array<Node>): Promise<void> {
+    const collection = this.container.resolve(ComponentCollection);
+    await collection.processNodesAsync(nodes);
   }
 }

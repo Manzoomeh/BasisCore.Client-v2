@@ -1,3 +1,4 @@
+import { DependencyContainer } from "tsyringe";
 import ISourceOptions from "../../context/ISourceOptions";
 import ISource from "../../data/ISource";
 import { Priority } from "../../enum";
@@ -9,6 +10,7 @@ export default interface IUserDefineComponent {
   range: Range;
   triggers: string[];
   priority: Priority;
+  container: DependencyContainer;
   toNode(rawHtml: string): Node;
   setContent(newContent: Node): void;
   getAttributeValueAsync(name: string, defaultValue?: string): Promise<string>;
@@ -28,4 +30,5 @@ export default interface IUserDefineComponent {
   waitToGetSourceAsync(sourceId: SourceId): Promise<ISource>;
   getDefault<T>(key: string, defaultValue?: T): T;
   getSetting<T>(key: string, defaultValue: T): T;
+  processNodesAsync(nodes: Array<Node>): Promise<void>;
 }
