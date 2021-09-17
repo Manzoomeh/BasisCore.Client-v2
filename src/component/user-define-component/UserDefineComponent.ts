@@ -3,6 +3,7 @@ import ComponentCollection from "../../ComponentCollection";
 import IContext from "../../context/IContext";
 import ISourceOptions from "../../context/ISourceOptions";
 import ISource from "../../data/ISource";
+import IDisposable from "../../IDisposable";
 import { SourceId } from "../../type-alias";
 import IBCUtil from "../../wrapper/IBCUtil";
 import CommandComponent from "../CommandComponent";
@@ -77,13 +78,14 @@ export default class UserDefineComponent
     return this.context.waitToGetSourceAsync(sourceId);
   }
 
-  public async processNodesAsync(nodes: Array<Node>): Promise<void> {
+  public async processNodesAsync(nodes: Array<Node>): Promise<IDisposable> {
     const newCollection = this.container.resolve(ComponentCollection);
     if (!this.collections) {
       this.collections = new Array<ComponentCollection>();
     }
     this.collections.push(newCollection);
     await newCollection.processNodesAsync(nodes);
+    return newCollection;
   }
 
   public async disposeAsync(): Promise<void> {

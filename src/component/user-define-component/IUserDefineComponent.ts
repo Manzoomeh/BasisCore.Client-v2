@@ -2,6 +2,7 @@ import { DependencyContainer } from "tsyringe";
 import ISourceOptions from "../../context/ISourceOptions";
 import ISource from "../../data/ISource";
 import { Priority } from "../../enum";
+import IDisposable from "../../IDisposable";
 import IToken from "../../token/IToken";
 import { SourceId } from "../../type-alias";
 
@@ -30,7 +31,7 @@ export default interface IUserDefineComponent {
   waitToGetSourceAsync(sourceId: SourceId): Promise<ISource>;
   getDefault<T>(key: string, defaultValue?: T): T;
   getSetting<T>(key: string, defaultValue: T): T;
-  processNodesAsync(nodes: Array<Node>): Promise<void>;
+  processNodesAsync(nodes: Array<Node>): Promise<IDisposable>;
   disposeAsync(): Promise<void>;
   disposed: boolean;
 }

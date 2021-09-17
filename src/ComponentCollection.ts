@@ -5,9 +5,10 @@ import CommandComponent from "./component/CommandComponent";
 import IComponent from "./component/IComponent";
 import { AttributeComponent } from "./component/text-base/AttributeComponent";
 import TextComponent from "./component/text-base/TextComponent";
+import IDisposable from "./IDisposable";
 
 @injectable()
-export default class ComponentCollection {
+export default class ComponentCollection implements IDisposable {
   static readonly knowHtmlElement = ["form", "input", "select"];
   readonly context: IContext;
   readonly regex: RegExp;
@@ -15,6 +16,10 @@ export default class ComponentCollection {
   readonly container: DependencyContainer;
   private _initializeTask: Promise<void>;
   private components: Array<IComponent>;
+  private _disposed: boolean = false;
+  public get disposed(): boolean {
+    return this._disposed;
+  }
 
   public get initializeTask(): Promise<void> {
     return this._initializeTask;
@@ -192,8 +197,13 @@ export default class ComponentCollection {
   }
 
   public async disposeAsync(): Promise<void> {
-    const tasks = this.components?.map((component) => component.disposeAsync());
-    await Promise.all(tasks);
-    this.components.splice(0, this.components.length);
+    if (!this._disposed) {
+      this._disposed = true;
+      const tasks = this.components?.map((component) =>
+        component.disposeAsync()
+      );
+      await Promise.all(tasks);
+      this.components?.splice(0, this.components.length);
+    }
   }
 }
