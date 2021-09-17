@@ -32,21 +32,22 @@ export default abstract class MemberBaseSourceComponent<
     }
   }
 
-  private async processLoadedDataSet(dataList: Array<Data>) {
-    const memberObjList = this.members.map((memberElement) =>
-      this.convertToMemberObject(memberElement)
-    );
-    if (memberObjList.length != dataList.length) {
-      throw new Error(
-        `Command '${await this.id}' has ${memberObjList.length} member(s) but ${
-          dataList.length
-        } result(s) returned from source!`
+  private processLoadedDataSet(dataList: Array<Data>): boolean {
+    if (!this.disposed) {
+      const memberObjList = this.members.map((memberElement) =>
+        this.convertToMemberObject(memberElement)
       );
+      if (memberObjList.length != dataList.length) {
+        throw new Error(
+          `Command '${this.id}' has ${memberObjList.length} member(s) but ${dataList.length} result(s) returned from source!`
+        );
+      }
+      memberObjList.forEach(async (member, index) => {
+        const source = dataList[index];
+        await member.addDataSourceAsync(source.rows, this.id, source.options);
+      });
     }
-    memberObjList.forEach(async (member, index) => {
-      const source = dataList[index];
-      await member.addDataSourceAsync(source.rows, this.id, source.options);
-    });
+    return !this.disposed;
   }
 
   private async loadDataAsync(): Promise<void> {

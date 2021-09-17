@@ -16,6 +16,7 @@ export default class UserDefineComponent
   implements IUserDefineComponent
 {
   readonly container: DependencyContainer;
+  private collections: Array<ComponentCollection>;
   private manager: IComponentManager;
 
   constructor(
@@ -71,11 +72,25 @@ export default class UserDefineComponent
   public tryToGetSource(sourceId: SourceId): ISource {
     return this.context.tryToGetSource(sourceId);
   }
+
   public waitToGetSourceAsync(sourceId: SourceId): Promise<ISource> {
     return this.context.waitToGetSourceAsync(sourceId);
   }
+
   public async processNodesAsync(nodes: Array<Node>): Promise<void> {
-    const collection = this.container.resolve(ComponentCollection);
-    await collection.processNodesAsync(nodes);
+    const newCollection = this.container.resolve(ComponentCollection);
+    if (!this.collections) {
+      this.collections = new Array<ComponentCollection>();
+    }
+    this.collections.push(newCollection);
+    await newCollection.processNodesAsync(nodes);
+  }
+
+  public async disposeAsync(): Promise<void> {
+    const tasks = this.collections?.map((collection) =>
+      collection.disposeAsync()
+    );
+    await Promise.all(tasks);
+    return super.disposeAsync();
   }
 }

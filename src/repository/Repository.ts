@@ -85,22 +85,28 @@ export default class Repository implements IContextRepository {
     return resultSource;
   }
 
-  public addHandler(sourceId: SourceId, handler: SourceHandler): SourceHandler {
+  public addHandler(sourceId: SourceId, handler: SourceHandler): void {
     const key = sourceId?.toLowerCase();
     let handlers = this.eventManager.get(key);
     if (!handlers) {
       handlers = new EventManager<ISource>();
       this.eventManager.set(key, handlers);
     }
-    const added = handlers.Add(handler);
-    if (added) {
+    const addedHandler = handlers.Add(handler);
+    if (addedHandler) {
       this.logger.logInformation(`handler Added for ${key}...`);
     }
-    return added;
   }
 
   public removeHandler(sourceId: SourceId, handler: SourceHandler) {
-    this.eventManager[sourceId?.toLowerCase()]?.Remove(handler);
+    const key = sourceId?.toLowerCase();
+    let handlers = this.eventManager.get(key);
+    if (handlers) {
+      const removedHandler = handlers.Remove(handler);
+      if (removedHandler) {
+        this.logger.logInformation(`handler removed for ${key}...`);
+      }
+    }
   }
 
   public waitToGetAsync(sourceId: SourceId): Promise<ISource> {

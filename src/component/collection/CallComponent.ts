@@ -10,6 +10,7 @@ export default class CallComponent extends CommandComponent {
   private defaultAttributeNames = ["core", "run", "file", "method"];
   private readonly container: DependencyContainer;
   readonly priority: Priority = Priority.high;
+  private collection: ComponentCollection;
 
   constructor(
     @inject("element") element: Element,
@@ -58,7 +59,12 @@ export default class CallComponent extends CommandComponent {
     const childNodes = [...content.childNodes];
     this.range.deleteContents();
     this.range.insertNode(content);
-    const collection = this.container.resolve(ComponentCollection);
-    await collection.processNodesAsync(childNodes);
+    this.collection = this.container.resolve(ComponentCollection);
+    await this.collection.processNodesAsync(childNodes);
+  }
+
+  public async disposeAsync(): Promise<void> {
+    await this.collection?.disposeAsync();
+    return super.disposeAsync();
   }
 }

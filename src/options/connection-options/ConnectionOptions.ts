@@ -1,6 +1,6 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
-import { EventHandler } from "../../event/EventHandler";
+import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import ClientException from "../../exception/ClientException";
 import IDictionary from "../../IDictionary";
 import { HttpMethod, SourceId } from "../../type-alias";
@@ -17,7 +17,7 @@ export default abstract class ConnectionOptions {
     context: IContext,
     sourceId: SourceId,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<Array<Data>>
+    onDataReceived: EventHandlerWithReturn<Array<Data>, boolean>
   ): Promise<void>;
 
   public abstract loadPageAsync(

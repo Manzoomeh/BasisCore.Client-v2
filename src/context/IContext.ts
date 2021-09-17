@@ -1,6 +1,6 @@
 import Data from "../data/Data";
 import ISource from "../data/ISource";
-import { EventHandler } from "../event/EventHandler";
+import { EventHandlerWithReturn } from "../event/EventHandlerWithReturn";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import IContextHostOptions from "../options/IContextHostOptions";
@@ -23,7 +23,7 @@ export default interface IContext {
     sourceId: SourceId,
     connectionName: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<Array<Data>>
+    onDataReceived: EventHandlerWithReturn<Array<Data>, boolean>
   ): Promise<void>;
 
   getOrLoadDbLibAsync(): Promise<any>;
@@ -35,10 +35,8 @@ export default interface IContext {
     preview?: boolean
   ): void;
   setSource(source: ISource, preview?: boolean): void;
-  addOnSourceSetHandler(
-    sourceId: SourceId,
-    handler: SourceHandler
-  ): SourceHandler;
+  addOnSourceSetHandler(sourceId: SourceId, handler: SourceHandler): void;
+  removeOnSourceSetHandler(sourceId: SourceId, handler: SourceHandler): void;
   tryToGetSource(sourceId: SourceId): ISource;
   waitToGetSourceAsync(sourceId: SourceId): Promise<ISource>;
 }

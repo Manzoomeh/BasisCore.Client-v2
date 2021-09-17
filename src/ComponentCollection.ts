@@ -14,6 +14,7 @@ export default class ComponentCollection {
   readonly blockRegex: RegExp;
   readonly container: DependencyContainer;
   private _initializeTask: Promise<void>;
+  private components: Array<IComponent>;
 
   public get initializeTask(): Promise<void> {
     return this._initializeTask;
@@ -32,10 +33,13 @@ export default class ComponentCollection {
   }
 
   public async processNodesAsync(nodes: Array<Node>): Promise<void> {
-    const components = this.extractComponent(nodes);
-    this._initializeTask = this.initializeAsync(components);
+    if (this.components) {
+      throw new Error("Run ComponentCollection for more than one");
+    }
+    this.components = this.extractComponent(nodes);
+    this._initializeTask = this.initializeAsync(this.components);
     await this._initializeTask;
-    await this.runAsync(components);
+    await this.runAsync(this.components);
   }
 
   private async initializeAsync(components: Array<IComponent>): Promise<void> {
@@ -185,5 +189,11 @@ export default class ComponentCollection {
     };
     process(rootElement);
     return { coreList, tagList };
+  }
+
+  public async disposeAsync(): Promise<void> {
+    const tasks = this.components?.map((component) => component.disposeAsync());
+    await Promise.all(tasks);
+    this.components.splice(0, this.components.length);
   }
 }

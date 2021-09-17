@@ -35,4 +35,9 @@ export default class TextComponent extends Component<Node> {
     this.range.deleteContents();
     this.range.insertNode(fragment);
   }
+
+  public disposeAsync(): Promise<void> {
+    this.range.detach();
+    return super.disposeAsync();
+  }
 }

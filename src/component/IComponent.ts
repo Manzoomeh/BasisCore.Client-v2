@@ -5,4 +5,6 @@ export default interface IComponent {
   readonly busy: boolean;
   initializeAsync(): Promise<void>;
   processAsync(): Promise<void>;
+  disposeAsync(): Promise<void>;
+  disposed: boolean;
 }

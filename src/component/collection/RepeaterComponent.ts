@@ -9,6 +9,8 @@ import ILocalContext from "../../context/ILocalContext";
 export default class RepeaterComponent extends SourceBaseComponent {
   readonly container: DependencyContainer;
   readonly oldChildContexts: Array<ILocalContext> = new Array<ILocalContext>();
+  readonly collections: Array<ComponentCollection> =
+    new Array<ComponentCollection>();
 
   constructor(
     @inject("element") element: Element,
@@ -18,13 +20,13 @@ export default class RepeaterComponent extends SourceBaseComponent {
     super(element, context);
     this.container = container;
   }
+
   protected async renderSourceAsync(dataSource: ISource): Promise<void> {
     const name = await this.getAttributeValueAsync("name");
     const replace = await this.getAttributeBooleanValueAsync("replace", true);
     if (replace) {
       this.range.deleteContents();
-      this.oldChildContexts.forEach((x) => x.dispose());
-      this.oldChildContexts.length = 0;
+      await this.disposeExistingObjectAsync();
     }
     for (let index = 0; index < dataSource.rows.length; index++) {
       const row = dataSource.rows[index];
@@ -46,7 +48,25 @@ export default class RepeaterComponent extends SourceBaseComponent {
       );
       childContainer.register("context", { useValue: localContext });
       const collection = childContainer.resolve(ComponentCollection);
+      this.collections.push(collection);
       await collection.processNodesAsync(childNodes);
     }
+  }
+
+  private async disposeExistingObjectAsync(): Promise<void> {
+    if (this.oldChildContexts.length > 0) {
+      this.oldChildContexts.forEach((x) => x.dispose());
+      this.oldChildContexts.splice(0, this.oldChildContexts.length);
+    }
+    if (this.collections.length > 0) {
+      const tasks = this.collections.map((x) => x.disposeAsync());
+      await Promise.all(tasks);
+      this.collections.splice(0, this.collections.length);
+    }
+  }
+
+  public async disposeAsync(): Promise<void> {
+    await this.disposeExistingObjectAsync();
+    return super.disposeAsync();
   }
 }

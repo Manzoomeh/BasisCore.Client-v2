@@ -13,4 +13,9 @@ export default abstract class CommandComponent extends ElementBaseComponent<Elem
     this.range.selectNode(element);
     this.content = this.range.extractContents();
   }
+
+  public disposeAsync(): Promise<void> {
+    this.range.detach();
+    return super.disposeAsync();
+  }
 }

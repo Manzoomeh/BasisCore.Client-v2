@@ -12,6 +12,7 @@ export default class GroupComponent extends CommandComponent {
   readonly container: DependencyContainer;
   readonly childNodes: Array<ChildNode>;
   private oldLocalContext: Context;
+  private currentDC: DependencyContainer;
 
   constructor(
     @inject("element") element: Element,
@@ -27,12 +28,14 @@ export default class GroupComponent extends CommandComponent {
   }
 
   public async runAsync(): Promise<void> {
-    if (this.oldLocalContext) {
-      this.oldLocalContext.dispose();
-    }
-    const childContainer = this.container.createChildContainer();
-    childContainer.register("OwnerContext", { useValue: this.context });
-    childContainer.register("container", { useValue: childContainer });
+    this.oldLocalContext?.dispose();
+    this.currentDC = this.container.createChildContainer();
+    this.currentDC.register("OwnerContext", {
+      useValue: this.context,
+    });
+    this.currentDC.register("container", {
+      useValue: this.currentDC,
+    });
 
     const options = await this.getAttributeValueAsync("options");
     if (options) {
@@ -40,13 +43,24 @@ export default class GroupComponent extends CommandComponent {
         eval(options),
         this.context.options.originalOptions
       );
-      childContainer.register("IHostOptions", { useValue: newOptions });
-      this.oldLocalContext = childContainer.resolve(LocalRootContext);
+      this.currentDC.register("IHostOptions", {
+        useValue: newOptions,
+      });
+      this.oldLocalContext = this.currentDC.resolve(LocalRootContext);
     } else {
-      this.oldLocalContext = childContainer.resolve("ILocalContext");
+      this.oldLocalContext = this.currentDC.resolve("ILocalContext");
     }
-    childContainer.register("context", { useValue: this.oldLocalContext });
-    this.collection = childContainer.resolve(ComponentCollection);
+    this.currentDC.register("context", {
+      useValue: this.oldLocalContext,
+    });
+    this.collection = this.currentDC.resolve(ComponentCollection);
     await this.collection.processNodesAsync(this.childNodes);
+  }
+
+  public async disposeAsync(): Promise<void> {
+    this.oldLocalContext?.dispose();
+    await this.collection?.disposeAsync();
+    this.currentDC?.clearInstances();
+    return super.disposeAsync();
   }
 }

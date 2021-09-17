@@ -9,29 +9,28 @@ import ElementBaseComponent from "../ElementBaseComponent";
 export default abstract class HTMLComponent<
   TElement extends HTMLElement
 > extends ElementBaseComponent<TElement> {
-  protected eventTriggers: string;
+  protected eventTriggers: Array<string>;
   readonly priority: Priority = Priority.none;
   readonly keyFieldNameToken: IToken<string>;
   readonly statusFieldNameToken: IToken<string>;
   readonly mergeTypeToken: IToken<string>;
+  readonly eventHandler: EventListenerOrEventListenerObject;
 
   constructor(element: TElement, context: IContext) {
     super(element, context);
     this.keyFieldNameToken = this.getAttributeToken("bc-keyField");
     this.statusFieldNameToken = this.getAttributeToken("bc-statusField");
     this.mergeTypeToken = this.getAttributeToken("bc-merge");
+    this.eventHandler = this.onEventTriggerAsync.bind(this);
   }
 
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
     const value = await this.getAttributeValueAsync("bc-triggers");
     if (value) {
-      const eventTriggers = value.split(" ");
-      eventTriggers?.forEach((eventName) =>
-        this.node.addEventListener(
-          eventName,
-          this.onEventTriggerAsync.bind(this)
-        )
+      this.eventTriggers = value.split(" ");
+      this.eventTriggers?.forEach((eventName) =>
+        this.node.addEventListener(eventName, this.eventHandler)
       );
     }
   }
@@ -93,5 +92,12 @@ export default abstract class HTMLComponent<
       }
     }
     return retVal;
+  }
+
+  public disposeAsync(): Promise<void> {
+    this.eventTriggers?.forEach((eventName) =>
+      this.node.removeEventListener(eventName, this.eventHandler)
+    );
+    return super.disposeAsync();
   }
 }

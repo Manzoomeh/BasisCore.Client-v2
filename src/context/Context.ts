@@ -6,10 +6,10 @@ import { HttpMethod, SourceHandler, SourceId } from "../type-alias";
 import IContextRepository from "../repository/IContextRepository";
 import IDictionary from "../IDictionary";
 import IContextHostOptions from "../options/IContextHostOptions";
-import { EventHandler } from "../event/EventHandler";
 import Data from "../data/Data";
 import Source from "../data/Source";
 import ISourceOptions from "./ISourceOptions";
+import { EventHandlerWithReturn } from "../event/EventHandlerWithReturn";
 
 export default abstract class Context implements IContext {
   protected readonly repository: IContextRepository;
@@ -27,13 +27,14 @@ export default abstract class Context implements IContext {
     this.options = options;
     this.onDataSourceSet = new EventManager<ISource>();
   }
+
   abstract getOrLoadDbLibAsync(): Promise<any>;
 
   public abstract loadDataAsync(
     sourceId: SourceId,
     connectionName: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<Array<Data>>
+    onDataReceived: EventHandlerWithReturn<Array<Data>, boolean>
   ): Promise<void>;
 
   public abstract loadPageAsync(
@@ -59,8 +60,12 @@ export default abstract class Context implements IContext {
   public addOnSourceSetHandler(
     sourceId: SourceId,
     handler: SourceHandler
-  ): SourceHandler {
-    return this.repository.addHandler(sourceId, handler);
+  ): void {
+    this.repository.addHandler(sourceId, handler);
+  }
+
+  removeOnSourceSetHandler(sourceId: SourceId, handler: SourceHandler): void {
+    this.repository.removeHandler(sourceId, handler);
   }
 
   public tryToGetSource(sourceId: SourceId): ISource {

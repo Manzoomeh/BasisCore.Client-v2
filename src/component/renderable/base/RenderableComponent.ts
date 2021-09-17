@@ -1,5 +1,4 @@
 import { DependencyContainer } from "tsyringe";
-import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import Util from "../../../Util";
@@ -18,7 +17,6 @@ export default abstract class RenderableComponent<
   TRenderResult extends FaceRenderResult
 > extends SourceBaseComponent {
   readonly container: DependencyContainer;
-  readonly collection: ComponentCollection;
   readonly reservedKeys: Array<string>;
   protected renderResultRepository: FaceRenderResultRepository<TRenderResult>;
 
@@ -30,7 +28,6 @@ export default abstract class RenderableComponent<
   ) {
     super(element, context);
     this.container = container;
-    this.collection = container.resolve(ComponentCollection);
     this.reservedKeys = reservedKeys;
   }
 

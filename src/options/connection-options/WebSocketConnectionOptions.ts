@@ -1,6 +1,6 @@
 ﻿import IContext from "../../context/IContext";
 import Data from "../../data/Data";
-import { EventHandler } from "../../event/EventHandler";
+import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import IDictionary from "../../IDictionary";
 import { ServerResponse } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
@@ -24,7 +24,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
     context: IContext,
     sourceId: string,
     parameters: IDictionary<string>,
-    onDataReceived: EventHandler<Array<Data>>
+    onDataReceived: EventHandlerWithReturn<Array<Data>, boolean>
   ): Promise<void> {
     const url = this.url;
     const maxRetry = this.maxRetry;
@@ -93,7 +93,14 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
                 })
                 .map((x) => new Data(x.key, x.data.data, x.data.options));
               if (dataList.length > 0) {
-                onDataReceived(dataList);
+                const receiverIsOk = onDataReceived(dataList);
+                if (!receiverIsOk) {
+                  context.logger.logInformation(
+                    "Disconnect from %s by receiver request. maybe disposed!",
+                    url
+                  );
+                  socket.close();
+                }
               }
             }
           } catch (ex) {

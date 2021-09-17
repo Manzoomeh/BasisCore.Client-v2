@@ -31,4 +31,6 @@ export default interface IUserDefineComponent {
   getDefault<T>(key: string, defaultValue?: T): T;
   getSetting<T>(key: string, defaultValue: T): T;
   processNodesAsync(nodes: Array<Node>): Promise<void>;
+  disposeAsync(): Promise<void>;
+  disposed: boolean;
 }
