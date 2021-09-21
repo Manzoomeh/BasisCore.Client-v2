@@ -13,7 +13,9 @@ export default class FaceRenderResult {
     if (newParent instanceof Node) {
       this.nodes.forEach((node) => newParent.appendChild(node));
     } else if (newParent instanceof Range) {
-      this.nodes.forEach((node) => newParent.insertNode(node));
+      const content = newParent.extractContents();
+      this.nodes.forEach((node) => content.appendChild(node));
+      newParent.insertNode(content);
     }
   }
 }

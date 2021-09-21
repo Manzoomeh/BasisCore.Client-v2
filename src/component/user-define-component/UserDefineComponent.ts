@@ -44,13 +44,16 @@ export default class UserDefineComponent
       : Promise.resolve();
   }
 
-  public toNode(rawHtml: string): Node {
-    return this.range.createContextualFragment(rawHtml);
+  public toNode(rawHtml: string): DocumentFragment {
+    return $bc.util.toNode(rawHtml);
+  }
+
+  public toHTMLElement(rawXml: string): HTMLElement {
+    return $bc.util.toHTMLElement(rawXml);
   }
 
   public setContent(newContent: Node) {
-    this.range.deleteContents();
-    this.range.insertNode(newContent);
+    this.range.setContent(newContent);
   }
 
   public getDefault<T>(key: string, defaultValue?: T): T {

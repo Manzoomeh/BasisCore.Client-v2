@@ -3,16 +3,18 @@ import ISourceOptions from "../../context/ISourceOptions";
 import ISource from "../../data/ISource";
 import { Priority } from "../../enum";
 import IDisposable from "../../IDisposable";
+import RangeObject from "../../RangeObject/RangeObject";
 import IToken from "../../token/IToken";
 import { SourceId } from "../../type-alias";
 
 export default interface IUserDefineComponent {
   content: DocumentFragment;
-  range: Range;
+  range: RangeObject;
   triggers: string[];
   priority: Priority;
   container: DependencyContainer;
-  toNode(rawHtml: string): Node;
+  toNode(rawHtml: string): DocumentFragment;
+  toHTMLElement(rawXml: string): HTMLElement;
   setContent(newContent: Node): void;
   getAttributeValueAsync(name: string, defaultValue?: string): Promise<string>;
   getAttributeBooleanValueAsync(

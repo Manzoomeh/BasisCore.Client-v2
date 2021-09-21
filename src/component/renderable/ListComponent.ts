@@ -90,6 +90,7 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
         range.selectNode(items[index++]);
         range.deleteContents();
         result.AppendTo(range);
+        range.detach();
       });
       retVal = Array.from(doc.childNodes);
       this.setContent(doc, false);

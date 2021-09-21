@@ -2,12 +2,15 @@ import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../context/IContext";
 import DataUtil from "../../data/DataUtil";
 import ISource from "../../data/ISource";
+import IBCUtil from "../../wrapper/IBCUtil";
 import FaceCollection from "./base/FaceCollection";
 import FaceRenderResultRepository from "./base/FaceRenderResultRepository";
 import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
 import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
+
+declare const $bc: IBCUtil;
 
 @injectable()
 export default class TreeComponent extends RenderableComponent<TreeFaceRenderResult> {
@@ -86,7 +89,7 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
     tempGeneratedNodeList: FaceRenderResultRepository<TreeFaceRenderResult>,
     data: object
   ): Promise<TreeFaceRenderResult> {
-    var childRenderResult = this.range.createContextualFragment(" ");
+    var childRenderResult = $bc.util.toNode(" ");
     const childRows = DataUtil.ApplySimpleFilter(
       dataSource.rows,
       foreignKey,

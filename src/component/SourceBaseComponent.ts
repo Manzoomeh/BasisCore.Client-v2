@@ -38,18 +38,7 @@ export default abstract class SourceBaseComponent extends CommandComponent {
   }
 
   protected setContent(newContent: Node, append: boolean) {
-    if (append) {
-      if (newContent) {
-        const currentContent = this.range.extractContents();
-        currentContent.appendChild(newContent);
-        this.range.insertNode(currentContent);
-      }
-    } else {
-      this.range.deleteContents();
-      if (newContent) {
-        this.range.insertNode(newContent);
-      }
-    }
+    this.range.setContent(newContent, append);
   }
 
   protected abstract renderSourceAsync(dataSource: ISource): Promise<any>;

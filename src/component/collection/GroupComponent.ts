@@ -24,7 +24,7 @@ export default class GroupComponent extends CommandComponent {
     const content = document.createDocumentFragment();
     this.childNodes = [...element.childNodes];
     this.childNodes.forEach((node) => content.appendChild(node));
-    this.range.insertNode(content);
+    this.range.setContent(content);
   }
 
   public async runAsync(): Promise<void> {

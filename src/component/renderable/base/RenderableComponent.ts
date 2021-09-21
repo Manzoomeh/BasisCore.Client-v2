@@ -80,6 +80,7 @@ export default abstract class RenderableComponent<
           range.selectNode(childContainer);
           range.deleteContents();
           renderResult.forEach((element) => element.AppendTo(range));
+          range.detach();
         }
       } else {
         renderResult.forEach((element) => element.AppendTo(doc));

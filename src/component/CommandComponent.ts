@@ -1,21 +1,18 @@
 import IContext from "../context/IContext";
+import RangeObject from "../RangeObject/RangeObject";
 import ElementBaseComponent from "./ElementBaseComponent";
 
 export default abstract class CommandComponent extends ElementBaseComponent<Element> {
   public readonly core: string;
-  readonly range: Range;
+  readonly range: RangeObject;
   readonly content: DocumentFragment;
 
   constructor(element: Element, context: IContext) {
     super(element, context);
     this.core = this.node.getAttribute("core");
-    this.range = document.createRange();
-    this.range.selectNode(element);
-    this.content = this.range.extractContents();
-  }
-
-  public disposeAsync(): Promise<void> {
-    this.range.detach();
-    return super.disposeAsync();
+    const range = document.createRange();
+    range.selectNode(this.node);
+    this.content = range.extractContents();
+    this.range = new RangeObject(range);
   }
 }

@@ -4,6 +4,9 @@ import { Priority } from "../../enum";
 import ComponentCollection from "../../ComponentCollection";
 import CommandComponent from "../CommandComponent";
 import { HttpMethod } from "../../type-alias";
+import IBCUtil from "../../wrapper/IBCUtil";
+
+declare const $bc: IBCUtil;
 
 @injectable()
 export default class CallComponent extends CommandComponent {
@@ -55,10 +58,9 @@ export default class CallComponent extends CommandComponent {
       parameters,
       method
     );
-    const content = this.range.createContextualFragment(result);
+    const content = $bc.util.toNode(result);
     const childNodes = [...content.childNodes];
-    this.range.deleteContents();
-    this.range.insertNode(content);
+    this.range.setContent(content);
     this.collection = this.container.resolve(ComponentCollection);
     await this.collection.processNodesAsync(childNodes);
   }
