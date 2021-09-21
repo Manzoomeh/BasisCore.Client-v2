@@ -47,19 +47,20 @@ export default class BCWrapper implements IBCWrapper {
   }
 
   public run(): IBCWrapper {
-    if (this.elementList.length != 0) {
-      if (!this._basiscore) {
-        const childContainer = container.createChildContainer();
-        childContainer.register("IHostOptions", {
-          useValue: this.hostSetting ?? {},
-        });
-        childContainer.register("root.nodes", {
-          useValue: this.elementList,
-        });
-        childContainer.register("container", { useValue: childContainer });
-        this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
-        this.manager.Trigger(this._basiscore);
+    if (!this._basiscore) {
+      const childContainer = container.createChildContainer();
+      childContainer.register("IHostOptions", {
+        useValue: this.hostSetting ?? {},
+      });
+      if (this.elementList.length == 0) {
+        this.addFragment("html");
       }
+      childContainer.register("root.nodes", {
+        useValue: this.elementList,
+      });
+      childContainer.register("container", { useValue: childContainer });
+      this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
+      this.manager.Trigger(this._basiscore);
     }
     return this;
   }
