@@ -27,11 +27,13 @@ export default abstract class HTMLComponent<
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
     const value = await this.getAttributeValueAsync("bc-triggers");
-    if (value) {
+    const init = this.node.hasAttribute("data-bc-init");
+    if (value && !init) {
       this.eventTriggers = value.split(" ");
       this.eventTriggers?.forEach((eventName) =>
         this.node.addEventListener(eventName, this.eventHandler)
       );
+      this.node.setAttribute("data-bc-init", "");
     }
   }
 
@@ -98,6 +100,7 @@ export default abstract class HTMLComponent<
     this.eventTriggers?.forEach((eventName) =>
       this.node.removeEventListener(eventName, this.eventHandler)
     );
+    this.node.removeAttribute("data-bc-init");
     return super.disposeAsync();
   }
 }
