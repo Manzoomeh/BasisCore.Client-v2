@@ -13,6 +13,6 @@ export default abstract class CommandComponent extends ElementBaseComponent<Elem
     const range = document.createRange();
     range.selectNode(this.node);
     this.content = range.extractContents();
-    this.range = new RangeObject(range);
+    this.range = new RangeObject(range, this);
   }
 }

@@ -1,9 +1,12 @@
-import BasisCoreTag from "./BasisCoreTag";
+import IComponent from "../component/IComponent";
+import IBasisCoreTag from "./IBasisCoreTag";
+import "./BasisCoreTag";
 
 export default class RangeObject {
-  readonly element: BasisCoreTag;
-  constructor(range: Range) {
-    this.element = document.createElement("basis-core");
+  readonly element: IBasisCoreTag;
+  constructor(range: Range, owner: IComponent) {
+    this.element = document.createElement("basis-core") as IBasisCoreTag;
+    this.element.setOwner(owner);
     range.surroundContents(this.element);
     range.detach();
   }

@@ -16,7 +16,7 @@ export default class TextComponent extends Component<Node> {
     range.setStart(node, start);
     range.setEnd(node, end);
     const content = range.extractContents();
-    this.rangeObject = new RangeObject(range);
+    this.rangeObject = new RangeObject(range, this);
     this.token = content.textContent.ToStringToken(context);
   }
 
