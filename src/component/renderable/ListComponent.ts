@@ -20,7 +20,7 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
   protected async createContentAsync(
     renderResults?: Array<FaceRenderResult>
   ): Promise<ChildNode[]> {
-    let retVal: ChildNode[] = null;
+    let retVal: Promise<ChildNode[]> = null;
     const dividerTagElement = this.node.querySelector("divider");
     if (dividerTagElement && renderResults?.length > 0) {
       const dividerTemplate = await dividerTagElement
@@ -92,11 +92,10 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
         result.AppendTo(range);
         range.detach();
       });
-      retVal = Array.from(doc.childNodes);
-      this.setContent(doc, false);
+      retVal = this.setContentAsync(doc);
     } else {
-      retVal = await super.createContentAsync(renderResults);
+      retVal = super.createContentAsync(renderResults);
     }
-    return retVal;
+    return await retVal;
   }
 }

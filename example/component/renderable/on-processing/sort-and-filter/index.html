@@ -18,6 +18,8 @@
 
     </fieldset>
     [##demo.sql.value|( )##]
+    <basis core="callback" run="atclient" triggers="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
+    </basis>
     <Basis core="print" datamembername="demo.data" run="atclient" OnProcessing="manipulation"
         triggers="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
         <layout>
@@ -79,10 +81,12 @@
         }
 
         let preSort = null;
+        let isAsc = true;
         let preWhere = null;
         let orderPart = null;
         let wherePart = null;
         async function manipulation(args) {
+
             let retVal = args.source;
 
             const where = args.context.tryToGetSource('demo.filter-name');
@@ -92,16 +96,11 @@
             }
 
             const sort = args.context.tryToGetSource('demo.sort-by');
-            if (sort && preSort !== sort) {
+            if (sort) {
                 const sortCol = sort.rows[0].value;
-                let sortType = 'asc';
-                if (preSort?.rows[0].value == sortCol) {
-                    sortType = 'desc'
-                    preSort = null;
-                }
+                isAsc = preSort === sort ? !isAsc : true;
                 preSort = sort;
-
-                orderPart = `order by ${sortCol} ${sortType}`
+                orderPart = `order by ${sortCol} ${isAsc ? 'asc' : 'desc'}`
             }
 
             const sql = `select top 10 * from ? ${wherePart ?? ""} ${orderPart ?? ""}`;

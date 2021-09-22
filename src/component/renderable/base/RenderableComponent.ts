@@ -1,4 +1,5 @@
 import { DependencyContainer } from "tsyringe";
+import ComponentCollection from "../../../ComponentCollection";
 import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import Util from "../../../Util";
@@ -94,9 +95,7 @@ export default abstract class RenderableComponent<
         this.appendTemplateToDoc(result, doc);
       }
     }
-    const generatedNodes = Array.from(doc.childNodes);
-    this.setContent(doc, false);
-    return generatedNodes;
+    return await this.setContentAsync(doc);
   }
 
   protected async renderDataPartAsync(
@@ -133,5 +132,15 @@ export default abstract class RenderableComponent<
     } else {
       doc.appendChild(tmpResult);
     }
+  }
+
+  protected async setContentAsync(
+    doc: DocumentFragment
+  ): Promise<Array<ChildNode>> {
+    const generatedNodes = Array.from(doc.childNodes);
+    this.setContent(doc, false);
+    const collection = this.container.resolve(ComponentCollection);
+    await collection.processNodesAsync(generatedNodes);
+    return generatedNodes;
   }
 }
