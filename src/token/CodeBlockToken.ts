@@ -8,6 +8,7 @@ export default class CodeBlockToken implements IToken<any> {
 
   constructor(expression: string, context: IContext) {
     this.context = context;
+    expression = (expression as any).replaceAll("&quot;", '"');
     this.fn = new AsyncFunction(
       "$bc",
       "$data",
