@@ -15,7 +15,7 @@ export default class RangeObject {
     this.element.innerHTML = "";
   }
 
-  public setContent(content: string | number | Node, append: boolean = false) {
+  public setContent(content: any | Node, append: boolean = false) {
     const range = new Range();
     range.selectNodeContents(this.element);
     if (!append) {
@@ -24,15 +24,16 @@ export default class RangeObject {
     const oldContent = range.extractContents();
     if (content instanceof Node) {
       oldContent.appendChild(content);
-    }
-    if (typeof content === "string") {
-      oldContent.appendChild(range.createContextualFragment(content));
-    }
-    if (typeof content === "number") {
+    } else if (Array.isArray(content)) {
+      oldContent.appendChild(
+        range.createContextualFragment((content as Array<any>).join(","))
+      );
+    } else {
       oldContent.appendChild(
         range.createContextualFragment(content.toString())
       );
     }
+
     range.insertNode(oldContent);
     range.detach();
   }
