@@ -8,7 +8,7 @@ import ISourceOptions from "../context/ISourceOptions";
 import IBCWrapper from "./IBCWrapper";
 
 export default class BCWrapper implements IBCWrapper {
-  readonly elementList: Array<Element> = new Array<Element>();
+  elementList: Array<Element> = null;
   private hostSetting?: Partial<IHostOptions> = null;
   private _basiscore: IBasisCore = null;
   public manager: EventManager<IBasisCore> = new EventManager<IBasisCore>();
@@ -25,8 +25,16 @@ export default class BCWrapper implements IBCWrapper {
         "Can't add fragment for already builded bc object."
       );
     } else {
+      if (!this.elementList) {
+        this.elementList = new Array<Element>();
+      }
       if (typeof param === "string") {
-        this.elementList.push(...document.querySelectorAll(param));
+        const newElements = document.querySelectorAll(param);
+        if (newElements.length === 0) {
+          console.warn(`Selector '${param}' don't refer to any element(s).`);
+        } else {
+          this.elementList.push(...newElements);
+        }
       } else if (param instanceof Element) {
         this.elementList.push(param);
       } else {
@@ -47,13 +55,16 @@ export default class BCWrapper implements IBCWrapper {
   }
 
   public run(): IBCWrapper {
+    if (this.elementList?.length == 0) {
+      throw new ClientException("No element(s) selected for start rendering!");
+    }
     if (!this._basiscore) {
       const childContainer = container.createChildContainer();
       childContainer.register("IHostOptions", {
         useValue: this.hostSetting ?? {},
       });
-      if (this.elementList.length == 0) {
-        this.addFragment("html");
+      if (!this.elementList) {
+        this.addFragment(document.documentElement);
       }
       childContainer.register("root.nodes", {
         useValue: this.elementList,

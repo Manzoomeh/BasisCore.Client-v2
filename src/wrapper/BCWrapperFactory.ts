@@ -29,9 +29,6 @@ export default class BCWrapperFactory implements IBCWrapperFactory, IBCUtil {
   }
 
   public run(): IBCWrapper {
-    if (this.global.elementList.length == 0) {
-      this.global.addFragment(document.documentElement);
-    }
     return this.global.run();
   }
 
