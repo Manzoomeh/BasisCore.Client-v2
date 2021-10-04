@@ -110,6 +110,15 @@ export default abstract class ElementBaseComponent<
     return (await token?.getValueAsync()) ?? defaultValue;
   }
 
+  public async getAttributeObjectValueAsync(
+    attributeName: string,
+    defaultValue: any = null
+  ): Promise<any> {
+    const token = this.node.GetObjectToken(attributeName, this.context);
+    console.log("token",token);
+    return (await token?.getValueAsync()) ?? defaultValue;
+  }
+
   public async getAttributeBooleanValueAsync(
     attributeName: string,
     defaultValue: boolean = false

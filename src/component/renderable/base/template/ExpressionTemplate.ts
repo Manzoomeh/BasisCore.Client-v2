@@ -1,6 +1,6 @@
 import ITemplate from "./ITemplate";
 
-export class ExpressionTemplate implements ITemplate {
+export class ExpressionTemplate implements ITemplate<any> {
   private readonly rawExpression: string;
   private readonly reservedKeys: Array<string>;
   private getValue: (...data: any) => string;
@@ -10,7 +10,7 @@ export class ExpressionTemplate implements ITemplate {
     this.reservedKeys = reservedKeys;
   }
 
-  getValueAsync(data: any): Promise<string> {
+  getValueAsync(data: any): Promise<any> {
     if (!this.getValue) {
       try {
         this.getValue = new Function(

@@ -1,3 +1,3 @@
-export default interface ITemplate {
-  getValueAsync(data: any): Promise<string>;
+export default interface ITemplate<TResult> {
+  getValueAsync(data: any): Promise<TResult>;
 }
