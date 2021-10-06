@@ -98,4 +98,8 @@ export default class UserDefineComponent
     await Promise.all(tasks);
     return super.disposeAsync();
   }
+
+  public saveAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string {
+    return $bc.util.saveAsGlobal(data,name,prefix,postfix);
+  }
 }

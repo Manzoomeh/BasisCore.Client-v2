@@ -8,6 +8,7 @@ export default interface IUtilWrapper {
   toNode(rawXML: string): DocumentFragment;
   toHTMLElement(rawXml: string): HTMLElement;
   getComponentAsync(context: IContext, key: string): Promise<any>;
+  saveAsGlobal(data:any,name?:string,prefix?:string,postfix?:string):string;
 
   source: ISourceWrapper;
 }

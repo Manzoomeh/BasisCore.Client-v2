@@ -7,8 +7,17 @@ import IContext from "../context/IContext";
 import ClientException from "../exception/ClientException";
 
 export default class UtilWrapper implements IUtilWrapper {
+
   readonly source: ISourceWrapper = new SourceWrapper();
   readonly parser: DOMParser = new DOMParser();
+
+  public saveAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string {
+    if(!name){
+      name = `${prefix??""}_${(new Date()).getTime()}_${Math.random().toString(36).substring(2)}_${postfix??""}`;
+    }
+     Reflect.set(window,name,data);
+     return name;
+  }
 
   public cloneDeep<T>(obj: T): T {
     return cloneDeep(obj);
