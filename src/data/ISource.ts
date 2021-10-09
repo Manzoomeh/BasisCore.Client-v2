@@ -9,6 +9,7 @@ export default interface ISource {
   keyFieldName?: string;
   statusFieldName?: string;
   versions: Array<number>;
+  extra?: any;
 
   cloneOptions(): ISourceOptions;
   removeRowFormIndex(index: number): void;

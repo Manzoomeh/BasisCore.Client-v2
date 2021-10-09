@@ -6,10 +6,11 @@ import ISource from "./ISource";
 export default class Source implements ISource {
   keyFieldName?: string;
   statusFieldName?: string;
-  readonly mergeType: MergeType;
+  public mergeType: MergeType;
   protected _rows: Array<any>;
   protected _versions: Array<number>;
   private _id: SourceId;
+  public extra?: any;
 
   public get id(): SourceId {
     return this._id;
@@ -28,6 +29,7 @@ export default class Source implements ISource {
     this.mergeType = options?.mergeType ?? MergeType.replace;
     this.keyFieldName = options?.keyFieldName;
     this.statusFieldName = options?.statusFieldName;
+    this.extra = options?.extra;
     if (Array.isArray(data)) {
       this._rows = data;
     } else if (typeof data === "object") {
@@ -43,6 +45,7 @@ export default class Source implements ISource {
       keyFieldName: this.keyFieldName,
       mergeType: this.mergeType,
       statusFieldName: this.statusFieldName,
+      extra: this.extra,
     };
   }
 
@@ -85,5 +88,9 @@ export default class Source implements ISource {
       );
     }
     this._versions.forEach((ver, index, arr) => (arr[index] = ++ver));
+    this.mergeType = source.mergeType ?? MergeType.replace;
+    this.keyFieldName = source.keyFieldName;
+    this.statusFieldName = source.statusFieldName;
+    this.extra = source.extra;
   }
 }
