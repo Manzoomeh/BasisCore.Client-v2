@@ -36,4 +36,6 @@ export default interface IUserDefineComponent {
   processNodesAsync(nodes: Array<Node>): Promise<IDisposable>;
   disposeAsync(): Promise<void>;
   disposed: boolean;
+  storeAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string;
+  getRandomName(prefix?:string,postfix?:string):string;
 }

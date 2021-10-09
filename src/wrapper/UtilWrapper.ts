@@ -10,6 +10,18 @@ export default class UtilWrapper implements IUtilWrapper {
   readonly source: ISourceWrapper = new SourceWrapper();
   readonly parser: DOMParser = new DOMParser();
 
+  getRandomName(prefix?: string, postfix?: string): string {
+    return `${prefix??""}_${(new Date()).getTime()}_${Math.random().toString(36).substring(2)}_${postfix??""}`;
+  }
+
+  public storeAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string {
+    if(!name){
+      name = this.getRandomName(prefix,postfix);
+    }
+     Reflect.set(window,name,data);
+     return name;
+  }
+
   public cloneDeep<T>(obj: T): T {
     return cloneDeep(obj);
   }

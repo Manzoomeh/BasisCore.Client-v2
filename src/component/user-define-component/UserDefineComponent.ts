@@ -98,4 +98,12 @@ export default class UserDefineComponent
     await Promise.all(tasks);
     return super.disposeAsync();
   }
+
+  public storeAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string {
+    return $bc.util.storeAsGlobal(data,name,prefix,postfix);
+  }
+
+  getRandomName(prefix?: string, postfix?: string): string {
+    return $bc.util.getRandomName(prefix,postfix);
+  }
 }

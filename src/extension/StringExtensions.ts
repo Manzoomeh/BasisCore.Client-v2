@@ -7,6 +7,7 @@ import Util from "../Util";
 declare global {
   interface String {
     Evaluating(): boolean;
+    ToObjectToken(context: IContext): IToken<any>;
     ToStringToken(context: IContext): IToken<string>;
     ToIntegerToken(context: IContext): IToken<number>;
     ToBooleanToken(context: IContext): IToken<boolean>;
@@ -23,6 +24,13 @@ Object.defineProperty(String.prototype, "Evaluating", {
         `Error In Evaluating '${this.toString()}': ${er}`
       );
     }
+  },
+  writable: true,
+  configurable: true,
+});
+Object.defineProperty(String.prototype, "ToObjectToken", {
+  value: function ToObjectToken(context: IContext) {
+    return TokenUtil.ToObjectToken(this.toString(), context);
   },
   writable: true,
   configurable: true,

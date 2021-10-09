@@ -4,6 +4,7 @@ import Util from "../Util";
 
 declare global {
   interface Element {
+    GetObjectToken(attributeName: string, context: IContext): IToken<any>;
     GetStringToken(attributeName: string, context: IContext): IToken<string>;
     GetIntegerToken(attributeName: string, context: IContext): IToken<number>;
     GetBooleanToken(attributeName: string, context: IContext): IToken<boolean>;
@@ -15,6 +16,19 @@ declare global {
     isBasisTag(): boolean;
   }
 }
+
+Object.defineProperty(Element.prototype, "GetObjectToken", {
+  value: function GetObjectToken(attributeName: string, context: IContext) {
+    var retVal: IToken<any>;
+    var tmp = <string>this.getAttribute(attributeName);
+    if (tmp) {
+      retVal = tmp.ToObjectToken(context);
+    }
+    return retVal;
+  },
+  writable: true,
+  configurable: true,
+});
 
 Object.defineProperty(Element.prototype, "GetStringToken", {
   value: function GetStringToken(attributeName: string, context: IContext) {

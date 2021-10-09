@@ -4,8 +4,8 @@ import { StringTemplate } from "./StringTemplate";
 import IContext from "../../../../context/IContext";
 import CodeBlockTemplate from "./CodeBlockTemplate";
 
-export default class ContentTemplate implements ITemplate {
-  private contents: Array<ITemplate> = new Array<ITemplate>();
+export default class ContentTemplate implements ITemplate<any> {
+  private contents: Array<ITemplate<any>> = new Array<ITemplate<any>>();
   private readonly template: string;
   private readonly context: IContext;
   private readonly reservedKeys: Array<string>;

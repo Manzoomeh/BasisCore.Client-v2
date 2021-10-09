@@ -37,7 +37,7 @@ export default class RawFaceCollection extends Array<RawFace> {
       var relatedRows = Util.IsNullOrEmpty(filter)
         ? source.rows
         : await $bc.util.source.filterAsync(source, filter, context);
-      const templateParser: ITemplate = new ContentTemplate(
+      const templateParser: ITemplate<any> = new ContentTemplate(
         context,
         x.Template,
         reservedKeys

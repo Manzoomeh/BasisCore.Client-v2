@@ -14,8 +14,21 @@ import IToken from "./IToken";
 import StringArray from "./string/StringArray";
 import StringObject from "./string/StringObject";
 import StringValue from "./string/StringValue";
+import ObjectArray from "./object/ObjectArray";
+import ObjectObject from "./object/ObjectObject";
+import ObjectValue from "./object/ObjectValue";
 
 export default class TokenUtil {
+  public static ToObjectToken(data: string, context: IContext): IToken<any> {
+    return TokenUtil.ToToken<any>(
+      data,
+      context,
+      (x) => new ObjectValue(x, context),
+      (x) => new ObjectObject(x, context),
+      (...x) => new ObjectArray(context, ...x)
+    );
+  }
+
   public static ToStringToken(data: string, context: IContext): IToken<string> {
     return TokenUtil.ToToken<string>(
       data,
