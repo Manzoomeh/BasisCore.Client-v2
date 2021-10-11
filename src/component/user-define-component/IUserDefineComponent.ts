@@ -38,4 +38,5 @@ export default interface IUserDefineComponent {
   disposed: boolean;
   storeAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string;
   getRandomName(prefix?:string,postfix?:string):string;
+  format(pattern:string,...params:any[]):string;
 }

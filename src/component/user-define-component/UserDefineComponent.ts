@@ -103,7 +103,11 @@ export default class UserDefineComponent
     return $bc.util.storeAsGlobal(data,name,prefix,postfix);
   }
 
-  getRandomName(prefix?: string, postfix?: string): string {
+  public getRandomName(prefix?: string, postfix?: string): string {
     return $bc.util.getRandomName(prefix,postfix);
+  }
+
+  public format(pattern: string, ...params: any[]): string {
+    return $bc.util.format(pattern,params);
   }
 }

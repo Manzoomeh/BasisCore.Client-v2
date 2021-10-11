@@ -10,6 +10,6 @@ export default interface IUtilWrapper {
   getComponentAsync(context: IContext, key: string): Promise<any>;
   storeAsGlobal(data:any,name?:string,prefix?:string,postfix?:string):string;
   getRandomName(prefix?:string,postfix?:string):string;
-
+  format(pattern:string,...params:any[]):string;
   source: ISourceWrapper;
 }

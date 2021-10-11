@@ -132,4 +132,14 @@ export default class UtilWrapper implements IUtilWrapper {
     }
     throw new ClientException(`'${key}' related repository setting not found`);
   }
+
+  public format(pattern: string, ...params: any[]): string {
+    return pattern.replace(/{(\d+)}/g, function(match, number) { 
+      return typeof params[number] !== 'undefined'
+        ? params[number] 
+        : match
+      ;
+    });
+  }
+
 }
