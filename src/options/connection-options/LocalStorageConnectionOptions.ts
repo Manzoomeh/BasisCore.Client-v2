@@ -45,13 +45,16 @@ export default class LocalStorageConnectionOptions extends ConnectionOptions {
     return this.FunctionName !== null;
   }
 
-  public loadDataAsync(
+  public async loadDataAsync(
     context: IContext,
     sourceId: string,
     parameters: IDictionary<string>,
     onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    await this.LoadLibAsync();
+    var tmp = await this.Function(parameters);
+    var data = this.ConvertObject(tmp);
+    onDataReceived(data.Tables.map((x) => new Data(x.Key, x.Value)));
   }
 
   public loadPageAsync(
