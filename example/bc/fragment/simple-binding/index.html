@@ -10,7 +10,21 @@
 </head>
 
 <body>
-    Time is [##data.time.hh|(00)##]:[##data.time.mm|(00)##]:[##data.time.ss|(00)##]
+    <button onclick="f()">hi</button>
+    <div id="1">
+        Time is [##data.time.hh|(00)##]:[##data.time.mm|(00)##]:[##data.time.ss|(00)##]
+    </div>
+    <hr />
+    <div id="2"></div>
+    <script>
+        function f() {
+            //alert("asa");
+            const s = document.getElementById("1");
+            const d = document.getElementById("2");
+            d.appendChild(s);
+        }
+    </script>
+
 
     <script>
         function setTimeSource() {

@@ -15,9 +15,8 @@ export default class TextComponent extends Component<Node> {
     const range = document.createRange();
     range.setStart(node, start);
     range.setEnd(node, end);
-    const content = range.extractContents();
     this.rangeObject = new RangeObject(range, this);
-    this.token = content.textContent.ToStringToken(context);
+    this.token = this.rangeObject.initialContent.textContent.ToStringToken(context);
   }
 
   public async initializeAsync(): Promise<void> {
