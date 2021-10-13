@@ -1,5 +1,4 @@
 import IComponent from "../component/IComponent";
-import "./BasisCoreTag";
 
 export default class RangeObject {
   private readonly _startNode: Node;
