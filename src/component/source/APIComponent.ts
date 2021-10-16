@@ -16,6 +16,8 @@ export default class APIComponent extends SourceComponent {
   readonly methodToken: IToken<string>;
   readonly bodyToken: IToken<string>;
   readonly nameToken: IToken<string>;
+  readonly contentType: IToken<string>;
+
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext
@@ -25,6 +27,7 @@ export default class APIComponent extends SourceComponent {
     this.methodToken = this.getAttributeToken("method");
     this.bodyToken = this.getAttributeToken("body");
     this.nameToken = this.getAttributeToken("name");
+    this.contentType = this.getAttributeToken("Content-Type")
   }
 
   protected async runAsync(): Promise<void> {
@@ -36,11 +39,15 @@ export default class APIComponent extends SourceComponent {
     const body = await this.bodyToken?.getValueAsync();
     const init: RequestInit = {
       method: method,
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: body,
     };
+
+    const contentType = this.contentType ? await this.contentType.getValueAsync() : "application/json";
+    if (contentType && contentType.length > 0) {
+      init.headers = {
+        "Content-Type": contentType,
+      }
+    }
     const request = new Request(url, init);
     if (this.onProcessingAsync) {
       const args = this.createCallbackArgument<APIProcessingCallbackArgument>({
