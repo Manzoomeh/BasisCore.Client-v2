@@ -1,6 +1,11 @@
-import { HtmlCallbackArgument } from "../../CallbackArgument";
+import {
+  HtmlCallbackArgument,
+  RenderedCallbackArgument,
+  RenderingCallbackArgument,
+} from "../../CallbackArgument";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
+import Source from "../../data/Source";
 import { MergeType, Priority } from "../../enum";
 import IToken from "../../token/IToken";
 import { SourceId } from "../../type-alias";
@@ -61,12 +66,33 @@ export default abstract class HTMLComponent<
         mergeType = MergeType[rawValue.toLowerCase()];
       }
     }
-
-    this.context.setAsSource(id ?? "cms.unknown", value, {
+    var source = new Source(id ?? "cms.unknown", value, {
       keyFieldName: await this.keyFieldNameToken?.getValueAsync(),
       statusFieldName: await this.statusFieldNameToken?.getValueAsync(),
       mergeType: mergeType,
     });
+    let canRender = await this.getIfValueAsync();
+    if (canRender && this.onRenderingAsync) {
+      const renderingArgs =
+        this.createCallbackArgument<RenderingCallbackArgument>({
+          prevent: false,
+          source: source,
+        });
+      await this.onRenderingAsync(renderingArgs);
+      canRender = !renderingArgs.prevent;
+    }
+
+    if (canRender) {
+      this.context.setSource(source);
+      if (this.onRenderedAsync) {
+        await this.onRenderedAsync(
+          this.createCallbackArgument<RenderedCallbackArgument>({
+            result: null,
+            source: source,
+          })
+        );
+      }
+    }
     if (this.onProcessedAsync) {
       const args = super.createCallbackArgument<HtmlCallbackArgument>({
         id: id,
