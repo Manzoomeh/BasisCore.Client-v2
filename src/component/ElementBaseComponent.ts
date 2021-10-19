@@ -69,10 +69,17 @@ export default abstract class ElementBaseComponent<
     const rawValue = await this.ifToken?.getValueAsync();
     let retVal = true;
     if (rawValue != null && rawValue != undefined) {
-      const fn: () => boolean = new Function(
-        `try{return ${rawValue};}catch{return false;}`
-      ) as any;
-      retVal = fn();
+      try {
+        const fn: () => boolean = new Function(
+          `try{return ${rawValue};}catch{return false;}`
+        ) as any;
+        retVal = fn();
+      } catch (e) {
+        console.error(
+          `Error in parse 'if' attribute expression in command: '${rawValue}'`
+        );
+        throw e;
+      }
     }
     return retVal;
   }
@@ -115,7 +122,7 @@ export default abstract class ElementBaseComponent<
     defaultValue: any = null
   ): Promise<any> {
     const token = this.node.GetObjectToken(attributeName, this.context);
-    console.log("token",token);
+    console.log("token", token);
     return (await token?.getValueAsync()) ?? defaultValue;
   }
 
