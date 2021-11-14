@@ -15,4 +15,8 @@ export default abstract class CommandComponent extends ElementBaseComponent<Elem
     this.range = new RangeObject(range, this);
     this.content = this.range.initialContent;
   }
+
+  protected setContent(newContent: Node, append: boolean) {
+    this.range.setContent(newContent, append);
+  }
 }

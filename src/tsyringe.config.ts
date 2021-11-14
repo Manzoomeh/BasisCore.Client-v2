@@ -14,6 +14,7 @@ import ListComponent from "./component/renderable/ListComponent";
 import PrintComponent from "./component/renderable/PrintComponent";
 import TreeComponent from "./component/renderable/TreeComponent";
 import ViewComponent from "./component/renderable/ViewComponent";
+import SchemaComponent from "./component/renderable/schema/SchemaComponent";
 import APIComponent from "./component/source/APIComponent";
 import CallbackComponent from "./component/source/CallbackComponent";
 import DbSourceComponent from "./component/source/DbSourceComponent";
@@ -32,6 +33,8 @@ container.register("print", { useToken: PrintComponent });
 container.register("tree", { useToken: TreeComponent });
 container.register("view", { useToken: ViewComponent });
 container.register("list", { useToken: ListComponent });
+container.register("schema", { useToken: SchemaComponent });
+
 container.register("cookie", { useToken: CookieComponent });
 container.register("call", { useToken: CallComponent });
 container.register("group", { useToken: GroupComponent });

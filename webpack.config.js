@@ -2,7 +2,8 @@ const path = require("path");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
-const restfulHttpServer = require("./server/restful");
+const apiHttpServer = require("./server/api-server");
+const schemaHttpServer = require("./server/schema-server");
 
 module.exports = (env, options) => {
   return {
@@ -17,7 +18,8 @@ module.exports = (env, options) => {
     devServer: {
       static: path.resolve(__dirname, "example"),
       onBeforeSetupMiddleware: function (server) {
-        server.use(restfulHttpServer);
+        server.use("/api", apiHttpServer);
+        server.use("/schema", schemaHttpServer);
       },
       open: true,
       port: 3000,
@@ -42,10 +44,22 @@ module.exports = (env, options) => {
           test: /\.d\.ts$/,
           use: ["ignore-loader"],
         },
+        {
+          test: /\.css$/i,
+          use: ["style-loader", "css-loader"],
+        },
+        {
+          test: /\.png$/i,
+          type: "asset/inline",
+        },
+        {
+          test: /\.html$/i,
+          type: "asset/source",
+        },
       ],
     },
     resolve: {
-      extensions: [".ts", ".d.ts", ".tsx", ".js", ".jsx", ".css"],
+      extensions: [".ts", ".d.ts", ".tsx", ".js", ".jsx", ".css", ".png"],
     },
     plugins: [
       new CircularDependencyPlugin({

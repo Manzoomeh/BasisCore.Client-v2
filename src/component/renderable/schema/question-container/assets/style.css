@@ -1,0 +1,80 @@
+[data-bc-question] {
+  clear: both;
+  margin-bottom: 5px;
+}
+
+[data-bc-title-container] {
+  width: 300px;
+  /* padding: 0 10px; */
+  float: right;
+  line-height: 30px;
+  margin-left: 5px;
+  position: relative;
+}
+
+[data-bc-title-container] [data-bc-help-btn] {
+  background-image: url(help.PNG);
+  background-position: center;
+  float: left;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+[data-bc-title-container] [data-bc-help-btn]:hover {
+  background-image: url(help-hover.PNG);
+}
+
+[data-bc-answer-container] {
+  /* float: right; */
+  display: inline-block;
+}
+
+[data-bc-answer-container] input[type="text"],
+[data-bc-answer-container] select,
+[data-bc-answer-container] textarea {
+  padding: 0.1em 0.4em;
+  display: inline-block;
+  border: 1px solid #c7d6db;
+  background: #f5f8f9;
+  border-radius: 4px;
+  transition: border 0.3s linear 0s;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 12px;
+  color: #555;
+}
+
+[data-bc-answer-container] input[type="text"],
+[data-bc-answer-container] select {
+  height: 30px;
+}
+
+[data-bc-answer-container] textarea {
+  height: 175px;
+  resize: vertical;
+}
+
+[data-bc-answer-container] input[type="text"]:focus,
+[data-bc-answer-container] select:focus,
+[data-bc-answer-container] textarea:focus {
+  border-color: #66afe9;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(102, 175, 233, 0.6);
+  outline: 0 none;
+  background: #fff8ee;
+}
+
+[data-bc-answer-title-container] {
+  /* margin-bottom: 5px; */
+}
+
+[data-bc-answer-title-container] [data-bc-answer-title] {
+  /* float: right; */
+  display: inline-block;
+  line-height: 30px;
+}

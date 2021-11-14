@@ -5,7 +5,7 @@ import { SourceId } from "../type-alias";
 import CommandComponent from "./CommandComponent";
 
 export default abstract class SourceBaseComponent extends CommandComponent {
-  private sourceId: SourceId;
+  protected sourceId: SourceId;
 
   constructor(element: Element, context: IContext) {
     super(element, context);
@@ -35,10 +35,6 @@ export default abstract class SourceBaseComponent extends CommandComponent {
       result = await this.renderSourceAsync(source);
     }
     return result;
-  }
-
-  protected setContent(newContent: Node, append: boolean) {
-    this.range.setContent(newContent, append);
   }
 
   protected abstract renderSourceAsync(dataSource: ISource): Promise<any>;

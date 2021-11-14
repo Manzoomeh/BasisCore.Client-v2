@@ -1,0 +1,299 @@
+{
+  "sources": {
+    "answer.data": {
+      "data": [
+        {
+          "usedForId": 1423330,
+          "schemaId": 1161,
+          "schemaVersion": 1.1,
+          "lastUpdate": "",
+          "lid": 1,
+          "properties": [
+            {
+              "prpId": 13050,
+              "answers": [
+                {
+                  "id": 123152,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 56987,
+                          "value": "نام دیزال ژنراتور"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 13060,
+              "answers": [
+                {
+                  "id": 8456251,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78854,
+                          "value": 5
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 8456251,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78854,
+                          "value": 4
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 130601,
+              "answers": [
+                {
+                  "id": 8456215,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78854,
+                          "value": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 130602,
+              "answers": [
+                {
+                  "id": 8456215,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78854,
+                          "value": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 130631,
+              "answers": [
+                {
+                  "id": 8456215,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78854,
+                          "value": 5
+                        }
+                      ]
+                    },
+                    {
+                      "part": 2,
+                      "values": [
+                        {
+                          "id": 85257,
+                          "value": "1000"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 8456215,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78854,
+                          "value": 66
+                        }
+                      ]
+                    },
+                    {
+                      "part": 2,
+                      "values": [
+                        {
+                          "id": 85257,
+                          "value": "1500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 130621,
+              "answers": [
+                {
+                  "id": 8456215,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78854,
+                          "value": "شسشسشسش\nsdsdsdsds\nsdsdsds"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "typeid": 123,
+              "prpId": 1360,
+              "answers": [
+                {
+                  "id": 123152,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 56987,
+                          "value": "123"
+                        },
+                        {
+                          "id": 8546,
+                          "value": "18423"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "typeid": 262,
+              "prpId": 13057,
+              "answers": [
+                {
+                  "id": 45615,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 59757,
+                          "title": "کیلو وات",
+                          "value": 5248
+                        }
+                      ]
+                    },
+                    {
+                      "part": 2,
+                      "values": [
+                        {
+                          "id": 85257,
+                          "value": "1000"
+                        }
+                      ]
+                    },
+                    {
+                      "part": 3,
+                      "values": [
+                        {
+                          "id": 78957,
+                          "value": "200"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 156852,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 78517,
+                          "title": "کیلو ولت آمپر",
+                          "value": 5247
+                        }
+                      ]
+                    },
+                    {
+                      "part": 2,
+                      "values": [
+                        {
+                          "id": 79457,
+                          "value": "1500"
+                        }
+                      ]
+                    },
+                    {
+                      "part": 3,
+                      "values": [
+                        {
+                          "id": 78737,
+                          "value": "250"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "typeid": 269,
+              "prpId": 12345,
+              "answers": [
+                {
+                  "id": 127562,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 123564,
+                          "title": "ایران",
+                          "value": 122355
+                        }
+                      ],
+                      "moreInfo": {
+                        "type": "link /*link | popup | callback */",
+                        "url": ""
+                      },
+                      "URI": "https://data.basiscore.com/fa/bc/کشور/id/1002236/inf/json"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
