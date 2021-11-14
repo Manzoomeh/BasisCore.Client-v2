@@ -1,7 +1,6 @@
 import ISourceOptions from "./context/ISourceOptions";
 import ISource from "./data/ISource";
 import { EventHandler } from "./event/EventHandler";
-import IDictionary from "./IDictionary";
 
 export const AsyncFunction = eval(
   "Object.getPrototypeOf(async function () {}).constructor"
@@ -22,19 +21,24 @@ export declare type ConnectionOptions = {
 
 export declare type ConnectionSetting = string | ConnectionOptions;
 
-export declare type ServerResponseSetting = {
-  keepalive: boolean;
-};
+export interface IServerResponseSetting {
+  keepalive?: boolean;
+}
 
-export declare type ServerResponse = {
-  setting: ServerResponseSetting;
-  sources: IDictionary<ServerData<any>>;
-};
+export interface IServerResponse<T> {
+  setting?: IServerResponseSetting;
+  sources: Array<IServerResponseSource<T>>;
+}
 
-export declare type ServerData<T> = {
-  data: Array<T>;
-  options: ISourceOptions;
-};
+export interface IServerResponseSource<T> {
+  data?: Array<T>;
+  options: IServerResponseSourceOptions;
+}
+
+export interface IServerResponseSourceOptions extends ISourceOptions {
+  tableName: string;
+  extra?: any;
+}
 
 export declare type SourceData = Array<any> | ISourceData;
 

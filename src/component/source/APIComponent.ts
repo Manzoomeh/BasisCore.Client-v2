@@ -7,7 +7,7 @@ import IContext from "../../context/IContext";
 import Data from "../../data/Data";
 import Source from "../../data/Source";
 import IToken from "../../token/IToken";
-import { HttpMethod, ServerResponse } from "../../type-alias";
+import { HttpMethod, IServerResponse } from "../../type-alias";
 import SourceComponent from "./SourceComponent";
 
 @injectable()
@@ -27,7 +27,7 @@ export default class APIComponent extends SourceComponent {
     this.methodToken = this.getAttributeToken("method");
     this.bodyToken = this.getAttributeToken("body");
     this.nameToken = this.getAttributeToken("name");
-    this.contentType = this.getAttributeToken("Content-Type")
+    this.contentType = this.getAttributeToken("Content-Type");
   }
 
   protected async runAsync(): Promise<void> {
@@ -42,11 +42,13 @@ export default class APIComponent extends SourceComponent {
       body: body,
     };
 
-    const contentType = this.contentType ? await this.contentType.getValueAsync() : "application/json";
+    const contentType = this.contentType
+      ? await this.contentType.getValueAsync()
+      : "application/json";
     if (contentType && contentType.length > 0) {
       init.headers = {
         "Content-Type": contentType,
-      }
+      };
     }
     const request = new Request(url, init);
     if (this.onProcessingAsync) {
@@ -70,16 +72,11 @@ export default class APIComponent extends SourceComponent {
       await this.onProcessedAsync(args);
       dataList = args.results;
     } else {
-      const json: ServerResponse = await response.json();
-      if (typeof json?.sources === "object") {
-        dataList = Object.keys(json?.sources)
-          .map((key) => {
-            return {
-              key: key,
-              data: json.sources[key],
-            };
-          })
-          .map((x) => new Data(x.key, x.data.data, x.data.options));
+      const json: IServerResponse<any> = await response.json();
+      if (json?.sources) {
+        dataList = json?.sources.map(
+          (x) => new Data(x.options.tableName, x.data, x.options)
+        );
       } else {
         const name = (await this.nameToken?.getValueAsync()) ?? "cms.api";
         dataList = [new Data(name, json)];

@@ -2,7 +2,12 @@
 import Data from "../../data/Data";
 import { EventHandler } from "../../event/EventHandler";
 import IDictionary from "../../IDictionary";
-import { ConnectionSetting, HttpMethod, SourceId } from "../../type-alias";
+import {
+  ConnectionSetting,
+  HttpMethod,
+  IServerResponse,
+  SourceId,
+} from "../../type-alias";
 import Util from "../../Util";
 import UrlBaseConnectionOptions from "./UrlBaseConnectionOptions";
 
@@ -41,8 +46,10 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
       this.Verb ?? context.options.getDefault<HttpMethod>("source.verb"),
       parameters
     );
-    var json = this.ParseJsonString(rawJson);
-    onDataReceived(json.Tables.map((x) => new Data(x.Key, x.Value)));
+    const json = <IServerResponse<any>>JSON.parse(rawJson);
+    onDataReceived(
+      json.sources.map((x) => new Data(x.options.tableName, x.data, x.options))
+    );
   }
 
   async loadPageAsync(

@@ -2,7 +2,7 @@
 import Data from "../../data/Data";
 import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import IDictionary from "../../IDictionary";
-import { ServerResponse } from "../../type-alias";
+import { IServerResponse } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
 import StreamPromise from "./StreamPromise";
 
@@ -71,7 +71,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
         };
         socket.onmessage = (e) => {
           try {
-            var json: ServerResponse = JSON.parse(e.data);
+            var json: IServerResponse<any> = JSON.parse(e.data);
             if (
               json.setting &&
               json.setting.keepalive !== undefined &&
@@ -84,14 +84,9 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
               socket.close();
             }
             if (json.sources) {
-              const dataList = Object.keys(json?.sources)
-                .map((key) => {
-                  return {
-                    key: key,
-                    data: json.sources[key],
-                  };
-                })
-                .map((x) => new Data(x.key, x.data.data, x.data.options));
+              const dataList = json?.sources.map(
+                (x) => new Data(x.options.tableName, x.data, x.options)
+              );
               if (dataList.length > 0) {
                 const receiverIsOk = onDataReceived(dataList);
                 if (!receiverIsOk) {

@@ -1,6 +1,15 @@
 {
-  "sources": {
-    "answer.data": {
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "answer.data",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
       "data": [
         {
           "usedForId": 1423330,
@@ -295,5 +304,5 @@
         }
       ]
     }
-  }
+  ]
 }

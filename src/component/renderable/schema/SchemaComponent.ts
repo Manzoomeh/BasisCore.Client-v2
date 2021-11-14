@@ -2,6 +2,7 @@ import { inject, injectable } from "tsyringe";
 import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import IToken from "../../../token/IToken";
+import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
 import IBCUtil from "../../../wrapper/IBCUtil";
 import SourceBaseComponent from "../../SourceBaseComponent";
@@ -77,7 +78,10 @@ export default class SchemaComponent extends SourceBaseComponent {
         id: options.schemaId,
         ver: options.version,
       });
-      const schema = await Util.getDataAsync<IQuestionSchema>(url);
+      const response = await Util.getDataAsync<
+        IServerResponse<IQuestionSchema>
+      >(url);
+      const schema = response.sources[0].data[0];
 
       this._questions = new Array<QuestionCollection>();
       schema.questions.forEach((question) => {
