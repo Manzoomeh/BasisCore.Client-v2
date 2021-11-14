@@ -7,6 +7,7 @@ import IBCUtil from "../../../wrapper/IBCUtil";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import IFormMakerOptions from "./IFormMakerOptions";
 import IQuestionSchema, { IAnswerSchema } from "./ISchema";
+import { IUserActionResult } from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
 
 declare const $bc: IBCUtil;
@@ -19,6 +20,8 @@ export default class SchemaComponent extends SourceBaseComponent {
   private schemaIdToken: IToken<string>;
   private versionToken: IToken<string>;
   private viewModeToken: IToken<string>;
+  private buttonToken: IToken<string>;
+  private resultSourceIdToken: IToken<string>;
 
   constructor(
     @inject("element") element: Element,
@@ -33,6 +36,8 @@ export default class SchemaComponent extends SourceBaseComponent {
     this.schemaIdToken = this.getAttributeToken("id");
     this.versionToken = this.getAttributeToken("version");
     this.viewModeToken = this.getAttributeToken("viewMode");
+    this.buttonToken = this.getAttributeToken("button");
+    this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
   }
 
   public async runAsync(source?: ISource): Promise<any> {
@@ -54,10 +59,12 @@ export default class SchemaComponent extends SourceBaseComponent {
   ): Promise<void> {
     const container = document.createElement("div");
     this.setContent(container, false);
-
+    const buttonSelector = await this.buttonToken?.getValueAsync();
+    const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
     const viewModeStr = await this.viewModeToken?.getValueAsync();
     const urlStr = await this.urlToken?.getValueAsync();
     const version = await this.versionToken?.getValueAsync();
+
     const options: IFormMakerOptions = {
       viewMode: answer ? (viewModeStr ?? "true") == "true" : false,
       schemaId: answer?.schemaId ?? schemaId,
@@ -81,6 +88,28 @@ export default class SchemaComponent extends SourceBaseComponent {
           new QuestionCollection(question, options, container, partAnswer)
         );
       });
+      if (buttonSelector && resultSourceId) {
+        const getAnswers = (e: MouseEvent) => {
+          e.preventDefault();
+          const retVal: IUserActionResult = {
+            lid: schema.lid,
+            schemaId: schema.schemaId,
+            schemaVersion: schema.schemaVersion,
+            usedForId: answer?.usedForId,
+            properties: this._questions
+              .map((x) => x.getUserAction())
+              .filter((x) => x),
+          };
+          if (retVal.properties.length > 0) {
+            this.context.setAsSource(resultSourceId, retVal);
+          }
+        };
+        document
+          .querySelectorAll(buttonSelector)
+          .forEach((btn) =>
+            btn.addEventListener("click", getAnswers.bind(this))
+          );
+      }
     } else {
       throw Error("can't detect 'schemaId'");
     }
