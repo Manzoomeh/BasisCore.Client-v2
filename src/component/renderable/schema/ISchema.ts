@@ -1,7 +1,6 @@
-import IDictionary from "../../../../IDictionary";
+import IDictionary from "../../../IDictionary";
 
 export type WebMethod = "POST" | "GET";
-
 export type ViewType =
   | "Text"
   | "Textarea"

@@ -1,5 +1,5 @@
 import Util from "../../../../../Util";
-import { IFixValue } from "../../form-maker/ISchema";
+import { IFixValue } from "../../ISchema";
 import layout from "./assets/popup-layout.html";
 
 export default class SearchPopup {
