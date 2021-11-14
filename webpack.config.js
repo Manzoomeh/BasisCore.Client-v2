@@ -18,8 +18,8 @@ module.exports = (env, options) => {
     devServer: {
       static: path.resolve(__dirname, "example"),
       onBeforeSetupMiddleware: function (server) {
-        server.use("/api", apiHttpServer);
-        server.use("/schema", schemaHttpServer);
+        server.app.use("/api", apiHttpServer);
+        server.app.use("/schema", schemaHttpServer);
       },
       open: true,
       port: 3000,
