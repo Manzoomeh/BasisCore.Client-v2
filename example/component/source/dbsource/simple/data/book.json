@@ -5,7 +5,7 @@
   "sources": [
     {
       "options": {
-        "TableName": "book.list",
+        "tableName": "book.list",
         "keyFieldName": null,
         "statusFieldName": null,
         "mergeType": 0
@@ -21,7 +21,7 @@
     },
     {
       "options": {
-        "TableName": "book.Type",
+        "tableName": "book.Type",
         "keyFieldName": null,
         "statusFieldName": null,
         "mergeType": 0
