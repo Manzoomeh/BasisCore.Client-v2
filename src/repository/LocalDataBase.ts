@@ -40,7 +40,7 @@ export default class LocalDataBase implements IDatabase {
   }
   private async InitializeAsync(): Promise<void> {
     if (!this._db) {
-      var lib = alasql; //await $bc.GetOrLoadDbLibAsync();
+      var lib = alasql;
       var create = lib.exec(
         `CREATE localStorage DATABASE IF NOT EXISTS ${this._dataBaseName}`
       );
@@ -52,7 +52,6 @@ export default class LocalDataBase implements IDatabase {
             (columnName) => `${columnName} ${schema[columnName]}`
           );
           var cols = tmp.join(",");
-          console.log(`CREATE TABLE IF NOT EXISTS ${tblName} (${cols})`);
           await this.executeAsync(
             `CREATE TABLE IF NOT EXISTS ${tblName} (${cols})`
           );

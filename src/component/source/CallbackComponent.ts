@@ -42,8 +42,7 @@ export default class CallbackComponent extends CommandComponent {
       };
     } else {
       callbackFunction = (arg) => {
-        console.log(arg);
-        console.table(arg?.rows);
+        this.context.logger.logSource(arg);
       };
     }
     if (source) {

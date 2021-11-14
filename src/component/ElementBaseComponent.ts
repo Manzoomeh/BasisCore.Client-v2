@@ -122,7 +122,6 @@ export default abstract class ElementBaseComponent<
     defaultValue: any = null
   ): Promise<any> {
     const token = this.node.GetObjectToken(attributeName, this.context);
-    console.log("token", token);
     return (await token?.getValueAsync()) ?? defaultValue;
   }
 
