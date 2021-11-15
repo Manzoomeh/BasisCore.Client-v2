@@ -5,6 +5,7 @@ import Question from "../../question/Question";
 import Util from "../../../../../Util";
 import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
 import { IUserActionPart } from "../../IUserActionResult";
+import { IEditParams } from "../../IFormMakerOptions";
 
 export default class ReadonlyCheckListType extends ListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
@@ -17,6 +18,15 @@ export default class ReadonlyCheckListType extends ListBaseType {
         const newTemplate = itemLayout.replace("@title", item.value);
         const template = Util.parse(newTemplate).querySelector("div");
         this.element.querySelector("div").appendChild(template);
+        if (this.owner.options.callback) {
+          const param: IEditParams = {
+            element: this.element,
+            prpId: this.owner.question.prpId,
+            typeId: this.owner.question.typeId,
+            value: item,
+          };
+          this.owner.options.callback(param);
+        }
       }
     });
   }

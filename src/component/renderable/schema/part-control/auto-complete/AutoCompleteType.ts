@@ -4,6 +4,7 @@ import EditableQuestionPart from "../../question-part/EditableQuestionPart";
 import Util from "../../../../../Util";
 import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
 import { IUserActionPart } from "../../IUserActionResult";
+import { IEditParams } from "../../IFormMakerOptions";
 
 export default abstract class AutoCompleteType extends EditableQuestionPart {
   protected selectedId?: number;
@@ -34,6 +35,15 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     if (mustChange) {
       this.element.querySelector("label").innerHTML = value.value;
       this.selectedId = value.id;
+      if (this.owner.options.callback) {
+        const param: IEditParams = {
+          element: this.element,
+          prpId: this.owner.question.prpId,
+          typeId: this.owner.question.typeId,
+          value: value,
+        };
+        this.owner.options.callback(param);
+      }
     }
     return mustChange;
   }

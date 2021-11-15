@@ -3,4 +3,12 @@ export default interface IFormMakerOptions {
   url: string;
   schemaId: string;
   version: string;
+  callback: (params: IEditParams) => void;
+}
+
+export interface IEditParams {
+  element: Element;
+  prpId: number;
+  typeId: number;
+  value: any;
 }

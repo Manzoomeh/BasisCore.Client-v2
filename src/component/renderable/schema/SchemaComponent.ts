@@ -23,6 +23,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   private viewModeToken: IToken<string>;
   private buttonToken: IToken<string>;
   private resultSourceIdToken: IToken<string>;
+  private callbackToken: IToken<string>;
 
   constructor(
     @inject("element") element: Element,
@@ -39,6 +40,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     this.viewModeToken = this.getAttributeToken("viewMode");
     this.buttonToken = this.getAttributeToken("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
+    this.callbackToken = this.getAttributeToken("callback");
   }
 
   public async runAsync(source?: ISource): Promise<any> {
@@ -65,12 +67,15 @@ export default class SchemaComponent extends SourceBaseComponent {
     const viewModeStr = await this.viewModeToken?.getValueAsync();
     const urlStr = await this.urlToken?.getValueAsync();
     const version = await this.versionToken?.getValueAsync();
+    const callback = await this.callbackToken?.getValueAsync();
 
+    const viewMode = answer ? (viewModeStr ?? "true") == "true" : false;
     const options: IFormMakerOptions = {
-      viewMode: answer ? (viewModeStr ?? "true") == "true" : false,
+      viewMode: viewMode,
       schemaId: answer?.schemaId ?? schemaId,
       url: urlStr,
       version: answer?.schemaVersion ?? version,
+      callback: viewMode && callback ? eval(callback) : null,
     };
 
     if (options.schemaId) {
@@ -92,7 +97,7 @@ export default class SchemaComponent extends SourceBaseComponent {
           new QuestionCollection(question, options, container, partAnswer)
         );
       });
-      if (buttonSelector && resultSourceId) {
+      if (buttonSelector && resultSourceId && !options.viewMode) {
         const getAnswers = (e: MouseEvent) => {
           e.preventDefault();
           const retVal: IUserActionResult = {
