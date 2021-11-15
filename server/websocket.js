@@ -17,9 +17,12 @@ setInterval(() => {
     setting: {
       keepalive: timeCounter > 0,
     },
-    sources: {
-      "stream.time": {
-        mergeType: MergeType.replace,
+    sources: [
+      {
+        options: {
+          tableName: "stream.time",
+          mergeType: MergeType.replace,
+        },
         data: [
           {
             hh: date.getHours(),
@@ -29,7 +32,7 @@ setInterval(() => {
           },
         ],
       },
-    },
+    ],
   };
   [...wss.clients]
     .filter((ws) => ws.typeEx === "/time")
@@ -46,9 +49,12 @@ setInterval(() => {
     setting: {
       keepalive: timeRemainCounter > 0,
     },
-    sources: {
-      "stream.time": {
-        mergeType: MergeType.replace,
+    sources: [
+      {
+        options: {
+          tableName: "stream.time",
+          mergeType: MergeType.replace,
+        },
         data: [
           {
             hh: date.getHours(),
@@ -58,7 +64,7 @@ setInterval(() => {
           },
         ],
       },
-    },
+    ],
   };
   [...wss.clients]
     .filter((ws) => ws.typeEx === "/time-remain")
@@ -69,9 +75,12 @@ let userId = 1000;
 setInterval(() => {
   userId++;
   const data = {
-    sources: {
-      "user.list": {
-        mergeType: MergeType.append,
+    sources: [
+      {
+        options: {
+          tableName: "user.list",
+          mergeType: MergeType.append,
+        },
         data: [
           {
             id: userId,
@@ -80,7 +89,7 @@ setInterval(() => {
           },
         ],
       },
-    },
+    ],
   };
   [...wss.clients]
     .filter((ws) => ws.typeEx === "/list")

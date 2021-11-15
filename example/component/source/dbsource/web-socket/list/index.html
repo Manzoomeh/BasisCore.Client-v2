@@ -28,7 +28,7 @@
         <span name="demo.sort-by" bc-triggers="click" bc-value="age">Age</span>
     </fieldset>
     <fieldset>
-        <legend>Last Update</legend>
+        <legend>Without Process</legend>
         <Basis core="print" dataMemberName="user.list" run="atclient">
             <layout>
                 <script type="text/template">
@@ -56,7 +56,7 @@
         </Basis>
     </fieldset>
     <fieldset>
-        <legend>All</legend>
+        <legend>With Process</legend>
         [##demo.sql.value|( )##]
         <Basis core="print" datamembername="user.list" run="atclient" OnProcessing="manipulation"
             triggers="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
@@ -101,8 +101,7 @@
         let orderPart = null;
         let wherePart = null;
         async function manipulation(args) {
-            console.log('ttt', args);
-            const source = args.context.tryToGetSource('user.list');
+            const source = args.source;
             let retVal = source;
 
             const where = args.context.tryToGetSource('demo.filter-name');
