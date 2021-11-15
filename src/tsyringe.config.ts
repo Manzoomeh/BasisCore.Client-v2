@@ -23,6 +23,7 @@ import LocalContext from "./context/LocalContext";
 
 import ConsoleLogger from "./logger/ConsoleLogger";
 import Repository from "./repository/Repository";
+import { SchemaListComponent } from "./component/renderable/schema-list/SchemaListComponent";
 
 container.register("IBasisCore", { useToken: BasisCore });
 container.register("ILogger", { useToken: ConsoleLogger });
@@ -33,7 +34,8 @@ container.register("print", { useToken: PrintComponent });
 container.register("tree", { useToken: TreeComponent });
 container.register("view", { useToken: ViewComponent });
 container.register("list", { useToken: ListComponent });
-container.register("schema", { useToken: SchemaComponent });
+container.register("list", { useToken: ListComponent });
+container.register("schemalist", { useToken: SchemaListComponent });
 
 container.register("cookie", { useToken: CookieComponent });
 container.register("call", { useToken: CallComponent });

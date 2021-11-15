@@ -4,14 +4,11 @@ import ISource from "../../../data/ISource";
 import IToken from "../../../token/IToken";
 import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
-import IBCUtil from "../../../wrapper/IBCUtil";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import IFormMakerOptions from "./IFormMakerOptions";
 import IQuestionSchema, { IAnswerSchema } from "./ISchema";
 import { IUserActionResult } from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
-
-declare const $bc: IBCUtil;
 
 @injectable()
 export default class SchemaComponent extends SourceBaseComponent {
