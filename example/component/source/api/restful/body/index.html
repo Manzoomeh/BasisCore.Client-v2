@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="/basiscore.min.js"></script>
     <title>API Command - REST - Simple</title>
-</head>
+  </head>
 
-<body>
-
-    <Basis core="api" url="data/book.json" method="post" run="atclient" body="{myid=44}">
+  <body>
+    <Basis
+      core="api"
+      url="data/book.json"
+      method="post"
+      run="atclient"
+      body="{myid=44}"
+    >
     </Basis>
 
-    <basis core="callback" run="AtClient" triggers="book.list book.type" method="onSource"></basis>
-
-    <script>
-        function onSource(args) {
-            console.table(args.source.rows);
-        }
-    </script>
-</body>
-
+    <basis
+      core="callback"
+      run="AtClient"
+      triggers="book.list book.type"
+    ></basis>
+  </body>
 </html>

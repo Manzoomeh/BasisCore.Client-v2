@@ -1,6 +1,15 @@
 {
-  "sources": {
-    "book.list": {
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "book.list",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
       "data": [
         {
           "id": 1,
@@ -10,8 +19,13 @@
         }
       ]
     },
-    "book.type": {
-      "mergeType": 1,
+    {
+      "options": {
+        "tableName": "book.type",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 1
+      },
       "data": [
         {
           "id": 1,
@@ -23,5 +37,5 @@
         }
       ]
     }
-  }
+  ]
 }

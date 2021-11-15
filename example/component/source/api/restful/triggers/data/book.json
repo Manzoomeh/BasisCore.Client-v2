@@ -1,7 +1,15 @@
 {
-  "sources": {
-    "book.list": {
-      "mergeType": 1,
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "book.list",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 1
+      },
       "data": [
         {
           "id": 1,
@@ -11,5 +19,5 @@
         }
       ]
     }
-  }
+  ]
 }
