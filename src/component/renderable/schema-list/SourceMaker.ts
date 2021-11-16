@@ -1,6 +1,7 @@
 import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
 import IQuestionSchema, { IAnswerSchema } from "../schema/ISchema";
+import ISchemaSource from "./ISchemaSource";
 
 export default class SourceMaker {
   public static async makeAsync(
@@ -20,6 +21,7 @@ export default class SourceMaker {
     schema.questions.forEach((question) => {
       const answer = answers?.properties.find((x) => x.prpId == question.prpId);
       const item: ISchemaSource = {
+        schemaId: null,
         prpId: question.prpId,
         typeId: question.typeId,
         title: question.title,
@@ -31,11 +33,4 @@ export default class SourceMaker {
     });
     return retVal;
   }
-}
-
-export interface ISchemaSource {
-  prpId: number;
-  typeId?: number;
-  title: string;
-  answers: Array<Array<Array<any>>>;
 }

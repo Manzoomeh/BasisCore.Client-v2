@@ -2,17 +2,15 @@ import { inject, injectable } from "tsyringe";
 import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import IToken from "../../../token/IToken";
-import { IServerResponse } from "../../../type-alias";
-import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
-import IFormMakerOptions from "../schema/IFormMakerOptions";
-import IQuestionSchema, { IAnswerSchema } from "../schema/ISchema";
-import { IUserActionResult } from "../schema/IUserActionResult";
+import { IAnswerSchema } from "../schema/ISchema";
+import SchemaFaceCollection from "./SchemaFace";
 import SourceMaker from "./SourceMaker";
 
 @injectable()
 export class SchemaListComponent extends SourceBaseComponent {
   private urlToken: IToken<string>;
+  private _faces: SchemaFaceCollection;
 
   constructor(
     @inject("element") element: Element,
@@ -24,6 +22,8 @@ export class SchemaListComponent extends SourceBaseComponent {
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
     this.urlToken = this.getAttributeToken("schemaUrl");
+    this._faces = new SchemaFaceCollection(this.node, this.context);
+    console.log(this._faces);
   }
 
   protected async renderSourceAsync(dataSource: ISource): Promise<any> {
@@ -42,5 +42,7 @@ export class SchemaListComponent extends SourceBaseComponent {
       div.appendChild(document.createTextNode(item.title));
       this.setContent(div, true);
     });
+
+    this._faces;
   }
 }
