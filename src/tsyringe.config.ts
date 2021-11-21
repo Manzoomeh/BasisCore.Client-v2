@@ -35,6 +35,7 @@ container.register("tree", { useToken: TreeComponent });
 container.register("view", { useToken: ViewComponent });
 container.register("list", { useToken: ListComponent });
 container.register("list", { useToken: ListComponent });
+container.register("schema", { useToken: SchemaComponent });
 container.register("schemalist", { useToken: SchemaListComponent });
 
 container.register("cookie", { useToken: CookieComponent });

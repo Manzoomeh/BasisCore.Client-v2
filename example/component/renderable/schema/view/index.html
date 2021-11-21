@@ -1,27 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/basiscore.js"></script>
+    <title>Schema Command - New</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="/basiscore.js"></script>
-  <title>Schema Command - New</title>
-</head>
+  <body dir="rtl">
+    <fieldset dir="ltr">
+      <label>
+        <input
+          type="checkbox"
+          bc-triggers="change"
+          name="cms.form"
+          bc-value="true"
+          bc-off-value="false"
+          checked
+        />In View Mode</label
+      >
+    </fieldset>
 
-<body dir="rtl">
-  <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient">
-  </Basis>
-  <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" viewMode="true">
-  </Basis>
-
-</body>
-<script>
-  const host = {
-    sources: {
-      "inline.object": [{ id: 1423330 }]
-    }
-  }
-</script>
-
+    <Basis
+      core="api"
+      url="/schema/answers?id=[##inline.object.id##]"
+      method="get"
+      run="atclient"
+    >
+    </Basis>
+    <Basis
+      core="schema"
+      datamembername="answer.data"
+      run="atclient"
+      schemaUrl="/schema/questions"
+      viewMode="[##cms.form.value|(true)##]"
+      triggers="cms.form"
+    >
+    </Basis>
+  </body>
+  <script>
+    const host = {
+      sources: {
+        "inline.object": [{ id: 1423330 }],
+      },
+    };
+  </script>
 </html>
