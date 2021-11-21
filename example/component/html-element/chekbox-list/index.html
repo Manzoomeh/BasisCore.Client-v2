@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="/basiscore.js"></script>
-    <title>Html Button Binding - Simple</title>
+    <title>Html Checkbox Binding - Simple</title>
   </head>
 
   <body>
@@ -56,5 +56,24 @@
       [##cms.cbox.value|(not set)##]
       <br />
     </fieldset>
+
+    <fieldset>
+      <legend>group</legend>
+      <form bc-triggers="submit" name="cms.form">
+        <label>Name:<input type="text" name="name" /></label>
+        <br />
+        <fieldset>
+            <label><input type="checkbox" value="item1" name="type"/>Item1</label>
+            <br/>
+            <label><input type="checkbox" value="item2" name="type"/>Item2</label>
+            <br/>
+            <label><input type="checkbox" value="item3" name="type1"/>Item3</label>
+            <br/>
+            <label><input type="checkbox" value="item4" name="type1"/>Item4</label>
+        </fieldset>
+        <button>Save</button>
+      </form>
+    </fieldset>
+    <basis core="callback" run="atClient" triggers="cms.form"/></basis>
   </body>
 </html>

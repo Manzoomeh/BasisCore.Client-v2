@@ -13,13 +13,13 @@ export default class HTMLFormComponent extends HTMLComponent<HTMLFormElement> {
 
   protected getSourceValueAsync(event: Event): Promise<any> {
     const data = new FormData(this.node);
-    const _rootList = new Map<string, FormDataEntryValue>();
+    const _rootList = new Map<string, FormDataEntryValue[]>();
     const value = Array.from(data.keys()).reduce((result, key) => {
-      const value = data.get(key);
+      const values = data.getAll(key);
       if (key.startsWith("_")) {
-        _rootList.set(key, value);
+        _rootList.set(key, values);
       } else {
-        result[key] = value;
+        result[key] = values.length === 1 ? values[0] : values;
       }
       return result;
     }, {});
@@ -31,11 +31,11 @@ export default class HTMLFormComponent extends HTMLComponent<HTMLFormElement> {
   }
 
   private convertRootList(
-    values: Map<string, FormDataEntryValue>
+    map: Map<string, FormDataEntryValue[]>
   ): Map<string, any> {
     const retVal = new Map<string, any>();
-    [...values.keys()].forEach((key) => {
-      const value = values.get(key);
+    [...map.keys()].forEach((key) => {
+      const values = map.get(key);
       const [rootKey, ...parts] = key.split(".");
       let root = retVal.get(rootKey);
       if (!root) {
@@ -56,7 +56,7 @@ export default class HTMLFormComponent extends HTMLComponent<HTMLFormElement> {
           root = obj;
         } else {
           if (i + 1 == parts.length) {
-            root[part] = value;
+            root[part] = values.length === 1 ? values[0] : values;
           } else {
             let obj = root[part];
             if (!obj) {
