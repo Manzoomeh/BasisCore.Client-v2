@@ -23,7 +23,15 @@ export class ExpressionTemplate implements ITemplate<any> {
           ${Object.getOwnPropertyNames(data)
             .map((key) => `const ${key} = $functionArgumentData["${key}"]`)
             .join(";")}
-            return ${this.rawExpression};`
+            try{
+              return ${this.rawExpression};
+            }catch(e){
+              if( e instanceof ReferenceError){
+                return "";
+              }else{
+                throw e;
+              }
+            }`
         ) as any;
       } catch (ex) {
         console.error(

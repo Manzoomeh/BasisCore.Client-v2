@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/basiscore.js"></script>
+    <title>Print Command - Simple</title>
+  </head>
+
+  <body>
+    <fieldset>
+      <legend>Simple</legend>
+      <Basis core="print" datamembername="inlineSource.print" run="atclient">
+        <face>
+          <script type="text/Template">
+            <span>@id ( name is:@name@ @non_exist_field ) </span>
+            <br/>
+          </script>
+        </face>
+      </Basis>
+    </fieldset>
+
+    <script>
+      const host = {
+        sources: {
+          "inlineSource.print": [
+            {
+              id: 1,
+              name: "qamsari",
+            },
+            {
+              id: 2,
+              name: "akaberi",
+            },
+            {
+              id: 3,
+              name: "amir",
+            },
+          ],
+        },
+      };
+    </script>
+  </body>
+</html>
