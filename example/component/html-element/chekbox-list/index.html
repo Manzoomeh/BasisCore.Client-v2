@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/basiscore.js"></script>
+    <title>Html Button Binding - Simple</title>
+  </head>
+
+  <body>
+    <fieldset>
+      <legend>Items</legend>
+      <label>
+        <input type="checkbOX" bc-triggers="change" name="cms.cbox" />on / off
+        (default)</label
+      >
+      <br />
+      <label>
+        <input
+          type="checkbOx"
+          bc-triggers="change"
+          name="cms.cbox"
+          value="val2"
+        />val2 / off (use value)</label
+      >
+      <br />
+      <label>
+        <input
+          type="checkbOx"
+          bc-triggers="change"
+          name="cms.cbox"
+          bc-value="val3"
+        />val3 / off (use bc-value)</label
+      >
+      <br />
+      <label>
+        <input
+          type="checkbOx"
+          bc-triggers="change"
+          name="cms.cbox"
+          bc-off-value="val4"
+        />on / val4 (use bc-off-value)</label
+      >
+      <br />
+      <label>
+        <input
+          type="checkbOx"
+          bc-triggers="change"
+          name="cms.cbox"
+          bc-value="val5"
+          bc-off-value="val6"
+        />val5 / val6 (use bc-value and bc-off-value)</label
+      >
+      <br />
+      [##cms.cbox.value|(not set)##]
+      <br />
+    </fieldset>
+  </body>
+</html>

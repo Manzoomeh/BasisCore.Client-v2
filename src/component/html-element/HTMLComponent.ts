@@ -20,6 +20,7 @@ export default abstract class HTMLComponent<
   readonly statusFieldNameToken: IToken<string>;
   readonly mergeTypeToken: IToken<string>;
   readonly eventHandler: EventListenerOrEventListenerObject;
+  readonly isCheckBox: boolean;
 
   constructor(element: TElement, context: IContext) {
     super(element, context);
@@ -27,6 +28,9 @@ export default abstract class HTMLComponent<
     this.statusFieldNameToken = this.getAttributeToken("bc-statusField");
     this.mergeTypeToken = this.getAttributeToken("bc-merge");
     this.eventHandler = this.onEventTriggerAsync.bind(this);
+    this.isCheckBox =
+      this.node instanceof HTMLInputElement &&
+      this.node.getAttribute("type")?.toLowerCase() == "checkbox";
   }
 
   public async initializeAsync(): Promise<void> {
@@ -111,12 +115,19 @@ export default abstract class HTMLComponent<
   }
 
   protected async getSourceValueAsync(event: Event): Promise<any> {
-    let retVal = await this.getAttributeValueAsync(`bc-value`);
-    if (!retVal) {
-      try {
-        retVal = (this.node as any).value;
-      } catch {
-        /*Nothing*/
+    let retVal: any = null;
+    if (this.isCheckBox && !(this.node as any).checked) {
+      retVal = await this.getAttributeValueAsync(`bc-off-value`);
+      retVal = retVal ?? "off";
+    } else {
+      retVal = await this.getAttributeValueAsync(`bc-value`);
+
+      if (!retVal) {
+        try {
+          retVal = (this.node as any).value;
+        } catch {
+          /*Nothing*/
+        }
       }
     }
     return retVal;
