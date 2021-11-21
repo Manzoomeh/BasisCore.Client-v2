@@ -9,6 +9,19 @@
   </head>
 
   <body dir="rtl">
+    <fieldset dir="ltr">
+      <label>
+        <input
+          type="checkbox"
+          bc-triggers="change"
+          name="cms.form"
+          bc-value="true"
+          bc-off-value="false"
+          checked
+        />In View Mode</label
+      >
+    </fieldset>
+
     <Basis
       core="api"
       url="/schema/answers?id=[##inline.object.id##]"
@@ -21,7 +34,7 @@
       datamembername="answer.data"
       run="atclient"
       schemaUrl="/schema/questions"
-      viewMode="true"
+      viewMode="[##cms.form.value|(true)##]"
       triggers="cms.form"
     >
     </Basis>
