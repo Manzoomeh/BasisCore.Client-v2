@@ -1,5 +1,5 @@
 import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
-import { IUserActionPart } from "../../IUserActionResult";
+import { IUserActionPart, IValidationError } from "../../IUserActionResult";
 import Question from "../../question/Question";
 import ListBaseType from "../ListBaseType";
 import layout from "./assets/layout.html";
@@ -22,6 +22,10 @@ export default class SelectType extends ListBaseType {
       option.selected = value?.value == item.id;
       select.options.add(option);
     });
+  }
+
+  public getValidationErrors(): IValidationError {
+    return null;
   }
 
   public getAdded(): IUserActionPart {

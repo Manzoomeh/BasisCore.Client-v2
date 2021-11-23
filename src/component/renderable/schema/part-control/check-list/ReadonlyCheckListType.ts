@@ -1,13 +1,12 @@
 import layout from "./assets/layout.html";
 import itemLayout from "./assets/readonly-item-layout.html";
-import ListBaseType from "../ListBaseType";
 import Question from "../../question/Question";
 import Util from "../../../../../Util";
 import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
-import { IUserActionPart } from "../../IUserActionResult";
 import { IEditParams } from "../../IFormMakerOptions";
+import ReadOnlyListBaseType from "../ReadOnlyListBaseType";
 
-export default class ReadonlyCheckListType extends ListBaseType {
+export default class ReadonlyCheckListType extends ReadOnlyListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
   }
@@ -29,15 +28,5 @@ export default class ReadonlyCheckListType extends ListBaseType {
         }
       }
     });
-  }
-
-  public getAdded(): IUserActionPart {
-    throw new Error("Method not implemented.");
-  }
-  public getEdited(): IUserActionPart {
-    throw new Error("Method not implemented.");
-  }
-  public getDeleted(): IUserActionPart {
-    throw new Error("Method not implemented.");
   }
 }

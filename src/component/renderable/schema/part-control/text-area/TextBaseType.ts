@@ -1,7 +1,7 @@
 import Question from "../../question/Question";
 import EditableQuestionPart from "../../question-part/EditableQuestionPart";
 import { IQuestionPart, IPartCollection } from "../../ISchema";
-import { IUserActionPart } from "../../IUserActionResult";
+import { IUserActionPart, IValidationError } from "../../IUserActionResult";
 
 export interface ITestElement {
   value: string;
@@ -22,6 +22,21 @@ export default abstract class TextBaseType<
     if (answer) {
       this.input.value = answer.values[0].value;
     }
+  }
+
+  public getValidationErrors(): IValidationError {
+    let retVal: IValidationError = null;
+    if (this.part.validations) {
+      const errors = this.Validate(this.input.value);
+      if (errors?.length > 0) {
+        retVal = {
+          part: this.part.part,
+          title: this.part.caption,
+          errors: errors,
+        };
+      }
+    }
+    return retVal;
   }
 
   public getAdded(): IUserActionPart {

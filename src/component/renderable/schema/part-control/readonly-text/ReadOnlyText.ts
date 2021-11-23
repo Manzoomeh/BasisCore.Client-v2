@@ -1,11 +1,10 @@
 import { IEditParams } from "../../IFormMakerOptions";
 import { IQuestionPart, IPartCollection } from "../../ISchema";
-import { IUserActionPart } from "../../IUserActionResult";
-import QuestionPart from "../../question-part/QuestionPart";
+import ReadonlyQuestionPart from "../../question-part/ReadonlyQuestionPart";
 import Question from "../../question/Question";
 import layout from "./assets/layout.html";
 
-export default class ReadOnlyText extends QuestionPart {
+export default class ReadOnlyText extends ReadonlyQuestionPart {
   private readonly _label: HTMLLabelElement;
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
@@ -20,15 +19,5 @@ export default class ReadOnlyText extends QuestionPart {
       };
       this.owner.options.callback(param);
     }
-  }
-
-  public getAdded(): IUserActionPart {
-    throw new Error("Method not implemented.");
-  }
-  public getEdited(): IUserActionPart {
-    throw new Error("Method not implemented.");
-  }
-  public getDeleted(): IUserActionPart {
-    throw new Error("Method not implemented.");
   }
 }

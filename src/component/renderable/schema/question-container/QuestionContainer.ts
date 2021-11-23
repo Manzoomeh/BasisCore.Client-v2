@@ -77,37 +77,44 @@ export default class QuestionContainer {
 
   public getUserAction(): IUserActionProperty {
     let userAction: IUserActionProperty = null;
-
-    const added = this._questions
-      .map((x) => x.getAddedParts())
+    const errors = this._questions
+      .map((x) => x.getValidationErrors())
       .filter((x) => x);
-    const edited = this._questions
-      .map((x) => x.getEditedParts())
-      .filter((x) => x);
-    const deleted = this._questions
-      .map((x) => x.getDeletedParts())
-      .filter((x) => x)
-      .map((x) =>
-        x.parts.length == this.questionSchema.parts.length &&
-        edited.length == 0 &&
-        added.length == 0
-          ? { id: x.id }
-          : x
-      );
 
-    this._removedQuestions?.forEach((x) => {
-      deleted.push({
-        id: x,
+    if (errors.length > 0) {
+      console.log("errors", errors);
+    } else {
+      const added = this._questions
+        .map((x) => x.getAddedParts())
+        .filter((x) => x);
+      const edited = this._questions
+        .map((x) => x.getEditedParts())
+        .filter((x) => x);
+      const deleted = this._questions
+        .map((x) => x.getDeletedParts())
+        .filter((x) => x)
+        .map((x) =>
+          x.parts.length == this.questionSchema.parts.length &&
+          edited.length == 0 &&
+          added.length == 0
+            ? { id: x.id }
+            : x
+        );
+
+      this._removedQuestions?.forEach((x) => {
+        deleted.push({
+          id: x,
+        });
       });
-    });
 
-    if (added.length > 0 || edited.length > 0 || deleted.length > 0) {
-      userAction = {
-        propId: this.questionSchema.prpId,
-        ...(added.length > 0 && { added: added }),
-        ...(edited.length > 0 && { edited: edited }),
-        ...(deleted.length > 0 && { deleted: deleted }),
-      };
+      if (added.length > 0 || edited.length > 0 || deleted.length > 0) {
+        userAction = {
+          propId: this.questionSchema.prpId,
+          ...(added.length > 0 && { added: added }),
+          ...(edited.length > 0 && { edited: edited }),
+          ...(deleted.length > 0 && { deleted: deleted }),
+        };
+      }
     }
     return userAction;
   }

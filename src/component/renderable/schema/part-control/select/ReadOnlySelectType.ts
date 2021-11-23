@@ -1,11 +1,10 @@
 import Question from "../../question/Question";
 import layout from "./assets/readonly-layout.html";
-import ListBaseType from "../ListBaseType";
 import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
-import { IUserActionPart } from "../../IUserActionResult";
 import { IEditParams } from "../../IFormMakerOptions";
+import ReadOnlyListBaseType from "../ReadOnlyListBaseType";
 
-export default class ReadOnlySelectType extends ListBaseType {
+export default class ReadOnlySelectType extends ReadOnlyListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
   }
@@ -23,15 +22,5 @@ export default class ReadOnlySelectType extends ListBaseType {
       };
       this.owner.options.callback(param);
     }
-  }
-
-  public getAdded(): IUserActionPart {
-    throw new Error("Method not implemented.");
-  }
-  public getEdited(): IUserActionPart {
-    throw new Error("Method not implemented.");
-  }
-  public getDeleted(): IUserActionPart {
-    throw new Error("Method not implemented.");
   }
 }

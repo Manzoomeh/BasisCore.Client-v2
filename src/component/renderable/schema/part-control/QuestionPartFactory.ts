@@ -9,7 +9,7 @@ import UnknownType from "./unknown/UnknownType";
 import QuestionPart from "../question-part/QuestionPart";
 import ReadonlyCheckListType from "./check-list/ReadonlyCheckListType";
 import ReadOnlyText from "./readonly-text/ReadOnlyText";
-import ReadOnlyTextAriaType from "./readonly-text-area/TextAriaType";
+import ReadOnlyTextAriaType from "./readonly-text-area/ReadOnlyTextAriaType";
 import ReadOnlySelectType from "./select/ReadOnlySelectType";
 import { IQuestion, IQuestionPart, IPartCollection } from "../ISchema";
 

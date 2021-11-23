@@ -3,3 +3,9 @@
   display: inline-block;
   margin-bottom: 5px;
 }
+
+[data-bc-part][data-bc-invalid],
+[data-bc-part][data-bc-invalid] * {
+  background-color: #fefe !important;
+  color: lightcoral !important;
+}

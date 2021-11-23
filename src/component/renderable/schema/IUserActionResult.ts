@@ -22,6 +22,24 @@ export interface IUserActionPart {
   values: Array<IUserActionPartValue>;
 }
 
+export interface IValidationError {
+  part: number;
+  title: string;
+  errors: Array<IValidationErrorPart>;
+}
+
+export type ValidationErrorType =
+  | "required"
+  | "regex"
+  | "range"
+  | "type"
+  | "length";
+
+export interface IValidationErrorPart {
+  type: ValidationErrorType;
+  params?: Array<any>;
+}
+
 export interface IUserActionPartValue {
   id?: number;
   value?: any;

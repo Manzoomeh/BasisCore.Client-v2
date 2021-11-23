@@ -34,9 +34,9 @@
                   "viewType": "text",
                   "cssClass": "css_13050_1",
                   "validations": {
+                    "required":true,
                     "minLength": "2",
-                    "maxLength": "4000",
-                    "dataType": "text"
+                    "maxLength": "4000"
                   },
                   "caption": "",
                   "link": ""
@@ -60,9 +60,7 @@
                   "viewType": "select",
                   "cssClass": "css_13057_1",
                   "validations": {
-                    "minLength": "2",
-                    "maxLength": "4000",
-                    "dataType": "text"
+                    "required": true
                   },
                   "caption": "واحد اندازه گیری",
                   "link": "/schema/fix-data/${prpId}/${part}"
@@ -72,8 +70,9 @@
                   "viewType": "text",
                   "cssClass": "css_13057_2",
                   "validations": {
-                    "minLength": "2",
-                    "maxLength": "4000",
+                    "required":true,
+                    "min": 200,
+                    "max": 4000,
                     "dataType": "int"
                   },
                   "caption": "سرعت (دور بر دقیقه)",
@@ -83,7 +82,7 @@
                   "part": 3,
                   "viewType": "text",
                   "cssClass": "css_13057_3",
-                  "validations": {
+                  "validations1": {
                     "minLength": "2",
                     "maxLength": "4000",
                     "dataType": "int"
@@ -109,9 +108,6 @@
                   "part": 1,
                   "viewType": "select",
                   "cssClass": "css_13060_1",
-                  "validations": {
-                    "dataType": "text"
-                  },
                   "fixValues": [
                     {
                       "id": 0,
@@ -147,9 +143,6 @@
                   "part": 1,
                   "viewType": "checklist",
                   "cssClass": "css_13060_1",
-                  "validations": {
-                    "dataType": "text"
-                  },
                   "fixValues": [
                     {
                       "id": 4,
@@ -181,9 +174,6 @@
                   "part": 1,
                   "viewType": "textarea",
                   "cssClass": "css_13060_1",
-                  "validations": {
-                    "dataType": "text"
-                  },
                   "caption": "",
                   "link": ""
                 }
@@ -205,9 +195,6 @@
                   "part": 1,
                   "viewType": "autocomplete",
                   "cssClass": "css_13060_1",
-                  "validations": {
-                    "dataType": "text"
-                  },
                   "caption": "",
                   "link": "/schema/autocomplete?term=${term}"
                 }
@@ -229,9 +216,6 @@
                   "part": 1,
                   "viewType": "autocomplete",
                   "cssClass": "css_13060_1",
-                  "validations": {
-                    "dataType": "text"
-                  },
                   "caption": "کشور",
                   "link": "/schema/autocomplete?term=${term}"
                 },
@@ -239,7 +223,7 @@
                   "part": 2,
                   "viewType": "text",
                   "cssClass": "css_13057_2",
-                  "validations": {
+                  "validations1": {
                     "minLength": "2",
                     "maxLength": "4000",
                     "dataType": "int"

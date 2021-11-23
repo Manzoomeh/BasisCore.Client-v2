@@ -3,7 +3,7 @@ import Question from "../../question/Question";
 import EditableQuestionPart from "../../question-part/EditableQuestionPart";
 import Util from "../../../../../Util";
 import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
-import { IUserActionPart } from "../../IUserActionResult";
+import { IUserActionPart, IValidationError } from "../../IUserActionResult";
 import { IEditParams } from "../../IFormMakerOptions";
 
 export default abstract class AutoCompleteType extends EditableQuestionPart {
@@ -46,6 +46,10 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
       }
     }
     return mustChange;
+  }
+
+  public getValidationErrors(): IValidationError {
+    return null;
   }
 
   public getAdded(): IUserActionPart {

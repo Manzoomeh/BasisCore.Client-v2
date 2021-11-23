@@ -17,6 +17,7 @@ export default class Question {
   readonly button: HTMLButtonElement;
   readonly owner: QuestionContainer;
   readonly answer: IAnswerPart;
+  private readonly _ui: HTMLElement;
 
   private _onAddClick: AddRemoveCallback;
   private readonly _onRemoveClick: AddRemoveCallback;
@@ -33,10 +34,10 @@ export default class Question {
     this.options = options;
     this.owner = owner;
     this.answer = answer;
-    const ui = Util.parse(layout).querySelector("[data-bc-answer]");
-    this.element = ui.querySelector("[data-bc-part-container]");
+    this._ui = Util.parse(layout).querySelector("[data-bc-answer]");
+    this.element = this._ui.querySelector("[data-bc-part-container]");
     if (this.question.multi && !this.options.viewMode) {
-      this.button = ui.querySelector("[data-bc-btn]");
+      this.button = this._ui.querySelector("[data-bc-btn]");
       this.button.setAttribute("data-bc-btn", "add");
       this.button.addEventListener("click", this.onBtnClick.bind(this));
       this._onAddClick = () => {
@@ -45,12 +46,12 @@ export default class Question {
       };
       this._onRemoveClick = () => {
         this.owner.onQuestionRemove(this);
-        ui.remove();
+        this._ui.remove();
       };
     } else {
-      ui.querySelector("[data-bc-btn]").remove();
+      this._ui.querySelector("[data-bc-btn]").remove();
     }
-    container.appendChild(ui);
+    container.appendChild(this._ui);
 
     this._parts = question.parts.map((part) => {
       const value = this.answer?.parts.find((x) => x.part === part.part);
@@ -82,6 +83,13 @@ export default class Question {
           parts: userAction,
         }
       : null;
+  }
+
+  public getValidationErrors() {
+    const validationErrors = this._parts
+      .map((x) => x.getValidationErrors())
+      .filter((x) => x);
+    return validationErrors.length > 0 ? validationErrors : null;
   }
 
   public getEditedParts(): IUserActionAnswer {

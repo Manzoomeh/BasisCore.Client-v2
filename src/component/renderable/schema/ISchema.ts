@@ -40,12 +40,24 @@ export interface IQuestionPart {
   part: number;
   viewType: string | ViewType;
   cssClass: string;
-  validations: IDictionary<any>;
+  validations: IValidationOptions;
   caption?: string;
   link?: string;
   fixValues?: Array<IFixValue>;
   dependency?: Array<IDependency>;
   method?: WebMethod;
+}
+
+export type AnswerDataType = "float" | "int";
+
+export interface IValidationOptions {
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  dataType?: AnswerDataType;
+  required?: boolean;
+  regex?: string;
 }
 
 export interface IFixValue {

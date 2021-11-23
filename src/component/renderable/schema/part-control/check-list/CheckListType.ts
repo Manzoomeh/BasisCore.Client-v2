@@ -4,7 +4,11 @@ import ListBaseType from "../ListBaseType";
 import Question from "../../question/Question";
 import Util from "../../../../../Util";
 import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
-import { IUserActionPartValue, IUserActionPart } from "../../IUserActionResult";
+import {
+  IUserActionPart,
+  IUserActionPartValue,
+  IValidationError,
+} from "../../IUserActionResult";
 
 export default class CheckListType extends ListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
@@ -52,6 +56,10 @@ export default class CheckListType extends ListBaseType {
       const template = Util.parse(newTemplate).querySelector("div");
       this.element.querySelector("div").appendChild(template);
     });
+  }
+
+  public getValidationErrors(): IValidationError {
+    return null;
   }
 
   public getAdded(): IUserActionPart {
