@@ -54,7 +54,7 @@ export default class CheckListType extends ListBaseType {
     });
   }
 
-  public getAddedParts(): IUserActionPart {
+  public getAdded(): IUserActionPart {
     let retVal = null;
     const [addedItems, _] = this.getChangeSet();
     if (addedItems) {
@@ -66,11 +66,11 @@ export default class CheckListType extends ListBaseType {
     return retVal;
   }
 
-  public getEditedParts(): IUserActionPart {
+  public getEdited(): IUserActionPart {
     return null;
   }
 
-  public getDeletedParts(): IUserActionPart {
+  public getDeleted(): IUserActionPart {
     let retVal = null;
     const [_, deletedItems] = this.getChangeSet();
     if (deletedItems) {

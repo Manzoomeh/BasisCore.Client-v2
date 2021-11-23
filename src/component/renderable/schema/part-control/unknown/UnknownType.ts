@@ -9,15 +9,15 @@ export default class UnknownType extends EditableQuestionPart {
     super(part, layout, owner, answer);
   }
 
-  public getAddedParts(): IUserActionPart {
+  public getAdded(): IUserActionPart {
     return null;
   }
 
-  public getEditedParts(): IUserActionPart {
+  public getEdited(): IUserActionPart {
     return null;
   }
 
-  public getDeletedParts(): IUserActionPart {
+  public getDeleted(): IUserActionPart {
     return null;
   }
 }

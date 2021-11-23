@@ -22,13 +22,13 @@ export default class ReadOnlyTextAriaType extends QuestionPart {
     }
   }
 
-  public getAddedParts(): IUserActionPart {
+  public getAdded(): IUserActionPart {
     throw new Error("Method not implemented.");
   }
-  public getEditedParts(): IUserActionPart {
+  public getEdited(): IUserActionPart {
     throw new Error("Method not implemented.");
   }
-  public getDeletedParts(): IUserActionPart {
+  public getDeleted(): IUserActionPart {
     throw new Error("Method not implemented.");
   }
 }

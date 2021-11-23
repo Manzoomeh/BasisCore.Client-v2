@@ -24,7 +24,7 @@ export default class SelectType extends ListBaseType {
     });
   }
 
-  public getAddedParts(): IUserActionPart {
+  public getAdded(): IUserActionPart {
     let retVal = null;
     if (!this.answer) {
       retVal = {
@@ -39,7 +39,7 @@ export default class SelectType extends ListBaseType {
     return retVal;
   }
 
-  public getEditedParts(): IUserActionPart {
+  public getEdited(): IUserActionPart {
     let retVal = null;
     if (this.answer) {
       const newValue = this._select.options[this._select.selectedIndex].value;
@@ -59,7 +59,7 @@ export default class SelectType extends ListBaseType {
     return retVal;
   }
 
-  public getDeletedParts(): IUserActionPart {
+  public getDeleted(): IUserActionPart {
     let retVal = null;
     if (this.answer) {
       const newValue = this._select.options[this._select.selectedIndex].value;

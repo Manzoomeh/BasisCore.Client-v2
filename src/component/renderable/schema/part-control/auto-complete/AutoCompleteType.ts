@@ -48,7 +48,7 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     return mustChange;
   }
 
-  public getAddedParts(): IUserActionPart {
+  public getAdded(): IUserActionPart {
     let retVal = null;
     if (!this.answer) {
       retVal = {
@@ -63,7 +63,7 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     return retVal;
   }
 
-  public getEditedParts(): IUserActionPart {
+  public getEdited(): IUserActionPart {
     let retVal = null;
     if (
       this.answer &&
@@ -83,7 +83,7 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     return retVal;
   }
 
-  public getDeletedParts(): IUserActionPart {
+  public getDeleted(): IUserActionPart {
     let retVal = null;
     if (this.answer && !this.selectedId) {
       retVal = this.answer;

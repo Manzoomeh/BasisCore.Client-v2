@@ -76,9 +76,7 @@ export default class Question {
   }
 
   public getAddedParts(): IUserActionAnswer {
-    const userAction = this._parts
-      .map((x) => x.getAddedParts())
-      .filter((x) => x);
+    const userAction = this._parts.map((x) => x.getAdded()).filter((x) => x);
     return userAction.length > 0
       ? {
           parts: userAction,
@@ -87,9 +85,7 @@ export default class Question {
   }
 
   public getEditedParts(): IUserActionAnswer {
-    const userAction = this._parts
-      .map((x) => x.getEditedParts())
-      .filter((x) => x);
+    const userAction = this._parts.map((x) => x.getEdited()).filter((x) => x);
     return userAction.length > 0
       ? {
           id: this.answer.id,
@@ -99,9 +95,7 @@ export default class Question {
   }
 
   public getDeletedParts(): IUserActionAnswer {
-    const userAction = this._parts
-      .map((x) => x.getDeletedParts())
-      .filter((x) => x);
+    const userAction = this._parts.map((x) => x.getDeleted()).filter((x) => x);
     return userAction.length > 0
       ? {
           id: this.answer.id,

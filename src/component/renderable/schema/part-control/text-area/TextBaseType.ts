@@ -24,7 +24,7 @@ export default abstract class TextBaseType<
     }
   }
 
-  public getAddedParts(): IUserActionPart {
+  public getAdded(): IUserActionPart {
     let retVal = null;
     if (!this.answer) {
       retVal = {
@@ -39,7 +39,7 @@ export default abstract class TextBaseType<
     return retVal;
   }
 
-  public getEditedParts(): IUserActionPart {
+  public getEdited(): IUserActionPart {
     let retVal = null;
     if (this.answer) {
       const changed = this.input.value != this.answer.values[0].value;
@@ -57,7 +57,7 @@ export default abstract class TextBaseType<
     }
     return retVal;
   }
-  public getDeletedParts(): IUserActionPart {
+  public getDeleted(): IUserActionPart {
     let retVal = null;
     if (this.answer) {
       const changed = this.input.value != this.answer.values[0].value;

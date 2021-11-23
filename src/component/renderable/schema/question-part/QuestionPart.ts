@@ -34,7 +34,7 @@ export default abstract class QuestionPart {
     return url;
   }
 
-  public abstract getAddedParts(): IUserActionPart;
-  public abstract getEditedParts(): IUserActionPart;
-  public abstract getDeletedParts(): IUserActionPart;
+  public abstract getAdded(): IUserActionPart;
+  public abstract getEdited(): IUserActionPart;
+  public abstract getDeleted(): IUserActionPart;
 }
