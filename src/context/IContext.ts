@@ -16,7 +16,8 @@ export default interface IContext {
   loadPageAsync(
     pageName: string,
     parameters: IDictionary<string>,
-    method?: HttpMethod
+    method?: HttpMethod,
+    url?: string
   ): Promise<string>;
 
   loadDataAsync(

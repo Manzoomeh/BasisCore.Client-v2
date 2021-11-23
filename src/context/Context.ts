@@ -40,7 +40,8 @@ export default abstract class Context implements IContext {
   public abstract loadPageAsync(
     pageName: string,
     parameters: IDictionary<string>,
-    method?: HttpMethod
+    method?: HttpMethod,
+    url?: string
   ): Promise<string>;
 
   public checkSourceHeartbeatAsync(source: string): Promise<boolean> {

@@ -59,7 +59,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     method?: HttpMethod
   ): Promise<string> {
     return await WebConnectionOptions.ajax(
-      `${this.Url}${pageName}`,
+      `${this.Url}${pageName ?? ""}`,
       method ?? this.Verb ?? context.options.getDefault("call.verb"),
       parameters
     );

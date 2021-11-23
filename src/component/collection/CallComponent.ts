@@ -5,6 +5,7 @@ import ComponentCollection from "../../ComponentCollection";
 import CommandComponent from "../CommandComponent";
 import { HttpMethod } from "../../type-alias";
 import IBCUtil from "../../wrapper/IBCUtil";
+import IToken from "../../token/IToken";
 
 declare const $bc: IBCUtil;
 
@@ -14,6 +15,11 @@ export default class CallComponent extends CommandComponent {
   private readonly container: DependencyContainer;
   readonly priority: Priority = Priority.high;
   private collection: ComponentCollection;
+  private urlToken: IToken<string>;
+  private fileToken: IToken<string>;
+  private pageSizeToken: IToken<string>;
+  private methodeToken: IToken<string>;
+  private contentToken: IToken<string>;
 
   constructor(
     @inject("element") element: Element,
@@ -24,13 +30,21 @@ export default class CallComponent extends CommandComponent {
     this.container = container;
   }
 
+  override initializeAsync(): Promise<void> {
+    this.urlToken = this.getAttributeToken("url");
+    this.pageSizeToken = this.getAttributeToken("pagesize");
+    this.methodeToken = this.getAttributeToken("method");
+    this.fileToken = this.getAttributeToken("file");
+    this.contentToken = this.node.outerHTML.ToStringToken(this.context);
+    return super.initializeAsync();
+  }
+
   protected async runAsync(): Promise<void> {
-    const filename = await this.getAttributeValueAsync("file");
-    const pageSize = await this.getAttributeValueAsync("pagesize");
-    const command = await this.node.outerHTML
-      .ToStringToken(this.context)
-      .getValueAsync();
-    const methodValue = await this.getAttributeValueAsync("method");
+    const filename = await this.fileToken?.getValueAsync();
+    const pageSize = await this.pageSizeToken?.getValueAsync();
+    const command = await this.contentToken?.getValueAsync();
+    const methodValue = await this.methodeToken?.getValueAsync();
+    const url = await this.urlToken?.getValueAsync();
     const method = (
       methodValue ?? this.context.options.getDefault<string>("call.verb")
     ).toUpperCase() as HttpMethod;
@@ -56,7 +70,8 @@ export default class CallComponent extends CommandComponent {
     const result = await this.context.loadPageAsync(
       filename,
       parameters,
-      method
+      method,
+      url
     );
     const content = $bc.util.toNode(result);
     const childNodes = [...content.childNodes];

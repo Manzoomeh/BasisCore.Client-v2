@@ -4,6 +4,7 @@ import ClientException from "../exception/ClientException";
 import IDictionary from "../IDictionary";
 import ILogger from "../logger/ILogger";
 import ConnectionOptionsManager from "../options/connection-options/ConnectionOptionsManager";
+import WebConnectionOptions from "../options/connection-options/WebConnectionOptions";
 import { HostOptions } from "../options/HostOptions";
 import IContextRepository from "../repository/IContextRepository";
 import { HttpMethod, SourceId } from "../type-alias";
@@ -30,10 +31,13 @@ export default abstract class RootContext extends Context {
   public loadPageAsync(
     pageName: string,
     parameters: IDictionary<string>,
-    method?: HttpMethod
+    method?: HttpMethod,
+    url?: string
   ): Promise<string> {
-    var connectionInfo = this.connections.getConnection("callcommand");
-    return connectionInfo.loadPageAsync(this, pageName, parameters, method);
+    const provider = url
+      ? new WebConnectionOptions(url, url)
+      : this.connections.getConnection("callcommand");
+    return provider.loadPageAsync(this, pageName, parameters, method);
   }
 
   public loadDataAsync(

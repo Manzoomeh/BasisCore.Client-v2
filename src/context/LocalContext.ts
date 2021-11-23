@@ -41,9 +41,10 @@ export default class LocalContext extends Context implements ILocalContext {
   public loadPageAsync(
     pageName: string,
     parameters: IDictionary<string>,
-    method?: HttpMethod
+    method?: HttpMethod,
+    url?: string
   ): Promise<string> {
-    return this.owner.loadPageAsync(pageName, parameters, method);
+    return this.owner.loadPageAsync(pageName, parameters, method, url);
   }
 
   public loadDataAsync(
