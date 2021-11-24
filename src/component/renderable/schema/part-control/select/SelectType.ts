@@ -25,7 +25,9 @@ export default class SelectType extends ListBaseType {
   }
 
   public getValidationErrors(): IValidationError {
-    return null;
+    const value = this._select.options[this._select.selectedIndex].value;
+
+    return this.ValidateValue(value === "0" ? null : value);
   }
 
   public getAdded(): IUserActionPart {

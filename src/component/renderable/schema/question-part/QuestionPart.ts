@@ -6,7 +6,6 @@ import {
   IUserActionPart,
   IValidationError,
   IValidationErrorPart,
-  ValidationErrorType,
 } from "../IUserActionResult";
 
 export default abstract class QuestionPart {
@@ -39,23 +38,27 @@ export default abstract class QuestionPart {
     return url;
   }
 
-  protected Validate(userValue: any): Array<IValidationErrorPart> {
-    const retVal: Array<IValidationErrorPart> = [];
-    const hasValue = userValue && userValue.toString() != "";
+  protected ValidateValue(userValue: any | Array<any>): IValidationError {
+    const errors: Array<IValidationErrorPart> = [];
+    let retVal: IValidationError = null;
+    const isArray = Array.isArray(userValue);
+    const hasValue = isArray
+      ? userValue && userValue.length > 0
+      : userValue && userValue.toString() != "";
     if (this.part.validations) {
       try {
         if (this.part.validations.required) {
           if (!hasValue) {
-            retVal.push({
+            errors.push({
               type: "required",
             });
           }
         }
       } catch (ex) {
-        console.error("Error in validation", ex);
+        console.error("Error in apply required validation", ex);
       }
       if (hasValue) {
-        if (this.part.validations.dataType) {
+        if (this.part.validations.dataType && !isArray) {
           try {
             const ok = (
               this.part.validations.dataType === "int"
@@ -63,27 +66,27 @@ export default abstract class QuestionPart {
                 : /^[+-]?\d+(\.\d+)?$/
             ).test(userValue.toString());
             if (!ok) {
-              retVal.push({
+              errors.push({
                 type: "type",
                 params: [this.part.validations.dataType],
               });
             }
           } catch (ex) {
-            console.error("Error in validation", ex);
+            console.error("Error in apply data type validation", ex);
           }
         }
-        if (this.part.validations.regex) {
+        if (this.part.validations.regex && !isArray) {
           try {
             if (
               new RegExp(this.part.validations.regex).test(userValue.toString())
             ) {
-              retVal.push({
+              errors.push({
                 type: "regex",
-                params: [this.part.validations.dataType],
+                params: [this.part.validations.regex, userValue],
               });
             }
           } catch (ex) {
-            console.error("Error in validation", ex);
+            console.error("Error in apply regex validation", ex);
           }
         }
         try {
@@ -95,37 +98,52 @@ export default abstract class QuestionPart {
             lengthOk = userValue.length <= this.part.validations.maxLength;
           }
           if (!lengthOk) {
-            retVal.push({
+            errors.push({
               type: "length",
               params: [
-                this.part.validations.minLength,
-                this.part.validations.maxLength,
+                this.part.validations.minLength ?? null,
+                this.part.validations.maxLength ?? null,
               ],
             });
           }
         } catch (ex) {
-          console.error("Error in validation", ex);
+          console.error(
+            "Error in apply min length and max length validation",
+            ex
+          );
         }
-        try {
-          let rangeOk = true;
-          if (this.part.validations.min) {
-            rangeOk = userValue >= this.part.validations.min;
+        if (!isArray) {
+          try {
+            let rangeOk = true;
+            if (this.part.validations.min) {
+              rangeOk = userValue >= this.part.validations.min;
+            }
+            if (rangeOk && this.part.validations.max) {
+              rangeOk = userValue <= this.part.validations.max;
+            }
+            if (!rangeOk) {
+              errors.push({
+                type: "range",
+                params: [
+                  this.part.validations.min ?? null,
+                  this.part.validations.max ?? null,
+                ],
+              });
+            }
+          } catch (ex) {
+            console.error("Error in apply min and max validation", ex);
           }
-          if (rangeOk && this.part.validations.max) {
-            rangeOk = userValue <= this.part.validations.max;
-          }
-          if (!rangeOk) {
-            retVal.push({
-              type: "range",
-              params: [this.part.validations.min, this.part.validations.max],
-            });
-          }
-        } catch (ex) {
-          console.error("Error in validation", ex);
         }
       }
+      if (errors?.length > 0) {
+        retVal = {
+          part: this.part.part,
+          title: this.part.caption,
+          errors: errors,
+        };
+      }
     }
-    if (retVal.length > 0) {
+    if (retVal) {
       this.element.setAttribute("data-bc-invalid", "");
     } else {
       this.element.removeAttribute("data-bc-invalid");

@@ -25,18 +25,7 @@ export default abstract class TextBaseType<
   }
 
   public getValidationErrors(): IValidationError {
-    let retVal: IValidationError = null;
-    if (this.part.validations) {
-      const errors = this.Validate(this.input.value);
-      if (errors?.length > 0) {
-        retVal = {
-          part: this.part.part,
-          title: this.part.caption,
-          errors: errors,
-        };
-      }
-    }
-    return retVal;
+    return this.ValidateValue(this.input.value);
   }
 
   public getAdded(): IUserActionPart {

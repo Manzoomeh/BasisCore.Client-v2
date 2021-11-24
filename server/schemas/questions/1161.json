@@ -35,8 +35,8 @@
                   "cssClass": "css_13050_1",
                   "validations": {
                     "required":true,
-                    "minLength": "2",
-                    "maxLength": "4000"
+                    "minLength": 3,
+                    "maxLength": 20
                   },
                   "caption": "",
                   "link": ""
@@ -110,7 +110,7 @@
                   "cssClass": "css_13060_1",
                   "fixValues": [
                     {
-                      "id": 0,
+                      "id":0,
                       "value": "لطفا یکی از موارد را انتخاب کنید"
                     },
                     {
@@ -143,6 +143,10 @@
                   "part": 1,
                   "viewType": "checklist",
                   "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true,
+                    "maxLength":1
+                  },
                   "fixValues": [
                     {
                       "id": 4,
@@ -175,7 +179,12 @@
                   "viewType": "textarea",
                   "cssClass": "css_13060_1",
                   "caption": "",
-                  "link": ""
+                  "link": "",
+                  "validations": {
+                    "required":true,
+                    "minLength": 2,
+                    "maxLength": 30
+                  }
                 }
               ]
             },
@@ -195,6 +204,9 @@
                   "part": 1,
                   "viewType": "autocomplete",
                   "cssClass": "css_13060_1",
+                  "validations": {
+                    "required":true
+                  },
                   "caption": "",
                   "link": "/schema/autocomplete?term=${term}"
                 }

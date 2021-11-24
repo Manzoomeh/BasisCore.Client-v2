@@ -49,7 +49,7 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
   }
 
   public getValidationErrors(): IValidationError {
-    return null;
+    return this.ValidateValue(this.selectedId);
   }
 
   public getAdded(): IUserActionPart {
