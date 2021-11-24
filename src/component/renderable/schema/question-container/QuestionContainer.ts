@@ -81,9 +81,7 @@ export default class QuestionContainer {
       .map((x) => x.getValidationErrors())
       .filter((x) => x);
 
-    if (errors.length > 0) {
-      console.log("errors", errors);
-    } else {
+    if (errors.length == 0) {
       const added = this._questions
         .map((x) => x.getAddedParts())
         .filter((x) => x);

@@ -13,6 +13,7 @@ export default abstract class QuestionPart {
   protected readonly element: Element;
   protected readonly owner: Question;
   protected readonly answer: IPartCollection;
+  private readonly _validationElement: HTMLUListElement;
 
   constructor(
     part: IQuestionPart,
@@ -24,7 +25,10 @@ export default abstract class QuestionPart {
     this.answer = answer;
     this.part = part;
     this.element = Util.parse(layout).querySelector("[data-bc-part]");
-    this.element.innerHTML = partLayout;
+    this._validationElement = this.element.querySelector(
+      "[data-bc-validation-part]"
+    );
+    this.element.querySelector("[data-bc-content]").outerHTML = partLayout;
     this.owner.element.appendChild(this.element);
     this.element.setAttribute("data-bc-part-related-cell", "");
   }
@@ -145,8 +149,16 @@ export default abstract class QuestionPart {
     }
     if (retVal) {
       this.element.setAttribute("data-bc-invalid", "");
+      var str = "";
+      retVal.errors.forEach((error) => {
+        str += `<li>${error.type} ${
+          error.params ? " - [" + error.params.join(",") + "]" : ""
+        }</li>`;
+      });
+      this._validationElement.innerHTML = str;
     } else {
       this.element.removeAttribute("data-bc-invalid");
+      this._validationElement.innerHTML = "";
     }
     return retVal;
   }

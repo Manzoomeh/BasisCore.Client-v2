@@ -9,3 +9,11 @@
   background-color: #fefe !important;
   color: lightcoral !important;
 }
+
+[data-bc-part] [data-bc-validation-part] {
+  display: none;
+}
+
+[data-bc-part][data-bc-invalid] [data-bc-validation-part] {
+  display: block;
+}

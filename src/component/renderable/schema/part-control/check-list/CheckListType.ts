@@ -62,7 +62,6 @@ export default class CheckListType extends ListBaseType {
     const selectedItems = Array.from(this.element.querySelectorAll("input"))
       .map((x) => (x.checked ? parseInt(x.value) : null))
       .filter((x) => x);
-    console.log(selectedItems);
     return this.ValidateValue(selectedItems);
   }
 
