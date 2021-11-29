@@ -12,7 +12,7 @@ export default interface IUserDefineComponent {
   range: RangeObject;
   triggers: string[];
   priority: Priority;
-  container: DependencyContainer;
+  dc: DependencyContainer;
   toNode(rawHtml: string): DocumentFragment;
   toHTMLElement(rawXml: string): HTMLElement;
   setContent(newContent: Node): void;
@@ -36,7 +36,12 @@ export default interface IUserDefineComponent {
   processNodesAsync(nodes: Array<Node>): Promise<IDisposable>;
   disposeAsync(): Promise<void>;
   disposed: boolean;
-  storeAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string;
-  getRandomName(prefix?:string,postfix?:string):string;
-  format(pattern:string,...params:any[]):string;
+  storeAsGlobal(
+    data: any,
+    name?: string,
+    prefix?: string,
+    postfix?: string
+  ): string;
+  getRandomName(prefix?: string, postfix?: string): string;
+  format(pattern: string, ...params: any[]): string;
 }

@@ -15,7 +15,7 @@ export default class RepeaterComponent extends SourceBaseComponent {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("dc") container: DependencyContainer
   ) {
     super(element, context);
     this.container = container;
@@ -36,8 +36,9 @@ export default class RepeaterComponent extends SourceBaseComponent {
       childNodes.forEach((node) => fragment.appendChild(node));
       this.setContent(fragment, true);
       const childContainer = this.container.createChildContainer();
-      childContainer.register("OwnerContext", { useValue: this.context });
-      childContainer.register("container", { useValue: childContainer });
+      childContainer.register("parent.context", { useValue: this.context });
+      childContainer.register("dc", { useValue: childContainer });
+      childContainer.register("parent.dc", { useValue: this.container });
       const localContext =
         childContainer.resolve<ILocalContext>("ILocalContext");
       this.oldChildContexts.push(localContext);

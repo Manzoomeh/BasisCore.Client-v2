@@ -27,7 +27,7 @@ export default class ComponentCollection implements IDisposable {
 
   constructor(
     @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("dc") container: DependencyContainer
   ) {
     this.container = container;
     this.context = context;
@@ -171,7 +171,8 @@ export default class ComponentCollection implements IDisposable {
     const childContainer = this.container.createChildContainer();
     childContainer.register("element", { useValue: element });
     childContainer.register("context", { useValue: this.context });
-    childContainer.register("container", { useValue: childContainer });
+    childContainer.register("dc", { useValue: childContainer });
+    childContainer.register("parent.dc", { useValue: this.container });
     return childContainer.resolve<CommandComponent>(token);
   }
 

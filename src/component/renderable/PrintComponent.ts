@@ -8,7 +8,7 @@ export default class PrintComponent extends RenderableComponent<FaceRenderResult
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("dc") container: DependencyContainer
   ) {
     super(element, context, container);
   }

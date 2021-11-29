@@ -69,7 +69,7 @@ export default class BCWrapper implements IBCWrapper {
       childContainer.register("root.nodes", {
         useValue: this.elementList,
       });
-      childContainer.register("container", { useValue: childContainer });
+      childContainer.register("dc", { useValue: childContainer });
       this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
       this.manager.Trigger(this._basiscore);
     }

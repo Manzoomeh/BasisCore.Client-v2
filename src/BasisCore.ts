@@ -12,7 +12,7 @@ export default class BasisCore implements IBasisCore {
 
   constructor(
     context: BasisCoreRootContext,
-    @inject("container") container: DependencyContainer,
+    @inject("dc") container: DependencyContainer,
     @inject("root.nodes") nodes: Array<Node>
   ) {
     this.context = context;

@@ -13,7 +13,7 @@ export default class LocalRootContext extends RootContext {
 
   constructor(
     @inject("IContextRepository") repository: IContextRepository,
-    @inject("OwnerContext") owner: Context,
+    @inject("parent.context") owner: Context,
     options: HostOptions
   ) {
     super(repository, options, owner.logger);

@@ -16,8 +16,8 @@ export default class LocalContext extends Context implements ILocalContext {
 
   constructor(
     @inject("IContextRepository") repository: IContextRepository,
-    @inject("OwnerContext") owner: Context,
-    @inject("HostOptions") options: HostOptions
+    @inject("parent.context") owner: Context,
+    @inject("host_options") options: HostOptions
   ) {
     super(repository, options, owner.logger);
     this.owner = owner;

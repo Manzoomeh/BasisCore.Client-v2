@@ -24,7 +24,7 @@ export default class CallComponent extends CommandComponent {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("dc") container: DependencyContainer
   ) {
     super(element, context);
     this.container = container;

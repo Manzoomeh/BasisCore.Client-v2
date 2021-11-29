@@ -16,17 +16,17 @@ export default class UserDefineComponent
   extends CommandComponent
   implements IUserDefineComponent
 {
-  readonly container: DependencyContainer;
+  readonly dc: DependencyContainer;
   private collections: Array<ComponentCollection>;
   private manager: IComponentManager;
 
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("dc") container: DependencyContainer
   ) {
     super(element, context);
-    this.container = container;
+    this.dc = container;
   }
 
   public async initializeAsync(): Promise<void> {
@@ -82,7 +82,7 @@ export default class UserDefineComponent
   }
 
   public async processNodesAsync(nodes: Array<Node>): Promise<IDisposable> {
-    const newCollection = this.container.resolve(ComponentCollection);
+    const newCollection = this.dc.resolve(ComponentCollection);
     if (!this.collections) {
       this.collections = new Array<ComponentCollection>();
     }
@@ -99,15 +99,20 @@ export default class UserDefineComponent
     return super.disposeAsync();
   }
 
-  public storeAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string {
-    return $bc.util.storeAsGlobal(data,name,prefix,postfix);
+  public storeAsGlobal(
+    data: any,
+    name?: string,
+    prefix?: string,
+    postfix?: string
+  ): string {
+    return $bc.util.storeAsGlobal(data, name, prefix, postfix);
   }
 
   public getRandomName(prefix?: string, postfix?: string): string {
-    return $bc.util.getRandomName(prefix,postfix);
+    return $bc.util.getRandomName(prefix, postfix);
   }
 
   public format(pattern: string, ...params: any[]): string {
-    return $bc.util.format(pattern,params);
+    return $bc.util.format(pattern, params);
   }
 }

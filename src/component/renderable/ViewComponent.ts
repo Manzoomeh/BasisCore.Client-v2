@@ -18,7 +18,7 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("dc") container: DependencyContainer
   ) {
     super(element, context, container, ["child"]);
   }

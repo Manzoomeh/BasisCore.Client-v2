@@ -17,7 +17,7 @@ export default class GroupComponent extends CommandComponent {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
-    @inject("container") container: DependencyContainer
+    @inject("dc") container: DependencyContainer
   ) {
     super(element, context);
     this.container = container;
@@ -30,12 +30,9 @@ export default class GroupComponent extends CommandComponent {
   public async runAsync(): Promise<void> {
     this.oldLocalContext?.dispose();
     this.currentDC = this.container.createChildContainer();
-    this.currentDC.register("OwnerContext", {
-      useValue: this.context,
-    });
-    this.currentDC.register("container", {
-      useValue: this.currentDC,
-    });
+    this.currentDC.register("parent.context", { useValue: this.context });
+    this.currentDC.register("dc", { useValue: this.currentDC });
+    this.currentDC.register("parent.dc", { useValue: this.container });
 
     const options = await this.getAttributeValueAsync("options");
     if (options) {

@@ -9,11 +9,11 @@ export default class BasisCoreRootContext extends RootContext {
   constructor(
     @inject("IContextRepository") repository: IContextRepository,
     @inject("ILogger") logger: ILogger,
-    @inject("container") container: DependencyContainer,
+    @inject("dc") container: DependencyContainer,
     options: HostOptions
   ) {
     super(repository, options, logger);
-    container.register("HostOptions", { useValue: options });
+    container.register("host_options", { useValue: options });
     const queryString = window.location.search.substring(1);
     this.addQueryString(queryString);
     this.addRequestRelatedSources();
