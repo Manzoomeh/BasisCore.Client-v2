@@ -24,7 +24,7 @@ module.exports = (env, options) => {
       open: true,
       port: 3000,
     },
-    module: options.mode,
+    mode: options.mode,
     optimization: {
       minimize: options.mode === "production",
       minimizer: [
