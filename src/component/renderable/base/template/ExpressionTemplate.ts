@@ -2,11 +2,17 @@ import ITemplate from "./ITemplate";
 
 export class ExpressionTemplate implements ITemplate<any> {
   private readonly rawExpression: string;
+  private readonly originalExpression: string;
   private readonly reservedKeys: Array<string>;
   private getValue: (...data: any) => string;
 
-  constructor(rawExpression: string, reservedKeys: Array<string>) {
+  constructor(
+    rawExpression: string,
+    originalExpression: string,
+    reservedKeys: Array<string>
+  ) {
     this.rawExpression = rawExpression;
+    this.originalExpression = originalExpression;
     this.reservedKeys = reservedKeys;
   }
 
@@ -27,7 +33,7 @@ export class ExpressionTemplate implements ITemplate<any> {
               return ${this.rawExpression};
             }catch(e){
               if( e instanceof ReferenceError){
-                return "";
+                return '${this.originalExpression}';
               }else{
                 throw e;
               }

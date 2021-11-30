@@ -45,9 +45,14 @@ export default class ContentTemplate implements ITemplate<any> {
       }
       startIndex = index + finding.length;
       const expression = matchResult[2] ?? matchResult[3];
+      const originalExpression = (matchResult[0] as string)?.substr(1);
       if (expression) {
         this.contents.push(
-          new ExpressionTemplate(expression, this.reservedKeys)
+          new ExpressionTemplate(
+            expression,
+            originalExpression,
+            this.reservedKeys
+          )
         );
         startIndex -= preChar?.length ?? 0;
       } else {
