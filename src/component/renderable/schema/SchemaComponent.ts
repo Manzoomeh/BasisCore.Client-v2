@@ -5,7 +5,7 @@ import IToken from "../../../token/IToken";
 import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
-import IFormMakerOptions from "./IFormMakerOptions";
+import IFormMakerOptions, { GetSchemaCallbackAsync } from "./IFormMakerOptions";
 import IQuestionSchema, { IAnswerSchema } from "./ISchema";
 import { IUserActionResult } from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
@@ -14,13 +14,14 @@ import QuestionCollection from "./question-container/QuestionContainer";
 export default class SchemaComponent extends SourceBaseComponent {
   private _questions: Array<QuestionCollection>;
 
-  private urlToken: IToken<string>;
+  private schemaUrlToken: IToken<string>;
   private schemaIdToken: IToken<string>;
   private versionToken: IToken<string>;
   private viewModeToken: IToken<string>;
   private buttonToken: IToken<string>;
   private resultSourceIdToken: IToken<string>;
   private callbackToken: IToken<string>;
+  private schemaCallbackToken: IToken<string>;
 
   constructor(
     @inject("element") element: Element,
@@ -31,13 +32,14 @@ export default class SchemaComponent extends SourceBaseComponent {
 
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
-    this.urlToken = this.getAttributeToken("schemaUrl");
+    this.schemaUrlToken = this.getAttributeToken("schemaUrl");
     this.schemaIdToken = this.getAttributeToken("id");
     this.versionToken = this.getAttributeToken("version");
     this.viewModeToken = this.getAttributeToken("viewMode");
     this.buttonToken = this.getAttributeToken("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
     this.callbackToken = this.getAttributeToken("callback");
+    this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
   }
 
   public async runAsync(source?: ISource): Promise<any> {
@@ -62,28 +64,41 @@ export default class SchemaComponent extends SourceBaseComponent {
     const buttonSelector = await this.buttonToken?.getValueAsync();
     const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
     const viewModeStr = await this.viewModeToken?.getValueAsync();
-    const urlStr = await this.urlToken?.getValueAsync();
+    const shcemaUrlStr = await this.schemaUrlToken?.getValueAsync();
     const version = await this.versionToken?.getValueAsync();
     const callback = await this.callbackToken?.getValueAsync();
+    const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
 
+    var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
+      ? eval(schemaCallbackStr)
+      : null;
+
+    if (!schemaCallback) {
+      schemaCallback = async (id, ver) => {
+        const url = Util.formatUrl(shcemaUrlStr, null, {
+          id: options.schemaId,
+          ver: options.version,
+        });
+        const response = await Util.getDataAsync<
+          IServerResponse<IQuestionSchema>
+        >(url);
+        return response.sources[0].data[0];
+      };
+    }
     const viewMode = answer ? (viewModeStr ?? "true") == "true" : false;
     const options: IFormMakerOptions = {
       viewMode: viewMode,
       schemaId: answer?.schemaId ?? schemaId,
-      url: urlStr,
+      getSchemaCallbackAsync: schemaCallback,
       version: answer?.schemaVersion ?? version,
       callback: viewMode && callback ? eval(callback) : null,
     };
 
     if (options.schemaId) {
-      const url = Util.formatUrl(options.url, null, {
-        id: options.schemaId,
-        ver: options.version,
-      });
-      const response = await Util.getDataAsync<
-        IServerResponse<IQuestionSchema>
-      >(url);
-      const schema = response.sources[0].data[0];
+      const schema = await options.getSchemaCallbackAsync(
+        options.schemaId,
+        options.version
+      );
 
       this._questions = new Array<QuestionCollection>();
       schema.questions.forEach((question) => {
