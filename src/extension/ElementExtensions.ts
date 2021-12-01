@@ -71,17 +71,7 @@ Object.defineProperty(Element.prototype, "GetBooleanToken", {
 
 Object.defineProperty(Element.prototype, "GetTemplateToken", {
   value: function GetTemplateToken(context: IContext) {
-    var retVal: IToken<string>;
-    if (
-      this.children.length == 1 &&
-      Util.isEqual(this.children[0].nodeName, "script") &&
-      Util.isEqual(this.children[0].getAttribute("type"), "text/template")
-    ) {
-      retVal = this.textContent.ToStringToken(context);
-    } else {
-      retVal = this.innerHTML.ToStringToken(context);
-    }
-    return retVal;
+    return this.getTemplate().ToStringToken(context);
   },
   writable: true,
   configurable: true,
@@ -107,20 +97,7 @@ Object.defineProperty(Element.prototype, "getTemplate", {
 
 Object.defineProperty(Element.prototype, "GetXMLTemplateToken", {
   value: function GetXMLTemplateToken(context: IContext) {
-    var retVal: IToken<string>;
-    if (
-      this.children.length == 1 &&
-      Util.isEqual(this.children[0].nodeName, "script") &&
-      Util.isEqual(this.children[0].getAttribute("type"), "text/template")
-    ) {
-      retVal = this.children[0].outerHTML.ToStringToken(context);
-    } else {
-      retVal =
-        `<basis-core-template-tag>${this.innerHTML}</basis-core-template-tag>`.ToStringToken(
-          context
-        );
-    }
-    return retVal;
+    return this.getXMLTemplate().ToStringToken(context);
   },
   writable: true,
   configurable: true,

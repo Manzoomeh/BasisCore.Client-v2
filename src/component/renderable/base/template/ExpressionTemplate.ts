@@ -33,7 +33,7 @@ export class ExpressionTemplate implements ITemplate<any> {
               return ${this.rawExpression};
             }catch(e){
               if( e instanceof ReferenceError){
-                return '${this.originalExpression}';
+                return "";
               }else{
                 throw e;
               }
