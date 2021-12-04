@@ -37,8 +37,8 @@ export class HostOptions implements IContextHostOptions {
           "default.call.verb": "POST",
           "default.dmnid": "",
           "default.source.verb": "POST",
-          "default.ViewCommand.GroupColumn": "prpid",
-          "default.source.heartbeatVerb": "GET",
+          "default.viewcommand.groupcolumn": "prpid",
+          "default.source.heartbeatverb": "GET",
         },
         repositories: {},
       };

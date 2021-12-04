@@ -12,10 +12,10 @@ export default abstract class UrlBaseConnectionOptions extends ConnectionOptions
     if (typeof setting === "string") {
       this.Url = setting;
     } else {
-      this.Url = setting.Url;
-      this.Heartbeat = setting.Heartbeat;
-      this.Verb = setting.Verb;
-      this.HeartbeatVerb = setting.HeartbeatVerb;
+      this.Url = setting.url;
+      this.Heartbeat = setting.heartbeat;
+      this.Verb = setting.verb;
+      this.HeartbeatVerb = setting.heartbeatverb;
     }
   }
 }

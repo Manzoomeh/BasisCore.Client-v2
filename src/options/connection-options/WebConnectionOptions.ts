@@ -23,7 +23,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
         await WebConnectionOptions.ajax(
           this.Heartbeat,
           this.HeartbeatVerb ??
-            context.options.getDefault<HttpMethod>("source.heartbeatVerb")
+            context.options.getDefault<HttpMethod>("source.heartbeatverb")
         );
         isOk = true;
       } catch {

@@ -13,10 +13,10 @@ export declare type SourceHandler = EventHandler<ISource>;
 export declare type HttpMethod = "POST" | "GET";
 
 export declare type ConnectionOptions = {
-  Url: string;
-  Verb: HttpMethod;
-  Heartbeat: string;
-  HeartbeatVerb: HttpMethod;
+  url: string;
+  verb: HttpMethod;
+  heartbeat: string;
+  heartbeatverb: HttpMethod;
 };
 
 export declare type ConnectionSetting = string | ConnectionOptions;

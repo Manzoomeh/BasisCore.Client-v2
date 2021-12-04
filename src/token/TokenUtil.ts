@@ -116,12 +116,8 @@ export default class TokenUtil {
     context: IContext,
     key: string
   ): Promise<string> {
-    var retVal: string;
-    if (Util.HasValue(token)) {
-      retVal = await token.getValueAsync();
-    } else {
-      retVal = context.options.getDefault(key);
-    }
-    return retVal;
+    return token
+      ? await token.getValueAsync()
+      : context.options.getDefault(key);
   }
 }
