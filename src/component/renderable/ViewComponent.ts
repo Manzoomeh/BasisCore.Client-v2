@@ -31,13 +31,11 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
       new FaceRenderResultRepository<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
       const token = this.getAttributeToken("groupcol");
-      const groupColumn = (
-        await TokenUtil.GetValueOrSystemDefaultAsync(
-          token,
-          this.context,
-          "ViewCommand.GroupColumn"
-        )
-      ).toLowerCase();
+      const groupColumn = await TokenUtil.GetValueOrSystemDefaultAsync(
+        token,
+        this.context,
+        "ViewCommand.GroupColumn"
+      );
       const groupList = dataSource.rows
         .map((x) => x[groupColumn])
         .filter((x, i, arr) => arr.indexOf(x) === i);
