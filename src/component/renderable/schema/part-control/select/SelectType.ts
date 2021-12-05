@@ -1,4 +1,5 @@
-import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import { IUserActionPart, IValidationError } from "../../IUserActionResult";
 import Question from "../../question/Question";
 import ListBaseType from "../ListBaseType";

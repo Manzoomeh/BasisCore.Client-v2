@@ -1,8 +1,9 @@
 import Question from "../../question/Question";
 import layout from "./assets/layout.html";
-import { IQuestionPart, IPartCollection } from "../../ISchema";
 import { IEditParams } from "../../IFormMakerOptions";
 import ReadonlyQuestionPart from "../../question-part/ReadonlyQuestionPart";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart } from "../../IQuestionSchema";
 
 export default class ReadOnlyTextAriaType extends ReadonlyQuestionPart {
   private readonly _label: HTMLLabelElement;

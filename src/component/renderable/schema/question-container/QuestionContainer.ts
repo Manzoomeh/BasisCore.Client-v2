@@ -3,8 +3,9 @@ import IFormMakerOptions from "../IFormMakerOptions";
 import layout from "./assets/layout.html";
 import "./assets/style";
 import Util from "../../../../Util";
-import { IQuestion, IAnswerProperty, IAnswerPart } from "../ISchema";
 import { IUserActionProperty } from "../IUserActionResult";
+import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
+import { IQuestion } from "../IQuestionSchema";
 
 export default class QuestionContainer {
   private readonly questionSchema: IQuestion;

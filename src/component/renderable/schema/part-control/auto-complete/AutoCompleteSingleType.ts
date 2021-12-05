@@ -3,7 +3,8 @@ import layout from "./assets/auto-complete-single-type.html";
 import SearchPopup from "./SearchPopup";
 import "./assets/style";
 import AutoCompleteType from "./AutoCompleteType";
-import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 
 export default class AutoCompleteSingleType extends AutoCompleteType {
   private _btn: HTMLButtonElement;

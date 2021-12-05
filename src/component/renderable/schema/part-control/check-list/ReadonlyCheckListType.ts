@@ -2,9 +2,10 @@ import layout from "./assets/layout.html";
 import itemLayout from "./assets/readonly-item-layout.html";
 import Question from "../../question/Question";
 import Util from "../../../../../Util";
-import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
 import { IEditParams } from "../../IFormMakerOptions";
 import ReadOnlyListBaseType from "../ReadOnlyListBaseType";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 
 export default class ReadonlyCheckListType extends ReadOnlyListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {

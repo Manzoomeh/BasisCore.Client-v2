@@ -5,8 +5,9 @@ import IToken from "../../../token/IToken";
 import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
+import { IAnswerSchema } from "./IAnswerSchema";
 import IFormMakerOptions, { GetSchemaCallbackAsync } from "./IFormMakerOptions";
-import IQuestionSchema, { IAnswerSchema } from "./ISchema";
+import IQuestionSchema from "./IQuestionSchema";
 import { IUserActionResult } from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
 
@@ -64,7 +65,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     const buttonSelector = await this.buttonToken?.getValueAsync();
     const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
     const viewModeStr = await this.viewModeToken?.getValueAsync();
-    const shcemaUrlStr = await this.schemaUrlToken?.getValueAsync();
+    const schemaUrlStr = await this.schemaUrlToken?.getValueAsync();
     const version = await this.versionToken?.getValueAsync();
     const callback = await this.callbackToken?.getValueAsync();
     const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
@@ -75,7 +76,7 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     if (!schemaCallback) {
       schemaCallback = async (id, ver) => {
-        const url = Util.formatUrl(shcemaUrlStr, null, {
+        const url = Util.formatUrl(schemaUrlStr, null, {
           id: options.schemaId,
           ver: options.version,
         });

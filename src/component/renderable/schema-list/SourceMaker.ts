@@ -1,6 +1,7 @@
 import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
-import IQuestionSchema, { IAnswerSchema } from "../schema/ISchema";
+import { IAnswerSchema } from "../schema/IAnswerSchema";
+import IQuestionSchema from "../schema/IQuestionSchema";
 import ISchemaSource from "./ISchemaSource";
 
 export default class SourceMaker {

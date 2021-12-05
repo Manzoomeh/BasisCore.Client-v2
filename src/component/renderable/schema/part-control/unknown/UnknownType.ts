@@ -1,7 +1,8 @@
 import layout from "./assets/layout.html";
 import Question from "../../question/Question";
-import { IQuestionPart, IPartCollection } from "../../ISchema";
 import ReadonlyQuestionPart from "../../question-part/ReadonlyQuestionPart";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart } from "../../IQuestionSchema";
 
 export default class UnknownType extends ReadonlyQuestionPart {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {

@@ -1,5 +1,5 @@
 import Util from "../../../../../Util";
-import { IFixValue } from "../../ISchema";
+import { IFixValue } from "../../IQuestionSchema";
 import layout from "./assets/popup-layout.html";
 
 export default class SearchPopup {

@@ -1,4 +1,5 @@
-import { IQuestionPart, IPartCollection } from "../../ISchema";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart } from "../../IQuestionSchema";
 import Question from "../../question/Question";
 import layout from "./assets/layout.html";
 import TextBaseType from "./TextBaseType";

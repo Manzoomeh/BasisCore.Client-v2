@@ -1,9 +1,5 @@
-import {
-  IQuestionPart,
-  IPartCollection,
-  IFixValue,
-  IAnswerPart,
-} from "../../ISchema";
+import { IPartCollection, IAnswerPart } from "../../IAnswerSchema";
+import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import Question from "../../question/Question";
 import layout from "./assets/auto-complete-multi-type.html";
 import "./assets/style";

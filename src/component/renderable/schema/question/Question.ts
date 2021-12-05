@@ -5,8 +5,9 @@ import layout from "./assets/layout.html";
 import "./assets/style.css";
 import QuestionPart from "../question-part/QuestionPart";
 import Util from "../../../../Util";
-import { IQuestion, IAnswerPart } from "../ISchema";
 import { IUserActionAnswer } from "../IUserActionResult";
+import { IAnswerPart } from "../IAnswerSchema";
+import { IQuestion } from "../IQuestionSchema";
 
 export default class Question {
   readonly question: IQuestion;

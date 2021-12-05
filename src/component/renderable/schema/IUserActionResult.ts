@@ -1,4 +1,4 @@
-import { ISchema } from "./ISchema";
+import ISchema from "./ISchema";
 
 export interface IUserActionResult extends ISchema {
   usedForId?: number;

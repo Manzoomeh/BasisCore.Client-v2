@@ -1,4 +1,4 @@
-import IQuestionSchema from "./ISchema";
+import IQuestionSchema from "./IQuestionSchema";
 
 export default interface IFormMakerOptions {
   viewMode: boolean;
