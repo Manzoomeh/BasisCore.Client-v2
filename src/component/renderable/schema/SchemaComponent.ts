@@ -19,10 +19,11 @@ export default class SchemaComponent extends SourceBaseComponent {
   private schemaIdToken: IToken<string>;
   private versionToken: IToken<string>;
   private viewModeToken: IToken<string>;
-  private buttonToken: IToken<string>;
+  private buttonSelector: string;
   private resultSourceIdToken: IToken<string>;
   private callbackToken: IToken<string>;
   private schemaCallbackToken: IToken<string>;
+  private getAnswers: () => void;
 
   constructor(
     @inject("element") element: Element,
@@ -37,10 +38,18 @@ export default class SchemaComponent extends SourceBaseComponent {
     this.schemaIdToken = this.getAttributeToken("id");
     this.versionToken = this.getAttributeToken("version");
     this.viewModeToken = this.getAttributeToken("viewMode");
-    this.buttonToken = this.getAttributeToken("button");
+    this.buttonSelector = await this.getAttributeValueAsync("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
     this.callbackToken = this.getAttributeToken("callback");
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
+    document
+      .querySelectorAll(this.buttonSelector)
+      .forEach((btn) => btn.addEventListener("click", this.onClick.bind(this)));
+  }
+
+  private onClick(e: MouseEvent) {
+    e.preventDefault();
+    this.getAnswers();
   }
 
   public async runAsync(source?: ISource): Promise<any> {
@@ -62,7 +71,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   ): Promise<void> {
     const container = document.createElement("div");
     this.setContent(container, false);
-    const buttonSelector = await this.buttonToken?.getValueAsync();
+
     const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
     const viewModeStr = await this.viewModeToken?.getValueAsync();
     const schemaUrlStr = await this.schemaUrlToken?.getValueAsync();
@@ -110,9 +119,8 @@ export default class SchemaComponent extends SourceBaseComponent {
           new QuestionCollection(question, options, container, partAnswer)
         );
       });
-      if (buttonSelector && resultSourceId && !options.viewMode) {
-        const getAnswers = (e: MouseEvent) => {
-          e.preventDefault();
+      if (this.buttonSelector && resultSourceId && !options.viewMode) {
+        this.getAnswers = () => {
           const retVal: IUserActionResult = {
             lid: schema.lid,
             schemaId: schema.schemaId,
@@ -126,11 +134,6 @@ export default class SchemaComponent extends SourceBaseComponent {
             this.context.setAsSource(resultSourceId, retVal);
           }
         };
-        document
-          .querySelectorAll(buttonSelector)
-          .forEach((btn) =>
-            btn.addEventListener("click", getAnswers.bind(this))
-          );
       }
     } else {
       throw Error("can't detect 'schemaId'");
