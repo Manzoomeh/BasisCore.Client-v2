@@ -11,7 +11,8 @@ import ReadonlyCheckListType from "./check-list/ReadonlyCheckListType";
 import ReadOnlyText from "./readonly-text/ReadOnlyText";
 import ReadOnlyTextAriaType from "./readonly-text-area/ReadOnlyTextAriaType";
 import ReadOnlySelectType from "./select/ReadOnlySelectType";
-import { IQuestion, IQuestionPart, IPartCollection } from "../ISchema";
+import { IPartCollection } from "../IAnswerSchema";
+import { IQuestion, IQuestionPart } from "../IQuestionSchema";
 
 export default class QuestionPartFactory {
   public static generate(

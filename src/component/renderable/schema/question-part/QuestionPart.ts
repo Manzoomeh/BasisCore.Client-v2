@@ -1,12 +1,10 @@
 import Question from "../question/Question";
 import layout from "./assets/layout.html";
 import Util from "../../../../Util";
-import { IQuestionPart, IPartCollection } from "../ISchema";
-import {
-  IUserActionPart,
-  IValidationError,
-  IValidationErrorPart,
-} from "../IUserActionResult";
+import { IPartCollection } from "../IAnswerSchema";
+import { IQuestionPart } from "../IQuestionSchema";
+import { IUserActionPart } from "../IUserActionResult";
+import IValidationError, { IValidationErrorPart } from "../IValidationError";
 
 export default abstract class QuestionPart {
   public readonly part: IQuestionPart;

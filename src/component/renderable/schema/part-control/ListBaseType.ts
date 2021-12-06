@@ -1,5 +1,6 @@
 import Util from "../../../../Util";
-import { IQuestionPart, IPartCollection, IFixValue } from "../ISchema";
+import { IPartCollection } from "../IAnswerSchema";
+import { IQuestionPart, IFixValue } from "../IQuestionSchema";
 import EditableQuestionPart from "../question-part/EditableQuestionPart";
 import Question from "../question/Question";
 

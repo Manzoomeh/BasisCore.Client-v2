@@ -3,7 +3,7 @@ import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import IToken from "../../../token/IToken";
 import SourceBaseComponent from "../../SourceBaseComponent";
-import { IAnswerSchema } from "../schema/ISchema";
+import IAnswerSchema from "../schema/IAnswerSchema";
 import SchemaFaceCollection from "./SchemaFace";
 import SourceMaker from "./SourceMaker";
 

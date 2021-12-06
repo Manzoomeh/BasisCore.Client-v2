@@ -1,8 +1,9 @@
 import Question from "../../question/Question";
 import layout from "./assets/readonly-layout.html";
-import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
 import { IEditParams } from "../../IFormMakerOptions";
 import ReadOnlyListBaseType from "../ReadOnlyListBaseType";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 
 export default class ReadOnlySelectType extends ReadOnlyListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {

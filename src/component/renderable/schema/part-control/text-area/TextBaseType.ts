@@ -1,7 +1,9 @@
 import Question from "../../question/Question";
 import EditableQuestionPart from "../../question-part/EditableQuestionPart";
-import { IQuestionPart, IPartCollection } from "../../ISchema";
-import { IUserActionPart, IValidationError } from "../../IUserActionResult";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart } from "../../IQuestionSchema";
+import { IUserActionPart } from "../../IUserActionResult";
+import IValidationError from "../../IValidationError";
 
 export interface ITestElement {
   value: string;

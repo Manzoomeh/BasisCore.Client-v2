@@ -3,12 +3,10 @@ import itemLayout from "./assets/item-layout.html";
 import ListBaseType from "../ListBaseType";
 import Question from "../../question/Question";
 import Util from "../../../../../Util";
-import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
-import {
-  IUserActionPart,
-  IUserActionPartValue,
-  IValidationError,
-} from "../../IUserActionResult";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
+import { IUserActionPartValue, IUserActionPart } from "../../IUserActionResult";
+import IValidationError from "../../IValidationError";
 
 export default class CheckListType extends ListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {

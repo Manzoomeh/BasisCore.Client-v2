@@ -1,6 +1,6 @@
 import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
-import { IAnswerSchema } from "../schema/IAnswerSchema";
+import IAnswerSchema from "../schema/IAnswerSchema";
 import IQuestionSchema from "../schema/IQuestionSchema";
 import ISchemaSource from "./ISchemaSource";
 

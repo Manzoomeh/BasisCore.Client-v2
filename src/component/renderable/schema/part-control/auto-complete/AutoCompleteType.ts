@@ -2,9 +2,11 @@ import "./assets/style";
 import Question from "../../question/Question";
 import EditableQuestionPart from "../../question-part/EditableQuestionPart";
 import Util from "../../../../../Util";
-import { IQuestionPart, IPartCollection, IFixValue } from "../../ISchema";
-import { IUserActionPart, IValidationError } from "../../IUserActionResult";
+import { IPartCollection } from "../../IAnswerSchema";
 import { IEditParams } from "../../IFormMakerOptions";
+import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
+import { IUserActionPart } from "../../IUserActionResult";
+import IValidationError from "../../IValidationError";
 
 export default abstract class AutoCompleteType extends EditableQuestionPart {
   protected selectedId?: number;

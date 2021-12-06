@@ -1,6 +1,7 @@
 import { IPartCollection } from "../../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
-import { IUserActionPart, IValidationError } from "../../IUserActionResult";
+import { IUserActionPart } from "../../IUserActionResult";
+import IValidationError from "../../IValidationError";
 import Question from "../../question/Question";
 import ListBaseType from "../ListBaseType";
 import layout from "./assets/layout.html";

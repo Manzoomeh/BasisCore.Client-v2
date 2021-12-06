@@ -1,6 +1,6 @@
 import ISchema from "./ISchema";
 
-export interface IUserActionResult extends ISchema {
+export default interface IUserActionResult extends ISchema {
   usedForId?: number;
   properties: Array<IUserActionProperty>;
 }
@@ -20,24 +20,6 @@ export interface IUserActionAnswer {
 export interface IUserActionPart {
   part: number;
   values: Array<IUserActionPartValue>;
-}
-
-export interface IValidationError {
-  part: number;
-  title: string;
-  errors: Array<IValidationErrorPart>;
-}
-
-export type ValidationErrorType =
-  | "required"
-  | "regex"
-  | "range"
-  | "type"
-  | "length";
-
-export interface IValidationErrorPart {
-  type: ValidationErrorType;
-  params?: Array<any>;
 }
 
 export interface IUserActionPartValue {

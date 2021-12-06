@@ -1,5 +1,6 @@
+import { IPartCollection } from "../../IAnswerSchema";
 import { IEditParams } from "../../IFormMakerOptions";
-import { IQuestionPart, IPartCollection } from "../../ISchema";
+import { IQuestionPart } from "../../IQuestionSchema";
 import ReadonlyQuestionPart from "../../question-part/ReadonlyQuestionPart";
 import Question from "../../question/Question";
 import layout from "./assets/layout.html";

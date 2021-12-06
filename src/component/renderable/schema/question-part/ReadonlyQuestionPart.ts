@@ -1,8 +1,10 @@
 import Question from "../question/Question";
 import layout from "./assets/layout.html";
-import { IQuestionPart, IPartCollection } from "../ISchema";
 import QuestionPart from "./QuestionPart";
-import { IUserActionPart, IValidationError } from "../IUserActionResult";
+import { IUserActionPart } from "../IUserActionResult";
+import { IPartCollection } from "../IAnswerSchema";
+import { IQuestionPart } from "../IQuestionSchema";
+import IValidationError from "../IValidationError";
 
 export default abstract class ReadonlyQuestionPart extends QuestionPart {
   constructor(

@@ -5,10 +5,10 @@ import IToken from "../../../token/IToken";
 import { IServerResponse } from "../../../type-alias";
 import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
-import { IAnswerSchema } from "./IAnswerSchema";
+import IAnswerSchema from "./IAnswerSchema";
 import IFormMakerOptions, { GetSchemaCallbackAsync } from "./IFormMakerOptions";
 import IQuestionSchema from "./IQuestionSchema";
-import { IUserActionResult } from "./IUserActionResult";
+import IUserActionResult from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
 
 @injectable()

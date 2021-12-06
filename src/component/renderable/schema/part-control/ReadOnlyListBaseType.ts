@@ -1,5 +1,7 @@
-import { IQuestionPart, IPartCollection } from "../ISchema";
-import { IValidationError, IUserActionPart } from "../IUserActionResult";
+import { IPartCollection } from "../IAnswerSchema";
+import { IQuestionPart } from "../IQuestionSchema";
+import { IUserActionPart } from "../IUserActionResult";
+import IValidationError from "../IValidationError";
 import Question from "../question/Question";
 import ListBaseType from "./ListBaseType";
 
