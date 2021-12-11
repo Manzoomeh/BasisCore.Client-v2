@@ -9,7 +9,7 @@ import BCWrapperFactory from "./wrapper/BCWrapperFactory";
 console.log(
   `%cWelcome To BasisCore Ecosystem%c
 follow us on https://BasisCore.com/
-version:2.4.9`,
+version:2.4.10`,
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );

@@ -11,15 +11,22 @@ export default class UtilWrapper implements IUtilWrapper {
   readonly parser: DOMParser = new DOMParser();
 
   getRandomName(prefix?: string, postfix?: string): string {
-    return `${prefix??""}_${(new Date()).getTime()}_${Math.random().toString(36).substring(2)}_${postfix??""}`;
+    return `${prefix ?? ""}_${new Date().getTime()}_${Math.random()
+      .toString(36)
+      .substring(2)}_${postfix ?? ""}`;
   }
 
-  public storeAsGlobal(data: any, name?: string, prefix?: string, postfix?: string): string {
-    if(!name){
-      name = this.getRandomName(prefix,postfix);
+  public storeAsGlobal(
+    data: any,
+    name?: string,
+    prefix?: string,
+    postfix?: string
+  ): string {
+    if (!name) {
+      name = this.getRandomName(prefix, postfix);
     }
-     Reflect.set(window,name,data);
-     return name;
+    Reflect.set(window, name, data);
+    return name;
   }
 
   public cloneDeep<T>(obj: T): T {
@@ -85,17 +92,21 @@ export default class UtilWrapper implements IUtilWrapper {
           element.setAttribute(attr.name, attr.value);
         }
       }
-      xmlElement.childNodes.forEach((child) => {
-        const childElement = child as HTMLElement;
-        if (childElement.nodeType === Node.TEXT_NODE) {
-          const textContent = child.nodeValue.trim();
-          if (textContent.length > 0) {
-            element.appendChild(document.createTextNode(textContent));
+      if (element instanceof HTMLTextAreaElement) {
+        element.innerHTML = xmlElement.innerHTML;
+      } else {
+        xmlElement.childNodes.forEach((child) => {
+          const childElement = child as HTMLElement;
+          if (childElement.nodeType === Node.TEXT_NODE) {
+            const textContent = child.nodeValue.trim();
+            if (textContent.length > 0) {
+              element.appendChild(document.createTextNode(textContent));
+            }
+          } else {
+            element.appendChild(XMLElementToHTMLElementConvertor(childElement));
           }
-        } else {
-          element.appendChild(XMLElementToHTMLElementConvertor(childElement));
-        }
-      });
+        });
+      }
       return element;
     };
     return xmlDocument.documentElement.tagName === "parsererror"
@@ -134,12 +145,8 @@ export default class UtilWrapper implements IUtilWrapper {
   }
 
   public format(pattern: string, ...params: any[]): string {
-    return pattern.replace(/{(\d+)}/g, function(match, number) { 
-      return typeof params[number] !== 'undefined'
-        ? params[number] 
-        : match
-      ;
+    return pattern.replace(/{(\d+)}/g, function (match, number) {
+      return typeof params[number] !== "undefined" ? params[number] : match;
     });
   }
-
 }
