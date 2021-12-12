@@ -18,6 +18,25 @@
           "baseVocab": "http://schema.site/FA/vo",
           "questions": [
             {
+              "prpId": 55,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/عنوان",
+              "title": "وب سایت",
+              "wordId": 63228,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text",
+                  "validations": {
+                    "regex": "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)",
+                    "required": true
+                  }
+                }
+              ]
+            },
+            {
               "prpId": 13050,
               "typeId": 150,
               "ord": 1000,
@@ -34,7 +53,7 @@
                   "viewType": "text",
                   "cssClass": "css_13050_1",
                   "validations": {
-                    "required":true,
+                    "required": true,
                     "minLength": 3,
                     "maxLength": 20
                   },
@@ -70,7 +89,7 @@
                   "viewType": "text",
                   "cssClass": "css_13057_2",
                   "validations": {
-                    "required":true,
+                    "required": true,
                     "min": 200,
                     "max": 4000,
                     "dataType": "int"
@@ -110,7 +129,7 @@
                   "cssClass": "css_13060_1",
                   "fixValues": [
                     {
-                      "id":0,
+                      "id": 0,
                       "value": "لطفا یکی از موارد را انتخاب کنید"
                     },
                     {
@@ -145,7 +164,7 @@
                   "cssClass": "css_13060_1",
                   "validations": {
                     "required": true,
-                    "maxLength":1
+                    "maxLength": 1
                   },
                   "fixValues": [
                     {
@@ -181,7 +200,7 @@
                   "caption": "",
                   "link": "",
                   "validations": {
-                    "required":true,
+                    "required": true,
                     "minLength": 2,
                     "maxLength": 30
                   }
@@ -205,7 +224,7 @@
                   "viewType": "autocomplete",
                   "cssClass": "css_13060_1",
                   "validations": {
-                    "required":true
+                    "required": true
                   },
                   "caption": "",
                   "link": "/schema/autocomplete?term=${term}"
