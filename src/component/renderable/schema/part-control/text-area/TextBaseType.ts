@@ -33,14 +33,16 @@ export default abstract class TextBaseType<
   public getAdded(): IUserActionPart {
     let retVal = null;
     if (!this.answer) {
-      retVal = {
-        part: this.part.part,
-        values: [
-          {
-            value: this.input.value,
-          },
-        ],
-      };
+      if (this.input.value.length > 0) {
+        retVal = {
+          part: this.part.part,
+          values: [
+            {
+              value: this.input.value,
+            },
+          ],
+        };
+      }
     }
     return retVal;
   }

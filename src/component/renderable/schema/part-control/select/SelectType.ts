@@ -34,15 +34,19 @@ export default class SelectType extends ListBaseType {
 
   public getAdded(): IUserActionPart {
     let retVal = null;
+
     if (!this.answer) {
-      retVal = {
-        part: this.part.part,
-        values: [
-          {
-            value: this._select.options[this._select.selectedIndex].value,
-          },
-        ],
-      };
+      const newValue = this._select.options[this._select.selectedIndex].value;
+      if (newValue !== "0") {
+        retVal = {
+          part: this.part.part,
+          values: [
+            {
+              value: this._select.options[this._select.selectedIndex].value,
+            },
+          ],
+        };
+      }
     }
     return retVal;
   }
