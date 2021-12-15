@@ -1,10 +1,11 @@
+import IContext from "../../../context/IContext";
 import IQuestionSchema from "./IQuestionSchema";
 
 export default interface IFormMakerOptions {
   viewMode: boolean;
-  getSchemaCallbackAsync: GetSchemaCallbackAsync;
-  schemaId: string;
-  version: string;
+  schemaId?: string;
+  version?: string;
+  lid?: number;
   callback: (params: IEditParams) => void;
 }
 
@@ -16,6 +17,8 @@ export interface IEditParams {
 }
 
 export type GetSchemaCallbackAsync = (
+  context: IContext,
   id: string,
-  ver: string
+  ver: string,
+  lid: number
 ) => Promise<IQuestionSchema>;

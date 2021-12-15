@@ -23,6 +23,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   private resultSourceIdToken: IToken<string>;
   private callbackToken: IToken<string>;
   private schemaCallbackToken: IToken<string>;
+  private lidToken: IToken<string>;
   private getAnswers: () => void;
 
   constructor(
@@ -42,6 +43,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
     this.callbackToken = this.getAttributeToken("callback");
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
+    this.lidToken = this.getAttributeToken("lid");
     document
       .querySelectorAll(this.buttonSelector)
       .forEach((btn) => btn.addEventListener("click", this.onClick.bind(this)));
@@ -57,18 +59,21 @@ export default class SchemaComponent extends SourceBaseComponent {
     if (!schemaId) {
       super.runAsync(source);
     } else {
-      await this.loadInEditModeAsync(null, schemaId);
+      await this.initUIAsync(null, schemaId);
     }
   }
 
   protected async renderSourceAsync(dataSource: ISource): Promise<any> {
-    await this.loadInEditModeAsync(dataSource.rows[0]);
+    await this.initUIAsync(dataSource.rows[0]);
   }
 
-  public async loadInEditModeAsync(
+  public async initUIAsync(
     answer?: IAnswerSchema,
     schemaId?: string
   ): Promise<void> {
+    this._questions = new Array<QuestionCollection>();
+    this.getAnswers = () => {};
+
     const container = document.createElement("div");
     this.setContent(container, false);
 
@@ -78,16 +83,18 @@ export default class SchemaComponent extends SourceBaseComponent {
     const version = await this.versionToken?.getValueAsync();
     const callback = await this.callbackToken?.getValueAsync();
     const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
-
+    const lidStr = await this.lidToken?.getValueAsync();
+    const lid = lidStr ? parseInt(lidStr) : null;
     var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
       ? eval(schemaCallbackStr)
       : null;
 
     if (!schemaCallback) {
-      schemaCallback = async (id, ver) => {
+      schemaCallback = async (context, id, ver, lid) => {
         const url = Util.formatUrl(schemaUrlStr, null, {
-          id: options.schemaId,
-          ver: options.version,
+          ...(id && { id }),
+          ...(ver && { ver }),
+          ...(lid && { lid }),
         });
         const response = await Util.getDataAsync<
           IServerResponse<IQuestionSchema>
@@ -99,41 +106,44 @@ export default class SchemaComponent extends SourceBaseComponent {
     const options: IFormMakerOptions = {
       viewMode: viewMode,
       schemaId: answer?.schemaId ?? schemaId,
-      getSchemaCallbackAsync: schemaCallback,
+      lid: lid,
       version: answer?.schemaVersion ?? version,
       callback: viewMode && callback ? eval(callback) : null,
     };
 
     if (options.schemaId) {
-      const schema = await options.getSchemaCallbackAsync(
+      const schema = await schemaCallback(
+        this.context,
         options.schemaId,
-        options.version
+        options.version,
+        options.lid
       );
 
-      this._questions = new Array<QuestionCollection>();
-      schema.questions.forEach((question) => {
-        const partAnswer = answer?.properties.find(
-          (x) => x.prpId == question.prpId
-        );
-        this._questions.push(
-          new QuestionCollection(question, options, container, partAnswer)
-        );
-      });
-      if (this.buttonSelector && resultSourceId && !options.viewMode) {
-        this.getAnswers = () => {
-          const retVal: IUserActionResult = {
-            lid: schema.lid,
-            schemaId: schema.schemaId,
-            schemaVersion: schema.schemaVersion,
-            usedForId: answer?.usedForId,
-            properties: this._questions
-              .map((x) => x.getUserAction())
-              .filter((x) => x),
+      if (schema) {
+        schema.questions.forEach((question) => {
+          const partAnswer = answer?.properties.find(
+            (x) => x.prpId == question.prpId
+          );
+          this._questions.push(
+            new QuestionCollection(question, options, container, partAnswer)
+          );
+        });
+        if (this.buttonSelector && resultSourceId && !options.viewMode) {
+          this.getAnswers = () => {
+            const retVal: IUserActionResult = {
+              lid: schema.lid,
+              schemaId: schema.schemaId,
+              schemaVersion: schema.schemaVersion,
+              usedForId: answer?.usedForId,
+              properties: this._questions
+                .map((x) => x.getUserAction())
+                .filter((x) => x),
+            };
+            if (retVal.properties.length > 0) {
+              this.context.setAsSource(resultSourceId, retVal);
+            }
           };
-          if (retVal.properties.length > 0) {
-            this.context.setAsSource(resultSourceId, retVal);
-          }
-        };
+        }
       }
     } else {
       throw Error("can't detect 'schemaId'");

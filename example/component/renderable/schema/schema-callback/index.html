@@ -24,8 +24,7 @@
     <basis core="callback" run="atclient" triggers="demo.data"></basis>
 
     <script>
-      ///schema/questions
-      async function getSchemaAsync(id, ver) {
+      async function getSchemaAsync(context, id, ver, lid) {
         const r = await fetch(`/schema/questions?id=${id}&ver=${ver}`);
         const json = await r.json();
         console.log("schema load from callback ", json);
