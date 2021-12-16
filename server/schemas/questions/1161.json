@@ -16,6 +16,16 @@
           "schemaVersion": 1.1,
           "lid": 1,
           "baseVocab": "http://schema.site/FA/vo",
+          "sections": [
+            {
+              "id": 1,
+              "title": "Sec 1",
+              "description": "Simple description"
+            },
+            {
+              "id": 2
+            }
+          ],
           "questions": [
             {
               "prpId": 55,
@@ -44,7 +54,7 @@
               "title": "نام دیزل ژنراتور",
               "wordId": 63228,
               "multi": true,
-              "sectionId": "1",
+              "sectionId": 1,
               "cssClass": "css_13050",
               "help": "help data",
               "parts": [
@@ -70,7 +80,7 @@
               "title": "توان اضطراری",
               "wordId": 51320,
               "multi": true,
-              "sectionId": "1",
+              "sectionId": 1,
               "cssClass": "css_13057",
               "help": "help data",
               "parts": [
@@ -119,7 +129,7 @@
               "title": "ولتاژ",
               "wordId": 50678,
               "multi": true,
-              "sectionId": "3",
+              "sectionId": 3,
               "cssClass": "css_13060",
               "help": "help data",
               "parts": [
@@ -154,7 +164,7 @@
               "title": "ولتاژ",
               "wordId": 50678,
               "multi": true,
-              "sectionId": "3",
+              "sectionId": 3,
               "cssClass": "css_13060",
               "help": "help data",
               "parts": [
@@ -189,7 +199,7 @@
               "title": "توضیحات",
               "wordId": 50678,
               "multi": true,
-              "sectionId": "3",
+              "sectionId": 2,
               "cssClass": "css_13060",
               "help": "help data",
               "parts": [
@@ -215,7 +225,7 @@
               "title": "autocomplete no multi",
               "wordId": 50678,
               "multi": false,
-              "sectionId": "3",
+              "sectionId": 2,
               "cssClass": "css_13060",
               "help": "help data",
               "parts": [
@@ -239,7 +249,7 @@
               "title": "autocomplete multi",
               "wordId": 50678,
               "multi": true,
-              "sectionId": "3",
+              "sectionId": 3,
               "cssClass": "css_13060",
               "help": "help data",
               "parts": [

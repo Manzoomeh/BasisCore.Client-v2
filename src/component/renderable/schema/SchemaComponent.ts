@@ -10,6 +10,7 @@ import IFormMakerOptions, { GetSchemaCallbackAsync } from "./IFormMakerOptions";
 import IQuestionSchema from "./IQuestionSchema";
 import IUserActionResult from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
+import Section from "./section/Section";
 
 @injectable()
 export default class SchemaComponent extends SourceBaseComponent {
@@ -76,7 +77,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     schemaId = answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
     this.getAnswers = null;
-    const container = document.createElement("div");
+    const container = document.createElement("div") as Element;
     this.setContent(container, false);
     if (schemaId) {
       const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
@@ -119,14 +120,34 @@ export default class SchemaComponent extends SourceBaseComponent {
         options.version,
         options.lid
       );
-
+      const sections = new Map<number, Section>();
       if (schema && schema.questions?.length > 0) {
         schema.questions.forEach((question) => {
           const partAnswer = answer?.properties.find(
             (x) => x.prpId == question.prpId
           );
+          let questionContainer = container;
+          if (question.sectionId && schema.sections?.length > 0) {
+            if (sections.has(question.sectionId)) {
+              questionContainer = sections.get(question.sectionId).element;
+            } else {
+              const sectionSchema = schema.sections.find(
+                (x) => x.id == question.sectionId
+              );
+              if (sectionSchema) {
+                const section = new Section(sectionSchema, container);
+                sections.set(sectionSchema.id, section);
+                questionContainer = section.element;
+              }
+            }
+          }
           this._questions.push(
-            new QuestionCollection(question, options, container, partAnswer)
+            new QuestionCollection(
+              question,
+              options,
+              questionContainer,
+              partAnswer
+            )
           );
         });
         if (this.buttonSelector && resultSourceId && !options.viewMode) {
