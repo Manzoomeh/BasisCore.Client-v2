@@ -28,6 +28,9 @@ export default class QuestionContainer {
     const uiElement =
       Util.parse(copyTemplate).querySelector("[data-bc-question]");
     this.element = uiElement.querySelector("[data-bc-answer-collection]");
+    if (!questionSchema.help) {
+      uiElement.querySelector("[data-bc-help-btn]").remove();
+    }
     const headerContainer = uiElement.querySelector(
       "[data-bc-answer-title-container]"
     );
@@ -37,8 +40,10 @@ export default class QuestionContainer {
       template.setAttribute("data-bc-part-related-cell", "");
       questionSchema.parts.forEach((part) => {
         const cpy = template.cloneNode();
-        cpy.appendChild(document.createTextNode(part.caption));
-        headerContainer.appendChild(cpy);
+        if (part.caption) {
+          cpy.appendChild(document.createTextNode(part.caption));
+          headerContainer.appendChild(cpy);
+        }
       });
     } else {
       headerContainer.remove();

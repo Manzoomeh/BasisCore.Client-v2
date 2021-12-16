@@ -51,7 +51,9 @@ export default class SchemaComponent extends SourceBaseComponent {
 
   private onClick(e: MouseEvent) {
     e.preventDefault();
-    this.getAnswers();
+    if (this.getAnswers) {
+      this.getAnswers();
+    }
   }
 
   public async runAsync(source?: ISource): Promise<any> {
@@ -71,47 +73,46 @@ export default class SchemaComponent extends SourceBaseComponent {
     answer?: IAnswerSchema,
     schemaId?: string
   ): Promise<void> {
+    schemaId = answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
-    this.getAnswers = () => {};
-
+    this.getAnswers = null;
     const container = document.createElement("div");
     this.setContent(container, false);
+    if (schemaId) {
+      const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
+      const viewModeStr = await this.viewModeToken?.getValueAsync();
+      const schemaUrlStr = await this.schemaUrlToken?.getValueAsync();
+      const version = await this.versionToken?.getValueAsync();
+      const callback = await this.callbackToken?.getValueAsync();
+      const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
+      const lidStr = await this.lidToken?.getValueAsync();
+      const lid = lidStr ? parseInt(lidStr) : null;
+      var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
+        ? eval(schemaCallbackStr)
+        : null;
 
-    const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
-    const viewModeStr = await this.viewModeToken?.getValueAsync();
-    const schemaUrlStr = await this.schemaUrlToken?.getValueAsync();
-    const version = await this.versionToken?.getValueAsync();
-    const callback = await this.callbackToken?.getValueAsync();
-    const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
-    const lidStr = await this.lidToken?.getValueAsync();
-    const lid = lidStr ? parseInt(lidStr) : null;
-    var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
-      ? eval(schemaCallbackStr)
-      : null;
-
-    if (!schemaCallback) {
-      schemaCallback = async (context, id, ver, lid) => {
-        const url = Util.formatUrl(schemaUrlStr, null, {
-          ...(id && { id }),
-          ...(ver && { ver }),
-          ...(lid && { lid }),
-        });
-        const response = await Util.getDataAsync<
-          IServerResponse<IQuestionSchema>
-        >(url);
-        return response.sources[0].data[0];
+      if (!schemaCallback) {
+        schemaCallback = async (context, id, ver, lid) => {
+          const url = Util.formatUrl(schemaUrlStr, null, {
+            ...(id && { id }),
+            ...(ver && { ver }),
+            ...(lid && { lid }),
+          });
+          const response = await Util.getDataAsync<
+            IServerResponse<IQuestionSchema>
+          >(url);
+          return response.sources[0].data[0];
+        };
+      }
+      const viewMode = answer ? (viewModeStr ?? "true") == "true" : false;
+      const options: IFormMakerOptions = {
+        viewMode: viewMode,
+        schemaId: answer?.schemaId ?? schemaId,
+        lid: lid,
+        version: answer?.schemaVersion ?? version,
+        callback: viewMode && callback ? eval(callback) : null,
       };
-    }
-    const viewMode = answer ? (viewModeStr ?? "true") == "true" : false;
-    const options: IFormMakerOptions = {
-      viewMode: viewMode,
-      schemaId: answer?.schemaId ?? schemaId,
-      lid: lid,
-      version: answer?.schemaVersion ?? version,
-      callback: viewMode && callback ? eval(callback) : null,
-    };
 
-    if (options.schemaId) {
       const schema = await schemaCallback(
         this.context,
         options.schemaId,
@@ -119,7 +120,7 @@ export default class SchemaComponent extends SourceBaseComponent {
         options.lid
       );
 
-      if (schema) {
+      if (schema && schema.questions?.length > 0) {
         schema.questions.forEach((question) => {
           const partAnswer = answer?.properties.find(
             (x) => x.prpId == question.prpId
@@ -145,8 +146,6 @@ export default class SchemaComponent extends SourceBaseComponent {
           };
         }
       }
-    } else {
-      throw Error("can't detect 'schemaId'");
     }
   }
 }
