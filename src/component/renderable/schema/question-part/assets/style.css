@@ -1,6 +1,7 @@
 [data-bc-part] {
   /* float: right; */
   display: inline-block;
+  vertical-align: top;
   margin-bottom: 5px;
 }
 
@@ -16,4 +17,7 @@
 
 [data-bc-part][data-bc-invalid] [data-bc-validation-part] {
   display: block;
+  padding-right: 10px;
+  list-style: inside;
+  margin: 5px 0;
 }

@@ -19,7 +19,11 @@
   border: none;
   /* background-repeat: no-repeat; */
   background-position: center center;
+  background-color: #f5f8f9;
   cursor: pointer;
+  padding: 0;
+  border: 1px solid #c7d6db;
+  border-radius: 4px;
 }
 
 [data-bc-question] [data-bc-btn="add"] {
@@ -28,6 +32,7 @@
 
 [data-bc-question] [data-bc-btn="add"]:hover {
   background-image: url(add-hover.PNG);
+  background-color: #6cb829;
 }
 
 [data-bc-question] [data-bc-btn="remove"] {
@@ -36,6 +41,7 @@
 
 [data-bc-question] [data-bc-btn="remove"]:hover {
   background-image: url(remove-hover.PNG);
+  background-color: #e03838;
 }
 
 [data-bc-part-related-cell] {
@@ -62,4 +68,32 @@
 
 [data-bc-part-related-cell] [data-bc-show-search-popup-btn]:hover {
   background-image: url(add-hover.PNG);
+}
+
+@media only screen and (max-width:1000px) {
+  [data-bc-part-related-cell] {
+    width: 200px;
+  }
+
+  [data-bc-part-container],
+  [data-bc-btn-container] {
+    width: calc(100% - 30px);
+  }
+}
+
+@media only screen and (max-width:700px) {
+  [data-bc-part-related-cell] {
+    width: unset;
+    flex-grow: 1;
+    flex: -moz-available;
+  }
+
+  [data-bc-part-container] {
+    display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox; /* TWEENER - IE 10 */
+    display: -moz-flex;
+    display: -webkit-flex; /* NEW - Chrome */
+    display: flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
+  }
 }

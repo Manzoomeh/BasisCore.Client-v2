@@ -88,6 +88,9 @@
     max-height: 200px;
     overflow-y: auto;
     scrollbar-width: thin;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 [data-bc-autocomplete-popup-container] [data-bc-result] li {
@@ -123,7 +126,7 @@
     color: #555;
     position: relative;
     line-height: 30px;
-    margin-bottom: 5px;
+    /* margin-bottom: 5px; */
 }
 
 [data-bc-add-item] [data-bc-btn-remove] {
@@ -133,16 +136,17 @@
     /* background-repeat: no-repeat; */
     background-position: center center;
     background-image: url(remove.PNG);
+    background-color: #f5f8f9;
+    cursor: pointer;
+    padding: 0;
+    border: 1px solid #c7d6db;
+    border-radius: 4px;
     position: absolute;
     left: -36px;
     top: 0;
-    cursor: pointer;
 }
 
 [data-bc-add-item] [data-bc-btn-remove]:hover {
     background-image: url(remove-hover.PNG);
+    background-color: #e03838;
 }
-
-
-
-
