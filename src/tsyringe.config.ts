@@ -24,6 +24,7 @@ import LocalContext from "./context/LocalContext";
 import ConsoleLogger from "./logger/ConsoleLogger";
 import Repository from "./repository/Repository";
 import { SchemaListComponent } from "./component/renderable/schema-list/SchemaListComponent";
+import InlineSourceComponent from "./component/source/InlineSourceComponent";
 
 container.register("IBasisCore", { useToken: BasisCore });
 container.register("ILogger", { useToken: ConsoleLogger });
@@ -44,6 +45,7 @@ container.register("group", { useToken: GroupComponent });
 container.register("repeater", { useToken: RepeaterComponent });
 container.register("callback", { useToken: CallbackComponent });
 container.register("dbsource", { useToken: DbSourceComponent });
+container.register("inlinesource", { useToken: InlineSourceComponent });
 
 container.register("input", { useToken: HTMLInputComponent });
 container.register("select", { useToken: HTMLSelectComponent });

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/basiscore.js"></script>
+    <title>inline source Command - Simple</title>
+  </head>
+
+  <body>
+    <basis core="inlinesource" name="list" run="atclient">
+      <member
+        name="star"
+        lefttblcol="db.data1.id"
+        righttblcol="db.data2.studentid"
+        format="join"
+        jointype="leftjoin"
+      />
+    </basis>
+
+    <basis core="callback" run="AtClient" triggers="list.star"></basis>
+
+    <script>
+      $bc.setSource("db.data1", [
+        {
+          id: 1,
+          name: "ali",
+        },
+        {
+          id: 2,
+          name: "reza",
+        },
+        {
+          id: 3,
+          name: "mohamad",
+        },
+      ]);
+      $bc.setSource("db.data2", [
+        {
+          studentid: 1,
+          mark: "20",
+        },
+        {
+          studentid: 1,
+          mark: "19",
+        },
+        {
+          studentid: 2,
+          mark: "13",
+        },
+      ]);
+    </script>
+  </body>
+</html>
