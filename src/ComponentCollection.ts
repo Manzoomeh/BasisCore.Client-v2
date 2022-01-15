@@ -146,11 +146,13 @@ export default class ComponentCollection implements IDisposable {
       this.extractTextComponent(element as Text, components);
     } else if (element.nodeType != Node.COMMENT_NODE) {
       if (element instanceof Element) {
-        if (!element.isBasisCore()) {
-          this.extractAttributeComponent(element, components);
-          if (element.hasChildNodes()) {
-            for (const child of element.childNodes) {
-              this.extractTextBaseComponents(child, components);
+        if (!element.isIgnoreTag()) {
+          if (!element.isBasisCore()) {
+            this.extractAttributeComponent(element, components);
+            if (element.hasChildNodes()) {
+              for (const child of element.childNodes) {
+                this.extractTextBaseComponents(child, components);
+              }
             }
           }
         }
@@ -184,14 +186,19 @@ export default class ComponentCollection implements IDisposable {
     const tagList = new Array<Element>();
     var process = (child: Node) => {
       if (child instanceof Element) {
-        if (child.isBasisCore()) {
-          coreList.push(child);
-          return;
-        } else if (child.isBasisTag()) {
-          tagList.push(child);
+        if (!child.isIgnoreTag()) {
+          if (child.isBasisCore()) {
+            coreList.push(child);
+          } else {
+            if (child.isBasisTag()) {
+              tagList.push(child);
+            }
+            child.childNodes.forEach(process);
+          }
         }
+      } else {
+        child.childNodes.forEach(process);
       }
-      child.childNodes.forEach(process);
     };
     process(rootElement);
     return { coreList, tagList };

@@ -14,6 +14,7 @@ declare global {
     getXMLTemplate(): string;
     isBasisCore(): boolean;
     isBasisTag(): boolean;
+    isIgnoreTag(): boolean;
   }
 }
 
@@ -142,6 +143,20 @@ Object.defineProperty(Element.prototype, "isBasisTag", {
     try {
       return (
         this.nodeType == Node.ELEMENT_NODE && this.hasAttribute("bc-triggers")
+      );
+    } catch {
+      return false;
+    }
+  },
+  writable: true,
+  configurable: true,
+});
+
+Object.defineProperty(Element.prototype, "isIgnoreTag", {
+  value: function isIgnoreTag() {
+    try {
+      return (
+        this.nodeType == Node.ELEMENT_NODE && this.hasAttribute("bc-ignore")
       );
     } catch {
       return false;
