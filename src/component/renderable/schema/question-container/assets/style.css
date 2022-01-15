@@ -35,6 +35,22 @@
   display: inline-block;
 }
 
+[data-bc-answer-container] label[data-bc-text-input] {
+  padding: 0.1em 0.4em;
+  display: inline-block;
+  border: 1px solid #c7d6db;
+  /* background: #f5f8f9; */
+  border-radius: 4px;
+  transition: border 0.3s linear 0s;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 12px;
+  color: #555;
+  height: 30px;
+  line-height: 30px;
+}
+
+
 [data-bc-answer-container] input[type="text"],
 [data-bc-answer-container] select,
 [data-bc-answer-container] textarea {
@@ -60,6 +76,11 @@
   resize: vertical;
 }
 
+[data-bc-answer-container] textarea:disabled {
+  background: inherit;
+  height: max-content;
+}
+
 [data-bc-answer-container] input[type="text"]:focus,
 [data-bc-answer-container] select:focus,
 [data-bc-answer-container] textarea:focus {
@@ -77,4 +98,31 @@
   /* float: right; */
   display: inline-block;
   line-height: 30px;
+}
+
+@media only screen and (max-width:1000px) {
+  [data-bc-title-container] {
+    width: 200px;
+  }
+}
+
+@media only screen and (max-width:700px) {
+  [data-bc-title-container] {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  [data-bc-answer-container] {
+    width: 100%;
+  }
+
+  [data-bc-answer-title-container] {
+    width: calc(100% - 30px);
+    display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox; /* TWEENER - IE 10 */
+    display: -moz-flex;
+    display: -webkit-flex; /* NEW - Chrome */
+    display: flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
+  }
 }
