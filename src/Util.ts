@@ -100,4 +100,14 @@ export default class Util {
       newParent.appendChild(oldParent.childNodes[0]);
     }
   }
+
+  public static typeExist(typeName: string): boolean {
+    let exist = false;
+    try {
+      exist = eval(`typeof ${typeName} !== 'undefine'`);
+    } catch (e) {
+      /*Nothing*/
+    }
+    return exist;
+  }
 }

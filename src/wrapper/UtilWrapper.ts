@@ -5,6 +5,7 @@ import { SourceWrapper } from "./SourceWrapper";
 import defaultsDeep from "lodash.defaultsdeep";
 import IContext from "../context/IContext";
 import ClientException from "../exception/ClientException";
+import Util from "../Util";
 
 export default class UtilWrapper implements IUtilWrapper {
   readonly source: ISourceWrapper = new SourceWrapper();
@@ -35,13 +36,7 @@ export default class UtilWrapper implements IUtilWrapper {
 
   public getLibAsync(objectName: string, url: string): Promise<any> {
     let retVal: Promise<any> = null;
-    let type = "undefined";
-    try {
-      type = eval(`typeof(${objectName})`);
-    } catch (e) {
-      /*Nothing*/
-    }
-    if (type === "undefined") {
+    if (!Util.typeExist(objectName)) {
       retVal = new Promise((resolve, reject) => {
         let script = document.querySelector<HTMLScriptElement>(
           `script[src='${url}']`
@@ -117,8 +112,11 @@ export default class UtilWrapper implements IUtilWrapper {
   public async getComponentAsync(context: IContext, key: string): Promise<any> {
     let retVal: any;
     if (key) {
-      if (key.indexOf("local.") == 0) {
-        const lib = key.slice(key.indexOf(".") + 1);
+      const lib = key.slice(key.indexOf(".") + 1);
+      if (
+        key.indexOf("local.") == 0 ||
+        (key.indexOf("core.") == 0 && Util.typeExist(lib))
+      ) {
         retVal = eval(lib);
         console.log("%s loaded from local", lib);
       } else {

@@ -85,7 +85,7 @@ export default class ComponentCollection implements IDisposable {
   private extractBasisCommands(node: Node, components: Array<IComponent>) {
     const pair = this.findRootLevelComponentNode(node);
     for (const item of pair.coreList) {
-      const core = item.getAttribute("core").split(".", 2)[0].toLowerCase();
+      const core = item.getAttribute("core").split(".", 1)[0].toLowerCase();
       components.push(this.createCommandComponent(item, core));
     }
     for (const item of pair.tagList) {
