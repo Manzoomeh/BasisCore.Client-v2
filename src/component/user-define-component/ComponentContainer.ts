@@ -28,6 +28,10 @@ export default abstract class ComponentContainer extends CommandComponent {
     return $bc.util.toHTMLElement(rawXml);
   }
 
+  public toElement(rawXml: string): Element {
+    return $bc.util.toElement(rawXml);
+  }
+
   public getDefault<T>(key: string, defaultValue?: T): T {
     return this.context.options.getDefault<T>(key, defaultValue);
   }

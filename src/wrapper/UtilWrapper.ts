@@ -5,7 +5,6 @@ import { SourceWrapper } from "./SourceWrapper";
 import defaultsDeep from "lodash.defaultsdeep";
 import IContext from "../context/IContext";
 import ClientException from "../exception/ClientException";
-import Util from "../Util";
 
 export default class UtilWrapper implements IUtilWrapper {
   readonly source: ISourceWrapper = new SourceWrapper();
@@ -36,7 +35,13 @@ export default class UtilWrapper implements IUtilWrapper {
 
   public getLibAsync(objectName: string, url: string): Promise<any> {
     let retVal: Promise<any> = null;
-    if (!Util.typeExist(objectName)) {
+    let type = "undefined";
+    try {
+      type = eval(`typeof(${objectName})`);
+    } catch (e) {
+      /*Nothing*/
+    }
+    if (type === "undefined") {
       retVal = new Promise((resolve, reject) => {
         let script = document.querySelector<HTMLScriptElement>(
           `script[src='${url}']`
@@ -109,14 +114,54 @@ export default class UtilWrapper implements IUtilWrapper {
       : XMLElementToHTMLElementConvertor(xmlDocument.documentElement);
   }
 
+  public toElement(rawXML: string): Element {
+    const xmlDocument = this.parser.parseFromString(rawXML, "application/xml");
+    const XMLElementToElementConvertor: {
+      (xmlElement: Element, inSvg: boolean): Element;
+    } = (xmlElement, inSvg) => {
+      inSvg ||= xmlElement.nodeName == "svg";
+      console.log(inSvg, xmlElement.nodeName, xmlElement.nodeName == "svg");
+      const namespace = inSvg
+        ? "http://www.w3.org/2000/svg"
+        : "http://www.w3.org/1999/xhtml";
+
+      const element = document.createElementNS(namespace, xmlElement.tagName);
+
+      if (xmlElement.attributes) {
+        for (let index = 0; index < xmlElement.attributes.length; index++) {
+          const attr = xmlElement.attributes[index];
+          element.setAttribute(attr.name, attr.value);
+        }
+      }
+      if (element instanceof HTMLTextAreaElement) {
+        element.innerHTML = xmlElement.innerHTML;
+      } else {
+        xmlElement.childNodes.forEach((child) => {
+          const childElement = child as Element;
+          if (childElement.nodeType === Node.TEXT_NODE) {
+            const textContent = child.nodeValue.trim();
+            if (textContent.length > 0) {
+              element.appendChild(document.createTextNode(textContent));
+            }
+          } else {
+            element.appendChild(
+              XMLElementToElementConvertor(childElement, inSvg)
+            );
+          }
+        });
+      }
+      return element;
+    };
+    return xmlDocument.documentElement.tagName === "parsererror"
+      ? xmlDocument.documentElement
+      : XMLElementToElementConvertor(xmlDocument.documentElement, false);
+  }
+
   public async getComponentAsync(context: IContext, key: string): Promise<any> {
     let retVal: any;
     if (key) {
-      const lib = key.slice(key.indexOf(".") + 1);
-      if (
-        key.indexOf("local.") == 0 ||
-        (key.indexOf("core.") == 0 && Util.typeExist(lib))
-      ) {
+      if (key.indexOf("local.") == 0) {
+        const lib = key.slice(key.indexOf(".") + 1);
         retVal = eval(lib);
         console.log("%s loaded from local", lib);
       } else {

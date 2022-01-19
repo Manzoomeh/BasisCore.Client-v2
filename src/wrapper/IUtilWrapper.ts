@@ -7,9 +7,15 @@ export default interface IUtilWrapper {
   getLibAsync(objectName: string, url: string): Promise<any>;
   toNode(rawXML: string): DocumentFragment;
   toHTMLElement(rawXml: string): HTMLElement;
+  toElement(rawXML: string): Element;
   getComponentAsync(context: IContext, key: string): Promise<any>;
-  storeAsGlobal(data:any,name?:string,prefix?:string,postfix?:string):string;
-  getRandomName(prefix?:string,postfix?:string):string;
-  format(pattern:string,...params:any[]):string;
+  storeAsGlobal(
+    data: any,
+    name?: string,
+    prefix?: string,
+    postfix?: string
+  ): string;
+  getRandomName(prefix?: string, postfix?: string): string;
+  format(pattern: string, ...params: any[]): string;
   source: ISourceWrapper;
 }

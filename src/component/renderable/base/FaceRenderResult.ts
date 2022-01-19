@@ -3,7 +3,7 @@ export default class FaceRenderResult {
   readonly version: number;
   readonly nodes: Array<Node>;
 
-  constructor(key: any, version: number, element: HTMLElement) {
+  constructor(key: any, version: number, element: Element) {
     this.key = key;
     this.version = version;
     this.nodes = Array.from(element.childNodes);

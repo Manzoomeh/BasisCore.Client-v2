@@ -36,7 +36,7 @@ export default class ListComponent extends RenderableComponent<FaceRenderResult>
         ?.GetXMLTemplateToken(this.context)
         ?.getValueAsync();
       const incompleteTemplate = incompleteTemplateStr
-        ? $bc.util.toHTMLElement(incompleteTemplateStr)
+        ? $bc.util.toElement(incompleteTemplateStr)
         : document.createElement("div");
 
       let contentTemplate = "";

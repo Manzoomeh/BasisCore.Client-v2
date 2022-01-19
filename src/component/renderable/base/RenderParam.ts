@@ -64,5 +64,5 @@ export default class RenderParam<TRenderResult extends FaceRenderResult> {
 declare type RenderResultFactory = (
   key: any,
   version: number,
-  node: HTMLElement
+  node: Element
 ) => any;

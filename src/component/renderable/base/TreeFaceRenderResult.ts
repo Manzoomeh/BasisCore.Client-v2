@@ -4,7 +4,7 @@ export default class TreeFaceRenderResult extends FaceRenderResult {
   private contentRange: Range;
   private contentNodes: Node[] = null;
 
-  constructor(key: any, version: number, element: HTMLElement) {
+  constructor(key: any, version: number, element: Element) {
     super(key, version, element);
     const childContainer = element.querySelector(
       'basis-core-template-tag[data-type="child"]'

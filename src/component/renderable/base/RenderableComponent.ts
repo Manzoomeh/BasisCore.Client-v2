@@ -126,7 +126,7 @@ export default abstract class RenderableComponent<
   }
 
   protected appendTemplateToDoc(template: string, doc: DocumentFragment): void {
-    const tmpResult = $bc.util.toHTMLElement(template);
+    const tmpResult = $bc.util.toElement(template);
     if (tmpResult.nodeName !== "parsererror") {
       Array.from(tmpResult.childNodes).forEach((node) => doc.appendChild(node));
     } else {

@@ -10,7 +10,7 @@ import ExposerComponent from "./component/user-define-component/component/Expose
 console.log(
   `%cWelcome To BasisCore Ecosystem%c
 follow us on https://BasisCore.com/
-version:2.4.14`,
+version:2.4.15`,
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );
