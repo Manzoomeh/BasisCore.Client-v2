@@ -78,6 +78,8 @@ export default class JoinMember extends InMemoryMember {
   }
 
   private getSourceFieldNameList(source: ISource): Array<string> {
-    return source ? Object.getOwnPropertyNames(source.rows[0]) : [];
+    return source && source.rows && source.rows.length > 0
+      ? Object.getOwnPropertyNames(source.rows[0])
+      : [];
   }
 }
