@@ -120,7 +120,7 @@ export default class UtilWrapper implements IUtilWrapper {
       (xmlElement: Element, inSvg: boolean): Element;
     } = (xmlElement, inSvg) => {
       inSvg ||= xmlElement.nodeName == "svg";
-      console.log(inSvg, xmlElement.nodeName, xmlElement.nodeName == "svg");
+      // console.log(inSvg, xmlElement.nodeName, xmlElement.nodeName == "svg");
       const namespace = inSvg
         ? "http://www.w3.org/2000/svg"
         : "http://www.w3.org/1999/xhtml";
