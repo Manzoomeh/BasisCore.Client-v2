@@ -36,7 +36,14 @@ export default class UtilWrapper implements IUtilWrapper {
 
   public getLibAsync(objectName: string, url: string): Promise<any> {
     let retVal: Promise<any> = null;
-    if (!Util.typeExist(objectName)) {
+    //if (!Util.typeExist(objectName)) {
+    let type = "undefined";
+    try {
+      type = eval(`typeof(${objectName})`);
+    } catch (e) {
+      /*Nothing*/
+    }
+    if (type === "undefined") {
       retVal = new Promise((resolve, reject) => {
         let script = document.querySelector<HTMLScriptElement>(
           `script[src='${url}']`
@@ -158,7 +165,7 @@ export default class UtilWrapper implements IUtilWrapper {
       const lib = key.slice(key.indexOf(".") + 1);
       if (
         key.indexOf("local.") == 0 ||
-        (key.indexOf("core.") == 0 && Util.typeExist(lib))
+        key.indexOf("core.") == 0 //&& Util.typeExist(lib)
       ) {
         retVal = eval(lib);
         console.log("%s loaded from local", lib);
