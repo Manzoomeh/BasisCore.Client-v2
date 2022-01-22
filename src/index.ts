@@ -8,9 +8,17 @@ import BCWrapperFactory from "./wrapper/BCWrapperFactory";
 import ExposerComponent from "./component/user-define-component/component/ExposerComponent";
 
 console.log(
-  `%cWelcome To BasisCore Ecosystem%c
+  `
+______           _                               _ _            _   
+| ___ \\         (_)                             | (_)          | |  
+| |_/ / __ _ ___ _ ___  ___ ___  _ __ ___    ___| |_  ___ _ __ | |_ 
+| ___ \\/ _\` / __| / __|/ __/ _ \\| '__/ _ \\  / __| | |/ _ \\ '_ \\| __|
+| |_/ / (_| \\__ \\ \\__ \\ (_| (_) | | |  __/ | (__| | |  __/ | | | |_ 
+\\____/ \\__,_|___/_|___/\\___\\___/|_|  \\___|  \\___|_|_|\\___|_| |_|\\__|
+                                                                    
+%cWelcome To BasisCore Ecosystem%c
 follow us on https://BasisCore.com/
-version:2.4.15`,
+version:2.4.16`,
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );
