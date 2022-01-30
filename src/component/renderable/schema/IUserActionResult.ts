@@ -7,6 +7,7 @@ export default interface IUserActionResult extends ISchema {
 
 export interface IUserActionProperty {
   propId: number;
+  multi: boolean;
   added?: Array<IUserActionAnswer>;
   edited?: Array<IUserActionAnswer>;
   deleted?: Array<IUserActionAnswer>;

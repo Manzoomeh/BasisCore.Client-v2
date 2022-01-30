@@ -114,6 +114,7 @@ export default class QuestionContainer {
       if (added.length > 0 || edited.length > 0 || deleted.length > 0) {
         userAction = {
           propId: this.questionSchema.prpId,
+          multi: this.questionSchema.multi,
           ...(added.length > 0 && { added: added }),
           ...(edited.length > 0 && { edited: edited }),
           ...(deleted.length > 0 && { deleted: deleted }),
