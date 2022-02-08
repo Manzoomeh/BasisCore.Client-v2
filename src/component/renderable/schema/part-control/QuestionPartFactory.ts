@@ -13,6 +13,7 @@ import ReadOnlyTextAriaType from "./readonly-text-area/ReadOnlyTextAriaType";
 import ReadOnlySelectType from "./select/ReadOnlySelectType";
 import { IPartCollection } from "../IAnswerSchema";
 import { IQuestion, IQuestionPart } from "../IQuestionSchema";
+import Lookup from "./lookup/Lookup";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -49,6 +50,10 @@ export default class QuestionPartFactory {
                 answer
               )
             : new AutoCompleteSingleType(part, owner, answer);
+          break;
+        }
+        case "lookup": {
+          retVal = new Lookup(part, owner, answer);
           break;
         }
         default: {

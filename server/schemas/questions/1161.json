@@ -273,6 +273,27 @@
                   "link": ""
                 }
               ]
+            },
+            {
+              "prpId": 1355,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "lookup",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "lookup",
+                  "cssClass": "css_13060_1",
+                  "caption": "کشور",
+                  "link": "/schema/lookup?term=${term}"
+                }
+              ]
             }
           ]
         }

@@ -27,8 +27,8 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
   }
 
   protected async getValueAsync(id: number): Promise<IFixValue> {
-    const rooUrl = this.part.link.split("?")[0];
-    const url = `${rooUrl}?fixid=${id}`;
+    const rootUrl = this.part.link.split("?")[0];
+    const url = `${rootUrl}?fixid=${id}`;
     return await Util.getDataAsync<IFixValue>(url);
   }
 
@@ -56,7 +56,7 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
 
   public getAdded(): IUserActionPart {
     let retVal = null;
-    if (!this.answer) {
+    if (!this.answer && this.selectedId) {
       retVal = {
         part: this.part.part,
         values: [

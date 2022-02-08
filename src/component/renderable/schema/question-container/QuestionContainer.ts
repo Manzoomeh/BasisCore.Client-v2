@@ -73,7 +73,7 @@ export default class QuestionContainer {
   public onQuestionRemove(question: Question) {
     const index = this._questions.indexOf(question);
     this._questions.splice(index, 1);
-    if (question.answer) {
+    if (question.answer?.id) {
       if (!this._removedQuestions) {
         this._removedQuestions = [];
       }

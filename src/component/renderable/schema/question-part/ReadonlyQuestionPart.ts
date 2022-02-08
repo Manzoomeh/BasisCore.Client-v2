@@ -1,5 +1,4 @@
 import Question from "../question/Question";
-import layout from "./assets/layout.html";
 import QuestionPart from "./QuestionPart";
 import { IUserActionPart } from "../IUserActionResult";
 import { IPartCollection } from "../IAnswerSchema";

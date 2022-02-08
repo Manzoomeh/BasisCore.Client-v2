@@ -64,4 +64,16 @@ router.get("/autocomplete", (req, res) => {
   }
 });
 
+router.get("/lookup", (req, res) => {
+  if (req.query.term) {
+    const term = req.query.term;
+    const data = apiDataList.filter((x) => x.value.indexOf(term) > -1);
+    res.json(data.filter((_, i) => i < 10));
+  } else if (req.query.fixid) {
+    const fixId = req.query.fixid;
+    const data = apiDataList.find((x) => x.id == fixId);
+    res.json(data);
+  }
+});
+
 module.exports = router;
