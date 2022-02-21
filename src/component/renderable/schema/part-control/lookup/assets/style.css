@@ -1,0 +1,53 @@
+[data-bc-fm-lookup] input[type="text"] {
+    width: calc((100% - 5px) / 2) !important;
+    margin-left: 5px;
+}
+
+[data-bc-fm-lookup] [data-bc-select-value] {
+    width: calc((100% - 5px) / 2) !important;
+    padding: 0.1em 0.4em;
+    display: inline-block;
+    border: 1px solid #C7D6DB;
+    border-radius: 4px;
+    transition: border 0.3s linear 0s;
+    box-sizing: border-box;
+    height: 30px;
+    font-size: 12px;
+    color: #555;
+    position: relative;
+    line-height: 30px;
+    vertical-align: top;
+}
+
+[data-bc-fm-lookup] [data-bc-result] {
+    width: 100%;
+    /* border: 1px solid #c5c5c5; */
+    background: #FFF;
+    /* position: absolute; */
+    top: 30px;
+    left: 0px;
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+[data-bc-fm-lookup] [data-bc-result] li {
+    /* border-bottom: 1px solid #CBD3DD; */
+    border: 1px solid #CBD3DD;
+    border-top: none;
+    direction: rtl;
+    text-align: right;
+    padding: 5px 5px;
+    cursor: pointer;
+}
+
+[data-bc-fm-lookup] [data-bc-result] li:first-child {
+    border-top: 1px solid #CBD3DD;
+}
+
+[data-bc-fm-lookup] [data-bc-result] li:hover {
+    background: #f4faff;
+}

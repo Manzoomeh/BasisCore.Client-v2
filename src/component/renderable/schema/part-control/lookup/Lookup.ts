@@ -6,6 +6,7 @@ import IValidationError from "../../IValidationError";
 import EditableQuestionPart from "../../question-part/EditableQuestionPart";
 import Question from "../../question/Question";
 import layout from "./assets/layout.html";
+import "./assets/style";
 
 export default class Lookup extends EditableQuestionPart {
   private _input: HTMLInputElement;
@@ -31,15 +32,15 @@ export default class Lookup extends EditableQuestionPart {
     super(part, layout, owner, answer);
 
     this._input = this.element.querySelector("[data-bc-text-input]");
-    this._valueInput = this.element.querySelector("[data-bc-value]");
-    // this._input.addEventListener(
-    //   "keyup",
-    //   this.displaySuggestionListAsync.bind(this)
-    // );
+    this._valueInput = this.element.querySelector("[data-bc-select-value]");
     this._input.addEventListener(
-      "focusout",
+      "keyup",
       this.displaySuggestionListAsync.bind(this)
     );
+    // this._input.addEventListener(
+    //   "focusout",
+    //   this.displaySuggestionListAsync.bind(this)
+    // );
     const value = answer?.values[0];
     if (value) {
       this.getValueAsync(value.value).then((fixValue) =>
@@ -52,6 +53,7 @@ export default class Lookup extends EditableQuestionPart {
     this.id = value.id;
     this.title = value.value;
   }
+
   protected async getValueAsync(id: number): Promise<IFixValue> {
     const rootUrl = this.part.link.split("?")[0];
     const url = `${rootUrl}?fixid=${id}`;
@@ -60,13 +62,26 @@ export default class Lookup extends EditableQuestionPart {
 
   private async displaySuggestionListAsync(e: KeyboardEvent) {
     const term = this._input.value;
-    const url = Util.formatString(this.part.link, { term });
+    const url = Util.formatString(this.part.link, { term });    
+    const ul =
+      this.element.querySelector<HTMLUListElement>("[data-bc-result]");
+    ul.innerHTML = "";
     const result = await Util.getDataAsync<Array<IFixValue>>(url);
-    console.log(result);
+
     if (result?.length > 0) {
-      this.setValue(result[0]);
-    }
-  }
+      result.forEach((item) => {
+        const li = document.createElement("li");
+        li.setAttribute("data-bc-value", item.value);
+        li.innerHTML = item.value;
+        li.addEventListener("dblclick", (e) => {
+          e.preventDefault();
+          this.setValue(item);
+          ul.innerHTML = "";
+        });
+        ul.appendChild(li);
+      });
+    };
+  };
 
   public getValidationErrors(): IValidationError {
     return this.ValidateValue(this._input.value);

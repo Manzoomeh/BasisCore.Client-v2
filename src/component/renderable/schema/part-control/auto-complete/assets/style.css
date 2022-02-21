@@ -150,3 +150,8 @@
     background-image: url(remove-hover.PNG);
     background-color: #e03838;
 }
+
+[data-bc-auto-complete-single-type-btn] {
+    position: absolute;
+    left: -35px;
+}
