@@ -120,6 +120,8 @@ export default class QuestionContainer {
           ...(deleted.length > 0 && { deleted: deleted }),
         };
       }
+    } else {
+      throw Error("invalid");
     }
     return userAction;
   }

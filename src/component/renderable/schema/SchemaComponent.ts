@@ -152,16 +152,27 @@ export default class SchemaComponent extends SourceBaseComponent {
         });
         if (this.buttonSelector && resultSourceId && !options.viewMode) {
           this.getAnswers = () => {
-            const retVal: IUserActionResult = {
-              lid: schema.lid,
-              schemaId: schema.schemaId,
-              schemaVersion: schema.schemaVersion,
-              usedForId: answer?.usedForId,
-              properties: this._questions
-                .map((x) => x.getUserAction())
-                .filter((x) => x),
-            };
-            if (retVal.properties.length > 0) {
+            const userActionList = new Array<any>();
+            let hasValidationError = false;
+            this._questions.forEach((question) => {
+              try {
+                var actions = question.getUserAction();
+                if (actions) {
+                  userActionList.push(actions);
+                }
+              } catch (e) {
+                hasValidationError = true;
+              }
+            });
+            if (!hasValidationError && userActionList.length > 0) {
+              const retVal: IUserActionResult = {
+                lid: schema.lid,
+                schemaId: schema.schemaId,
+                schemaVersion: schema.schemaVersion,
+                usedForId: answer?.usedForId,
+                properties: userActionList,
+              };
+
               this.context.setAsSource(resultSourceId, retVal);
             }
           };
