@@ -64,7 +64,7 @@ export default abstract class QuestionPart {
           try {
             const ok = (
               this.part.validations.dataType === "int"
-                ? /^\d+$/
+                ? /^[+-]?\d+$/
                 : /^[+-]?\d+(\.\d+)?$/
             ).test(userValue.toString());
             if (!ok) {

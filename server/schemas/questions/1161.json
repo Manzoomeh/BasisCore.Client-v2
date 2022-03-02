@@ -294,6 +294,31 @@
                   "link": "/schema/lookup?term=${term}"
                 }
               ]
+            },
+            {
+              "prpId": 132621,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "عدد",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 2,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text",
+                  "cssClass": "css_13060_1",
+                  "caption": "",
+                  "link": "",
+                  "validations": {
+                    "required": true,
+                    "dataType": "int"
+                  }
+                }
+              ]
             }
           ]
         }
