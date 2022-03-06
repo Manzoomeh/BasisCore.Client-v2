@@ -1,12 +1,9 @@
 import IContext from "../../../context/IContext";
-import Data from "../../../data/Data";
 import ISource from "../../../data/ISource";
 import { JoinType } from "../../../enum";
 import InvalidPropertyValueException from "../../../exception/InvalidPropertyValueException";
 import IBasisCore from "../../../IBasisCore";
 import InMemoryMember from "./InMemoryMember";
-
-declare var $bc: IBasisCore;
 
 export default class JoinMember extends InMemoryMember {
   constructor(element: Element, context: IContext) {
@@ -46,11 +43,16 @@ export default class JoinMember extends InMemoryMember {
 
     var joinResultCol = this.getSourceFieldNameList(leftSource)
       .filter((x) => x != "rownumber")
-      .map((x) => `ltbl.[${x}] AS [${leftDataMember}.${x}]`);
+      .map(
+        (x) => `ltbl.[${x}] AS [${leftDataParts[0]}_${leftDataParts[1]}_${x}]`
+      );
     joinResultCol = joinResultCol.concat(
       this.getSourceFieldNameList(rightSource)
         .filter((x) => x != "rownumber")
-        .map((x) => `rtbl.[${x}] AS [${rightDataMember}.${x}]`)
+        .map(
+          (x) =>
+            `rtbl.[${x}] AS [${rightDataParts[0]}_${rightDataParts[1]}_${x}]`
+        )
     );
 
     var joinType = "JOIN";
