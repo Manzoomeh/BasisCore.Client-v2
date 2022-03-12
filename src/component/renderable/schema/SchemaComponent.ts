@@ -141,14 +141,27 @@ export default class SchemaComponent extends SourceBaseComponent {
               }
             }
           }
-          this._questions.push(
-            new QuestionCollection(
-              question,
-              options,
-              questionContainer,
-              partAnswer
-            )
-          );
+          if (options.viewMode) {
+            if (partAnswer && partAnswer != undefined) {
+              this._questions.push(
+                new QuestionCollection(
+                  question,
+                  options,
+                  questionContainer,
+                  partAnswer
+                )
+              );
+            }
+          } else {
+            this._questions.push(
+              new QuestionCollection(
+                question,
+                options,
+                questionContainer,
+                partAnswer
+              )
+            );
+          }
         });
         if (this.buttonSelector && resultSourceId && !options.viewMode) {
           this.getAnswers = () => {
