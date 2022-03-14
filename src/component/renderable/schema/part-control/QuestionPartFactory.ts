@@ -1,13 +1,15 @@
 import Question from "../question/Question";
 import AutoCompleteMultiType from "./auto-complete/AutoCompleteMultiType";
 import AutoCompleteSingleType from "./auto-complete/AutocompleteSingleType";
-import CheckListType from "./check-list/CheckListType";
+import CheckListType from "./select-list/check-list/CheckListType";
+import RadioListType from "./select-list/radio/RadioListType";
 import SelectType from "./select/SelectType";
 import TextAriaType from "./text-area/TextAriaType";
 import TextType from "./text/TextType";
 import UnknownType from "./unknown/UnknownType";
 import QuestionPart from "../question-part/QuestionPart";
-import ReadonlyCheckListType from "./check-list/ReadonlyCheckListType";
+import ReadonlyCheckListType from "./select-list/check-list/ReadonlyCheckListType";
+import ReadonlyRadioType from "./select-list/radio/ReadonlyRadioType";
 import ReadOnlyText from "./readonly-text/ReadOnlyText";
 import ReadOnlyTextAriaType from "./readonly-text-area/ReadOnlyTextAriaType";
 import ReadOnlySelectType from "./select/ReadOnlySelectType";
@@ -35,6 +37,10 @@ export default class QuestionPartFactory {
         }
         case "checklist": {
           retVal = new CheckListType(part, owner, answer);
+          break;
+        }
+        case "radio": {
+          retVal = new RadioListType(part, owner, answer);
           break;
         }
         case "textarea": {
@@ -65,6 +71,10 @@ export default class QuestionPartFactory {
       switch (part.viewType.toLowerCase()) {
         case "checklist": {
           retVal = new ReadonlyCheckListType(part, owner, answer);
+          break;
+        }
+        case "radio": {
+          retVal = new ReadonlyRadioType(part, owner, answer);
           break;
         }
         case "textarea": {

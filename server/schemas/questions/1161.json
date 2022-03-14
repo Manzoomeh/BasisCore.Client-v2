@@ -319,6 +319,90 @@
                   }
                 }
               ]
+            },
+            {
+              "prpId": 130603,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "radio",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "fixValues": [
+                    {
+                      "id": 44,
+                      "value": "123456"
+                    },
+                    {
+                      "id": 45,
+                      "value": "456789"
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 130604,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "radio multi",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "fixValues": [
+                    {
+                      "id": 54,
+                      "value": "987"
+                    },
+                    {
+                      "id": 55,
+                      "value": "654"
+                    },
+                    {
+                      "id": 56,
+                      "value": "321"
+                    },
+                    {
+                      "id": 57,
+                      "value": "147"
+                    },
+                    {
+                      "id": 58,
+                      "value": "258"
+                    },
+                    {
+                      "id": 59,
+                      "value": "369"
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
             }
           ]
         }

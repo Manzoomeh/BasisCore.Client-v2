@@ -1,5 +1,3 @@
-import layout from "./assets/layout.html";
-import itemLayout from "./assets/item-layout.html";
 import ListBaseType from "../ListBaseType";
 import Question from "../../question/Question";
 import Util from "../../../../../Util";
@@ -8,8 +6,14 @@ import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import { IUserActionPartValue, IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
 
-export default class CheckListType extends ListBaseType {
-  constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
+export default abstract class SelectListType extends ListBaseType {
+  static _seedId: number = 0;
+  public rndName : string;
+  
+  protected abstract get controlType():type;
+  protected abstract get itemLayout():string;
+
+  constructor(part: IQuestionPart, layout: string, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
   }
 
@@ -42,15 +46,22 @@ export default class CheckListType extends ListBaseType {
       deletedItems?.length > 0 ? deletedItems : null,
     ];
   }
+
   protected fillUI(values: Array<IFixValue>) {
+    this.rndName = "radio" + (++SelectListType._seedId).toString();
     values.forEach((item) => {
-      const newTemplate = itemLayout
+      const newTemplate = this.itemLayout
+        .replace("@type", this.controlType)
         .replace("@title", item.value)
         .replace("@value", item.id.toString())
         .replace(
+          "@name",
+          this.controlType == "radio" ? this.rndName : ""
+        ).replace(
           "@checked",
           this.answer?.values.find((x) => x.value == item.id) ? "checked" : ""
         );
+
       const template = Util.parse(newTemplate).querySelector("div");
       this.element.querySelector("div").appendChild(template);
     });
@@ -91,3 +102,5 @@ export default class CheckListType extends ListBaseType {
     return retVal;
   }
 }
+
+export type type = "checkbox" | "radio";
