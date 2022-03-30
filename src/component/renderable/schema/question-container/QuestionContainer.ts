@@ -34,6 +34,9 @@ export default class QuestionContainer {
     const headerContainer = uiElement.querySelector(
       "[data-bc-answer-title-container]"
     );
+    if (questionSchema.cssClass) {
+      uiElement.classList.add(questionSchema.cssClass);
+    }
     if (questionSchema.parts.length > 1) {
       const template = document.createElement("div");
       template.setAttribute("data-bc-answer-title", "");

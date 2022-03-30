@@ -26,6 +26,9 @@ export default abstract class QuestionPart {
     this._validationElement = this.element.querySelector(
       "[data-bc-validation-part]"
     );
+    if (this.part.cssClass) {
+      this.element.classList.add(this.part.cssClass);
+    }
     this.element.querySelector("[data-bc-content]").outerHTML = partLayout;
     this.owner.element.appendChild(this.element);
     this.element.setAttribute("data-bc-part-related-cell", "");
