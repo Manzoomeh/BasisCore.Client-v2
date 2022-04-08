@@ -6,6 +6,7 @@ import Util from "../../../../Util";
 import { IUserActionProperty } from "../IUserActionResult";
 import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
+import IQuestionContainer from "../IQuestionContainer";
 
 export default class QuestionContainer {
   private readonly questionSchema: IQuestion;
@@ -18,7 +19,7 @@ export default class QuestionContainer {
   constructor(
     questionSchema: IQuestion,
     options: IFormMakerOptions,
-    container: Element,
+    container: IQuestionContainer,
     answer: IAnswerProperty
   ) {
     this.questionSchema = questionSchema;
@@ -26,7 +27,9 @@ export default class QuestionContainer {
     this.answer = answer;
     var copyTemplate = layout.replace("@title", this.questionSchema.title);
     const uiElement =
-      Util.parse(copyTemplate).querySelector("[data-bc-question]");
+      Util.parse(copyTemplate).querySelector<HTMLDivElement>(
+        "[data-bc-question]"
+      );
     this.element = uiElement.querySelector("[data-bc-answer-collection]");
     if (!questionSchema.help) {
       uiElement.querySelector("[data-bc-help-btn]").remove();
@@ -52,7 +55,7 @@ export default class QuestionContainer {
       headerContainer.remove();
     }
 
-    container.appendChild(uiElement);
+    container.add(uiElement);
     if (answer) {
       this.answer.answers.forEach((answer) => this.addQuestion(answer));
     } else {

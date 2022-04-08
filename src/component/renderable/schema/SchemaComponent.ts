@@ -7,13 +7,17 @@ import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import IAnswerSchema from "./IAnswerSchema";
 import IFormMakerOptions, { GetSchemaCallbackAsync } from "./IFormMakerOptions";
+import IQuestionContainer from "./IQuestionContainer";
 import IQuestionSchema from "./IQuestionSchema";
 import IUserActionResult from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
 import Section from "./section/Section";
 
 @injectable()
-export default class SchemaComponent extends SourceBaseComponent {
+export default class SchemaComponent
+  extends SourceBaseComponent
+  implements IQuestionContainer
+{
   private _questions: Array<QuestionCollection>;
 
   private schemaUrlToken: IToken<string>;
@@ -25,6 +29,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   private callbackToken: IToken<string>;
   private schemaCallbackToken: IToken<string>;
   private lidToken: IToken<string>;
+  private _currentContainer: Element;
   private getAnswers: () => void;
 
   constructor(
@@ -32,6 +37,9 @@ export default class SchemaComponent extends SourceBaseComponent {
     @inject("context") context: IContext
   ) {
     super(element, context);
+  }
+  add(questionUI: HTMLDivElement): void {
+    this._currentContainer.appendChild(questionUI);
   }
 
   public async initializeAsync(): Promise<void> {
@@ -77,7 +85,8 @@ export default class SchemaComponent extends SourceBaseComponent {
     schemaId = answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
     this.getAnswers = null;
-    const container = document.createElement("div") as Element;
+    this._currentContainer = document.createElement("div") as Element;
+    const container = this._currentContainer;
     this.setContent(container, false);
     if (schemaId) {
       const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
@@ -126,10 +135,10 @@ export default class SchemaComponent extends SourceBaseComponent {
           const partAnswer = answer?.properties.find(
             (x) => x.prpId == question.prpId
           );
-          let questionContainer = container;
+          let questionContainer: IQuestionContainer = this;
           if (question.sectionId && schema.sections?.length > 0) {
             if (sections.has(question.sectionId)) {
-              questionContainer = sections.get(question.sectionId).element;
+              questionContainer = sections.get(question.sectionId);
             } else {
               const sectionSchema = schema.sections.find(
                 (x) => x.id == question.sectionId
@@ -137,7 +146,7 @@ export default class SchemaComponent extends SourceBaseComponent {
               if (sectionSchema) {
                 const section = new Section(sectionSchema, container);
                 sections.set(sectionSchema.id, section);
-                questionContainer = section.element;
+                questionContainer = section;
               }
             }
           }
