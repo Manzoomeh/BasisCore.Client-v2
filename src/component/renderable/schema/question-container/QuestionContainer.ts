@@ -6,7 +6,7 @@ import Util from "../../../../Util";
 import { IUserActionProperty } from "../IUserActionResult";
 import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
-import IQuestionContainer from "../IQuestionContainer";
+import IQuestionCellManager from "../IQuestionCellManager";
 
 export default class QuestionContainer {
   private readonly questionSchema: IQuestion;
@@ -19,7 +19,7 @@ export default class QuestionContainer {
   constructor(
     questionSchema: IQuestion,
     options: IFormMakerOptions,
-    container: IQuestionContainer,
+    cellManager: IQuestionCellManager,
     answer: IAnswerProperty
   ) {
     this.questionSchema = questionSchema;
@@ -55,7 +55,7 @@ export default class QuestionContainer {
       headerContainer.remove();
     }
 
-    container.add(uiElement);
+    cellManager.add(uiElement);
     if (answer) {
       this.answer.answers.forEach((answer) => this.addQuestion(answer));
     } else {

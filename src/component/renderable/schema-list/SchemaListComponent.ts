@@ -23,7 +23,6 @@ export class SchemaListComponent extends SourceBaseComponent {
     await super.initializeAsync();
     this.urlToken = this.getAttributeToken("schemaUrl");
     this._faces = new SchemaFaceCollection(this.node, this.context);
-    console.log(this._faces);
   }
 
   protected async renderSourceAsync(dataSource: ISource): Promise<any> {

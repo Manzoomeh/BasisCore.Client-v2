@@ -2,13 +2,14 @@ import { ISection } from "../IQuestionSchema";
 import "./assets/style";
 import layout from "./assets/layout.html";
 import Util from "../../../../Util";
-import IQuestionContainer from "../IQuestionContainer";
+import IQuestionCellManager from "../IQuestionCellManager";
+import QuestionCellManager from "../QuestionCellManager";
 
-export default class Section implements IQuestionContainer {
+export default class Section {
   public readonly element: Element;
-  public readonly cell: number = 1;
+  public cellManager: IQuestionCellManager;
   public currentRow: HTMLDivElement = null;
-  constructor(sectionSchema: ISection, container: Element) {
+  constructor(sectionSchema: ISection, container: Element, cell: number) {
     this.element = Util.parse(layout).querySelector("[data-bc-section]");
     const title = this.element.querySelector("[data-bc-section-title]");
     if (sectionSchema.title) {
@@ -17,21 +18,6 @@ export default class Section implements IQuestionContainer {
       title.remove();
     }
     container.appendChild(this.element);
-  }
-  add(questionUI: HTMLDivElement): void {
-    if (this.cell == 1) {
-      this.element.appendChild(questionUI);
-    } else {
-      if (!this.currentRow) {
-        this.currentRow = document.createElement("div");
-        this.currentRow.setAttribute("data-bc-sm-question-row", "");
-        this.element.appendChild(this.currentRow);
-      }
-      questionUI.setAttribute("data-bc-sm-question-cell", "");
-      this.currentRow.appendChild(questionUI);
-      if (this.currentRow.childNodes.length == this.cell) {
-        this.currentRow = null;
-      }
-    }
+    this.cellManager = new QuestionCellManager(this.element, cell);
   }
 }

@@ -7,17 +7,15 @@ import Util from "../../../Util";
 import SourceBaseComponent from "../../SourceBaseComponent";
 import IAnswerSchema from "./IAnswerSchema";
 import IFormMakerOptions, { GetSchemaCallbackAsync } from "./IFormMakerOptions";
-import IQuestionContainer from "./IQuestionContainer";
+import IQuestionCellManager from "./IQuestionCellManager";
 import IQuestionSchema from "./IQuestionSchema";
 import IUserActionResult from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
+import QuestionCellManager from "./QuestionCellManager";
 import Section from "./section/Section";
 
 @injectable()
-export default class SchemaComponent
-  extends SourceBaseComponent
-  implements IQuestionContainer
-{
+export default class SchemaComponent extends SourceBaseComponent {
   private _questions: Array<QuestionCollection>;
 
   private schemaUrlToken: IToken<string>;
@@ -29,7 +27,8 @@ export default class SchemaComponent
   private callbackToken: IToken<string>;
   private schemaCallbackToken: IToken<string>;
   private lidToken: IToken<string>;
-  private _currentContainer: Element;
+  private cellToken: IToken<string>;
+  private _currentCellManager: IQuestionCellManager;
   private getAnswers: () => void;
 
   constructor(
@@ -37,9 +36,6 @@ export default class SchemaComponent
     @inject("context") context: IContext
   ) {
     super(element, context);
-  }
-  add(questionUI: HTMLDivElement): void {
-    this._currentContainer.appendChild(questionUI);
   }
 
   public async initializeAsync(): Promise<void> {
@@ -53,6 +49,7 @@ export default class SchemaComponent
     this.callbackToken = this.getAttributeToken("callback");
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
     this.lidToken = this.getAttributeToken("lid");
+    this.cellToken = this.getAttributeToken("cell");
     document
       .querySelectorAll(this.buttonSelector)
       .forEach((btn) => btn.addEventListener("click", this.onClick.bind(this)));
@@ -85,8 +82,8 @@ export default class SchemaComponent
     schemaId = answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
     this.getAnswers = null;
-    this._currentContainer = document.createElement("div") as Element;
-    const container = this._currentContainer;
+    const container = document.createElement("div") as Element;
+
     this.setContent(container, false);
     if (schemaId) {
       const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
@@ -97,6 +94,8 @@ export default class SchemaComponent
       const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
       const lidStr = await this.lidToken?.getValueAsync();
       const lid = lidStr ? parseInt(lidStr) : null;
+      const cellStr = await this.cellToken?.getValueAsync();
+      const cell = cellStr ? parseInt(cellStr) : 1;
       var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
         ? eval(schemaCallbackStr)
         : null;
@@ -135,20 +134,30 @@ export default class SchemaComponent
           const partAnswer = answer?.properties.find(
             (x) => x.prpId == question.prpId
           );
-          let questionContainer: IQuestionContainer = this;
+          let cellManager: IQuestionCellManager = null;
           if (question.sectionId && schema.sections?.length > 0) {
             if (sections.has(question.sectionId)) {
-              questionContainer = sections.get(question.sectionId);
+              cellManager = sections.get(question.sectionId).cellManager;
             } else {
               const sectionSchema = schema.sections.find(
                 (x) => x.id == question.sectionId
               );
               if (sectionSchema) {
-                const section = new Section(sectionSchema, container);
+                const section = new Section(sectionSchema, container, cell);
                 sections.set(sectionSchema.id, section);
-                questionContainer = section;
+                cellManager = section.cellManager;
+                this._currentCellManager = null;
               }
             }
+          }
+          if (!cellManager) {
+            if (!this._currentCellManager) {
+              this._currentCellManager = new QuestionCellManager(
+                container,
+                cell
+              );
+            }
+            cellManager = this._currentCellManager;
           }
           if (options.viewMode) {
             if (partAnswer && partAnswer != undefined) {
@@ -156,19 +165,14 @@ export default class SchemaComponent
                 new QuestionCollection(
                   question,
                   options,
-                  questionContainer,
+                  cellManager,
                   partAnswer
                 )
               );
             }
           } else {
             this._questions.push(
-              new QuestionCollection(
-                question,
-                options,
-                questionContainer,
-                partAnswer
-              )
+              new QuestionCollection(question, options, cellManager, partAnswer)
             );
           }
         });
