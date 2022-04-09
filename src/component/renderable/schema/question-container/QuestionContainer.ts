@@ -61,6 +61,39 @@ export default class QuestionContainer {
     } else {
       this.addQuestion(null);
     }
+
+    const tempLog = uiElement.querySelector("[data-bc-answer-container]");
+
+    tempLog.setAttribute(
+      "data-bc-schema-info-multi",
+      questionSchema.multi ? "1" : "0"
+    );
+
+    if (questionSchema.typeId) {
+      tempLog.setAttribute(
+        "data-bc-schema-info-type",
+        questionSchema.typeId.toString()
+      );
+    }
+
+    if (questionSchema.wordId) {
+      tempLog.setAttribute(
+        "data-bc-schema-info-word",
+        questionSchema.wordId.toString()
+      );
+    }
+
+    tempLog.setAttribute(
+      "data-bc-schema-info-part",
+      questionSchema.parts ? questionSchema.parts.length.toString() : "0"
+    );
+
+    questionSchema.parts.forEach((part, index) =>
+      tempLog.setAttribute(
+        `data-bc-schema-info-part-${index}-type`,
+        part.viewType
+      )
+    );
   }
 
   public addQuestion(answer?: IAnswerPart): Question {
