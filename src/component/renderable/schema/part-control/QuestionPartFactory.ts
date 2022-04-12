@@ -16,6 +16,8 @@ import ReadOnlySelectType from "./select/ReadOnlySelectType";
 import { IPartCollection } from "../IAnswerSchema";
 import { IQuestion, IQuestionPart } from "../IQuestionSchema";
 import Lookup from "./lookup/Lookup";
+import TimeType from "./text/TimeType";
+import ColorType from "./text/ColorType";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -62,6 +64,14 @@ export default class QuestionPartFactory {
           retVal = new Lookup(part, owner, answer);
           break;
         }
+        case "time": {
+          retVal = new TimeType(part, owner, answer);
+          break;
+        }
+        case "color": {
+          retVal = new ColorType(part, owner, answer);
+          break;
+        }
         default: {
           retVal = new UnknownType(part, owner, answer);
           break;
@@ -94,6 +104,18 @@ export default class QuestionPartFactory {
                 answer
               )
             : new AutoCompleteSingleType(part, owner, answer);
+          break;
+        }
+        case "lookup": {
+          retVal = new Lookup(part, owner, answer);
+          break;
+        }
+        case "time": {
+          retVal = new TimeType(part, owner, answer);
+          break;
+        }
+        case "color": {
+          retVal = new ColorType(part, owner, answer);
           break;
         }
         default: {

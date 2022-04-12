@@ -404,6 +404,54 @@
                   "link": ""
                 }
               ]
+            },
+            {
+              "prpId": 140603,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "زمان",
+              "title": "time",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "time",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 140603,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "رنگ",
+              "title": "color",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "color",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": ""
+                }
+              ]
             }
           ]
         }
