@@ -44,4 +44,5 @@ export default interface IUserDefineComponent {
   ): string;
   getRandomName(prefix?: string, postfix?: string): string;
   format(pattern: string, ...params: any[]): string;
+  getLibAsync(objectName: string, url: string): Promise<any>;
 }

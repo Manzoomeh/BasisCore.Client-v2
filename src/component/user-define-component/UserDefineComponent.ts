@@ -24,6 +24,9 @@ export default class UserDefineComponent
   ) {
     super(element, context, container);
   }
+  public getLibAsync(objectName: string, url: string): Promise<any> {
+    return $bc.util.getLibAsync(objectName, url);
+  }
 
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
