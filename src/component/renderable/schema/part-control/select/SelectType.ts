@@ -12,6 +12,9 @@ export default class SelectType extends ListBaseType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
     this._select = this.element.querySelector("select");
+    if (this.isDisabled) {
+      this._select.setAttribute("disabled", "");
+    }
   }
 
   protected fillUI(values: Array<IFixValue>) {

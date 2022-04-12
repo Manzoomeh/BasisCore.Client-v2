@@ -17,6 +17,7 @@ export interface IQuestion {
   sectionId: number;
   cssClass: string;
   help?: string;
+  disabled?: boolean;
   parts: Array<IQuestionPart>;
 }
 
@@ -30,6 +31,7 @@ export interface IQuestionPart {
   fixValues?: Array<IFixValue>;
   dependency?: Array<IDependency>;
   method?: WebMethod;
+  disabled?: boolean;
 }
 
 export type WebMethod = "POST" | "GET";

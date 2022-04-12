@@ -37,7 +37,11 @@ export default class Question {
     this.answer = answer;
     this._ui = Util.parse(layout).querySelector("[data-bc-answer]");
     this.element = this._ui.querySelector("[data-bc-part-container]");
-    if (this.question.multi && !this.options.viewMode) {
+    if (
+      this.question.multi &&
+      !this.options.viewMode &&
+      !this.question.disabled
+    ) {
       this.button = this._ui.querySelector("[data-bc-btn]");
       this.button.setAttribute("data-bc-btn", "add");
       this.button.addEventListener("click", this.onBtnClick.bind(this));
@@ -61,7 +65,14 @@ export default class Question {
   }
 
   public setRemovable() {
-    this.button?.setAttribute("data-bc-btn", "remove");
+    if (
+      !this.answer ||
+      (this.answer.parts.length == 1 && !this.question.parts[0].disabled)
+    ) {
+      this.button?.setAttribute("data-bc-btn", "remove");
+    } else {
+      this.button?.remove();
+    }
   }
 
   private onBtnClick(e: MouseEvent) {

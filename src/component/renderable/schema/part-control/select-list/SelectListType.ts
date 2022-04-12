@@ -8,12 +8,17 @@ import IValidationError from "../../IValidationError";
 
 export default abstract class SelectListType extends ListBaseType {
   static _seedId: number = 0;
-  public rndName : string;
-  
-  protected abstract get controlType():type;
-  protected abstract get itemLayout():string;
+  public rndName: string;
 
-  constructor(part: IQuestionPart, layout: string, owner: Question, answer: IPartCollection) {
+  protected abstract get controlType(): type;
+  protected abstract get itemLayout(): string;
+
+  constructor(
+    part: IQuestionPart,
+    layout: string,
+    owner: Question,
+    answer: IPartCollection
+  ) {
     super(part, layout, owner, answer);
   }
 
@@ -54,13 +59,12 @@ export default abstract class SelectListType extends ListBaseType {
         .replace("@type", this.controlType)
         .replace("@title", item.value)
         .replace("@value", item.id.toString())
+        .replace("@name", this.controlType == "radio" ? this.rndName : "")
         .replace(
-          "@name",
-          this.controlType == "radio" ? this.rndName : ""
-        ).replace(
           "@checked",
           this.answer?.values.find((x) => x.value == item.id) ? "checked" : ""
-        );
+        )
+        .replace("@disabled", this.isDisabled ? "disabled" : "");
 
       const template = Util.parse(newTemplate).querySelector("div");
       this.element.querySelector("div").appendChild(template);

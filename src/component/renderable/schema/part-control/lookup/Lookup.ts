@@ -33,10 +33,14 @@ export default class Lookup extends EditableQuestionPart {
 
     this._input = this.element.querySelector("[data-bc-text-input]");
     this._valueInput = this.element.querySelector("[data-bc-select-value]");
-    this._input.addEventListener(
-      "keyup",
-      this.displaySuggestionListAsync.bind(this)
-    );
+    if (this.isDisabled) {
+      this._input.setAttribute("disabled", "");
+    } else {
+      this._input.addEventListener(
+        "keyup",
+        this.displaySuggestionListAsync.bind(this)
+      );
+    }
     // this._input.addEventListener(
     //   "focusout",
     //   this.displaySuggestionListAsync.bind(this)
@@ -62,9 +66,8 @@ export default class Lookup extends EditableQuestionPart {
 
   private async displaySuggestionListAsync(e: KeyboardEvent) {
     const term = this._input.value;
-    const url = Util.formatString(this.part.link, { term });    
-    const ul =
-      this.element.querySelector<HTMLUListElement>("[data-bc-result]");
+    const url = Util.formatString(this.part.link, { term });
+    const ul = this.element.querySelector<HTMLUListElement>("[data-bc-result]");
     ul.innerHTML = "";
     const result = await Util.getDataAsync<Array<IFixValue>>(url);
 
@@ -80,8 +83,8 @@ export default class Lookup extends EditableQuestionPart {
         });
         ul.appendChild(li);
       });
-    };
-  };
+    }
+  }
 
   public getValidationErrors(): IValidationError {
     return this.ValidateValue(this._input.value);

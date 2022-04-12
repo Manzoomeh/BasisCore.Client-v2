@@ -134,6 +134,7 @@
               "help": "help data",
               "parts": [
                 {
+                  "disabled": true,
                   "part": 1,
                   "viewType": "select",
                   "cssClass": "css_13060_1",

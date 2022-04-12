@@ -13,6 +13,11 @@ export default abstract class QuestionPart {
   protected readonly answer: IPartCollection;
   private readonly _validationElement: HTMLUListElement;
 
+  public get isDisabled(): boolean {
+    return this.owner.question.disabled || (this.part.disabled && this.answer)
+      ? true
+      : false;
+  }
   constructor(
     part: IQuestionPart,
     partLayout: string,

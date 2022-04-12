@@ -21,6 +21,9 @@ export default abstract class TextBaseType<
   ) {
     super(part, partLayout, owner, answer);
     this.input = this.element.querySelector<any>("[data-bc-text-input]");
+    if (this.isDisabled) {
+      (this.input as any as Element).setAttribute("disabled", "");
+    }
     if (answer) {
       this.input.value = answer.values[0].value;
     }

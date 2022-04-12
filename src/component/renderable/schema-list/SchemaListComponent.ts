@@ -35,7 +35,7 @@ export class SchemaListComponent extends SourceBaseComponent {
   private async renderAnswerAsync(answer: IAnswerSchema): Promise<void> {
     const urlStr = await this.urlToken?.getValueAsync();
     const source = await SourceMaker.makeAsync(answer, urlStr);
-    console.log(source);
+
     source.forEach((item) => {
       const div = document.createElement("div");
       div.appendChild(document.createTextNode(item.title));
