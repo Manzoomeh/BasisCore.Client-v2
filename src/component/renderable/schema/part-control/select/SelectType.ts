@@ -24,7 +24,7 @@ export default class SelectType extends ListBaseType {
       const option = document.createElement("option");
       option.value = item.id.toString();
       option.text = item.value;
-      option.selected = value?.value == item.id;
+      option.selected = value ? value.value == item.id : item.selected ?? false;
       select.options.add(option);
     });
   }

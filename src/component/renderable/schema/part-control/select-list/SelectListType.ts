@@ -55,15 +55,15 @@ export default abstract class SelectListType extends ListBaseType {
   protected fillUI(values: Array<IFixValue>) {
     this.rndName = "radio" + (++SelectListType._seedId).toString();
     values.forEach((item) => {
+      const checked = this.answer
+        ? this.answer.values.find((x) => x.value == item.id) ?? false
+        : item.selected ?? false;
       const newTemplate = this.itemLayout
         .replace("@type", this.controlType)
         .replace("@title", item.value)
         .replace("@value", item.id.toString())
         .replace("@name", this.controlType == "radio" ? this.rndName : "")
-        .replace(
-          "@checked",
-          this.answer?.values.find((x) => x.value == item.id) ? "checked" : ""
-        )
+        .replace("@checked", checked ? "checked" : "")
         .replace("@disabled", this.isDisabled ? "disabled" : "");
 
       const template = Util.parse(newTemplate).querySelector("div");

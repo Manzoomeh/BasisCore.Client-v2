@@ -150,6 +150,11 @@
                     {
                       "id": 5,
                       "value": "220"
+                    },
+                    {
+                      "id": 6,
+                      "value": "R1",
+                      "selected": true
                     }
                   ],
                   "caption": "",
@@ -185,6 +190,11 @@
                     {
                       "id": 5,
                       "value": "220"
+                    },
+                    {
+                      "id": 6,
+                      "value": "R1",
+                      "selected": true
                     }
                   ],
                   "caption": "",
@@ -389,7 +399,8 @@
                     },
                     {
                       "id": 57,
-                      "value": "147"
+                      "value": "147",
+                      "selected": true
                     },
                     {
                       "id": 58,

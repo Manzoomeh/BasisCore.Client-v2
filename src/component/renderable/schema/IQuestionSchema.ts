@@ -66,6 +66,7 @@ export interface IValidationOptions {
 export interface IFixValue {
   id: number;
   value: string;
+  selected?: boolean;
 }
 
 export interface IDependency {
