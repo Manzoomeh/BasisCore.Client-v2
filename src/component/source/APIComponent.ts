@@ -17,6 +17,7 @@ export default class APIComponent extends SourceComponent {
   readonly bodyToken: IToken<string>;
   readonly nameToken: IToken<string>;
   readonly contentType: IToken<string>;
+  readonly noCacheToken: IToken<string>;
 
   constructor(
     @inject("element") element: Element,
@@ -28,6 +29,7 @@ export default class APIComponent extends SourceComponent {
     this.bodyToken = this.getAttributeToken("body");
     this.nameToken = this.getAttributeToken("name");
     this.contentType = this.getAttributeToken("Content-Type");
+    this.noCacheToken = this.getAttributeToken("noCache");
   }
 
   protected async runAsync(): Promise<void> {
@@ -37,6 +39,8 @@ export default class APIComponent extends SourceComponent {
     const url = await this.urlToken?.getValueAsync();
     let response: Response;
     const body = await this.bodyToken?.getValueAsync();
+    const noCacheStr = await this.noCacheToken?.getValueAsync();
+    const noCache = noCacheStr?.toLowerCase() == "true";
     const init: RequestInit = {
       method: method,
       body: body,
@@ -46,9 +50,15 @@ export default class APIComponent extends SourceComponent {
       ? await this.contentType.getValueAsync()
       : "application/json";
     if (contentType && contentType.length > 0) {
-      init.headers = {
-        "Content-Type": contentType,
-      };
+      init.headers = new Headers();
+      init.headers.append("Content-Type", contentType);
+    }
+    if (noCache) {
+      if (!init.headers) {
+        init.headers = new Headers();
+      }
+      (init.headers as Headers).append("pragma", "no-cache");
+      (init.headers as Headers).append("cache-control", "no-cache");
     }
     const request = new Request(url, init);
     if (this.onProcessingAsync) {

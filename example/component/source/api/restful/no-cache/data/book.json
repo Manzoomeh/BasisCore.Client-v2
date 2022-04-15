@@ -1,0 +1,41 @@
+{
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "book.list",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
+      "data": [
+        {
+          "id": 1,
+          "BookName": "طراحی وبسایت",
+          "Price": 14000,
+          "Count": 1
+        }
+      ]
+    },
+    {
+      "options": {
+        "tableName": "book.type",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 1
+      },
+      "data": [
+        {
+          "id": 1,
+          "Name": "وبسایت"
+        },
+        {
+          "id": 2,
+          "Name": "طراحی"
+        }
+      ]
+    }
+  ]
+}
