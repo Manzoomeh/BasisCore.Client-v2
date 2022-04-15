@@ -214,4 +214,18 @@ export default class ComponentCollection implements IDisposable {
       this.components?.splice(0, this.components.length);
     }
   }
+
+  public GetCommandListByCore(core: string): Array<CommandComponent> {
+    return this.GetCommandList().filter((x) => x.core == core);
+  }
+
+  public GetCommandList(): Array<CommandComponent> {
+    return this.components
+      .filter((x) => x instanceof CommandComponent)
+      .map((x) => x as CommandComponent);
+  }
+
+  public GetComponentList(): Array<IComponent> {
+    return this.components;
+  }
 }

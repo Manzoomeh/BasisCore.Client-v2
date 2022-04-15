@@ -6,6 +6,8 @@ import { SourceId } from "../type-alias";
 import EventManager from "../event/EventManager";
 import ISourceOptions from "../context/ISourceOptions";
 import IBCWrapper from "./IBCWrapper";
+import IComponent from "../component/IComponent";
+import CommandComponent from "../component/CommandComponent";
 
 export default class BCWrapper implements IBCWrapper {
   elementList: Array<Element> = null;
@@ -87,5 +89,17 @@ export default class BCWrapper implements IBCWrapper {
       this._basiscore.setSource(sourceId, data, options);
     }
     return this;
+  }
+
+  public GetCommandListByCore(core: string): CommandComponent[] {
+    return this._basiscore.GetCommandListByCore(core);
+  }
+
+  public GetCommandList(): CommandComponent[] {
+    return this._basiscore.GetCommandList();
+  }
+
+  public GetComponentList(): IComponent[] {
+    return this._basiscore.GetComponentList();
   }
 }

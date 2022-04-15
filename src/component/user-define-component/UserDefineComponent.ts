@@ -15,7 +15,10 @@ export default class UserDefineComponent
   implements IUserDefineComponent
 {
   private collections: Array<ComponentCollection>;
-  private manager: IComponentManager;
+  manager: IComponentManager;
+  readonly onInitialized: Promise<IUserDefineComponent>;
+  private _resolve: (component: IUserDefineComponent) => void;
+  private _reject: (reason: any) => void;
 
   constructor(
     @inject("element") element: Element,
@@ -23,18 +26,27 @@ export default class UserDefineComponent
     @inject("dc") container: DependencyContainer
   ) {
     super(element, context, container);
+    this.onInitialized = new Promise((resolve, reject) => {
+      this._resolve = resolve;
+      this._reject = reject;
+    });
   }
   public getLibAsync(objectName: string, url: string): Promise<any> {
     return $bc.util.getLibAsync(objectName, url);
   }
 
   public async initializeAsync(): Promise<void> {
-    await super.initializeAsync();
-    const lib = this.core.slice(this.core.indexOf(".") + 1);
-    const manager = await $bc.util.getComponentAsync(this.context, lib);
-    this.manager = Reflect.construct(manager, [this]);
-    if (this.manager.initializeAsync) {
-      await this.manager.initializeAsync();
+    try {
+      await super.initializeAsync();
+      const lib = this.core.slice(this.core.indexOf(".") + 1);
+      const manager = await $bc.util.getComponentAsync(this.context, lib);
+      this.manager = Reflect.construct(manager, [this]);
+      if (this.manager.initializeAsync) {
+        await this.manager.initializeAsync();
+      }
+      this._resolve(this);
+    } catch (ex) {
+      this._reject(ex);
     }
   }
 

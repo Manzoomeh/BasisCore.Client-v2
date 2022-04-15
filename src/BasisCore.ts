@@ -4,6 +4,8 @@ import ComponentCollection from "./ComponentCollection";
 import { SourceId } from "./type-alias";
 import BasisCoreRootContext from "./context/BasisCoreRootContext";
 import ISourceOptions from "./context/ISourceOptions";
+import CommandComponent from "./component/CommandComponent";
+import IComponent from "./component/IComponent";
 
 @injectable()
 export default class BasisCore implements IBasisCore {
@@ -20,6 +22,18 @@ export default class BasisCore implements IBasisCore {
     container.register("context", { useToken: "root.context" });
     this.content = container.resolve(ComponentCollection);
     this.content.processNodesAsync(nodes);
+  }
+
+  GetCommandListByCore(core: string): CommandComponent[] {
+    return this.content.GetCommandListByCore(core);
+  }
+
+  GetCommandList(): CommandComponent[] {
+    return this.content.GetCommandList();
+  }
+
+  GetComponentList(): IComponent[] {
+    return this.content.GetComponentList();
   }
 
   public setSource(sourceId: SourceId, data: any, options?: ISourceOptions) {

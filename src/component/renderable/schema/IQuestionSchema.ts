@@ -32,6 +32,7 @@ export interface IQuestionPart {
   dependency?: Array<IDependency>;
   method?: WebMethod;
   disabled?: boolean;
+  options?: any;
 }
 
 export type WebMethod = "POST" | "GET";

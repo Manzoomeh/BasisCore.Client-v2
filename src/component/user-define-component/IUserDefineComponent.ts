@@ -6,6 +6,7 @@ import IDisposable from "../../IDisposable";
 import RangeObject from "../../RangeObject/RangeObject";
 import IToken from "../../token/IToken";
 import { SourceId } from "../../type-alias";
+import IComponentManager from "./IComponentManager";
 
 export default interface IUserDefineComponent {
   content: DocumentFragment;
@@ -45,4 +46,6 @@ export default interface IUserDefineComponent {
   getRandomName(prefix?: string, postfix?: string): string;
   format(pattern: string, ...params: any[]): string;
   getLibAsync(objectName: string, url: string): Promise<any>;
+  manager: IComponentManager;
+  onInitialized: Promise<IUserDefineComponent>;
 }

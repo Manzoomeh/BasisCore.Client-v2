@@ -18,6 +18,7 @@ import { IQuestion, IQuestionPart } from "../IQuestionSchema";
 import Lookup from "./lookup/Lookup";
 import TimeType from "./text/TimeType";
 import ColorType from "./text/ColorType";
+import ComponentContainer from "./component-container/ComponentContainer";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -27,8 +28,9 @@ export default class QuestionPartFactory {
     answer?: IPartCollection
   ): QuestionPart {
     var retVal: QuestionPart = null;
+    var viewType = part.viewType.toLowerCase();
     if (!owner.options.viewMode) {
-      switch (part.viewType.toLowerCase()) {
+      switch (viewType) {
         case "text": {
           retVal = new TextType(part, owner, answer);
           break;
@@ -73,12 +75,14 @@ export default class QuestionPartFactory {
           break;
         }
         default: {
-          retVal = new UnknownType(part, owner, answer);
+          retVal = viewType.startsWith("component.")
+            ? new ComponentContainer(part, owner, answer)
+            : new UnknownType(part, owner, answer);
           break;
         }
       }
     } else {
-      switch (part.viewType.toLowerCase()) {
+      switch (viewType) {
         case "checklist": {
           retVal = new ReadonlyCheckListType(part, owner, answer);
           break;

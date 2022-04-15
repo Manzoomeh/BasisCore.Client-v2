@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/basiscore.js"></script>
+  <title>Schema Command - New with User Defined Component</title>
+</head>
+
+<body dir="rtl">
+  <button data-btn-add>Add</button>
+  <Basis core="schema" run="atclient" schemaUrl="/schema/questions" id="1162" version="1.1" button="[data-btn-add]" resultSourceId="demo.data">
+  </Basis>
+  <button data-btn-add>Add</button>
+  <basis core="callback" run="atclient" triggers="demo.data"></basis>
+
+  <script>
+    const host = {
+      repositories: {
+        "bc.calendar": "http://localhost:3001/basiscore.calendar.component.js",
+        "bc.datepicker": "http://localhost:3001/basiscore.datepicker.component.js"
+      }
+
+    }
+  </script>
+</body>
+
+</html>
