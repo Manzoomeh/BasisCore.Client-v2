@@ -5,10 +5,10 @@ import CommandComponent from "./component/CommandComponent";
 import IComponent from "./component/IComponent";
 import { AttributeComponent } from "./component/text-base/AttributeComponent";
 import TextComponent from "./component/text-base/TextComponent";
-import IDisposable from "./IDisposable";
+import IComponentCollection from "./IComponentCollection";
 
 @injectable()
-export default class ComponentCollection implements IDisposable {
+export default class ComponentCollection implements IComponentCollection {
   static readonly knowHtmlElement = ["form", "input", "select"];
   readonly context: IContext;
   readonly regex: RegExp;

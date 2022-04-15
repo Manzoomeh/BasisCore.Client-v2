@@ -2,7 +2,7 @@ import { inject, DependencyContainer, injectable } from "tsyringe";
 import ComponentCollection from "../../ComponentCollection";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
-import IDisposable from "../../IDisposable";
+import IComponentCollection from "../../IComponentCollection";
 import IBCUtil from "../../wrapper/IBCUtil";
 import ComponentContainer from "./ComponentContainer";
 import IComponentManager from "./IComponentManager";
@@ -60,7 +60,9 @@ export default class UserDefineComponent
     this.range.setContent(newContent);
   }
 
-  public async processNodesAsync(nodes: Array<Node>): Promise<IDisposable> {
+  public async processNodesAsync(
+    nodes: Array<Node>
+  ): Promise<IComponentCollection> {
     const newCollection = this.dc.resolve(ComponentCollection);
     if (!this.collections) {
       this.collections = new Array<ComponentCollection>();
