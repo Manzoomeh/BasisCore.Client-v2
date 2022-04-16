@@ -5,10 +5,12 @@ import CommandComponent from "../CommandComponent";
 import LocalRootContext from "../../context/LocalRootContext";
 import defaultsDeep from "lodash.defaultsdeep";
 import Context from "../../context/Context";
+import IComponentCollection from "../../IComponentCollection";
 
 @injectable()
 export default class GroupComponent extends CommandComponent {
-  private collection: ComponentCollection;
+  private _collections: Array<ComponentCollection> =
+    new Array<ComponentCollection>();
   readonly container: DependencyContainer;
   readonly childNodes: Array<ChildNode>;
   private oldLocalContext: Context;
@@ -50,13 +52,26 @@ export default class GroupComponent extends CommandComponent {
     this.currentDC.register("context", {
       useValue: this.oldLocalContext,
     });
-    this.collection = this.currentDC.resolve(ComponentCollection);
-    await this.collection.processNodesAsync(this.childNodes);
+    const collection = this.currentDC.resolve(ComponentCollection);
+    this._collections.push(collection);
+    await collection.processNodesAsync(this.childNodes);
+  }
+
+  public async processNodesAsync(
+    nodes: Array<Node>
+  ): Promise<IComponentCollection> {
+    const newCollection = this.currentDC.resolve(ComponentCollection);
+    this._collections.push(newCollection);
+    await newCollection.processNodesAsync(nodes);
+    return newCollection;
   }
 
   public async disposeAsync(): Promise<void> {
     this.oldLocalContext?.dispose();
-    await this.collection?.disposeAsync();
+    const tasks = this._collections?.map((collection) =>
+      collection.disposeAsync()
+    );
+    await Promise.all(tasks);
     this.currentDC?.clearInstances();
     return super.disposeAsync();
   }
