@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/basiscore.min.js"></script>
+    <script src="/bclib.js"></script>
     <title>Print Command - Simple</title>
     <script>
         const host = {
@@ -17,8 +17,7 @@
 </head>
 
 <body>
-    <Basis core="component.bc.watermark" run="atclient" wm-element="#main-svg" wm-background="watermark.bg"
-        wm-items="watermark.items" wm-btn="#result" wm-resultId="wm.k">
+    <Basis core="component.bc.watermark" run="atclient" wm-element="#main-svg" wm-background="watermark.bg" wm-items="watermark.items" wm-btn="#result" wm-resultId="wm.k">
     </Basis>
     <fieldset>
         <legend>Watermark Image</legend>
@@ -35,8 +34,7 @@
                     <input type="hidden" name="_root.elements__[x].Type" value="TEXT" />
                     <input type="hidden" name="_root.elements__[x].Key" data-key value="0000" />
                     <label>Content
-                        <input type="text" name="_root.elements__[x].Text" id="_root.elements__[x].Text" value="Sample"
-                            required />
+                        <input type="text" name="_root.elements__[x].Text" id="_root.elements__[x].Text" value="Sample" required />
                     </label>
                     <label>Font
                         <select name="_root.elements__[x].FontFamily" id="_root.elements__[x].FontFamily" required>
@@ -75,8 +73,7 @@
                             <option value="0.3">0.3</option>
                         </select>
                     </label>
-                    <label>Color<input type="color" name="_root.elements__[x].Color"
-                            id="_root.elements__[x].Color" /></label>
+                    <label>Color<input type="color" name="_root.elements__[x].Color" id="_root.elements__[x].Color" /></label>
                     <label>Tile Mode
                         <select name="_root.elements__[x].TileMode" id="_root.elements__[x].TileMode" required>
                             <option value="NONE">None</option>
@@ -163,8 +160,7 @@
     </form>
     <fieldset>
         <legend>Watermark Preview</legend>
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="main-svg" width="0"
-            height="0"></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="main-svg" width="0" height="0"></svg>
     </fieldset>
     <fieldset>
         <legend>Watermark Result</legend>

@@ -1,21 +1,37 @@
 {
-  "name": "Client",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "bclib",
+  "version": "2.9",
+  "description": "Client side and light version of BasisCore web programming language",
+  "main": "dist/bclib.js",
+  "types": "dist/bclib.d.ts",
   "scripts": {
     "dev:no-serve": "webpack --mode=development",
-    "dev": "webpack serve --mode=development",
+    "dev": "webpack serve --mode=development ",
+    "ws": "node server/websocket.js",
+    "prepub": "if exist dist rd /s /q dist",
     "pub": "webpack --mode=production",
-    "ws": "node server/websocket.js"
+    "postpub": "dts-bundle-generator -o dist/bclib.d.ts src/d-index.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "BasisCore",
+    "ClientSide",
+    "Programming language"
+  ],
+  "files": [
+    "dist/**/*"
+  ],
+  "author": "Manzoomeh Negaran <info@manzoomeh.ir> (https://www.manzoomeh.ir)",
   "license": "ISC",
+  "homepage": "https://github.com/Manzoomeh/BasisCore.Client-v2",
+  "bugs": {
+    "url": "https://github.com/Manzoomeh/BasisCore.Client-v2/issues"
+  },
+  "contributors": [
+    "s.alireza qamsari <s.alireza@qamsari.ir> (https://www.linkedin.com/in/qamsari/)"
+  ],
+  "repository": "https://github.com/Manzoomeh/BasisCore.Client-v2",
   "devDependencies": {
-    "alasql": "^1.7.3",
     "circular-dependency-plugin": "^5.2.2",
-    "copy-webpack-plugin": "^8.1.1",
     "css-loader": "^6.5.1",
     "ignore-loader": "^0.1.2",
     "lodash.clonedeep": "^4.5.0",
@@ -30,5 +46,9 @@
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.7.3",
     "ws": "^7.5.5"
+  },
+  "dependencies": {
+    "alasql": "^1.7.3",
+    "dts-bundle-generator": "^6.7.0"
   }
 }

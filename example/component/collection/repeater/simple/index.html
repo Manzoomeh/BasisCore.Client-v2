@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/basiscore.min.js"></script>
+    <script src="/bclib.js"></script>
     <title>Repeater Command - Simple</title>
 </head>
 
@@ -24,8 +24,7 @@
         <legend>replace = false</legend>
 
         <ul>
-            <basis core="repeater" id="rep0-cmd" name="rep" datamembername="replace.data" run="atclient"
-                replace="false">
+            <basis core="repeater" id="rep0-cmd" name="rep" datamembername="replace.data" run="atclient" replace="false">
                 <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
             </basis>
         </ul>

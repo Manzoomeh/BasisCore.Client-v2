@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/basiscore.min.js"></script>
+    <script src="/bclib.js"></script>
     <title>ClientSide Live Filter</title>
 </head>
 
@@ -14,11 +14,9 @@
         <legend>ّFilter</legend>
         <label>name: <input type="text" name="filter.name" bc-triggers="keyup change" /></label>
         <br />
-        <label>min id: <input type="number" name="filter.min-id" bc-triggers="keyup change" min="1000"
-                max="2000" /></label>
+        <label>min id: <input type="number" name="filter.min-id" bc-triggers="keyup change" min="1000" max="2000" /></label>
         <br />
-        <label>max id: <input type="number" name="filter.max-id" bc-triggers="keyup change" min="1000"
-                max="2000" /></label>
+        <label>max id: <input type="number" name="filter.max-id" bc-triggers="keyup change" min="1000" max="2000" /></label>
         <br />
         <label>min age: <input type="range" bc-triggers="change input" name="filter.age" min="10" max="90" /></label>
 
@@ -35,8 +33,7 @@
         <br />
         <label>Min age: [##filter.age.value##]</label>
     </fieldset>
-    <Basis core="print" datamembername="local.print" run="atclient"
-        triggers="filter.max-id filter.min-id filter.age filter.name">
+    <Basis core="print" datamembername="local.print" run="atclient" triggers="filter.max-id filter.min-id filter.age filter.name">
         <layout>
             <script type="text/template">
             <table>
@@ -53,8 +50,7 @@
             </table>
         </script>
         </layout>
-        <face
-            filter="name like'%[##filter.name.value##]%' and (id between [##filter.min-id.value|(1000)##]  and [##filter.max-id.value|(1100)##] ) and age >= [##filter.age.value##]">
+        <face filter="name like'%[##filter.name.value##]%' and (id between [##filter.min-id.value|(1000)##]  and [##filter.max-id.value|(1100)##] ) and age >= [##filter.age.value##]">
             <script type="text/template">
             <tr>
                 <td>@id@</td>

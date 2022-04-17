@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="/basiscore.js"></script>
+  <script src="/bclib.js"></script>
   <title>Schema Command - New</title>
 </head>
 
@@ -13,8 +13,7 @@
   <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient">
   </Basis>
   <button data-btn-edit>Edit</button>
-  <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" viewMode="false"
-    button="[data-btn-edit]" resultSourceId="demo.data">
+  <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" viewMode="false" button="[data-btn-edit]" resultSourceId="demo.data">
   </Basis>
   <button data-btn-edit>Edit</button>
   <basis core="callback" run="atclient" triggers="demo.data"></basis>

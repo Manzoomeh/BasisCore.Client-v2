@@ -1,6 +1,5 @@
 const path = require("path");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
-const CopyPlugin = require("copy-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const apiHttpServer = require("./server/api-server");
 const schemaHttpServer = require("./server/schema-server");
@@ -8,15 +7,23 @@ const schemaHttpServer = require("./server/schema-server");
 module.exports = (env, options) => {
   return {
     entry: {
-      basiscore: "./src/index.ts",
-      "basiscore.min": "./src/index.ts",
+      bclib: "./src/index.ts",
+      "bclib.min": "./src/index.ts",
     },
     devtool: "source-map",
     output: {
       filename: "[name].js",
+      clean: true,
     },
     devServer: {
-      static: path.resolve(__dirname, "example"),
+      static: [
+        {
+          directory: path.resolve(__dirname, "example"),
+        },
+        {
+          directory: path.resolve(__dirname, "node_modules/alasql/dist"),
+        },
+      ],
       onBeforeSetupMiddleware: function (server) {
         server.app.use("/api", apiHttpServer);
         server.app.use("/schema", schemaHttpServer);
@@ -77,16 +84,6 @@ module.exports = (env, options) => {
         onEnd({ compilation }) {
           console.log("end detecting webpack modules cycles");
         },
-      }),
-      new CopyPlugin({
-        patterns: [
-          {
-            from: path.resolve(
-              __dirname,
-              "node_modules/alasql/dist/alasql.min.js"
-            ),
-          },
-        ],
       }),
     ],
   };

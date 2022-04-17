@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/basiscore.min.js"></script>
+    <script src="/bclib.js"></script>
     <title>Tree Command - Simple</title>
 </head>
 
@@ -20,20 +20,17 @@
             <ul data-hi>@child </ul>
         </layout>
         <face level="end">
-            <li id="@id@" data-end>@id@ - @name@<button
-                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+            <li id="@id@" data-end>@id@ - @name@<button onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                     color</button></li>
         </face>
         <face level="2">
-            <li id="@id@" data-lvl1>@id - @name Level2 <button
-                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+            <li id="@id@" data-lvl1>@id - @name Level2 <button onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                     color</button>
                 <ul>@child</ul>
             </li>
         </face>
         <face>
-            <li id="@id@" data-else>@id@ - @name@<button
-                    onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
+            <li id="@id@" data-else>@id@ - @name@<button onclick="this.style['color'] =  `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change
                     color</button>
                 <ul>@child</ul>
             </li>

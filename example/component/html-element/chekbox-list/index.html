@@ -1,79 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="/basiscore.js"></script>
-    <title>Html Checkbox Binding - Simple</title>
-  </head>
 
-  <body>
-    <fieldset>
-      <legend>Items</legend>
-      <label>
-        <input type="checkbOX" bc-triggers="change" name="cms.cbox" />on / off
-        (default)</label
-      >
-      <br />
-      <label>
-        <input
-          type="checkbOx"
-          bc-triggers="change"
-          name="cms.cbox"
-          value="val2"
-        />val2 / off (use value)</label
-      >
-      <br />
-      <label>
-        <input
-          type="checkbOx"
-          bc-triggers="change"
-          name="cms.cbox"
-          bc-value="val3"
-        />val3 / off (use bc-value)</label
-      >
-      <br />
-      <label>
-        <input
-          type="checkbOx"
-          bc-triggers="change"
-          name="cms.cbox"
-          bc-off-value="val4"
-        />on / val4 (use bc-off-value)</label
-      >
-      <br />
-      <label>
-        <input
-          type="checkbOx"
-          bc-triggers="change"
-          name="cms.cbox"
-          bc-value="val5"
-          bc-off-value="val6"
-        />val5 / val6 (use bc-value and bc-off-value)</label
-      >
-      <br />
-      [##cms.cbox.value|(not set)##]
-      <br />
-    </fieldset>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/bclib.js"></script>
+  <title>Html Checkbox Binding - Simple</title>
+</head>
 
-    <fieldset>
-      <legend>group</legend>
-      <form bc-triggers="submit" name="cms.form">
-        <label>Name:<input type="text" name="name" /></label>
+<body>
+  <fieldset>
+    <legend>Items</legend>
+    <label>
+      <input type="checkbOX" bc-triggers="change" name="cms.cbox" />on / off
+      (default)</label>
+    <br />
+    <label>
+      <input type="checkbOx" bc-triggers="change" name="cms.cbox" value="val2" />val2 / off (use value)</label>
+    <br />
+    <label>
+      <input type="checkbOx" bc-triggers="change" name="cms.cbox" bc-value="val3" />val3 / off (use bc-value)</label>
+    <br />
+    <label>
+      <input type="checkbOx" bc-triggers="change" name="cms.cbox" bc-off-value="val4" />on / val4 (use bc-off-value)</label>
+    <br />
+    <label>
+      <input type="checkbOx" bc-triggers="change" name="cms.cbox" bc-value="val5" bc-off-value="val6" />val5 / val6 (use bc-value and bc-off-value)</label>
+    <br />
+    [##cms.cbox.value|(not set)##]
+    <br />
+  </fieldset>
+
+  <fieldset>
+    <legend>group</legend>
+    <form bc-triggers="submit" name="cms.form">
+      <label>Name:<input type="text" name="name" /></label>
+      <br />
+      <fieldset>
+        <label><input type="checkbox" value="item1" name="type" />Item1</label>
         <br />
-        <fieldset>
-            <label><input type="checkbox" value="item1" name="type"/>Item1</label>
-            <br/>
-            <label><input type="checkbox" value="item2" name="type"/>Item2</label>
-            <br/>
-            <label><input type="checkbox" value="item3" name="type1"/>Item3</label>
-            <br/>
-            <label><input type="checkbox" value="item4" name="type1"/>Item4</label>
-        </fieldset>
-        <button>Save</button>
-      </form>
-    </fieldset>
-    <basis core="callback" run="atClient" triggers="cms.form"/></basis>
-  </body>
+        <label><input type="checkbox" value="item2" name="type" />Item2</label>
+        <br />
+        <label><input type="checkbox" value="item3" name="type1" />Item3</label>
+        <br />
+        <label><input type="checkbox" value="item4" name="type1" />Item4</label>
+      </fieldset>
+      <button>Save</button>
+    </form>
+  </fieldset>
+  <basis core="callback" run="atClient" triggers="cms.form" />
+  </basis>
+</body>
+
 </html>

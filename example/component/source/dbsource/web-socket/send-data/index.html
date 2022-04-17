@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/basiscore.min.js"></script>
+    <script src="/bclib.js"></script>
     <title>Callback Command - Simple</title>
 </head>
 
@@ -15,8 +15,7 @@
         <input type="number" name="value" min="5" max="30" value="10" />
         <input type="submit" />
     </form>
-    <basis core='dbsource' source='simple' counter="[##test.counter.value|(10)##]" name='stream' run="atclient"
-        triggers="test.counter">
+    <basis core='dbsource' source='simple' counter="[##test.counter.value|(10)##]" name='stream' run="atclient" triggers="test.counter">
         <member name='time' />
     </basis>
 

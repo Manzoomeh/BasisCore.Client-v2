@@ -1,146 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="/basiscore.min.js"></script>
-    <title>Print Command - Simple</title>
-  </head>
 
-  <body>
-    <fieldset>
-      <legend>Orginal</legend>
-      <Basis
-        core="print"
-        datamembername="inlinesource.print"
-        run="atclient"
-        OnProcessing=""
-      >
-        <face>
-          <script type="text/template">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/bclib.js"></script>
+  <title>Print Command - Simple</title>
+</head>
+
+<body>
+  <fieldset>
+    <legend>Orginal</legend>
+    <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="">
+      <face>
+        <script type="text/template">
 
             <span>@id ( @name ) </span>
             <br />
           </script>
-        </face>
-      </Basis>
-    </fieldset>
-    <fieldset>
-      <legend>Update</legend>
-      <Basis
-        core="print"
-        datamembername="inlinesource.print"
-        run="atclient"
-        OnProcessing="update"
-      >
-        <face>
-          <script type="text/template">
+      </face>
+    </Basis>
+  </fieldset>
+  <fieldset>
+    <legend>Update</legend>
+    <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="update">
+      <face>
+        <script type="text/template">
 
             <span>@id ( @name ) </span>
             <br />
           </script>
-        </face>
-      </Basis>
-    </fieldset>
-    <fieldset>
-      <legend>Change</legend>
-      <Basis
-        core="print"
-        datamembername="inlinesource.print"
-        run="atclient"
-        OnProcessing="change"
-      >
-        <face>
-          <script type="text/template">
+      </face>
+    </Basis>
+  </fieldset>
+  <fieldset>
+    <legend>Change</legend>
+    <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="change">
+      <face>
+        <script type="text/template">
 
             <span>@id ( @name ) </span>
             <br />
           </script>
-        </face>
-      </Basis>
-    </fieldset>
-    <fieldset>
-      <legend>Filter</legend>
-      <Basis
-        core="print"
-        datamembername="inlinesource.print"
-        run="atclient"
-        OnProcessing="filter"
-      >
-        <face>
-          <script type="text/template">
+      </face>
+    </Basis>
+  </fieldset>
+  <fieldset>
+    <legend>Filter</legend>
+    <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="filter">
+      <face>
+        <script type="text/template">
 
             <span>@id ( @name ) </span>
             <br />
           </script>
-        </face>
-      </Basis>
-    </fieldset>
-    <fieldset>
-      <legend>Dynamic</legend>
-      <Basis
-        core="print"
-        datamembername="inlinesource.print"
-        run="atclient"
-        OnProcessing="dynamic"
-      >
-        <face>
-          <script type="text/template">
+      </face>
+    </Basis>
+  </fieldset>
+  <fieldset>
+    <legend>Dynamic</legend>
+    <Basis core="print" datamembername="inlinesource.print" run="atclient" OnProcessing="dynamic">
+      <face>
+        <script type="text/template">
 
             <span>@id ( @name ) </span>
             <br />
           </script>
-        </face>
-      </Basis>
-    </fieldset>
-    <script>
-      const host = {
-        sources: {
-          "inlinesource.print": [
-            { id: 1, name: "data#1" },
-            { id: 2, name: "data#2" },
-            { id: 3, name: "data#3" },
-            { id: 4, name: "data#4" },
-            { id: 5, name: "data#5" },
-            { id: 6, name: "data#6" },
-          ],
-          "inlinesource.print1": [
-            { id: 11, name: "data#1-1" },
-            { id: 21, name: "data#1-1" },
-            { id: 31, name: "data#1-1" },
-          ],
-        },
-      };
+      </face>
+    </Basis>
+  </fieldset>
+  <script>
+    const host = {
+      sources: {
+        "inlinesource.print": [
+          { id: 1, name: "data#1" },
+          { id: 2, name: "data#2" },
+          { id: 3, name: "data#3" },
+          { id: 4, name: "data#4" },
+          { id: 5, name: "data#5" },
+          { id: 6, name: "data#6" },
+        ],
+        "inlinesource.print1": [
+          { id: 11, name: "data#1-1" },
+          { id: 21, name: "data#1-1" },
+          { id: 31, name: "data#1-1" },
+        ],
+      },
+    };
 
-      function update(args) {
-        const source = $bc.util.cloneDeep(args.source);
-        source.rows.forEach((row) => {
-          row.id += 100;
-          row.name = `new ${row.name}`;
-        });
-        args.source = source;
-      }
+    function update(args) {
+      const source = $bc.util.cloneDeep(args.source);
+      source.rows.forEach((row) => {
+        row.id += 100;
+        row.name = `new ${row.name}`;
+      });
+      args.source = source;
+    }
 
-      async function change(args) {
-        args.source = await args.context.waitToGetSourceAsync(
-          "inlinesource.print1"
-        );
-      }
+    async function change(args) {
+      args.source = await args.context.waitToGetSourceAsync(
+        "inlinesource.print1"
+      );
+    }
 
-      function filter(args) {
-        const rows = args.source.rows.filter((x) => x.id > 3);
-        const source = $bc.util.source.new("inlinesource.print2", rows);
-        args.source = source;
-      }
+    function filter(args) {
+      const rows = args.source.rows.filter((x) => x.id > 3);
+      const source = $bc.util.source.new("inlinesource.print2", rows);
+      args.source = source;
+    }
 
-      function dynamic(args) {
-        const source = $bc.util.source.new("inlinesource.print2", [
-          { id: 301, name: "Dynamic-data#1" },
-          { id: 302, name: "Dynamic-data#2" },
-        ]);
-        args.source = source;
-      }
-    </script>
-  </body>
+    function dynamic(args) {
+      const source = $bc.util.source.new("inlinesource.print2", [
+        { id: 301, name: "Dynamic-data#1" },
+        { id: 302, name: "Dynamic-data#2" },
+      ]);
+      args.source = source;
+    }
+  </script>
+</body>
+
 </html>

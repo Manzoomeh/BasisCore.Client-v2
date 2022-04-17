@@ -1,49 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="/basiscore.min.js"></script>
-    <title>API Command - REST - Simple</title>
-  </head>
 
-  <body>
-    <Basis
-      core="api"
-      url="data/book.json"
-      method="get"
-      run="atclient"
-      OnProcessed="fn"
-    >
-    </Basis>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/bclib.js"></script>
+  <title>API Command - REST - Simple</title>
+</head>
 
-    <basis core="callback" run="AtClient" triggers="my-book.type"></basis>
+<body>
+  <Basis core="api" url="data/book.json" method="get" run="atclient" OnProcessed="fn">
+  </Basis>
 
-    <script>
-      async function fn(args) {
-        /*
-           response is Response interface.
-           for more information about Response interface, visit  https://developer.mozilla.org/en-US/docs/Web/API/Response
-           
-           return type must be of type Data[] or Promise<Data[]> interface.
-           Create Data with $bc.util.source.data(id,row[],mergeType) helper 
-           */
-        console.log(args);
-        const response = args.response;
-        const json = await response.json();
-        dataList = json?.sources.map((x) =>
-          $bc.util.source.data(
-            `my-${x.options.tableName}`,
-            x.data.map((x) => {
-              x.id *= 10;
-              return x;
-            }),
-            x.options.mergeType
-          )
-        );
-        args.results = dataList;
-      }
-    </script>
-  </body>
+  <basis core="callback" run="AtClient" triggers="my-book.type"></basis>
+
+  <script>
+    async function fn(args) {
+      /*
+         response is Response interface.
+         for more information about Response interface, visit  https://developer.mozilla.org/en-US/docs/Web/API/Response
+         
+         return type must be of type Data[] or Promise<Data[]> interface.
+         Create Data with $bc.util.source.data(id,row[],mergeType) helper 
+         */
+      console.log(args);
+      const response = args.response;
+      const json = await response.json();
+      dataList = json?.sources.map((x) =>
+        $bc.util.source.data(
+          `my-${x.options.tableName}`,
+          x.data.map((x) => {
+            x.id *= 10;
+            return x;
+          }),
+          x.options.mergeType
+        )
+      );
+      args.results = dataList;
+    }
+  </script>
+</body>
+
 </html>

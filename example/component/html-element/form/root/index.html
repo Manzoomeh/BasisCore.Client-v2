@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/basiscore.min.js"></script>
+    <script src="/bclib.js"></script>
     <title>Html Text Binding - Simple</title>
 </head>
 
@@ -69,9 +69,7 @@
 
         <basis core="callback" run="AtClient" triggers="cms.form"></basis>
 
-        <basis core="call" file="called.html" pagesize="" run="atclient" method="post" if="[##cms.form##]"
-            triggers="cms.form"
-            app-json="{{return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0] );}}">
+        <basis core="call" file="called.html" pagesize="" run="atclient" method="post" if="[##cms.form##]" triggers="cms.form" app-json="{{return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0] );}}">
         </basis>
         <script>
             const host = {

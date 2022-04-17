@@ -1,3 +1,4 @@
+/// <reference path="../../../../../@types/typings.d.ts" />
 import { IPartCollection, IAnswerPart } from "../../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import Question from "../../question/Question";
