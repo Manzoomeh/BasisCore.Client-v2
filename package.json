@@ -39,7 +39,6 @@
     "reflect-metadata": "^0.1.13",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.2.6",
-    "tsyringe": "^4.6.0",
     "typescript": "^4.5.4",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^5.66.0",
@@ -48,6 +47,7 @@
     "ws": "^7.5.5"
   },
   "dependencies": {
+    "tsyringe": "^4.6.0",
     "alasql": "^1.7.3",
     "dts-bundle-generator": "^6.7.0"
   }
