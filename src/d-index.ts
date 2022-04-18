@@ -25,6 +25,8 @@ import { MergeType } from "./enum";
 import BCWrapperFactory from "./wrapper/BCWrapperFactory";
 import ExposerComponent from "./component/user-define-component/component/ExposerComponent";
 import IDependencyContainer from "./IDependencyContainer";
+import IQuestionSchema from "./component/renderable/schema/IQuestionSchema";
+import IUserActionResult from "./component/renderable/schema/IUserActionResult";
 
 export {
   BasisCore,
@@ -52,4 +54,6 @@ export {
   LocalDataBase,
   HostOptions,
   IDependencyContainer,
+  IQuestionSchema,
+  IUserActionResult,
 };

@@ -1,6 +1,6 @@
 {
   "name": "bclib",
-  "version": "2.9",
+  "version": "2.9.3",
   "description": "Client side and light version of BasisCore web programming language",
   "main": "dist/bclib.js",
   "types": "dist/bclib.d.ts",
@@ -27,7 +27,7 @@
     "url": "https://github.com/Manzoomeh/BasisCore.Client-v2/issues"
   },
   "contributors": [
-    "s.alireza qamsari <s.alireza@qamsari.ir> (https://www.linkedin.com/in/qamsari/)"
+    "s.alireza qamsari <ali.qamsari@gmail.ir> (https://www.linkedin.com/in/qamsari/)"
   ],
   "repository": "https://github.com/Manzoomeh/BasisCore.Client-v2",
   "devDependencies": {

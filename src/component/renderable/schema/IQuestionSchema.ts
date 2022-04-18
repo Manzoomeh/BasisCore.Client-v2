@@ -1,6 +1,7 @@
 import ISchema from "./ISchema";
 
 export default interface IQuestionSchema extends ISchema {
+  name: string;
   baseVocab: string;
   questions: Array<IQuestion>;
   sections: Array<ISection>;
@@ -44,7 +45,11 @@ export type ViewType =
   | "Select"
   | "Upload"
   | "Datepicker"
-  | "Checklist";
+  | "Checklist"
+  | "Radio"
+  | "Lookup"
+  | "Time"
+  | "Color";
 
 export interface ISection {
   id: number;
