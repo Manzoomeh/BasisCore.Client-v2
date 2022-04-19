@@ -79,6 +79,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     answer?: IAnswerSchema,
     schemaId?: string
   ): Promise<void> {
+    this._currentCellManager = null;
     schemaId = answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
     this.getAnswers = null;
