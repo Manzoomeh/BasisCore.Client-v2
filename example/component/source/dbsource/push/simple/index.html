@@ -6,12 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/basiscore.js"></script>
-    <title>Callback Command - Simple</title>
+    <title>Push base source - Simple</title>
 </head>
 
 <body>
 
-    <basis core='dbsource' source='simple' name='stream' run="atclient">
+    <basis core='dbsource' source='simple' name='stream' run="atclient1">
         <member name='time' />
     </basis>
 
@@ -22,6 +22,7 @@
     </div>
     <script>
         var host = {
+            serviceWorker: true,
             settings: {
                 'connection.websocket.simple': "ws://localhost:8080/time",
                 'default.dmnid': 2668

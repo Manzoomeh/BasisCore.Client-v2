@@ -7,8 +7,8 @@ const schemaHttpServer = require("./server/schema-server");
 module.exports = (env, options) => {
   return {
     entry: {
-      bclib: "./src/index.ts",
-      "bclib.min": "./src/index.ts",
+      basiscore: "./src/index.ts",
+      "basiscore.min": "./src/index.ts",
     },
     devtool: "source-map",
     output: {
