@@ -3,6 +3,7 @@ import ConfigNotFoundException from "../../exception/ConfigNotFoundException";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 import LocalStorageConnectionOptions from "./LocalStorageConnectionOptions";
+import { PushConnectionOptions } from "./PushConnectionOptions";
 import RESTConnectionOptions from "./RESTConnectionOptions";
 import WebConnectionOptions from "./WebConnectionOptions";
 import WebSocketConnectionOptions from "./WebSocketConnectionOptions";
@@ -38,6 +39,10 @@ export default class ConnectionOptionsManager {
           }
           case "rest": {
             obj = new RESTConnectionOptions(x.name, x.value);
+            break;
+          }
+          case "push": {
+            obj = new PushConnectionOptions(x.name, x.value);
             break;
           }
         }

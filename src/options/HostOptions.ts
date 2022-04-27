@@ -7,6 +7,7 @@ import IHostOptions from "./IHostOptions";
 import defaultsDeep from "lodash.defaultsdeep";
 import cloneDeep from "lodash.clonedeep";
 import { SourceData } from "../type-alias";
+import IPushOptions from "./IPushOptions";
 
 declare const host: IHostOptions;
 
@@ -14,12 +15,13 @@ declare const host: IHostOptions;
 export class HostOptions implements IContextHostOptions {
   debug: boolean;
   autoRender: boolean;
-  serviceWorker: boolean;
+  serviceWorker: boolean | string;
   settings: IDictionary<any>;
   sources: IDictionary<SourceData>;
   dbLibPath: string;
   originalOptions: Partial<IHostOptions>;
   repositories: IDictionary<string>;
+  push?: IPushOptions;
 
   private static _defaultSettings: Partial<IHostOptions>;
 

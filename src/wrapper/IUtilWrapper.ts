@@ -1,4 +1,5 @@
 import IContext from "../context/IContext";
+import { EventHandler } from "../event/EventHandler";
 import ISourceWrapper from "./ISourceWrapper";
 
 export default interface IUtilWrapper {
@@ -17,5 +18,6 @@ export default interface IUtilWrapper {
   ): string;
   getRandomName(prefix?: string, postfix?: string): string;
   format(pattern: string, ...params: any[]): string;
+  addMessageHandler(messageType: string, handler: EventHandler<any>): boolean;
   source: ISourceWrapper;
 }

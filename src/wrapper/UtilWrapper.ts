@@ -5,11 +5,31 @@ import { SourceWrapper } from "./SourceWrapper";
 import defaultsDeep from "lodash.defaultsdeep";
 import IContext from "../context/IContext";
 import ClientException from "../exception/ClientException";
-import Util from "../Util";
+import EventManager from "../event/EventManager";
+import { EventHandler } from "../event/EventHandler";
 
 export default class UtilWrapper implements IUtilWrapper {
   readonly source: ISourceWrapper = new SourceWrapper();
   readonly parser: DOMParser = new DOMParser();
+  private readonly _messageHandlers: Map<string, EventManager<any>> = null;
+
+  constructor() {
+    if ("serviceWorker" in navigator) {
+      this._messageHandlers = new Map();
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          const type = event.data.type;
+          const message = event.data.message;
+          if (type) {
+            if (this._messageHandlers.has(type)) {
+              const handler = this._messageHandlers.get(type);
+              handler.Trigger(message);
+            }
+          }
+        });
+      });
+    }
+  }
 
   getRandomName(prefix?: string, postfix?: string): string {
     return `${prefix ?? ""}_${new Date().getTime()}_${Math.random()
@@ -196,5 +216,22 @@ export default class UtilWrapper implements IUtilWrapper {
     return pattern.replace(/{(\d+)}/g, function (match, number) {
       return typeof params[number] !== "undefined" ? params[number] : match;
     });
+  }
+
+  public addMessageHandler(
+    messageType: string,
+    handler: EventHandler<any>
+  ): boolean {
+    let retVal = false;
+    if (this._messageHandlers) {
+      retVal = true;
+      if (!this._messageHandlers.has(messageType)) {
+        const manager = new EventManager<any>();
+        this._messageHandlers.set(messageType, manager);
+      }
+      const manager = this._messageHandlers.get(messageType);
+      manager.Add(handler);
+    }
+    return retVal;
   }
 }

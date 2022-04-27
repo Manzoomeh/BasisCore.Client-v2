@@ -11,10 +11,14 @@
 
 <body>
 
-    <basis core='dbsource' source='simple' name='stream' run="atclient1">
+    <basis core='dbsource' source='simple' name='stream' run="atclient">
         <member name='time' />
     </basis>
+    <basis core='dbsource' source='simple1' name='stream1' run="atclient">
+        <member name='time2' />
+    </basis>
 
+    <basis core="callback" run="atclient" triggers="stream.time stream1.time2"></basis>
     <div>
         Update time for 10 seconds only! (remain [##stream.time.remain##])
         <br />
@@ -23,8 +27,15 @@
     <script>
         var host = {
             serviceWorker: true,
+            push: {
+                applicationServerKey: "BDeRNwAPgVtNfsvZrRrAkm-O4-P36gSDLxDx25gQ-hoXjpdg3MQ8E3_kzZQSEH58ugL5F5Pi-3nKFvtys8R4eys",
+                //url: "http://localhost:28262/home/Index",
+                url: "http://localhost:8080/api/add_push_subscriber",
+                params: { client: "qam-1" }
+            },
             settings: {
-                'connection.websocket.simple': "ws://localhost:8080/time",
+                'connection.push.simple': "test",
+                'connection.push.simple1': "test1",
                 'default.dmnid': 2668
             },
 

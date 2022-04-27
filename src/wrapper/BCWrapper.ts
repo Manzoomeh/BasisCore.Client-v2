@@ -1,6 +1,7 @@
 import { container } from "tsyringe";
 import IBasisCore from "../IBasisCore";
 import IHostOptions from "../options/IHostOptions";
+import IPushOptions from "../options/IPushOptions";
 import ClientException from "../exception/ClientException";
 import { SourceId } from "../type-alias";
 import EventManager from "../event/EventManager";
@@ -10,7 +11,8 @@ import IComponent from "../component/IComponent";
 import CommandComponent from "../component/CommandComponent";
 
 export default class BCWrapper implements IBCWrapper {
-  elementList: Array<Element> = null;
+  private static _serviceWorkerAdded: boolean = false;
+  public elementList: Array<Element> = null;
   private hostSetting?: Partial<IHostOptions> = null;
   private _basiscore: IBasisCore = null;
   public manager: EventManager<IBasisCore> = new EventManager<IBasisCore>();
@@ -73,9 +75,138 @@ export default class BCWrapper implements IBCWrapper {
       });
       childContainer.register("dc", { useValue: childContainer });
       this._basiscore = childContainer.resolve<IBasisCore>("IBasisCore");
+      const options = this._basiscore.context.options;
+      if (options.serviceWorker) {
+        if (BCWrapper._serviceWorkerAdded) {
+          console.warn(
+            "Try add service worker more than one.",
+            this._basiscore.context.options
+          );
+        } else {
+          BCWrapper._serviceWorkerAdded = true;
+          this.tryAddServiceWorkerAsync();
+        }
+      }
       this.manager.Trigger(this._basiscore);
     }
     return this;
+  }
+
+  private tryAddServiceWorkerAsync() {
+    const options = this._basiscore.context.options;
+    const filePath =
+      typeof options.serviceWorker === "string"
+        ? options.serviceWorker
+        : "basiscore-serviceWorker.js";
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register(filePath).then(
+        (reg) => {
+          console.log(
+            `Service worker from '${filePath}' register successfully!`
+          );
+          this.tryActivePushService(reg);
+        },
+        (e) => console.error("Error in register service worker", e)
+      );
+    }
+  }
+
+  private tryActivePushService(reg: ServiceWorkerRegistration) {
+    const options = this._basiscore.context.options.push;
+
+    const showDeniedError = () =>
+      console.error(
+        "Your browser does not support Push Notifications or you have blocked notifications"
+      );
+
+    const trySendSubscriptionDataToServerAsync = (
+      sub: PushSubscription,
+      options: IPushOptions
+    ) => {
+      const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+        var binary = "";
+        var bytes = new Uint8Array(buffer);
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+      };
+
+      const formData = new FormData();
+      if (options.params) {
+        Object.getOwnPropertyNames(options.params).forEach((key) =>
+          formData.append(key, options.params[key])
+        );
+      }
+      formData.append("endpoint", sub.endpoint);
+      formData.append("p256dh", arrayBufferToBase64(sub.getKey("p256dh")));
+      formData.append("auth", arrayBufferToBase64(sub.getKey("auth")));
+
+      fetch(options.url, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache",
+        body: formData,
+      }).then(
+        async (result) => {
+          if (result.ok) {
+            console.log(
+              "Push Notification is activated. Subscription data send for server successfully!",
+              await result.text()
+            );
+          } else {
+            console.error(
+              `Error in send Push subscription data for server [${result.status} (${result.statusText})]. Unable to activate Push Notification!`
+            );
+          }
+        },
+        (er) =>
+          console.error(
+            "Error in send Push subscription data send for server. Unable to activate Push Notification!",
+            er
+          )
+      );
+    };
+
+    const tryGetSubscriptionAsync = (reg) => {
+      reg.pushManager.getSubscription().then((sub: PushSubscription) => {
+        if (sub === null) {
+          reg.pushManager
+            .subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: options.applicationServerKey,
+            })
+            .then(
+              (sub: PushSubscription) =>
+                trySendSubscriptionDataToServerAsync(sub, options),
+              (er) =>
+                console.error(
+                  "Unable to subscribe to push. Unable to activate Push Notification!",
+                  er
+                )
+            );
+        } else {
+          trySendSubscriptionDataToServerAsync(sub, options);
+        }
+      });
+    };
+
+    if (options) {
+      if (Notification.permission === "granted") {
+        tryGetSubscriptionAsync(reg);
+      } else if ((Notification.permission as any) === "blocked") {
+        showDeniedError();
+      } else {
+        Notification.requestPermission((status) => {
+          if (status == "granted") {
+            tryGetSubscriptionAsync(reg);
+          } else {
+            showDeniedError();
+          }
+        });
+      }
+    }
   }
 
   public setSource(
