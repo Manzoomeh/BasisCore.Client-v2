@@ -104,107 +104,130 @@ export default class BCWrapper implements IBCWrapper {
           console.log(
             `Service worker from '${filePath}' register successfully!`
           );
-          this.tryActivePushService(reg);
+          this.tryActivePushAPI(reg);
         },
-        (e) => console.error("Error in register service worker", e)
+        (e) => {
+          const msg = `Error in register service worker.(${e})`;
+          console.error(msg, e);
+          alert(msg);
+        }
       );
+    } else {
+      const msg = "Service worker not support in browser!";
+      console.error(msg);
+      alert(msg);
     }
   }
 
-  private tryActivePushService(reg: ServiceWorkerRegistration) {
+  private tryActivePushAPI(reg: ServiceWorkerRegistration) {
     const options = this._basiscore.context.options.push;
-
-    const showDeniedError = () =>
-      console.error(
-        "Your browser does not support Push Notifications or you have blocked notifications"
-      );
-
-    const trySendSubscriptionDataToServerAsync = (
-      sub: PushSubscription,
-      options: IPushOptions
-    ) => {
-      const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
-        var binary = "";
-        var bytes = new Uint8Array(buffer);
-        var len = bytes.byteLength;
-        for (var i = 0; i < len; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
+    if (options) {
+      const showDeniedError = () => {
+        const msg = `You have blocked notifications.(current permission is ${Notification.permission}`;
+        console.error(msg);
+        alert(msg);
       };
 
-      const formData = new FormData();
-      if (options.params) {
-        Object.getOwnPropertyNames(options.params).forEach((key) =>
-          formData.append(key, options.params[key])
-        );
-      }
-      formData.append("endpoint", sub.endpoint);
-      formData.append("p256dh", arrayBufferToBase64(sub.getKey("p256dh")));
-      formData.append("auth", arrayBufferToBase64(sub.getKey("auth")));
-
-      fetch(options.url, {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      }).then(
-        async (result) => {
-          if (result.ok) {
-            console.log(
-              "Push Notification is activated. Subscription data send for server successfully!",
-              await result.text()
-            );
-          } else {
-            console.error(
-              `Error in send Push subscription data for server [${result.status} (${result.statusText})]. Unable to activate Push Notification!`
+      const trySendSubscriptionDataToServerAsync = (
+        sub: PushSubscription,
+        options: IPushOptions
+      ) => {
+        const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+          var binary = "";
+          var bytes = new Uint8Array(buffer);
+          var len = bytes.byteLength;
+          for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          return window.btoa(binary);
+        };
+        const formData = new FormData();
+        try {
+          if (options.params) {
+            Object.getOwnPropertyNames(options.params).forEach((key) =>
+              formData.append(key, options.params[key])
             );
           }
-        },
-        (er) =>
-          console.error(
-            "Error in send Push subscription data send for server. Unable to activate Push Notification!",
-            er
-          )
-      );
-    };
-
-    const tryGetSubscriptionAsync = (reg) => {
-      reg.pushManager.getSubscription().then((sub: PushSubscription) => {
-        if (sub === null) {
-          reg.pushManager
-            .subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: options.applicationServerKey,
-            })
-            .then(
-              (sub: PushSubscription) =>
-                trySendSubscriptionDataToServerAsync(sub, options),
-              (er) =>
-                console.error(
-                  "Unable to subscribe to push. Unable to activate Push Notification!",
-                  er
-                )
-            );
-        } else {
-          trySendSubscriptionDataToServerAsync(sub, options);
+          formData.append("endpoint", sub.endpoint);
+          formData.append("p256dh", arrayBufferToBase64(sub.getKey("p256dh")));
+          formData.append("auth", arrayBufferToBase64(sub.getKey("auth")));
+        } catch (er) {
+          const msg = `"Error in generate client push data for send to server. ${er}"`;
+          console.error(msg, er);
+          alert(msg);
+          throw er;
         }
-      });
-    };
-
-    if (options) {
-      if (Notification.permission === "granted") {
-        tryGetSubscriptionAsync(reg);
-      } else if ((Notification.permission as any) === "blocked") {
-        showDeniedError();
-      } else {
-        Notification.requestPermission((status) => {
-          if (status == "granted") {
-            tryGetSubscriptionAsync(reg);
-          } else {
-            showDeniedError();
+        fetch(options.url, {
+          method: "POST",
+          mode: "cors",
+          cache: "no-cache",
+          body: formData,
+        }).then(
+          async (result) => {
+            if (result.ok) {
+              console.log(
+                "Push api is activated. Subscription data send for server successfully!",
+                await result.text()
+              );
+            } else {
+              const msg = `Error in send Push api subscription data for server [${result.status} (${result.statusText})]. Unable to activate Push Notification!`;
+              console.error(msg);
+              alert(msg);
+            }
+          },
+          (er) => {
+            const msg = `Error in send Push api subscription data send for server (${er}). Unable to activate Push Notification!`;
+            console.error(msg, er);
+            alert(msg);
           }
-        });
+        );
+      };
+
+      const tryRegisterSubscriptionAsync = (reg) => {
+        reg.pushManager.getSubscription().then(
+          (sub: PushSubscription) => {
+            if (sub === null) {
+              reg.pushManager
+                .subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: options.applicationServerKey,
+                })
+                .then(
+                  (sub: PushSubscription) =>
+                    trySendSubscriptionDataToServerAsync(sub, options),
+                  (er) => {
+                    const msg = `Unable to subscribe push api. Unable to activate Push Notification!(${er})`;
+                    console.error(msg, er);
+                    alert(msg);
+                  }
+                );
+            } else {
+              trySendSubscriptionDataToServerAsync(sub, options);
+            }
+          },
+          (cause) => {
+            const msg = `Error in get Subscription for push api (${cause}). Unable to activate Push Notification!`;
+            console.error(msg, cause);
+            alert(msg);
+          }
+        );
+      };
+
+      tryRegisterSubscriptionAsync(reg);
+      if ("Notification" in window) {
+        if (Notification.permission === "granted") {
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission((status) => {
+            if (status !== "granted") {
+              showDeniedError();
+            }
+          });
+        } else {
+          showDeniedError();
+        }
+      } else {
+        console.error("Your browser does not support Push Notifications!");
+        alert("Your browser does not support Push Notifications!");
       }
     }
   }
