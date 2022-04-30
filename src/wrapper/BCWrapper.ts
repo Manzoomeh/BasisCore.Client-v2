@@ -119,15 +119,49 @@ export default class BCWrapper implements IBCWrapper {
     }
   }
 
-  private tryActivePushAPI(reg: ServiceWorkerRegistration) {
-    const options = this._basiscore.context.options.push;
-    if (options) {
+  private async tryActiveNotification(callback: () => void) {
+    if ("Notification" in window) {
       const showDeniedError = () => {
         const msg = `You have blocked notifications.(current permission is ${Notification.permission}`;
         console.error(msg);
         alert(msg);
       };
-
+      if (Notification.permission === "granted") {
+        callback();
+      } else if (Notification.permission !== "denied") {
+        const options = this._basiscore.context.options.push;
+        const dlg = options.permissionDlg;
+        if (typeof dlg === "string") {
+          document.querySelector<HTMLElement>(dlg).style.display = "block";
+        } else {
+          dlg(true);
+        }
+        const btn = document.querySelector(options.permissionSubmit);
+        btn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          if (typeof dlg === "string") {
+            document.querySelector<HTMLElement>(dlg).style.display = "none";
+          } else {
+            dlg(false);
+          }
+          const status = await Notification.requestPermission();
+          if (status !== "granted") {
+            showDeniedError();
+          } else {
+            callback();
+          }
+        });
+      } else {
+        showDeniedError();
+      }
+    } else {
+      console.error("Your browser does not support Push Notifications!");
+      alert("Your browser does not support Push Notifications!");
+    }
+  }
+  private tryActivePushAPI(reg: ServiceWorkerRegistration) {
+    const options = this._basiscore.context.options.push;
+    if (options) {
       const trySendSubscriptionDataToServerAsync = (
         sub: PushSubscription,
         options: IPushOptions
@@ -183,6 +217,19 @@ export default class BCWrapper implements IBCWrapper {
         );
       };
 
+      const urlB64ToUint8Array = (base64String) => {
+        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding)
+          .replace(/\-/g, "+")
+          .replace(/_/g, "/");
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      };
+
       const tryRegisterSubscriptionAsync = (reg) => {
         reg.pushManager.getSubscription().then(
           (sub: PushSubscription) => {
@@ -190,7 +237,9 @@ export default class BCWrapper implements IBCWrapper {
               reg.pushManager
                 .subscribe({
                   userVisibleOnly: true,
-                  applicationServerKey: options.applicationServerKey,
+                  applicationServerKey: urlB64ToUint8Array(
+                    options.applicationServerKey
+                  ),
                 })
                 .then(
                   (sub: PushSubscription) =>
@@ -213,22 +262,7 @@ export default class BCWrapper implements IBCWrapper {
         );
       };
 
-      tryRegisterSubscriptionAsync(reg);
-      if ("Notification" in window) {
-        if (Notification.permission === "granted") {
-        } else if (Notification.permission !== "denied") {
-          Notification.requestPermission((status) => {
-            if (status !== "granted") {
-              showDeniedError();
-            }
-          });
-        } else {
-          showDeniedError();
-        }
-      } else {
-        console.error("Your browser does not support Push Notifications!");
-        alert("Your browser does not support Push Notifications!");
-      }
+      this.tryActiveNotification(() => tryRegisterSubscriptionAsync(reg));
     }
   }
 
