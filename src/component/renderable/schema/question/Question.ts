@@ -65,10 +65,7 @@ export default class Question {
   }
 
   public setRemovable() {
-    if (
-      !this.answer ||
-      (this.answer.parts.length == 1 && !this.question.parts[0].disabled)
-    ) {
+    if (!this.answer || this.question.parts.some((x) => !x.disabled)) {
       this.button?.setAttribute("data-bc-btn", "remove");
     } else {
       this.button?.remove();
