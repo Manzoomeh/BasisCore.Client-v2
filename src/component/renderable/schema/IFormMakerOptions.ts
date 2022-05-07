@@ -1,3 +1,4 @@
+import { DependencyContainer } from "tsyringe";
 import IContext from "../../../context/IContext";
 import IQuestionSchema from "./IQuestionSchema";
 
@@ -7,6 +8,8 @@ export default interface IFormMakerOptions {
   version?: string;
   lid?: number;
   callback: (params: IEditParams) => void;
+  subSchemaOptions: SubSchemaOptions;
+  dc: DependencyContainer;
 }
 
 export interface IEditParams {
@@ -22,3 +25,11 @@ export type GetSchemaCallbackAsync = (
   ver: string,
   lid: number
 ) => Promise<IQuestionSchema>;
+
+export type SubSchemaOptions = {
+  schemaUrl: string;
+  viewMode: string;
+  callback: string;
+  schemaCallback: string;
+  cell: string;
+};

@@ -15,15 +15,40 @@ export default class SelectType extends ListBaseType {
     if (this.isDisabled) {
       this._select.setAttribute("disabled", "");
     }
+    this._select.addEventListener("change", (e) => {
+      e.preventDefault();
+      if (this.hasSubSchema) {
+        const item = this._select.options[this._select.selectedIndex];
+        const schemaId = item.getAttribute("data-schema-id");
+        const lid = item.getAttribute("data-lid");
+        const schemaVersion = item.getAttribute("data-schema-version");
+        this.loadSubSchemaAsync(
+          item.value,
+          schemaId,
+          schemaVersion,
+          lid,
+          this._select.nextElementSibling
+        );
+      }
+    });
   }
 
   protected fillUI(values: Array<IFixValue>) {
+    super.fillUI(values);
     const select = this.element.querySelector("select");
     const value = this.answer?.values[0];
     values.forEach((item) => {
       const option = document.createElement("option");
       option.value = item.id.toString();
       option.text = item.value;
+      if (item.schema) {
+        option.setAttribute("data-schema-id", item.schema.schemaId ?? "");
+        option.setAttribute("data-lid", item.schema.lid?.toString() ?? "");
+        option.setAttribute(
+          "data-schema-version",
+          item.schema.schemaVersion ?? ""
+        );
+      }
       option.selected = value ? value.value == item.id : item.selected ?? false;
       select.options.add(option);
     });
@@ -31,8 +56,13 @@ export default class SelectType extends ListBaseType {
 
   public getValidationErrors(): IValidationError {
     const value = this._select.options[this._select.selectedIndex].value;
-
-    return this.ValidateValue(value === "0" ? null : value);
+    const subSchemaIsOk = super.allSubSchemaIsOk();
+    const retVal = this.ValidateValue(
+      value === "0" ? null : value,
+      !subSchemaIsOk
+    );
+    console.log(this, retVal);
+    return retVal;
   }
 
   public getAdded(): IUserActionPart {
@@ -41,11 +71,13 @@ export default class SelectType extends ListBaseType {
     if (!this.answer) {
       const newValue = this._select.options[this._select.selectedIndex].value;
       if (newValue !== "0") {
+        const subSchemaValue = this.getSubSchemaValue(newValue);
         retVal = {
           part: this.part.part,
           values: [
             {
-              value: this._select.options[this._select.selectedIndex].value,
+              value: newValue,
+              ...(subSchemaValue && { answer: subSchemaValue }),
             },
           ],
         };
@@ -60,12 +92,14 @@ export default class SelectType extends ListBaseType {
       const newValue = this._select.options[this._select.selectedIndex].value;
       const changed = newValue != this.answer.values[0].value;
       if (changed && newValue != "0") {
+        const subSchemaValue = this.getSubSchemaValue(newValue);
         retVal = {
           part: this.part.part,
           values: [
             {
               id: this.answer.values[0].id,
               value: newValue,
+              ...(subSchemaValue && { answer: subSchemaValue }),
             },
           ],
         };

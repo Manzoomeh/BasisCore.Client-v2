@@ -1,4 +1,4 @@
-import { inject, injectable } from "tsyringe";
+import { DependencyContainer, inject, injectable } from "tsyringe";
 import IContext from "../../../context/IContext";
 import ISource from "../../../data/ISource";
 import IToken from "../../../token/IToken";
@@ -17,6 +17,7 @@ import Section from "./section/Section";
 @injectable()
 export default class SchemaComponent extends SourceBaseComponent {
   private _questions: Array<QuestionCollection>;
+  private readonly _dc: DependencyContainer;
 
   private schemaUrlToken: IToken<string>;
   private schemaIdToken: IToken<string>;
@@ -29,13 +30,17 @@ export default class SchemaComponent extends SourceBaseComponent {
   private lidToken: IToken<string>;
   private cellToken: IToken<string>;
   private _currentCellManager: IQuestionCellManager;
-  private getAnswers: () => void;
+  private getAnswersAndSetAsSource: () => void;
+  private _schema: IQuestionSchema;
+  private _answer: IAnswerSchema;
 
   constructor(
     @inject("element") element: Element,
-    @inject("context") context: IContext
+    @inject("context") context: IContext,
+    @inject("dc") container: DependencyContainer
   ) {
     super(element, context);
+    this._dc = container;
   }
 
   public async initializeAsync(): Promise<void> {
@@ -57,8 +62,8 @@ export default class SchemaComponent extends SourceBaseComponent {
 
   private onClick(e: MouseEvent) {
     e.preventDefault();
-    if (this.getAnswers) {
-      this.getAnswers();
+    if (this.getAnswersAndSetAsSource) {
+      this.getAnswersAndSetAsSource();
     }
   }
 
@@ -79,10 +84,11 @@ export default class SchemaComponent extends SourceBaseComponent {
     answer?: IAnswerSchema,
     schemaId?: string
   ): Promise<void> {
+    this._answer = answer;
     this._currentCellManager = null;
-    schemaId = answer?.schemaId ?? schemaId;
+    schemaId = this._answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
-    this.getAnswers = null;
+    this.getAnswersAndSetAsSource = null;
     const container = document.createElement("div") as Element;
 
     this.setContent(container, false);
@@ -114,33 +120,41 @@ export default class SchemaComponent extends SourceBaseComponent {
           return response.sources[0].data[0];
         };
       }
-      const viewMode = answer ? (viewModeStr ?? "true") == "true" : false;
+      const viewMode = this._answer ? (viewModeStr ?? "true") == "true" : false;
       const options: IFormMakerOptions = {
         viewMode: viewMode,
-        schemaId: answer?.schemaId ?? schemaId,
+        schemaId: this._answer?.schemaId ?? schemaId,
         lid: lid,
-        version: answer?.schemaVersion ?? version,
+        version: this._answer?.schemaVersion ?? version,
         callback: viewMode && callback ? eval(callback) : null,
+        dc: this._dc,
+        subSchemaOptions: {
+          schemaUrl: schemaUrlStr,
+          callback: callback,
+          cell: cellStr,
+          schemaCallback: schemaCallbackStr,
+          viewMode: viewModeStr,
+        },
       };
 
-      const schema = await schemaCallback(
+      this._schema = await schemaCallback(
         this.context,
         options.schemaId,
         options.version,
         options.lid
       );
       const sections = new Map<number, Section>();
-      if (schema && schema.questions?.length > 0) {
-        schema.questions.forEach((question) => {
-          const partAnswer = answer?.properties.find(
+      if (this._schema && this._schema.questions?.length > 0) {
+        this._schema.questions.forEach((question) => {
+          const partAnswer = this._answer?.properties.find(
             (x) => x.prpId == question.prpId
           );
           let cellManager: IQuestionCellManager = null;
-          if (question.sectionId && schema.sections?.length > 0) {
+          if (question.sectionId && this._schema.sections?.length > 0) {
             if (sections.has(question.sectionId)) {
               cellManager = sections.get(question.sectionId).cellManager;
             } else {
-              const sectionSchema = schema.sections.find(
+              const sectionSchema = this._schema.sections.find(
                 (x) => x.id == question.sectionId
               );
               if (sectionSchema) {
@@ -178,33 +192,49 @@ export default class SchemaComponent extends SourceBaseComponent {
           }
         });
         if (this.buttonSelector && resultSourceId && !options.viewMode) {
-          this.getAnswers = () => {
-            const userActionList = new Array<any>();
-            let hasValidationError = false;
-            this._questions.forEach((question) => {
-              try {
-                var actions = question.getUserAction();
-                if (actions) {
-                  userActionList.push(actions);
-                }
-              } catch (e) {
-                hasValidationError = true;
-              }
-            });
-            if (!hasValidationError && userActionList.length > 0) {
-              const retVal: IUserActionResult = {
-                lid: schema.lid,
-                schemaId: schema.schemaId,
-                schemaVersion: schema.schemaVersion,
-                usedForId: answer?.usedForId,
-                properties: userActionList,
-              };
-
-              this.context.setAsSource(resultSourceId, retVal);
+          this.getAnswersAndSetAsSource = () => {
+            const answer = this.getAnswers(false);
+            console.log(answer);
+            if (answer) {
+              this.context.setAsSource(resultSourceId, answer);
             }
           };
         }
       }
+    }
+  }
+  public getAnswers(throwError: boolean): IUserActionResult {
+    try {
+      const userActionList = new Array<any>();
+      let hasValidationError = false;
+      let retVal: IUserActionResult = null;
+      this._questions.forEach((question) => {
+        try {
+          var actions = question.getUserAction();
+          console.log(actions);
+          if (actions) {
+            userActionList.push(actions);
+          }
+        } catch (e) {
+          console.log(e);
+          hasValidationError = true;
+        }
+      });
+      if (hasValidationError && throwError) {
+        throw Error("invalid");
+      }
+      if (!hasValidationError && userActionList.length > 0) {
+        retVal = {
+          lid: this._schema.lid,
+          schemaId: this._schema.schemaId,
+          schemaVersion: this._schema.schemaVersion,
+          usedForId: this._answer?.usedForId,
+          properties: userActionList,
+        };
+      }
+      return retVal;
+    } catch (e) {
+      console.log(e);
     }
   }
 }

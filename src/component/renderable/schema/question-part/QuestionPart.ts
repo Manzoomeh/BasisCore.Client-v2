@@ -48,9 +48,17 @@ export default abstract class QuestionPart {
     return url;
   }
 
-  protected ValidateValue(userValue: any | Array<any>): IValidationError {
+  protected ValidateValue(
+    userValue: any | Array<any>,
+    addSubSchemaError: boolean = false
+  ): IValidationError {
     const errors: Array<IValidationErrorPart> = [];
     let retVal: IValidationError = null;
+    if (addSubSchemaError) {
+      errors.push({
+        type: "sub-schema",
+      });
+    }
     const isArray = Array.isArray(userValue);
     const hasValue = isArray
       ? userValue && userValue.length > 0
@@ -147,15 +155,16 @@ export default abstract class QuestionPart {
           }
         }
       }
-      if (errors?.length > 0) {
-        retVal = {
-          part: this.part.part,
-          title: this.part.caption,
-          errors: errors,
-        };
-      }
+    }
+    if (errors.length > 0) {
+      retVal = {
+        part: this.part.part,
+        title: this.part.caption,
+        errors: errors,
+      };
     }
     if (retVal) {
+      console.log(retVal, this.element);
       this.element.setAttribute("data-bc-invalid", "");
       var str = "";
       retVal.errors.forEach((error) => {

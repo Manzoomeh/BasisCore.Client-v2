@@ -52,7 +52,13 @@ export default abstract class SelectListType extends ListBaseType {
     ];
   }
 
+  protected abstract onValueItemClick(
+    value: IFixValue,
+    element: HTMLInputElement
+  );
+
   protected fillUI(values: Array<IFixValue>) {
+    super.fillUI(values);
     this.rndName = "radio" + (++SelectListType._seedId).toString();
     values.forEach((item) => {
       const checked = this.answer
@@ -67,7 +73,13 @@ export default abstract class SelectListType extends ListBaseType {
         .replace("@disabled", this.isDisabled ? "disabled" : "");
 
       const template = Util.parse(newTemplate).querySelector("div");
-      this.element.querySelector("div").appendChild(template);
+      this.element.querySelector("[data-bc-items]").appendChild(template);
+      if (this.hasSubSchema) {
+        template.querySelector("input").addEventListener("change", (e) => {
+          e.preventDefault();
+          this.onValueItemClick(item, e.target as HTMLInputElement);
+        });
+      }
     });
   }
 

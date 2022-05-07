@@ -1,0 +1,181 @@
+{
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "answer.data",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
+      "data": [
+        {
+          "schemaId": 1163,
+          "schemaVersion": 1.1,
+          "lid": 1,
+          "baseVocab": "http://schema.site/FA/vo",
+          "questions": [
+            {
+              "prpId": 55,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/عنوان",
+              "title": "وب سایت",
+              "wordId": 63228,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text",
+                  "validations": {
+                    "required": true
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 13060,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "ولتاژ",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "disabled": true,
+                  "part": 1,
+                  "viewType": "select",
+                  "cssClass": "css_13060_1",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 4,
+                      "value": "110",
+                      "schema": {
+                        "schemaId": 1164,
+                        "lid": 1,
+                        "schemaVersion": 1.1
+                      }
+                    },
+                    {
+                      "id": 5,
+                      "value": "220"
+                    },
+                    {
+                      "id": 6,
+                      "value": "R1",
+                      "selected": true
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 13061,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "ولتاژ",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "disabled": true,
+                  "part": 1,
+                  "viewType": "checklist",
+                  "cssClass": "css_13060_1",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 4,
+                      "value": "110",
+                      "schema": {
+                        "schemaId": 1164,
+                        "lid": 1,
+                        "schemaVersion": 1.1
+                      }
+                    },
+                    {
+                      "id": 5,
+                      "value": "220"
+                    },
+                    {
+                      "id": 6,
+                      "value": "R1",
+                      "selected": true
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 13062,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "ولتاژ",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "disabled": true,
+                  "part": 1,
+                  "viewType": "radio",
+                  "cssClass": "css_13060_1",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 4,
+                      "value": "110",
+                      "schema": {
+                        "schemaId": 1164,
+                        "lid": 1,
+                        "schemaVersion": 1.1
+                      }
+                    },
+                    {
+                      "id": 5,
+                      "value": "220"
+                    },
+                    {
+                      "id": 6,
+                      "value": "R1",
+                      "selected": true
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

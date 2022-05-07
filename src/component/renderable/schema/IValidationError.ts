@@ -9,7 +9,8 @@ export type ValidationErrorType =
   | "regex"
   | "range"
   | "type"
-  | "length";
+  | "length"
+  | "sub-schema";
 
 export interface IValidationErrorPart {
   type: ValidationErrorType;

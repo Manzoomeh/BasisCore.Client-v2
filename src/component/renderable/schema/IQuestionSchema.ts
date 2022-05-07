@@ -73,6 +73,7 @@ export interface IFixValue {
   id: number;
   value: string;
   selected?: boolean;
+  schema?: ISchema;
 }
 
 export interface IDependency {

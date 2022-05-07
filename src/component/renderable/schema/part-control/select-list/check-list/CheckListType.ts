@@ -2,18 +2,30 @@ import layout from "./assets/layout.html";
 import itemLayout from "./assets/item-layout.html";
 import Question from "../../../question/Question";
 import { IPartCollection } from "../../../IAnswerSchema";
-import { IQuestionPart } from "../../../IQuestionSchema";
+import { IFixValue, IQuestionPart } from "../../../IQuestionSchema";
 import SelectListType, { type } from "../SelectListType";
 
 export default class CheckListType extends SelectListType {
   protected get controlType(): type {
-    return "checkbox"
+    return "checkbox";
   }
   protected get itemLayout(): string {
-    return itemLayout
+    return itemLayout;
   }
 
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
+  }
+
+  protected onValueItemClick(value: IFixValue, element: HTMLInputElement) {
+    if (value.schema) {
+      this.loadSubSchemaAsync(
+        value.id,
+        element.checked ? value.schema.schemaId : null,
+        value.schema.schemaVersion,
+        value.schema.lid,
+        element.nextElementSibling
+      );
+    }
   }
 }
