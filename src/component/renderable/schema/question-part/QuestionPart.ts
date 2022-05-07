@@ -164,7 +164,6 @@ export default abstract class QuestionPart {
       };
     }
     if (retVal) {
-      console.log(retVal, this.element);
       this.element.setAttribute("data-bc-invalid", "");
       var str = "";
       retVal.errors.forEach((error) => {

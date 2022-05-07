@@ -8,6 +8,7 @@ import layout from "./assets/layout.html";
 
 export default class SelectType extends ListBaseType {
   private readonly _select: HTMLSelectElement;
+  private preSelectedValue: string;
 
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
@@ -22,13 +23,18 @@ export default class SelectType extends ListBaseType {
         const schemaId = item.getAttribute("data-schema-id");
         const lid = item.getAttribute("data-lid");
         const schemaVersion = item.getAttribute("data-schema-version");
-        this.loadSubSchemaAsync(
-          item.value,
-          schemaId,
-          schemaVersion,
-          lid,
-          this._select.nextElementSibling
-        );
+        if (schemaId) {
+          this.preSelectedValue = item.value;
+          this.loadSubSchemaAsync(
+            item.value,
+            schemaId,
+            schemaVersion,
+            lid,
+            this._select.nextElementSibling
+          );
+        } else if (this.preSelectedValue) {
+          this.unloadSchemaAsync(this.preSelectedValue);
+        }
       }
     });
   }
@@ -61,7 +67,6 @@ export default class SelectType extends ListBaseType {
       value === "0" ? null : value,
       !subSchemaIsOk
     );
-    console.log(this, retVal);
     return retVal;
   }
 

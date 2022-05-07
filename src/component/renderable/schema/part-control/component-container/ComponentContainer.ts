@@ -42,7 +42,6 @@ export default class ComponentContainer extends EditableQuestionPart {
           retVal = manager.validate(this.part.validations);
         } else if (typeof manager.getValuesForValidate == "function") {
           const values = manager.getValuesForValidate();
-          console.log(values);
           retVal = this.ValidateValue(values);
         } else {
           console.warn(

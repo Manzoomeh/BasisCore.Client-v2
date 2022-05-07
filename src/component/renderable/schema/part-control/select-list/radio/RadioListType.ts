@@ -25,6 +25,5 @@ export default class RadioListType extends SelectListType {
       value.schema?.lid,
       element.parentElement.parentElement.nextElementSibling
     );
-    console.log(element.parentElement.parentElement.nextElementSibling);
   }
 }

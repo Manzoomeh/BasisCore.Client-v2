@@ -8,9 +8,13 @@ import EditableQuestionPart from "../question-part/EditableQuestionPart";
 import Question from "../question/Question";
 import SchemaComponent from "../SchemaComponent";
 
+interface ISubSchemaData {
+  component: ComponentCollection;
+  element: Element;
+}
 export default abstract class ListBaseType extends EditableQuestionPart {
   protected hasSubSchema: boolean = false;
-  private _subSchemaCollections: IDictionary<ComponentCollection>;
+  private _subSchemaCollections: IDictionary<ISubSchemaData>;
   constructor(
     part: IQuestionPart,
     layout: string,
@@ -41,9 +45,9 @@ export default abstract class ListBaseType extends EditableQuestionPart {
   protected getSubSchemaValue(id: string): IUserActionResult {
     let retVal: IUserActionResult = null;
     if (this._subSchemaCollections) {
-      const collection = this._subSchemaCollections[id];
-      if (collection) {
-        const array = collection.GetCommandListByCore("schema");
+      const item = this._subSchemaCollections[id];
+      if (item) {
+        const array = item.component.GetCommandListByCore("schema");
         if (array?.length == 1) {
           const schemaComponent = array[0] as SchemaComponent;
           retVal = schemaComponent.getAnswers(false);
@@ -60,29 +64,38 @@ export default abstract class ListBaseType extends EditableQuestionPart {
         const checkList = Object.getOwnPropertyNames(
           this._subSchemaCollections
         ).map((id) => {
-          const collection = this._subSchemaCollections[id];
-          console.log("allSubSchemaIsOk-", id, collection);
+          const item = this._subSchemaCollections[id];
           let isOk = true;
           try {
-            const array = collection.GetCommandListByCore("schema");
+            const array = item.component.GetCommandListByCore("schema");
             if (array?.length == 1) {
               const schemaComponent = array[0] as SchemaComponent;
               schemaComponent.getAnswers(true);
             }
           } catch (e) {
-            console.error(e);
             isOk = false;
           }
           return isOk;
         });
         retVal = checkList.every((x) => x);
-        console.log("allSubSchemaIsOk", retVal, checkList);
       }
-      console.log(retVal, this);
       return retVal;
     } catch (ex) {
       console.error("error in validate subSchema", ex);
     }
+  }
+
+  protected unloadSchemaAsync(id: string | number): Promise<void> {
+    let disposeTask;
+    const item = this._subSchemaCollections[id];
+    if (item) {
+      item.element.innerHTML = "";
+      disposeTask = item.component.disposeAsync();
+      delete this._subSchemaCollections[id];
+    } else {
+      disposeTask = Promise.resolve();
+    }
+    return disposeTask;
   }
 
   protected async loadSubSchemaAsync(
@@ -92,16 +105,18 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     lid: string | number,
     container: Element
   ): Promise<void> {
+    console.log(id, schemaId, schemaVersion, lid, container);
     if (!this._subSchemaCollections) {
       this._subSchemaCollections = {};
     }
     const taskList = new Array<Promise<void>>();
-    const currentCollection = this._subSchemaCollections[id];
-    if (currentCollection) {
-      const disposeTask = currentCollection.disposeAsync();
-      delete this._subSchemaCollections[id];
-      taskList.push(disposeTask);
-    }
+    taskList.push(this.unloadSchemaAsync(id));
+    // const currentCollection = this._subSchemaCollections[id];
+    // if (currentCollection) {
+    //   const disposeTask = currentCollection.disposeAsync();
+    //   delete this._subSchemaCollections[id];
+    //   taskList.push(disposeTask);
+    // }
     const options = this.owner.options.subSchemaOptions;
     if (schemaId) {
       const str = `<Basis 
@@ -120,7 +135,10 @@ export default abstract class ListBaseType extends EditableQuestionPart {
       container.innerHTML = str;
 
       const newCollection = this.owner.options.dc.resolve(ComponentCollection);
-      this._subSchemaCollections[id] = newCollection;
+      this._subSchemaCollections[id] = {
+        component: newCollection,
+        element: container,
+      };
       const processTask = newCollection.processNodesAsync(
         Array.from(container.childNodes)
       );

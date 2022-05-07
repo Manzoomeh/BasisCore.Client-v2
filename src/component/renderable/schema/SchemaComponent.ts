@@ -194,7 +194,6 @@ export default class SchemaComponent extends SourceBaseComponent {
         if (this.buttonSelector && resultSourceId && !options.viewMode) {
           this.getAnswersAndSetAsSource = () => {
             const answer = this.getAnswers(false);
-            console.log(answer);
             if (answer) {
               this.context.setAsSource(resultSourceId, answer);
             }
@@ -204,37 +203,31 @@ export default class SchemaComponent extends SourceBaseComponent {
     }
   }
   public getAnswers(throwError: boolean): IUserActionResult {
-    try {
-      const userActionList = new Array<any>();
-      let hasValidationError = false;
-      let retVal: IUserActionResult = null;
-      this._questions.forEach((question) => {
-        try {
-          var actions = question.getUserAction();
-          console.log(actions);
-          if (actions) {
-            userActionList.push(actions);
-          }
-        } catch (e) {
-          console.log(e);
-          hasValidationError = true;
+    const userActionList = new Array<any>();
+    let hasValidationError = false;
+    let retVal: IUserActionResult = null;
+    this._questions.forEach((question) => {
+      try {
+        var actions = question.getUserAction();
+        if (actions) {
+          userActionList.push(actions);
         }
-      });
-      if (hasValidationError && throwError) {
-        throw Error("invalid");
+      } catch (e) {
+        hasValidationError = true;
       }
-      if (!hasValidationError && userActionList.length > 0) {
-        retVal = {
-          lid: this._schema.lid,
-          schemaId: this._schema.schemaId,
-          schemaVersion: this._schema.schemaVersion,
-          usedForId: this._answer?.usedForId,
-          properties: userActionList,
-        };
-      }
-      return retVal;
-    } catch (e) {
-      console.log(e);
+    });
+    if (hasValidationError && throwError) {
+      throw Error("invalid");
     }
+    if (!hasValidationError && userActionList.length > 0) {
+      retVal = {
+        lid: this._schema.lid,
+        schemaId: this._schema.schemaId,
+        schemaVersion: this._schema.schemaVersion,
+        usedForId: this._answer?.usedForId,
+        properties: userActionList,
+      };
+    }
+    return retVal;
   }
 }

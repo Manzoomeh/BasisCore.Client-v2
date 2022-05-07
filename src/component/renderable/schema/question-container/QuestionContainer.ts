@@ -160,7 +160,6 @@ export default class QuestionContainer {
         };
       }
     } else {
-      console.log(errors);
       throw Error("invalid");
     }
     return userAction;
