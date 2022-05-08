@@ -183,4 +183,5 @@ export default abstract class QuestionPart {
   public abstract getAdded(): IUserActionPart;
   public abstract getEdited(): IUserActionPart;
   public abstract getDeleted(): IUserActionPart;
+  public abstract getSubEdited(): IUserActionPart;
 }

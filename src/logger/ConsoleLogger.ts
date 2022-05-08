@@ -6,6 +6,7 @@ import ILogger from "./ILogger";
 export default class ConsoleLogger implements ILogger {
   public logSource(source: ISource): void {
     console.log(source);
+    console.log(JSON.stringify(source?.rows, null, " "));
     console.table(source?.rows);
   }
 

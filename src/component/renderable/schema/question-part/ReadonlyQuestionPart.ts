@@ -26,4 +26,7 @@ export default abstract class ReadonlyQuestionPart extends QuestionPart {
   public getDeleted(): IUserActionPart {
     throw new Error("Method not supported.");
   }
+  public getSubEdited(): IUserActionPart {
+    throw new Error("Method not supported.");
+  }
 }

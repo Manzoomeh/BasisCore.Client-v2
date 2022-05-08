@@ -134,4 +134,8 @@ export default class Lookup extends EditableQuestionPart {
     }
     return retVal;
   }
+
+  public getSubEdited(): IUserActionPart {
+    return null;
+  }
 }

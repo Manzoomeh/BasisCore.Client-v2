@@ -22,4 +22,5 @@ export interface IPartCollection {
 export interface IPartValue {
   id?: number;
   value: any;
+  answer?: IAnswerSchema;
 }

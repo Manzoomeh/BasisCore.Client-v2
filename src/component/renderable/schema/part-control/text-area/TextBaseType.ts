@@ -86,4 +86,8 @@ export default abstract class TextBaseType<
     }
     return retVal;
   }
+
+  public getSubEdited(): IUserActionPart {
+    return null;
+  }
 }

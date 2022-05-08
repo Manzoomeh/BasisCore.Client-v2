@@ -28,4 +28,7 @@ export default abstract class ReadOnlyListBaseType extends ListBaseType {
   public getDeleted(): IUserActionPart {
     throw new Error("Method not supported.");
   }
+  public getSubEdited(): IUserActionPart {
+    throw new Error("Method not supported.");
+  }
 }

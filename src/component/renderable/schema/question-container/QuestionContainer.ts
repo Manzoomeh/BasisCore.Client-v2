@@ -143,6 +143,9 @@ export default class QuestionContainer {
             ? { id: x.id }
             : x
         );
+      const subEdited = this._questions
+        .map((x) => x.getSubEditedParts())
+        .filter((x) => x);
 
       this._removedQuestions?.forEach((x) => {
         deleted.push({
@@ -150,13 +153,19 @@ export default class QuestionContainer {
         });
       });
 
-      if (added.length > 0 || edited.length > 0 || deleted.length > 0) {
+      if (
+        added.length > 0 ||
+        edited.length > 0 ||
+        deleted.length > 0 ||
+        subEdited.length > 0
+      ) {
         userAction = {
           propId: this.questionSchema.prpId,
           multi: this.questionSchema.multi,
           ...(added.length > 0 && { added: added }),
           ...(edited.length > 0 && { edited: edited }),
           ...(deleted.length > 0 && { deleted: deleted }),
+          ...(subEdited.length > 0 && { subEdited: subEdited }),
         };
       }
     } else {

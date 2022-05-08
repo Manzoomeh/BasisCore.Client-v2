@@ -26,4 +26,5 @@ export interface IUserActionPart {
 export interface IUserActionPartValue {
   id?: number;
   value?: any;
+  answer?: IUserActionResult;
 }

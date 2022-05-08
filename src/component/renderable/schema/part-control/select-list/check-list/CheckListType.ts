@@ -1,7 +1,7 @@
 import layout from "./assets/layout.html";
 import itemLayout from "./assets/item-layout.html";
 import Question from "../../../question/Question";
-import { IPartCollection } from "../../../IAnswerSchema";
+import IAnswerSchema, { IPartCollection } from "../../../IAnswerSchema";
 import { IFixValue, IQuestionPart } from "../../../IQuestionSchema";
 import SelectListType, { type } from "../SelectListType";
 
@@ -17,14 +17,19 @@ export default class CheckListType extends SelectListType {
     super(part, layout, owner, answer);
   }
 
-  protected onValueItemClick(value: IFixValue, element: HTMLInputElement) {
+  protected onValueItemClick(
+    value: IFixValue,
+    element: HTMLInputElement,
+    answer: IAnswerSchema
+  ) {
     if (value.schema) {
       this.loadSubSchemaAsync(
         value.id,
         element.checked ? value.schema.schemaId : null,
         value.schema.schemaVersion,
         value.schema.lid,
-        element.nextElementSibling
+        element.nextElementSibling,
+        answer
       );
     }
   }

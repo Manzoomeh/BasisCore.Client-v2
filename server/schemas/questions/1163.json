@@ -18,7 +18,7 @@
           "baseVocab": "http://schema.site/FA/vo",
           "questions": [
             {
-              "prpId": 55,
+              "prpId": 1,
               "typeId": 150,
               "ord": 1000,
               "vocab": "/عنوان",
@@ -36,7 +36,7 @@
               ]
             },
             {
-              "prpId": 13060,
+              "prpId": 2,
               "typeId": 128,
               "ord": 100,
               "vocab": "/ولتاژ",
@@ -48,7 +48,6 @@
               "help": "help data",
               "parts": [
                 {
-                  "disabled": true,
                   "part": 1,
                   "viewType": "select",
                   "cssClass": "css_13060_1",
@@ -82,7 +81,7 @@
               ]
             },
             {
-              "prpId": 13061,
+              "prpId": 3,
               "typeId": 128,
               "ord": 100,
               "vocab": "/ولتاژ",
@@ -94,7 +93,6 @@
               "help": "help data",
               "parts": [
                 {
-                  "disabled": true,
                   "part": 1,
                   "viewType": "checklist",
                   "cssClass": "css_13060_1",
@@ -128,7 +126,7 @@
               ]
             },
             {
-              "prpId": 13062,
+              "prpId": 4,
               "typeId": 128,
               "ord": 100,
               "vocab": "/ولتاژ",
@@ -140,7 +138,6 @@
               "help": "help data",
               "parts": [
                 {
-                  "disabled": true,
                   "part": 1,
                   "viewType": "radio",
                   "cssClass": "css_13060_1",

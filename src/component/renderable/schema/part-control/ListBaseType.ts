@@ -1,13 +1,17 @@
 import ComponentCollection from "../../../../ComponentCollection";
+import Source from "../../../../data/Source";
 import IDictionary from "../../../../IDictionary";
 import Util from "../../../../Util";
-import { IPartCollection } from "../IAnswerSchema";
+import IBCUtil from "../../../../wrapper/IBCUtil";
+
+import IAnswerSchema, { IPartCollection } from "../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../IQuestionSchema";
 import IUserActionResult from "../IUserActionResult";
 import EditableQuestionPart from "../question-part/EditableQuestionPart";
 import Question from "../question/Question";
 import SchemaComponent from "../SchemaComponent";
 
+declare const $bc: IBCUtil;
 interface ISubSchemaData {
   component: ComponentCollection;
   element: Element;
@@ -103,37 +107,34 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     schemaId: string,
     schemaVersion: string,
     lid: string | number,
-    container: Element
+    container: Element,
+    answer?: IAnswerSchema
   ): Promise<void> {
-    console.log(id, schemaId, schemaVersion, lid, container);
     if (!this._subSchemaCollections) {
       this._subSchemaCollections = {};
     }
+
     const taskList = new Array<Promise<void>>();
     taskList.push(this.unloadSchemaAsync(id));
-    // const currentCollection = this._subSchemaCollections[id];
-    // if (currentCollection) {
-    //   const disposeTask = currentCollection.disposeAsync();
-    //   delete this._subSchemaCollections[id];
-    //   taskList.push(disposeTask);
-    // }
     const options = this.owner.options.subSchemaOptions;
     if (schemaId) {
-      const str = `<Basis 
-    core="schema" 
-    run="atclient" 
-    schemaUrl="${options.schemaUrl ?? ""}" 
-    id="${schemaId}" 
-    version="${schemaVersion ?? ""}"
-    lid="${lid ?? ""}"
-    viewMode="${options.viewMode ?? ""}"
-    callback="${options.callback ?? ""}"
-    schemaCallback="${options.schemaCallback ?? ""}"
-    cell="${options.cell ?? ""}"
-    >
-    </Basis>`;
-      container.innerHTML = str;
+      const sourceId = "sub-schema." + $bc.util.getRandomName();
 
+      const str = `<Basis 
+        core="schema" 
+        run="atclient" 
+        schemaUrl="${options.schemaUrl ?? ""}" 
+        ${answer ? "" : `id="${schemaId}`}" 
+        version="${schemaVersion ?? ""}"
+        lid="${lid ?? ""}"
+        viewMode="${options.viewMode ?? ""}"
+        datamembername="${sourceId}"
+        callback="${options.callback ?? ""}"
+        schemaCallback="${options.schemaCallback ?? ""}"
+        cell="${options.cell ?? ""}"
+        >
+        </Basis>`;
+      container.innerHTML = str;
       const newCollection = this.owner.options.dc.resolve(ComponentCollection);
       this._subSchemaCollections[id] = {
         component: newCollection,
@@ -143,6 +144,18 @@ export default abstract class ListBaseType extends EditableQuestionPart {
         Array.from(container.childNodes)
       );
       taskList.push(processTask);
+      if (answer) {
+        processTask.then(async () => {
+          const array = newCollection.GetCommandListByCore("schema");
+          if (array?.length == 1) {
+            const schemaComponent = array[0] as SchemaComponent;
+            const source = new Source(sourceId, answer);
+            await schemaComponent.runAsync(source);
+          } else {
+            console.error("No schema component found for sub-schema");
+          }
+        });
+      }
     } else {
       container.innerHTML = "";
     }

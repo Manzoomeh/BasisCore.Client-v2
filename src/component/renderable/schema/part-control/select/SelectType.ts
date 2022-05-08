@@ -1,4 +1,4 @@
-import { IPartCollection } from "../../IAnswerSchema";
+import IAnswerSchema, { IPartCollection } from "../../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import { IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
@@ -20,25 +20,31 @@ export default class SelectType extends ListBaseType {
       e.preventDefault();
       if (this.hasSubSchema) {
         const item = this._select.options[this._select.selectedIndex];
-        const schemaId = item.getAttribute("data-schema-id");
-        const lid = item.getAttribute("data-lid");
-        const schemaVersion = item.getAttribute("data-schema-version");
-        if (schemaId) {
-          this.preSelectedValue = item.value;
-          this.loadSubSchemaAsync(
-            item.value,
-            schemaId,
-            schemaVersion,
-            lid,
-            this._select.nextElementSibling
-          );
-        } else if (this.preSelectedValue) {
-          this.unloadSchemaAsync(this.preSelectedValue);
-        }
+        this.onItemSelected(item, null);
       }
     });
   }
 
+  private onItemSelected(item: HTMLOptionElement, answer: IAnswerSchema) {
+    if (this.hasSubSchema) {
+      const schemaId = item.getAttribute("data-schema-id");
+      const lid = item.getAttribute("data-lid");
+      const schemaVersion = item.getAttribute("data-schema-version");
+      if (schemaId) {
+        this.preSelectedValue = item.value;
+        this.loadSubSchemaAsync(
+          item.value,
+          schemaId,
+          schemaVersion,
+          lid,
+          item.parentElement.nextElementSibling,
+          answer
+        );
+      } else if (this.preSelectedValue) {
+        this.unloadSchemaAsync(this.preSelectedValue);
+      }
+    }
+  }
   protected fillUI(values: Array<IFixValue>) {
     super.fillUI(values);
     const select = this.element.querySelector("select");
@@ -57,6 +63,9 @@ export default class SelectType extends ListBaseType {
       }
       option.selected = value ? value.value == item.id : item.selected ?? false;
       select.options.add(option);
+      if (option.selected) {
+        this.onItemSelected(option, value?.answer);
+      }
     });
   }
 
@@ -128,6 +137,29 @@ export default class SelectType extends ListBaseType {
             },
           ],
         };
+      }
+    }
+    return retVal;
+  }
+
+  public getSubEdited(): IUserActionPart {
+    let retVal = null;
+    if (this.hasSubSchema && this.answer) {
+      const newValue = this._select.options[this._select.selectedIndex].value;
+      const notChanged = newValue == this.answer.values[0].value;
+      if (notChanged || newValue == "0") {
+        const subSchemaValue = this.getSubSchemaValue(newValue);
+        if (subSchemaValue)
+          retVal = {
+            part: this.part.part,
+            values: [
+              {
+                id: this.answer.values[0].id,
+                value: newValue,
+                answer: subSchemaValue,
+              },
+            ],
+          };
       }
     }
     return retVal;

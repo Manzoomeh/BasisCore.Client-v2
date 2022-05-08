@@ -121,6 +121,17 @@ export default class Question {
       : null;
   }
 
+  public getSubEditedParts(): IUserActionAnswer {
+    const userAction = this._parts
+      .map((x) => x.getSubEdited())
+      .filter((x) => x);
+    return userAction.length > 0
+      ? {
+          id: this.answer.id,
+          parts: userAction,
+        }
+      : null;
+  }
   public getUserEditAction(): IUserActionAnswer {
     return null;
   }

@@ -111,6 +111,7 @@ export default class ComponentContainer extends EditableQuestionPart {
     }
     return retVal;
   }
+
   public getDeleted(): IUserActionPart {
     let retVal = null;
     if (this.answer) {
@@ -132,6 +133,36 @@ export default class ComponentContainer extends EditableQuestionPart {
       } catch (ex) {
         console.error(
           `Error in getDeletedValues() of '${this.part.viewType}'!`,
+          ex
+        );
+      }
+    }
+    return retVal;
+  }
+
+  public getSubEdited(): IUserActionPart {
+    let retVal = null;
+    if (this.answer) {
+      const manager = this.command.manager as any as ISchemaBaseComponent;
+      try {
+        if (typeof manager.getSubEditedValues == "function") {
+          const subEditedValues = manager.getSubEditedValues(
+            this.answer.values
+          );
+          if (subEditedValues) {
+            retVal = {
+              part: this.part.part,
+              values: subEditedValues,
+            };
+          }
+        } else {
+          console.warn(
+            `the getSubEditedValues() method not exist in '${this.part.viewType}'!`
+          );
+        }
+      } catch (ex) {
+        console.error(
+          `Error in getSubEditedValues() of '${this.part.viewType}'!`,
           ex
         );
       }

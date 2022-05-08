@@ -1,7 +1,7 @@
 import ListBaseType from "../ListBaseType";
 import Question from "../../question/Question";
 import Util from "../../../../../Util";
-import { IPartCollection } from "../../IAnswerSchema";
+import IAnswerSchema, { IPartCollection } from "../../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import { IUserActionPartValue, IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
@@ -25,6 +25,7 @@ export default abstract class SelectListType extends ListBaseType {
   private getChangeSet(): Array<Array<IUserActionPartValue>> {
     let addedItems: Array<IUserActionPartValue> = null;
     let deletedItems: Array<IUserActionPartValue> = null;
+    let subEditedItems: Array<IUserActionPartValue> = null;
 
     const selectedItems = Array.from(this.element.querySelectorAll("input"))
       .map((x) => (x.checked ? parseInt(x.value) : null))
@@ -39,31 +40,61 @@ export default abstract class SelectListType extends ListBaseType {
       addedItems = selectedItems
         .filter((x) => !this.answer.values.find((y) => y.value == x))
         .map((x) => {
-          return { value: x };
+          const answer = this.hasSubSchema
+            ? this.getSubSchemaValue(x.toString())
+            : null;
+          return {
+            value: x,
+            ...(answer && { answer: answer }),
+          };
         });
+      subEditedItems = selectedItems
+        .filter((x) => this.answer.values.find((y) => y.value == x))
+        .map((x) => {
+          return {
+            value: x,
+            answer: this.hasSubSchema
+              ? this.getSubSchemaValue(x.toString())
+              : null,
+          };
+        })
+        .filter((x) => x.answer);
     } else {
       addedItems = selectedItems.map((x) => {
-        return { value: x };
+        const answer = this.hasSubSchema
+          ? this.getSubSchemaValue(x.toString())
+          : null;
+        return {
+          value: x,
+          ...(answer && { answer: answer }),
+        };
       });
     }
     return [
       addedItems?.length > 0 ? addedItems : null,
       deletedItems?.length > 0 ? deletedItems : null,
+      subEditedItems?.length > 0 ? subEditedItems : null,
     ];
   }
 
   protected abstract onValueItemClick(
     value: IFixValue,
-    element: HTMLInputElement
+    element: HTMLInputElement,
+    answer?: IAnswerSchema
   );
 
   protected fillUI(values: Array<IFixValue>) {
     super.fillUI(values);
     this.rndName = "radio" + (++SelectListType._seedId).toString();
     values.forEach((item) => {
+      const answerItem = this.answer?.values.find((x) => x.value == item.id);
       const checked = this.answer
-        ? this.answer.values.find((x) => x.value == item.id) ?? false
+        ? answerItem ?? false
         : item.selected ?? false;
+
+      // const checked = this.answer
+      //   ? this.answer.values.find((x) => x.value == item.id) ?? false
+      //   : item.selected ?? false;
       const newTemplate = this.itemLayout
         .replace("@type", this.controlType)
         .replace("@title", item.value)
@@ -75,7 +106,11 @@ export default abstract class SelectListType extends ListBaseType {
       const template = Util.parse(newTemplate).querySelector("div");
       this.element.querySelector("[data-bc-items]").appendChild(template);
       if (this.hasSubSchema) {
-        template.querySelector("input").addEventListener("change", (e) => {
+        const element = template.querySelector("input");
+        if (checked) {
+          this.onValueItemClick(item, element, answerItem?.answer);
+        }
+        element.addEventListener("change", (e) => {
           e.preventDefault();
           this.onValueItemClick(item, e.target as HTMLInputElement);
         });
@@ -108,12 +143,26 @@ export default abstract class SelectListType extends ListBaseType {
 
   public getDeleted(): IUserActionPart {
     let retVal = null;
-    const [_, deletedItems] = this.getChangeSet();
+    const [_, deletedItems, __] = this.getChangeSet();
     if (deletedItems) {
       retVal = {
         part: this.part.part,
         values: deletedItems,
       };
+    }
+    return retVal;
+  }
+
+  public getSubEdited(): IUserActionPart {
+    let retVal: IUserActionPart = null;
+    if (this.hasSubSchema) {
+      const [_, __, subEditedItems] = this.getChangeSet();
+      if (subEditedItems) {
+        retVal = {
+          part: this.part.part,
+          values: subEditedItems,
+        };
+      }
     }
     return retVal;
   }

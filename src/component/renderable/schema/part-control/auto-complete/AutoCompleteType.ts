@@ -96,4 +96,8 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     }
     return retVal;
   }
+
+  public getSubEdited(): IUserActionPart {
+    return null;
+  }
 }

@@ -10,4 +10,7 @@ export default interface ISchemaBaseComponent {
   getAddedValues(): Array<IUserActionPartValue>;
   getEditedValues(baseValues: Array<IPartValue>): Array<IUserActionPartValue>;
   getDeletedValues(baseValues: Array<IPartValue>): Array<IUserActionPartValue>;
+  getSubEditedValues(
+    baseValues: Array<IPartValue>
+  ): Array<IUserActionPartValue>;
 }
