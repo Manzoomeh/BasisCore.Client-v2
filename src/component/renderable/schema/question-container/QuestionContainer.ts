@@ -120,21 +120,24 @@ export default class QuestionContainer {
     }
   }
 
-  public getUserAction(): IUserActionProperty {
+  public async getUserActionAsync(): Promise<IUserActionProperty> {
     let userAction: IUserActionProperty = null;
-    const errors = this._questions
-      .map((x) => x.getValidationErrors())
-      .filter((x) => x);
+    const errors = (
+      await Promise.all(
+        this._questions.map((x) => x.getValidationErrorsAsync())
+      )
+    ).filter((x) => x);
 
     if (errors.length == 0) {
-      const added = this._questions
-        .map((x) => x.getAddedParts())
-        .filter((x) => x);
-      const edited = this._questions
-        .map((x) => x.getEditedParts())
-        .filter((x) => x);
-      const deleted = this._questions
-        .map((x) => x.getDeletedParts())
+      const added = (
+        await Promise.all(this._questions.map((x) => x.getAddedPartsAsync()))
+      ).filter((x) => x);
+      const edited = (
+        await Promise.all(this._questions.map((x) => x.getEditedPartsAsync()))
+      ).filter((x) => x);
+      const deleted = (
+        await Promise.all(this._questions.map((x) => x.getDeletedPartsAsync()))
+      )
         .filter((x) => x)
         .map((x) =>
           x.parts.length == this.questionSchema.parts.length &&
@@ -143,9 +146,11 @@ export default class QuestionContainer {
             ? { id: x.id }
             : x
         );
-      const subEdited = this._questions
-        .map((x) => x.getSubEditedParts())
-        .filter((x) => x);
+      const subEdited = (
+        await Promise.all(
+          this._questions.map((x) => x.getSubEditedPartsAsync())
+        )
+      ).filter((x) => x);
 
       this._removedQuestions?.forEach((x) => {
         deleted.push({

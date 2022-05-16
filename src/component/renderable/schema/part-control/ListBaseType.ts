@@ -46,7 +46,9 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     this.fillUI(result);
   }
 
-  protected getSubSchemaValue(id: string): IUserActionResult {
+  protected async getSubSchemaValueAsync(
+    id: string
+  ): Promise<IUserActionResult> {
     let retVal: IUserActionResult = null;
     if (this._subSchemaCollections) {
       const item = this._subSchemaCollections[id];
@@ -54,33 +56,34 @@ export default abstract class ListBaseType extends EditableQuestionPart {
         const array = item.component.GetCommandListByCore("schema");
         if (array?.length == 1) {
           const schemaComponent = array[0] as SchemaComponent;
-          retVal = schemaComponent.getAnswers(false);
+          retVal = await schemaComponent.getAnswersAsync(false);
         }
       }
     }
     return retVal;
   }
 
-  protected allSubSchemaIsOk(): boolean {
+  protected async allSubSchemaIsOkAsync(): Promise<boolean> {
     try {
       let retVal = true;
       if (this.hasSubSchema && this._subSchemaCollections) {
-        const checkList = Object.getOwnPropertyNames(
+        const checkListTask = Object.getOwnPropertyNames(
           this._subSchemaCollections
-        ).map((id) => {
+        ).map(async (id) => {
           const item = this._subSchemaCollections[id];
           let isOk = true;
           try {
             const array = item.component.GetCommandListByCore("schema");
             if (array?.length == 1) {
               const schemaComponent = array[0] as SchemaComponent;
-              schemaComponent.getAnswers(true);
+              await schemaComponent.getAnswersAsync(true);
             }
           } catch (e) {
             isOk = false;
           }
           return isOk;
         });
+        const checkList = await Promise.all(checkListTask);
         retVal = checkList.every((x) => x);
       }
       return retVal;

@@ -192,8 +192,8 @@ export default class SchemaComponent extends SourceBaseComponent {
           }
         });
         if (this.buttonSelector && resultSourceId && !options.viewMode) {
-          this.getAnswersAndSetAsSource = () => {
-            const answer = this.getAnswers(false);
+          this.getAnswersAndSetAsSource = async () => {
+            const answer = await this.getAnswersAsync(false);
             if (answer) {
               this.context.setAsSource(resultSourceId, answer);
             }
@@ -202,20 +202,33 @@ export default class SchemaComponent extends SourceBaseComponent {
       }
     }
   }
-  public getAnswers(throwError: boolean): IUserActionResult {
+  public async getAnswersAsync(
+    throwError: boolean
+  ): Promise<IUserActionResult> {
     const userActionList = new Array<any>();
     let hasValidationError = false;
     let retVal: IUserActionResult = null;
-    this._questions.forEach((question) => {
+    for (const question of this._questions) {
       try {
-        var actions = question.getUserAction();
+        var actions = await question.getUserActionAsync();
         if (actions) {
           userActionList.push(actions);
         }
       } catch (e) {
         hasValidationError = true;
       }
-    });
+    }
+
+    // this._questions.forEach((question) => {
+    //   try {
+    //     var actions = question.getUserActionAsync();
+    //     if (actions) {
+    //       userActionList.push(actions);
+    //     }
+    //   } catch (e) {
+    //     hasValidationError = true;
+    //   }
+    // });
     if (hasValidationError && throwError) {
       throw Error("invalid");
     }

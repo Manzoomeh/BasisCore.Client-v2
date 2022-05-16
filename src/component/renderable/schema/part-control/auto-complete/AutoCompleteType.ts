@@ -50,11 +50,11 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     return mustChange;
   }
 
-  public getValidationErrors(): IValidationError {
-    return this.ValidateValue(this.selectedId);
+  public getValidationErrorsAsync(): Promise<IValidationError> {
+    return Promise.resolve(this.ValidateValue(this.selectedId));
   }
 
-  public getAdded(): IUserActionPart {
+  public getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (!this.answer && this.selectedId) {
       retVal = {
@@ -66,10 +66,10 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
         ],
       };
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
 
-  public getEdited(): IUserActionPart {
+  public getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (
       this.answer &&
@@ -86,18 +86,18 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
         ],
       };
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
 
-  public getDeleted(): IUserActionPart {
+  public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer && !this.selectedId) {
       retVal = this.answer;
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
 
-  public getSubEdited(): IUserActionPart {
-    return null;
+  public getSubEditedAsync(): Promise<IUserActionPart> {
+    return Promise.resolve(null);
   }
 }

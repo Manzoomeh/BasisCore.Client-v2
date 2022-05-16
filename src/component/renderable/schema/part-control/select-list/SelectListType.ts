@@ -22,7 +22,7 @@ export default abstract class SelectListType extends ListBaseType {
     super(part, layout, owner, answer);
   }
 
-  private getChangeSet(): Array<Array<IUserActionPartValue>> {
+  private async getChangeSet(): Promise<Array<Array<IUserActionPartValue>>> {
     let addedItems: Array<IUserActionPartValue> = null;
     let deletedItems: Array<IUserActionPartValue> = null;
     let subEditedItems: Array<IUserActionPartValue> = null;
@@ -37,38 +37,45 @@ export default abstract class SelectListType extends ListBaseType {
         .map((x) => {
           return { id: x.id, value: x.value };
         });
-      addedItems = selectedItems
-        .filter((x) => !this.answer.values.find((y) => y.value == x))
-        .map((x) => {
+      addedItems = await Promise.all(
+        selectedItems
+          .filter((x) => !this.answer.values.find((y) => y.value == x))
+          .map(async (x) => {
+            const answer = this.hasSubSchema
+              ? await this.getSubSchemaValueAsync(x.toString())
+              : null;
+            return {
+              value: x,
+              ...(answer && { answer: answer }),
+            };
+          })
+      );
+      subEditedItems = (
+        await Promise.all(
+          selectedItems
+            .filter((x) => this.answer.values.find((y) => y.value == x))
+            .map(async (x) => {
+              return {
+                value: x,
+                answer: this.hasSubSchema
+                  ? await this.getSubSchemaValueAsync(x.toString())
+                  : null,
+              };
+            })
+        )
+      ).filter((x) => x.answer);
+    } else {
+      addedItems = await Promise.all(
+        selectedItems.map(async (x) => {
           const answer = this.hasSubSchema
-            ? this.getSubSchemaValue(x.toString())
+            ? await this.getSubSchemaValueAsync(x.toString())
             : null;
           return {
             value: x,
             ...(answer && { answer: answer }),
           };
-        });
-      subEditedItems = selectedItems
-        .filter((x) => this.answer.values.find((y) => y.value == x))
-        .map((x) => {
-          return {
-            value: x,
-            answer: this.hasSubSchema
-              ? this.getSubSchemaValue(x.toString())
-              : null,
-          };
         })
-        .filter((x) => x.answer);
-    } else {
-      addedItems = selectedItems.map((x) => {
-        const answer = this.hasSubSchema
-          ? this.getSubSchemaValue(x.toString())
-          : null;
-        return {
-          value: x,
-          ...(answer && { answer: answer }),
-        };
-      });
+      );
     }
     return [
       addedItems?.length > 0 ? addedItems : null,
@@ -118,16 +125,16 @@ export default abstract class SelectListType extends ListBaseType {
     });
   }
 
-  public getValidationErrors(): IValidationError {
+  public getValidationErrorsAsync(): Promise<IValidationError> {
     const selectedItems = Array.from(this.element.querySelectorAll("input"))
       .map((x) => (x.checked ? parseInt(x.value) : null))
       .filter((x) => x);
-    return this.ValidateValue(selectedItems);
+    return Promise.resolve(this.ValidateValue(selectedItems));
   }
 
-  public getAdded(): IUserActionPart {
+  public async getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
-    const [addedItems, _] = this.getChangeSet();
+    const [addedItems, _] = await this.getChangeSet();
     if (addedItems) {
       retVal = {
         part: this.part.part,
@@ -137,13 +144,13 @@ export default abstract class SelectListType extends ListBaseType {
     return retVal;
   }
 
-  public getEdited(): IUserActionPart {
-    return null;
+  public getEditedAsync(): Promise<IUserActionPart> {
+    return Promise.resolve(null);
   }
 
-  public getDeleted(): IUserActionPart {
+  public async getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
-    const [_, deletedItems, __] = this.getChangeSet();
+    const [_, deletedItems, __] = await this.getChangeSet();
     if (deletedItems) {
       retVal = {
         part: this.part.part,
@@ -153,10 +160,10 @@ export default abstract class SelectListType extends ListBaseType {
     return retVal;
   }
 
-  public getSubEdited(): IUserActionPart {
+  public async getSubEditedAsync(): Promise<IUserActionPart> {
     let retVal: IUserActionPart = null;
     if (this.hasSubSchema) {
-      const [_, __, subEditedItems] = this.getChangeSet();
+      const [_, __, subEditedItems] = await this.getChangeSet();
       if (subEditedItems) {
         retVal = {
           part: this.part.part,

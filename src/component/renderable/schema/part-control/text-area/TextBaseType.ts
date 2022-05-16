@@ -29,11 +29,11 @@ export default abstract class TextBaseType<
     }
   }
 
-  public getValidationErrors(): IValidationError {
-    return this.ValidateValue(this.input.value);
+  public getValidationErrorsAsync(): Promise<IValidationError> {
+    return Promise.resolve(this.ValidateValue(this.input.value));
   }
 
-  public getAdded(): IUserActionPart {
+  public getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (!this.answer) {
       if (this.input.value.length > 0) {
@@ -47,10 +47,10 @@ export default abstract class TextBaseType<
         };
       }
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
 
-  public getEdited(): IUserActionPart {
+  public getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
       const changed = this.input.value != this.answer.values[0].value;
@@ -66,9 +66,9 @@ export default abstract class TextBaseType<
         };
       }
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
-  public getDeleted(): IUserActionPart {
+  public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
       const changed = this.input.value != this.answer.values[0].value;
@@ -84,10 +84,10 @@ export default abstract class TextBaseType<
         };
       }
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
 
-  public getSubEdited(): IUserActionPart {
-    return null;
+  public getSubEditedAsync(): Promise<IUserActionPart> {
+    return Promise.resolve(null);
   }
 }

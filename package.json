@@ -1,6 +1,6 @@
 {
   "name": "basiscore",
-  "version": "2.11",
+  "version": "2.11.2",
   "description": "Client side and light version of BasisCore web programming language",
   "main": "dist/basiscore.js",
   "types": "dist/basiscore.d.ts",
@@ -35,6 +35,7 @@
   "devDependencies": {
     "circular-dependency-plugin": "^5.2.2",
     "css-loader": "^6.5.1",
+    "dts-bundle-generator": "^6.7.0",
     "ignore-loader": "^0.1.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.defaultsdeep": "^4.6.1",
@@ -46,11 +47,10 @@
     "webpack": "^5.66.0",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.7.3",
-    "ws": "^7.5.5",
-    "dts-bundle-generator": "^6.7.0"
+    "ws": "^7.5.5"
   },
   "dependencies": {
-    "tsyringe": "^4.6.0",
-    "alasql": "^1.7.3"
+    "alasql": "^1.7.3",
+    "tsyringe": "^4.6.0"
   }
 }

@@ -179,9 +179,9 @@ export default abstract class QuestionPart {
     return retVal;
   }
 
-  public abstract getValidationErrors(): IValidationError;
-  public abstract getAdded(): IUserActionPart;
-  public abstract getEdited(): IUserActionPart;
-  public abstract getDeleted(): IUserActionPart;
-  public abstract getSubEdited(): IUserActionPart;
+  public abstract getValidationErrorsAsync(): Promise<IValidationError>;
+  public abstract getAddedAsync(): Promise<IUserActionPart>;
+  public abstract getEditedAsync(): Promise<IUserActionPart>;
+  public abstract getDeletedAsync(): Promise<IUserActionPart>;
+  public abstract getSubEditedAsync(): Promise<IUserActionPart>;
 }

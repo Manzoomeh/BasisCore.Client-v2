@@ -5,12 +5,16 @@ import IValidationError from "../renderable/schema/IValidationError";
 
 export default interface ISchemaBaseComponent {
   setValues(values: Array<IPartValue>);
-  validate(options: IValidationOptions): IValidationError;
-  getValuesForValidate(): any | Array<any>;
-  getAddedValues(): Array<IUserActionPartValue>;
-  getEditedValues(baseValues: Array<IPartValue>): Array<IUserActionPartValue>;
-  getDeletedValues(baseValues: Array<IPartValue>): Array<IUserActionPartValue>;
-  getSubEditedValues(
+  validateAsync(options: IValidationOptions): Promise<IValidationError>;
+  getValuesForValidateAsync(): Promise<any> | Promise<Array<any>>;
+  getAddedValuesAsync(): Promise<Array<IUserActionPartValue>>;
+  getEditedValuesAsync(
     baseValues: Array<IPartValue>
-  ): Array<IUserActionPartValue>;
+  ): Promise<Array<IUserActionPartValue>>;
+  getDeletedValuesAsync(
+    baseValues: Array<IPartValue>
+  ): Promise<Array<IUserActionPartValue>>;
+  getSubEditedValuesAsync(
+    baseValues: Array<IPartValue>
+  ): Promise<Array<IUserActionPartValue>>;
 }

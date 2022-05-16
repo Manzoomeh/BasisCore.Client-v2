@@ -15,20 +15,20 @@ export default abstract class ReadOnlyListBaseType extends ListBaseType {
     super(part, layout, owner, answer);
   }
 
-  public getValidationErrors(): IValidationError {
+  public getValidationErrorsAsync(): Promise<IValidationError> {
     throw new Error("Method not supported.");
   }
 
-  public getAdded(): IUserActionPart {
+  public getAddedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
-  public getEdited(): IUserActionPart {
+  public getEditedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
-  public getDeleted(): IUserActionPart {
+  public getDeletedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
-  public getSubEdited(): IUserActionPart {
+  public getSubEditedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
 }

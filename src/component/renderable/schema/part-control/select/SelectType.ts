@@ -69,9 +69,9 @@ export default class SelectType extends ListBaseType {
     });
   }
 
-  public getValidationErrors(): IValidationError {
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
     const value = this._select.options[this._select.selectedIndex].value;
-    const subSchemaIsOk = super.allSubSchemaIsOk();
+    const subSchemaIsOk = await super.allSubSchemaIsOkAsync();
     const retVal = this.ValidateValue(
       value === "0" ? null : value,
       !subSchemaIsOk
@@ -79,13 +79,13 @@ export default class SelectType extends ListBaseType {
     return retVal;
   }
 
-  public getAdded(): IUserActionPart {
+  public async getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
 
     if (!this.answer) {
       const newValue = this._select.options[this._select.selectedIndex].value;
       if (newValue !== "0") {
-        const subSchemaValue = this.getSubSchemaValue(newValue);
+        const subSchemaValue = await this.getSubSchemaValueAsync(newValue);
         retVal = {
           part: this.part.part,
           values: [
@@ -100,13 +100,13 @@ export default class SelectType extends ListBaseType {
     return retVal;
   }
 
-  public getEdited(): IUserActionPart {
+  public async getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
       const newValue = this._select.options[this._select.selectedIndex].value;
       const changed = newValue != this.answer.values[0].value;
       if (changed && newValue != "0") {
-        const subSchemaValue = this.getSubSchemaValue(newValue);
+        const subSchemaValue = await this.getSubSchemaValueAsync(newValue);
         retVal = {
           part: this.part.part,
           values: [
@@ -122,7 +122,7 @@ export default class SelectType extends ListBaseType {
     return retVal;
   }
 
-  public getDeleted(): IUserActionPart {
+  public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
       const newValue = this._select.options[this._select.selectedIndex].value;
@@ -139,16 +139,16 @@ export default class SelectType extends ListBaseType {
         };
       }
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
 
-  public getSubEdited(): IUserActionPart {
+  public async getSubEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.hasSubSchema && this.answer) {
       const newValue = this._select.options[this._select.selectedIndex].value;
       const notChanged = newValue == this.answer.values[0].value;
       if (notChanged || newValue == "0") {
-        const subSchemaValue = this.getSubSchemaValue(newValue);
+        const subSchemaValue = await this.getSubSchemaValueAsync(newValue);
         if (subSchemaValue)
           retVal = {
             part: this.part.part,

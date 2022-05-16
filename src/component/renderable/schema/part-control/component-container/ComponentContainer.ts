@@ -33,36 +33,36 @@ export default class ComponentContainer extends EditableQuestionPart {
     }
   }
 
-  public getValidationErrors(): IValidationError {
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
     const manager = this.command.manager as any as ISchemaBaseComponent;
     let retVal: IValidationError = null;
     if (this.part.validations) {
       try {
-        if (typeof manager.validate == "function") {
-          retVal = manager.validate(this.part.validations);
-        } else if (typeof manager.getValuesForValidate == "function") {
-          const values = manager.getValuesForValidate();
+        if (typeof manager.validateAsync == "function") {
+          retVal = await manager.validateAsync(this.part.validations);
+        } else if (typeof manager.getValuesForValidateAsync == "function") {
+          const values = await manager.getValuesForValidateAsync();
           retVal = this.ValidateValue(values);
         } else {
           console.warn(
-            `No validation process detect. Add one of validate() or getValuesForValidate() method to '${this.part.viewType}'.`
+            `No validation process detect. Add one of validateAsync() or getValuesForValidateAsync() method to '${this.part.viewType}'.`
           );
         }
       } catch (ex) {
         console.error("Error in validation process", ex);
       }
     }
-    return retVal;
+    return Promise.resolve(retVal);
   }
 
-  public getAdded(): IUserActionPart {
+  public async getAddedAsync(): Promise<IUserActionPart> {
     let retVal: IUserActionPart = null;
 
     if (!this.answer) {
       const manager = this.command.manager as any as ISchemaBaseComponent;
       try {
-        if (typeof manager.getAddedValues == "function") {
-          const newValues = manager.getAddedValues();
+        if (typeof manager.getAddedValuesAsync == "function") {
+          const newValues = await manager.getAddedValuesAsync();
           if (newValues) {
             retVal = {
               part: this.part.part,
@@ -71,12 +71,12 @@ export default class ComponentContainer extends EditableQuestionPart {
           }
         } else {
           console.warn(
-            `the getAddedValues() method not exist in '${this.part.viewType}'!`
+            `the getAddedValuesAsync() method not exist in '${this.part.viewType}'!`
           );
         }
       } catch (ex) {
         console.error(
-          `Error in getAddedValues() of '${this.part.viewType}'!`,
+          `Error in getAddedValuesAsync() of '${this.part.viewType}'!`,
           ex
         );
       }
@@ -84,13 +84,15 @@ export default class ComponentContainer extends EditableQuestionPart {
     return retVal;
   }
 
-  public getEdited(): IUserActionPart {
+  public async getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
       const manager = this.command.manager as any as ISchemaBaseComponent;
       try {
-        if (typeof manager.getEditedValues == "function") {
-          const editedValues = manager.getEditedValues(this.answer.values);
+        if (typeof manager.getEditedValuesAsync == "function") {
+          const editedValues = await manager.getEditedValuesAsync(
+            this.answer.values
+          );
           if (editedValues) {
             retVal = {
               part: this.part.part,
@@ -99,12 +101,12 @@ export default class ComponentContainer extends EditableQuestionPart {
           }
         } else {
           console.warn(
-            `the getEditedValues() method not exist in '${this.part.viewType}'!`
+            `the getEditedValuesAsync() method not exist in '${this.part.viewType}'!`
           );
         }
       } catch (ex) {
         console.error(
-          `Error in getEditedValues() of '${this.part.viewType}'!`,
+          `Error in getEditedValuesAsync() of '${this.part.viewType}'!`,
           ex
         );
       }
@@ -112,13 +114,15 @@ export default class ComponentContainer extends EditableQuestionPart {
     return retVal;
   }
 
-  public getDeleted(): IUserActionPart {
+  public async getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
       const manager = this.command.manager as any as ISchemaBaseComponent;
       try {
-        if (typeof manager.getDeletedValues == "function") {
-          const deletedValues = manager.getDeletedValues(this.answer.values);
+        if (typeof manager.getDeletedValuesAsync == "function") {
+          const deletedValues = await manager.getDeletedValuesAsync(
+            this.answer.values
+          );
           if (deletedValues) {
             retVal = {
               part: this.part.part,
@@ -127,12 +131,12 @@ export default class ComponentContainer extends EditableQuestionPart {
           }
         } else {
           console.warn(
-            `the getDeletedValues() method not exist in '${this.part.viewType}'!`
+            `the getDeletedValuesAsync() method not exist in '${this.part.viewType}'!`
           );
         }
       } catch (ex) {
         console.error(
-          `Error in getDeletedValues() of '${this.part.viewType}'!`,
+          `Error in getDeletedValuesAsync() of '${this.part.viewType}'!`,
           ex
         );
       }
@@ -140,13 +144,13 @@ export default class ComponentContainer extends EditableQuestionPart {
     return retVal;
   }
 
-  public getSubEdited(): IUserActionPart {
+  public async getSubEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
       const manager = this.command.manager as any as ISchemaBaseComponent;
       try {
-        if (typeof manager.getSubEditedValues == "function") {
-          const subEditedValues = manager.getSubEditedValues(
+        if (typeof manager.getSubEditedValuesAsync == "function") {
+          const subEditedValues = await manager.getSubEditedValuesAsync(
             this.answer.values
           );
           if (subEditedValues) {
@@ -157,12 +161,12 @@ export default class ComponentContainer extends EditableQuestionPart {
           }
         } else {
           console.warn(
-            `the getSubEditedValues() method not exist in '${this.part.viewType}'!`
+            `the getSubEditedValuesAsync() method not exist in '${this.part.viewType}'!`
           );
         }
       } catch (ex) {
         console.error(
-          `Error in getSubEditedValues() of '${this.part.viewType}'!`,
+          `Error in getSubEditedValuesAsync() of '${this.part.viewType}'!`,
           ex
         );
       }

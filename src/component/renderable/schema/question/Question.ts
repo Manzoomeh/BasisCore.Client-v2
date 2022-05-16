@@ -8,6 +8,7 @@ import Util from "../../../../Util";
 import { IUserActionAnswer } from "../IUserActionResult";
 import { IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
+import IValidationError from "../IValidationError";
 
 export default class Question {
   readonly question: IQuestion;
@@ -85,8 +86,9 @@ export default class Question {
     this._onAddClick = onClick;
   }
 
-  public getAddedParts(): IUserActionAnswer {
-    const userAction = this._parts.map((x) => x.getAdded()).filter((x) => x);
+  public async getAddedPartsAsync(): Promise<IUserActionAnswer> {
+    const userActionTaskList = this._parts.map((x) => x.getAddedAsync());
+    const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
           parts: userAction,
@@ -94,15 +96,19 @@ export default class Question {
       : null;
   }
 
-  public getValidationErrors() {
-    const validationErrors = this._parts
-      .map((x) => x.getValidationErrors())
-      .filter((x) => x);
+  public async getValidationErrorsAsync(): Promise<IValidationError[]> {
+    const validationErrorsTaskList = this._parts.map((x) =>
+      x.getValidationErrorsAsync()
+    );
+    const validationErrors = (
+      await Promise.all(validationErrorsTaskList)
+    ).filter((x) => x);
     return validationErrors.length > 0 ? validationErrors : null;
   }
 
-  public getEditedParts(): IUserActionAnswer {
-    const userAction = this._parts.map((x) => x.getEdited()).filter((x) => x);
+  public async getEditedPartsAsync(): Promise<IUserActionAnswer> {
+    const userActionTaskList = this._parts.map((x) => x.getEditedAsync());
+    const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
           id: this.answer.id,
@@ -111,8 +117,9 @@ export default class Question {
       : null;
   }
 
-  public getDeletedParts(): IUserActionAnswer {
-    const userAction = this._parts.map((x) => x.getDeleted()).filter((x) => x);
+  public async getDeletedPartsAsync(): Promise<IUserActionAnswer> {
+    const userActionTaskList = this._parts.map((x) => x.getDeletedAsync());
+    const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
           id: this.answer.id,
@@ -121,19 +128,15 @@ export default class Question {
       : null;
   }
 
-  public getSubEditedParts(): IUserActionAnswer {
-    const userAction = this._parts
-      .map((x) => x.getSubEdited())
-      .filter((x) => x);
+  public async getSubEditedPartsAsync(): Promise<IUserActionAnswer> {
+    const userActionTaskList = this._parts.map((x) => x.getSubEditedAsync());
+    const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
           id: this.answer.id,
           parts: userAction,
         }
       : null;
-  }
-  public getUserEditAction(): IUserActionAnswer {
-    return null;
   }
 }
 
