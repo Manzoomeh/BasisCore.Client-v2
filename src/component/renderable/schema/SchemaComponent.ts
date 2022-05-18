@@ -90,6 +90,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     this._questions = new Array<QuestionCollection>();
     this.getAnswersAndSetAsSource = null;
     const container = document.createElement("div") as Element;
+    container.setAttribute("data-bc-schema-main-container", "");
 
     this.setContent(container, false);
     if (schemaId) {
