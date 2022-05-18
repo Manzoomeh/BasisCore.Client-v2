@@ -27,6 +27,7 @@ import ExposerComponent from "./component/user-define-component/component/Expose
 import IDependencyContainer from "./IDependencyContainer";
 import IQuestionSchema from "./component/renderable/schema/IQuestionSchema";
 import IUserActionResult from "./component/renderable/schema/IUserActionResult";
+import EventManager from "./event/EventManager";
 
 export {
   BasisCore,
@@ -56,4 +57,5 @@ export {
   IDependencyContainer,
   IQuestionSchema,
   IUserActionResult,
+  EventManager,
 };
