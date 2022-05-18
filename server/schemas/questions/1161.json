@@ -463,6 +463,36 @@
                   "link": ""
                 }
               ]
+            },
+            {
+              "prpId": 55,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/پسوورد",
+              "title": "پسوورد",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "password"
+                }
+              ]
+            },
+            {
+              "prpId": 55,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/پسوورد",
+              "title": "پسوورد مالتی",
+              "wordId": 63228,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "password"
+                }
+              ]
             }
           ]
         }
