@@ -41,16 +41,13 @@ ______           _                               _ _            _
                                                                     
 %cWelcome To BasisCore Ecosystem%c
 follow us on https://BasisCore.com/
-version:2.13.2`,
+version:2.14.0`,
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );
 
 const $bc = new BCWrapperFactory();
 (global as any).$bc = $bc;
-
-//component types
-(window as any).exposer = ExposerComponent;
 
 const loadListener = (_) => {
   window.removeEventListener("load", loadListener);
@@ -80,7 +77,6 @@ export {
   DbSourceComponent,
   UserDefineComponent,
   LocalContext,
-  ExposerComponent,
   BCWrapperFactory,
   MergeType,
   LocalDataBase,
@@ -90,4 +86,5 @@ export {
   IUserActionResult,
   EventManager,
   $bc,
+  ExposerComponent as exposer,
 };
