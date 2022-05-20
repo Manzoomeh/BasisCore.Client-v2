@@ -7,8 +7,22 @@ const schemaHttpServer = require("./server/schema-server");
 module.exports = (env, options) => {
   return {
     entry: {
-      basiscore: "./src/index.ts",
-      "basiscore.min": "./src/index.ts",
+      basiscore: {
+        import: "./src/index.ts",
+        filename: "basiscore.js",
+        library: {
+          name: "basiscore",
+          type: "assign",
+        },
+      },
+      "basiscore.min": {
+        import: "./src/index.ts",
+        filename: "basiscore.min.js",
+        library: {
+          name: "basiscore",
+          type: "assign",
+        },
+      },
     },
     devtool: "source-map",
     output: {

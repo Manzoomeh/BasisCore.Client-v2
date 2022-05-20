@@ -1,6 +1,6 @@
 {
   "name": "basiscore",
-  "version": "2.12.1",
+  "version": "2.13.1",
   "description": "Client side and light version of BasisCore web programming language",
   "main": "dist/basiscore.js",
   "types": "dist/basiscore.d.ts",
@@ -12,7 +12,7 @@
     "rel": "webpack --mode=production",
     "prepub": "if exist dist rd /s /q dist",
     "pub": "webpack --mode=production",
-    "postpub": "dts-bundle-generator -o dist/basiscore.d.ts src/d-index.ts"
+    "postpub": "dts-bundle-generator -o dist/basiscore.d.ts src/index.ts"
   },
   "keywords": [
     "BasisCore",
