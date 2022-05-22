@@ -28,7 +28,4 @@ export default abstract class ReadOnlyListBaseType extends ListBaseType {
   public getDeletedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
-  public getSubEditedAsync(): Promise<IUserActionPart> {
-    throw new Error("Method not supported.");
-  }
 }

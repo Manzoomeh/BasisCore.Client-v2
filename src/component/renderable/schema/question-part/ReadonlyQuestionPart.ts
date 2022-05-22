@@ -26,7 +26,4 @@ export default abstract class ReadonlyQuestionPart extends QuestionPart {
   public getDeletedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
-  public getSubEditedAsync(): Promise<IUserActionPart> {
-    throw new Error("Method not supported.");
-  }
 }

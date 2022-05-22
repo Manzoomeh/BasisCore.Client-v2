@@ -127,17 +127,6 @@ export default class Question {
         }
       : null;
   }
-
-  public async getSubEditedPartsAsync(): Promise<IUserActionAnswer> {
-    const userActionTaskList = this._parts.map((x) => x.getSubEditedAsync());
-    const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
-    return userAction.length > 0
-      ? {
-          id: this.answer.id,
-          parts: userAction,
-        }
-      : null;
-  }
 }
 
 declare type AddRemoveCallback = () => void;

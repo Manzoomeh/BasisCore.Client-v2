@@ -183,5 +183,4 @@ export default abstract class QuestionPart {
   public abstract getAddedAsync(): Promise<IUserActionPart>;
   public abstract getEditedAsync(): Promise<IUserActionPart>;
   public abstract getDeletedAsync(): Promise<IUserActionPart>;
-  public abstract getSubEditedAsync(): Promise<IUserActionPart>;
 }

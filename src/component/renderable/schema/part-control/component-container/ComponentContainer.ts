@@ -143,34 +143,4 @@ export default class ComponentContainer extends EditableQuestionPart {
     }
     return retVal;
   }
-
-  public async getSubEditedAsync(): Promise<IUserActionPart> {
-    let retVal = null;
-    if (this.answer) {
-      const manager = this.command.manager as any as ISchemaBaseComponent;
-      try {
-        if (typeof manager.getSubEditedValuesAsync == "function") {
-          const subEditedValues = await manager.getSubEditedValuesAsync(
-            this.answer.values
-          );
-          if (subEditedValues) {
-            retVal = {
-              part: this.part.part,
-              values: subEditedValues,
-            };
-          }
-        } else {
-          console.warn(
-            `the getSubEditedValuesAsync() method not exist in '${this.part.viewType}'!`
-          );
-        }
-      } catch (ex) {
-        console.error(
-          `Error in getSubEditedValuesAsync() of '${this.part.viewType}'!`,
-          ex
-        );
-      }
-    }
-    return retVal;
-  }
 }

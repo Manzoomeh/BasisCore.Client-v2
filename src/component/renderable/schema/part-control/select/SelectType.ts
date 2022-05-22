@@ -117,6 +117,18 @@ export default class SelectType extends ListBaseType {
             },
           ],
         };
+      } else if (this.hasSubSchema) {
+        const subSchemaValue = await this.getSubSchemaValueAsync(newValue);
+        if (subSchemaValue)
+          retVal = {
+            part: this.part.part,
+            values: [
+              {
+                id: this.answer.values[0].id,
+                answer: subSchemaValue,
+              },
+            ],
+          };
       }
     }
     return retVal;
@@ -140,28 +152,5 @@ export default class SelectType extends ListBaseType {
       }
     }
     return Promise.resolve(retVal);
-  }
-
-  public async getSubEditedAsync(): Promise<IUserActionPart> {
-    let retVal = null;
-    if (this.hasSubSchema && this.answer) {
-      const newValue = this._select.options[this._select.selectedIndex].value;
-      const notChanged = newValue == this.answer.values[0].value;
-      if (notChanged || newValue == "0") {
-        const subSchemaValue = await this.getSubSchemaValueAsync(newValue);
-        if (subSchemaValue)
-          retVal = {
-            part: this.part.part,
-            values: [
-              {
-                id: this.answer.values[0].id,
-                value: newValue,
-                answer: subSchemaValue,
-              },
-            ],
-          };
-      }
-    }
-    return retVal;
   }
 }

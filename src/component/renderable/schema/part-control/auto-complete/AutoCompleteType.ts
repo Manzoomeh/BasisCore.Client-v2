@@ -96,8 +96,4 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     }
     return Promise.resolve(retVal);
   }
-
-  public getSubEditedAsync(): Promise<IUserActionPart> {
-    return Promise.resolve(null);
-  }
 }

@@ -86,8 +86,4 @@ export default abstract class TextBaseType<
     }
     return Promise.resolve(retVal);
   }
-
-  public getSubEditedAsync(): Promise<IUserActionPart> {
-    return Promise.resolve(null);
-  }
 }

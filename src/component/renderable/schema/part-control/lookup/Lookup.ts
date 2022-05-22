@@ -134,8 +134,4 @@ export default class Lookup extends EditableQuestionPart {
     }
     return Promise.resolve(retVal);
   }
-
-  public getSubEditedAsync(): Promise<IUserActionPart> {
-    return Promise.resolve(null);
-  }
 }

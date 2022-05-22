@@ -144,8 +144,18 @@ export default abstract class SelectListType extends ListBaseType {
     return retVal;
   }
 
-  public getEditedAsync(): Promise<IUserActionPart> {
-    return Promise.resolve(null);
+  public async getEditedAsync(): Promise<IUserActionPart> {
+    let retVal: IUserActionPart = null;
+    if (this.hasSubSchema) {
+      const [_, __, subEditedItems] = await this.getChangeSet();
+      if (subEditedItems) {
+        retVal = {
+          part: this.part.part,
+          values: subEditedItems,
+        };
+      }
+    }
+    return retVal;
   }
 
   public async getDeletedAsync(): Promise<IUserActionPart> {
@@ -156,20 +166,6 @@ export default abstract class SelectListType extends ListBaseType {
         part: this.part.part,
         values: deletedItems,
       };
-    }
-    return retVal;
-  }
-
-  public async getSubEditedAsync(): Promise<IUserActionPart> {
-    let retVal: IUserActionPart = null;
-    if (this.hasSubSchema) {
-      const [_, __, subEditedItems] = await this.getChangeSet();
-      if (subEditedItems) {
-        retVal = {
-          part: this.part.part,
-          values: subEditedItems,
-        };
-      }
     }
     return retVal;
   }
