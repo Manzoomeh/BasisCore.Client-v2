@@ -6,6 +6,29 @@ import LocalDataBase from "./repository/LocalDataBase";
 import { MergeType } from "./enum";
 import BCWrapperFactory from "./wrapper/BCWrapperFactory";
 import ExposerComponent from "./component/user-define-component/component/ExposerComponent";
+import BasisCore from "./BasisCore";
+import CallComponent from "./component/collection/CallComponent";
+import GroupComponent from "./component/collection/GroupComponent";
+import RepeaterComponent from "./component/collection/RepeaterComponent";
+import HTMLFormComponent from "./component/html-element/HTMLFormComponent";
+import HTMLInputComponent from "./component/html-element/HTMLInputComponent";
+import HTMLIUnknownComponent from "./component/html-element/HTMLIUnknownComponent";
+import HTMLSelectComponent from "./component/html-element/HTMLSelectComponent";
+import CookieComponent from "./component/management/CookieComponent";
+import ListComponent from "./component/renderable/ListComponent";
+import PrintComponent from "./component/renderable/PrintComponent";
+import IQuestionSchema from "./component/renderable/schema/IQuestionSchema";
+import IUserActionResult from "./component/renderable/schema/IUserActionResult";
+import SchemaComponent from "./component/renderable/schema/SchemaComponent";
+import TreeComponent from "./component/renderable/TreeComponent";
+import ViewComponent from "./component/renderable/ViewComponent";
+import APIComponent from "./component/source/APIComponent";
+import CallbackComponent from "./component/source/CallbackComponent";
+import DbSourceComponent from "./component/source/DbSourceComponent";
+import UserDefineComponent from "./component/user-define-component/UserDefineComponent";
+import LocalContext from "./context/LocalContext";
+import EventManager from "./event/EventManager";
+import IDependencyContainer from "./IDependencyContainer";
 
 console.log(
   `
@@ -18,18 +41,13 @@ ______           _                               _ _            _
                                                                     
 %cWelcome To BasisCore Ecosystem%c
 follow us on https://BasisCore.com/
-version:2.11.2`,
+version:2.14.0`,
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );
 
 const $bc = new BCWrapperFactory();
-(window as any).LocalDataBase = LocalDataBase;
 (global as any).$bc = $bc;
-(window as any).MergeType = MergeType;
-
-//component types
-(window as any).exposer = ExposerComponent;
 
 const loadListener = (_) => {
   window.removeEventListener("load", loadListener);
@@ -38,3 +56,35 @@ const loadListener = (_) => {
   }
 };
 window.addEventListener("load", loadListener);
+
+export {
+  BasisCore,
+  CallComponent,
+  GroupComponent,
+  RepeaterComponent,
+  HTMLFormComponent,
+  HTMLInputComponent,
+  HTMLIUnknownComponent,
+  HTMLSelectComponent,
+  CookieComponent,
+  ListComponent,
+  PrintComponent,
+  TreeComponent,
+  ViewComponent,
+  SchemaComponent,
+  APIComponent,
+  CallbackComponent,
+  DbSourceComponent,
+  UserDefineComponent,
+  LocalContext,
+  BCWrapperFactory,
+  MergeType,
+  LocalDataBase,
+  HostOptions,
+  IDependencyContainer,
+  IQuestionSchema,
+  IUserActionResult,
+  EventManager,
+  $bc,
+  ExposerComponent as exposer,
+};

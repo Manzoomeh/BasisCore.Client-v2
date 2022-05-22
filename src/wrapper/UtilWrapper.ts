@@ -183,12 +183,12 @@ export default class UtilWrapper implements IUtilWrapper {
     let retVal: any;
     if (key) {
       const lib = key.slice(key.indexOf(".") + 1);
-      if (
-        key.indexOf("local.") == 0 ||
-        key.indexOf("core.") == 0 //&& Util.typeExist(lib)
-      ) {
+      if (key.indexOf("local.") == 0) {
         retVal = eval(lib);
         console.log("%s loaded from local", lib);
+      } else if (key.indexOf("basiscore.") == 0) {
+        retVal = eval(lib);
+        console.log("%s loaded from basiscore", lib);
       } else {
         let tmpKey = key;
         while (true) {

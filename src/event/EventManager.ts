@@ -7,6 +7,9 @@ export default class EventManager<T> implements IEvent<T>, IEventManager<T> {
 
   public Add(handler: EventHandler<T>): EventHandler<T> {
     let retVal = null;
+    if (typeof handler !== "function") {
+      throw "handler null or is not function!";
+    }
     if (!this.handlers.has(handler)) {
       this.handlers.add(handler);
       retVal = handler;

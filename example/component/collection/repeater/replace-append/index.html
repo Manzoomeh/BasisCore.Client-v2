@@ -61,7 +61,7 @@
                     { id: i, name: `data ${i}` },
                     { id: i + 1, name: `data ${i + 1}` },
                     { id: i + 2, name: `data ${i + 2}` },
-                ], { mergeType: MergeType.replace }
+                ], { mergeType: basiscore.MergeType.replace }
             );
             $bc.setSource(
                 "append.data",
@@ -70,7 +70,7 @@
                     { id: i + 1, name: `data ${i + 1}` },
                     { id: i + 2, name: `data ${i + 2}` },
                 ]
-                , { mergeType: MergeType.append }
+                , { mergeType: basiscore.MergeType.append }
             );
             i += 3;
         }

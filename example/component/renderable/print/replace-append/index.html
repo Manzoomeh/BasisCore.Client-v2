@@ -66,8 +66,8 @@
 
         let i = 4;
         function ReSetSource() {
-            $bc.setSource('inlineSource.append', { id: i, name: `name-${i}` }, { mergeType: MergeType.append })
-            $bc.setSource('inlineSource.replace', { id: i, name: `name-${i}` }, { mergeType: MergeType.replace })
+            $bc.setSource('inlineSource.append', { id: i, name: `name-${i}` }, { mergeType: basiscore.MergeType.append })
+            $bc.setSource('inlineSource.replace', { id: i, name: `name-${i}` }, { mergeType: basiscore.MergeType.replace })
             i += 1;
         }
 

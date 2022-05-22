@@ -18,6 +18,7 @@ import { IQuestion, IQuestionPart } from "../IQuestionSchema";
 import Lookup from "./lookup/Lookup";
 import TimeType from "./text/TimeType";
 import ColorType from "./text/ColorType";
+import PasswordType from "./text/PasswordType";
 import ComponentContainer from "./component-container/ComponentContainer";
 
 export default class QuestionPartFactory {
@@ -74,6 +75,10 @@ export default class QuestionPartFactory {
           retVal = new ColorType(part, owner, answer);
           break;
         }
+        case "password": {
+          retVal = new PasswordType(part, owner, answer);
+          break;
+        }
         default: {
           retVal = viewType.startsWith("component.")
             ? new ComponentContainer(part, owner, answer)
@@ -120,6 +125,10 @@ export default class QuestionPartFactory {
         }
         case "color": {
           retVal = new ColorType(part, owner, answer);
+          break;
+        }
+        case "password": {
+          retVal = new PasswordType(part, owner, answer);
           break;
         }
         default: {

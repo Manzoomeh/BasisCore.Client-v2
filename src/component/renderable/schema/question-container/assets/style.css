@@ -52,6 +52,7 @@
 
 
 [data-bc-answer-container] input[type="text"],
+[data-bc-answer-container] input[type="password"],
 [data-bc-answer-container] select,
 [data-bc-answer-container] textarea {
   padding: 0.1em 0.4em;
@@ -67,6 +68,7 @@
 }
 
 [data-bc-answer-container] input[type="text"],
+[data-bc-answer-container] input[type="password"],
 [data-bc-answer-container] select {
   height: 30px;
 }
@@ -88,6 +90,16 @@
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(102, 175, 233, 0.6);
   outline: 0 none;
   background: #fff8ee;
+}
+
+[data-bc-answer-container] [data-bc-view-pass] {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
 }
 
 [data-bc-answer-title-container] {
