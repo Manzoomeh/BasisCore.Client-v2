@@ -187,7 +187,7 @@ export default class UtilWrapper implements IUtilWrapper {
         retVal = eval(lib);
         console.log("%s loaded from local", lib);
       } else if (key.indexOf("basiscore.") == 0) {
-        retVal = eval(lib);
+        retVal = eval(key);
         console.log("%s loaded from basiscore", lib);
       } else {
         let tmpKey = key;
