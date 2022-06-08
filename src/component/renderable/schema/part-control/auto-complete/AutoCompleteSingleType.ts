@@ -11,7 +11,7 @@ export default class AutoCompleteSingleType extends AutoCompleteType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
     this._btn = this.element.querySelector("[data-bc-btn]");
-    if (!owner.options.viewMode && !owner.question.disabled) {
+    if (owner.options.displayMode != "view" && !owner.question.disabled) {
       this._btn.addEventListener("click", this.onShowPopUpBtnClick.bind(this));
     } else {
       this._btn.remove();

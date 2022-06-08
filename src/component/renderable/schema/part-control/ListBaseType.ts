@@ -130,7 +130,7 @@ export default abstract class ListBaseType extends EditableQuestionPart {
         ${answer ? "" : `id="${schemaId}`}" 
         version="${schemaVersion ?? ""}"
         lid="${lid ?? ""}"
-        viewMode="${options.viewMode ?? ""}"
+        displayMode="${options.displayMode ?? ""}"
         datamembername="${sourceId}"
         callback="${options.callback ?? ""}"
         schemaCallback="${options.schemaCallback ?? ""}"

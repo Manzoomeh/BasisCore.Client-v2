@@ -12,12 +12,12 @@
 <body dir="rtl">
   <fieldset dir="ltr">
     <label>
-      <input type="checkbox" bc-triggers="change" name="cms.form" bc-value="true" bc-off-value="false" checked />In View Mode</label>
+      <input type="checkbox" bc-triggers="change" name="cms.form" bc-value="view" bc-off-value="edit" checked />In View Mode</label>
   </fieldset>
 
   <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient">
   </Basis>
-  <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" viewMode="[##cms.form.value|(true)##]" triggers="cms.form">
+  <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" displayMode="[##cms.form.value|(view)##]" triggers="cms.form">
   </Basis>
 </body>
 <script>
