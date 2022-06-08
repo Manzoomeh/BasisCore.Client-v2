@@ -1,7 +1,6 @@
 import ISchema from "./ISchema";
 
 export default interface IAnswerSchema extends ISchema {
-  schemaUrl: string;
   usedForId: number;
   lastUpdate: string;
   properties: Array<IAnswerProperty>;

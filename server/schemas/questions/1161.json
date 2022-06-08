@@ -13,6 +13,7 @@
       "data": [
         {
           "schemaId": 1161,
+          "schemaUrl": "/1161",
           "schemaVersion": 1.1,
           "lid": 1,
           "baseVocab": "http://schema.site/FA/vo",

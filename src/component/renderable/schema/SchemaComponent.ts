@@ -239,6 +239,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     if (!hasValidationError && userActionList.length > 0) {
       retVal = {
         lid: this._schema.lid,
+        schemaUrl: this._schema.schemaUrl,
         schemaId: this._schema.schemaId,
         schemaVersion: this._schema.schemaVersion,
         usedForId: this._answer?.usedForId,

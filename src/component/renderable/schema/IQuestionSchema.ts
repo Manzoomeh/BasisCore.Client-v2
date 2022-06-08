@@ -2,7 +2,6 @@ import ISchema from "./ISchema";
 
 export default interface IQuestionSchema extends ISchema {
   name: string;
-  schemaUrl: string;
   baseVocab: string;
   questions: Array<IQuestion>;
   sections: Array<ISection>;
