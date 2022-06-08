@@ -30,7 +30,7 @@ export default class QuestionPartFactory {
   ): QuestionPart {
     var retVal: QuestionPart = null;
     var viewType = part.viewType.toLowerCase();
-    if (!owner.options.viewMode) {
+    if (owner.options.displayMode != "view") {
       switch (viewType) {
         case "text": {
           retVal = new TextType(part, owner, answer);

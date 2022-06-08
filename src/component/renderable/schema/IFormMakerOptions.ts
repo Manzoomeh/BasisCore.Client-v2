@@ -3,7 +3,8 @@ import IContext from "../../../context/IContext";
 import IQuestionSchema from "./IQuestionSchema";
 
 export default interface IFormMakerOptions {
-  viewMode: boolean;
+  displayMode: DisplayMode;
+  schemaUrl?: string;
   schemaId?: string;
   version?: string;
   lid?: number;
@@ -21,15 +22,15 @@ export interface IEditParams {
 
 export type GetSchemaCallbackAsync = (
   context: IContext,
-  id: string,
-  ver: string,
-  lid: number
+  schemaUrl: string
 ) => Promise<IQuestionSchema>;
 
 export type SubSchemaOptions = {
   schemaUrl: string;
-  viewMode: string;
+  displayMode: DisplayMode;
   callback: string;
   schemaCallback: string;
   cell: string;
 };
+
+export type DisplayMode = "edit" | "new" | "view";

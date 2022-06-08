@@ -13,9 +13,9 @@ for (let index = 1; index < 1000; index++) {
   apiDataList.push(data);
 }
 
-router.get("/questions", function (req, res) {
+router.get("/questions/:id", function (req, res) {
   const stream = fs.createReadStream(
-    path.join(__dirname, `/schemas/questions/${req.query.id}.json`)
+    path.join(__dirname, `/schemas/questions/${req.params.id}.json`)
   );
   stream.on("open", function () {
     res.set("Content-Type", "application/json");

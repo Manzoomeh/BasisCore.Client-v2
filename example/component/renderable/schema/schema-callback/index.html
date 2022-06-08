@@ -11,14 +11,14 @@
 
 <body dir="rtl">
   <button data-btn-add>Add</button>
-  <Basis core="schema" run="atclient" schemaCallback="getSchemaAsync" id="1161" version="1.1" button="[data-btn-add]" resultSourceId="demo.data">
+  <Basis core="schema" run="atclient" schemaCallback="getSchemaAsync" button="[data-btn-add]" resultSourceId="demo.data">
   </Basis>
   <button data-btn-add>Add</button>
   <basis core="callback" run="atclient" triggers="demo.data"></basis>
 
   <script>
-    async function getSchemaAsync(context, id, ver, lid) {
-      const r = await fetch(`/schema/questions?id=${id}&ver=${ver}`);
+    async function getSchemaAsync(context, schemaUrl) {
+      const r = await fetch(`/schema/questions/1161`);
       const json = await r.json();
       console.log("schema load from callback ", json);
       return json.sources[0].data[0];

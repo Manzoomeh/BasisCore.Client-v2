@@ -40,7 +40,7 @@ export default class Question {
     this.element = this._ui.querySelector("[data-bc-part-container]");
     if (
       this.question.multi &&
-      !this.options.viewMode &&
+      this.options.displayMode != "view" &&
       !this.question.disabled
     ) {
       this.button = this._ui.querySelector("[data-bc-btn]");
