@@ -8,7 +8,7 @@
   /* padding: 0 10px; */
   float: right;
   line-height: 30px;
-  margin-left: 5px;
+  margin-left: 10px;
   position: relative;
 }
 
@@ -33,6 +33,7 @@
 [data-bc-answer-container] {
   /* float: right; */
   display: inline-block;
+  width: calc(100% - 310px);
 }
 
 [data-bc-answer-container] label[data-bc-text-input] {
@@ -112,9 +113,13 @@
   line-height: 30px;
 }
 
-@media only screen and (max-width:1000px) {
+@media only screen and (max-width:800px) {
   [data-bc-title-container] {
     width: 200px;
+  }
+
+  [data-bc-answer-container] {
+    width: calc(100% - 210px);
   }
 }
 
