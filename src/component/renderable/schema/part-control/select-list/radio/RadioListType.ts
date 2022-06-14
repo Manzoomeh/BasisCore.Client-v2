@@ -21,6 +21,7 @@ export default class RadioListType extends SelectListType {
     this.loadSubSchemaAsync(
       value.id,
       element.checked ? value.schema?.schemaId : null,
+      value.schema?.paramUrl,
       value.schema?.schemaVersion,
       value.schema?.lid,
       element.parentElement.parentElement.nextElementSibling

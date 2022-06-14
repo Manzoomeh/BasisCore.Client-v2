@@ -30,11 +30,13 @@ export default class SelectType extends ListBaseType {
       const schemaId = item.getAttribute("data-schema-id");
       const lid = item.getAttribute("data-lid");
       const schemaVersion = item.getAttribute("data-schema-version");
+      const paramUrl = item.getAttribute("data-param-url");
       if (schemaId) {
         this.preSelectedValue = item.value;
         this.loadSubSchemaAsync(
           item.value,
           schemaId,
+          paramUrl,
           schemaVersion,
           lid,
           item.parentElement.nextElementSibling,
@@ -56,6 +58,7 @@ export default class SelectType extends ListBaseType {
       if (item.schema) {
         option.setAttribute("data-schema-id", item.schema.schemaId ?? "");
         option.setAttribute("data-lid", item.schema.lid?.toString() ?? "");
+        option.setAttribute("data-param-url", item.schema.paramUrl);
         option.setAttribute(
           "data-schema-version",
           item.schema.schemaVersion ?? ""

@@ -4,7 +4,7 @@ import IQuestionSchema from "./IQuestionSchema";
 
 export default interface IFormMakerOptions {
   displayMode: DisplayMode;
-  schemaUrl?: string;
+  paramUrl?: string;
   schemaId?: string;
   version?: string;
   lid?: number;

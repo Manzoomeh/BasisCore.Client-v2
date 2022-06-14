@@ -108,6 +108,7 @@ export default abstract class ListBaseType extends EditableQuestionPart {
   protected async loadSubSchemaAsync(
     id: string | number,
     schemaId: string,
+    paramUrl: string,
     schemaVersion: string,
     lid: string | number,
     container: Element,
@@ -116,7 +117,7 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     if (!this._subSchemaCollections) {
       this._subSchemaCollections = {};
     }
-
+    console.log(paramUrl);
     const taskList = new Array<Promise<void>>();
     taskList.push(this.unloadSchemaAsync(id));
     const options = this.owner.options.subSchemaOptions;
@@ -127,6 +128,7 @@ export default abstract class ListBaseType extends EditableQuestionPart {
         core="schema" 
         run="atclient" 
         schemaUrl="${options.schemaUrl ?? ""}" 
+        paramUrl="${paramUrl ?? ""}"
         ${answer ? "" : `id="${schemaId}`}" 
         version="${schemaVersion ?? ""}"
         lid="${lid ?? ""}"

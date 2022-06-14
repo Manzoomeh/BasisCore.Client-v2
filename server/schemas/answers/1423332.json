@@ -14,7 +14,7 @@
         {
           "usedForId": 1423332,
           "schemaId": 1163,
-          "schemaUrl": "/1163",
+          "paramUrl": "/1163",
           "schemaVersion": 1.1,
           "lastUpdate": "",
           "lid": 1,
@@ -53,7 +53,7 @@
                           "answer": {
                             "usedForId": 1423332,
                             "schemaId": 1164,
-                            "schemaUrl": "/1164",
+                            "paramUrl": "/1164",
                             "schemaVersion": 1.1,
                             "lastUpdate": "",
                             "lid": 1,

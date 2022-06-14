@@ -13,7 +13,7 @@
       "data": [
         {
           "schemaId": 1163,
-          "schemaUrl": "/1163",
+          "paramUrl": "/1163",
           "schemaVersion": 1.1,
           "lid": 1,
           "baseVocab": "http://schema.site/FA/vo",
@@ -62,6 +62,7 @@
                       "value": "110",
                       "schema": {
                         "schemaId": 1164,
+                        "paramUrl": "/1164",
                         "lid": 1,
                         "schemaVersion": 1.1
                       }
@@ -107,6 +108,7 @@
                       "value": "110",
                       "schema": {
                         "schemaId": 1164,
+                        "paramUrl": "/1164",
                         "lid": 1,
                         "schemaVersion": 1.1
                       }
@@ -152,6 +154,7 @@
                       "value": "110",
                       "schema": {
                         "schemaId": 1164,
+                        "paramUrl": "/1164",
                         "lid": 1,
                         "schemaVersion": 1.1
                       }

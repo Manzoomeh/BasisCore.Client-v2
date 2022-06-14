@@ -1,5 +1,5 @@
 export default interface ISchema {
-  schemaUrl: string;
+  paramUrl: string;
   schemaId: string;
   schemaVersion: string;
   lid: number;

@@ -26,6 +26,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   //private schemaIdToken: IToken<string>;
   //private versionToken: IToken<string>;
   //private viewModeToken: IToken<string>;
+  private paramUrlToken: IToken<string>;
   private displayModeToken: IToken<string>;
   private buttonSelector: string;
   private resultSourceIdToken: IToken<string>;
@@ -50,6 +51,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
     this.schemaUrlToken = this.getAttributeToken("schemaUrl");
+    this.paramUrlToken = this.getAttributeToken("paramUrl");
     //this.schemaIdToken = this.getAttributeToken("id");
     //this.versionToken = this.getAttributeToken("version");
     //this.viewModeToken = this.getAttributeToken("viewMode");
@@ -104,6 +106,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     const displayMode = ((await this.displayModeToken?.getValueAsync()) ??
       "new") as DisplayMode;
     const schemaUrlStr = await this.schemaUrlToken?.getValueAsync();
+    const paramUrlStr = await this.paramUrlToken?.getValueAsync();
     //const version = await this.versionToken?.getValueAsync();
     const callback = await this.callbackToken?.getValueAsync();
     const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
@@ -135,7 +138,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     //const viewMode = this._answer ? (viewModeStr ?? "true") == "true" : false;
     const options: IFormMakerOptions = {
       displayMode: displayMode,
-      schemaUrl: this._answer?.schemaUrl,
+      paramUrl: paramUrlStr ?? this._answer?.paramUrl,
       schemaId: this._answer?.schemaId,
       lid: this._answer?.lid,
       version: this._answer?.schemaVersion,
@@ -150,7 +153,7 @@ export default class SchemaComponent extends SourceBaseComponent {
       },
     };
 
-    this._schema = await schemaCallback(this.context, options.schemaUrl);
+    this._schema = await schemaCallback(this.context, options.paramUrl);
     const sections = new Map<number, Section>();
     if (this._schema && this._schema.questions?.length > 0) {
       this._schema.questions.forEach((question) => {
@@ -239,7 +242,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     if (!hasValidationError && userActionList.length > 0) {
       retVal = {
         lid: this._schema.lid,
-        schemaUrl: this._schema.schemaUrl,
+        paramUrl: this._schema.paramUrl,
         schemaId: this._schema.schemaId,
         schemaVersion: this._schema.schemaVersion,
         usedForId: this._answer?.usedForId,
