@@ -119,7 +119,11 @@ export default abstract class SelectListType extends ListBaseType {
         }
         element.addEventListener("change", (e) => {
           e.preventDefault();
-          this.onValueItemClick(item, e.target as HTMLInputElement);
+          this.onValueItemClick(
+            item,
+            e.target as HTMLInputElement,
+            answerItem?.answer
+          );
         });
       }
     });

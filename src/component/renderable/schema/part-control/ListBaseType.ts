@@ -10,6 +10,7 @@ import IUserActionResult from "../IUserActionResult";
 import EditableQuestionPart from "../question-part/EditableQuestionPart";
 import Question from "../question/Question";
 import SchemaComponent from "../SchemaComponent";
+import { DisplayMode } from "../IFormMakerOptions";
 
 declare const $bc: IBCUtil;
 interface ISubSchemaData {
@@ -117,26 +118,31 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     if (!this._subSchemaCollections) {
       this._subSchemaCollections = {};
     }
-    console.log(paramUrl);
     const taskList = new Array<Promise<void>>();
     taskList.push(this.unloadSchemaAsync(id));
     const options = this.owner.options.subSchemaOptions;
+    const displayMode: DisplayMode = answer ? options.displayMode : "new";
+
     if (schemaId) {
       const sourceId = "sub-schema." + $bc.util.getRandomName();
 
       const str = `<Basis 
         core="schema" 
         run="atclient" 
-        schemaUrl="${options.schemaUrl ?? ""}" 
-        paramUrl="${paramUrl ?? ""}"
-        ${answer ? "" : `id="${schemaId}`}" 
-        version="${schemaVersion ?? ""}"
-        lid="${lid ?? ""}"
-        displayMode="${options.displayMode ?? ""}"
+        schemaUrl="${options.schemaUrl ?? ""}"
         datamembername="${sourceId}"
-        callback="${options.callback ?? ""}"
-        schemaCallback="${options.schemaCallback ?? ""}"
-        cell="${options.cell ?? ""}"
+        ${paramUrl ? `paramUrl="${paramUrl}"` : ""}
+        ${answer ? "" : `id="${schemaId}`}
+        ${schemaVersion ? `version="${schemaVersion}"` : ""}
+        ${lid ? `lid="${lid}"` : ""}
+        ${displayMode ? `displayMode="${displayMode}"` : ""}
+        ${options.callback ? `callback="${options.callback}"` : ""}
+        ${
+          options.schemaCallback
+            ? `schemaCallback="${options.schemaCallback}"`
+            : ""
+        }
+        ${options.cell ? `cell="${options.cell}"` : ""}
         >
         </Basis>`;
       container.innerHTML = str;

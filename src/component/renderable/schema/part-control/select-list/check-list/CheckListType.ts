@@ -23,7 +23,6 @@ export default class CheckListType extends SelectListType {
     answer: IAnswerSchema
   ) {
     if (value.schema) {
-      console.log(value);
       this.loadSubSchemaAsync(
         value.id,
         element.checked ? value.schema.schemaId : null,
