@@ -20,7 +20,10 @@ export default class SelectType extends ListBaseType {
       e.preventDefault();
       if (this.hasSubSchema) {
         const item = this._select.options[this._select.selectedIndex];
-        this.onItemSelected(item, null);
+        const value = this.answer?.values[0];
+        const relatedSubSchemaAnswer =
+          item.value == value.value ? value.answer : null;
+        this.onItemSelected(item, relatedSubSchemaAnswer);
       }
     });
   }
