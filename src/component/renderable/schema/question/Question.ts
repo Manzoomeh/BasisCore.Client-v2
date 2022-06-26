@@ -91,6 +91,7 @@ export default class Question {
     const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
+          ...(this.answer && { id: this.answer.id }),
           parts: userAction,
         }
       : null;

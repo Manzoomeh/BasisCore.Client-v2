@@ -20,6 +20,101 @@
           "lid": 1,
           "properties": [
             {
+              "prpId": 55,
+              "answers": [
+                {
+                  "id": 1236,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 33,
+                          "value": "http://www.basiscore.com"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 132621,
+              "answers": [
+                {
+                  "id": 1236,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 33,
+                          "value": 33
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 1406031,
+              "answers": [
+                {
+                  "id": 1236,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 33,
+                          "value": "#00ff40"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 130604,
+              "answers": [
+                {
+                  "id": 1236,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 33,
+                          "value": "57"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 140603,
+              "answers": [
+                {
+                  "id": 1236,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 33,
+                          "value": "23:45"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "prpId": 13050,
               "answers": [
                 {
@@ -226,15 +321,6 @@
                         {
                           "id": 85257,
                           "value": "1000"
-                        }
-                      ]
-                    },
-                    {
-                      "part": 3,
-                      "values": [
-                        {
-                          "id": 78957,
-                          "value": "200"
                         }
                       ]
                     }
