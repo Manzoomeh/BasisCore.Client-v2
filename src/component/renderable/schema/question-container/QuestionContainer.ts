@@ -44,6 +44,7 @@ export default class QuestionContainer {
       const template = document.createElement("div");
       template.setAttribute("data-bc-answer-title", "");
       template.setAttribute("data-bc-part-related-cell", "");
+      template.setAttribute("data-sys-text", "");
       questionSchema.parts.forEach((part) => {
         const cpy = template.cloneNode();
         if (part.caption) {
