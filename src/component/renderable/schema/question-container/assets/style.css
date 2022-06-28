@@ -1,3 +1,7 @@
+[data-bc-items] [data-bc-schema-main-container] {
+  padding: 10px;
+}
+
 [data-bc-question] {
   clear: both;
   margin-bottom: 5px;

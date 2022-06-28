@@ -1,10 +1,10 @@
 [data-bc-fm-lookup] input[type="text"] {
-    width: calc((100% - 5px) / 2) !important;
-    margin-left: 5px;
+    width: calc((100% - 10px) / 2) !important;
+    margin-left: 10px;
 }
 
 [data-bc-fm-lookup] [data-bc-select-value] {
-    width: calc((100% - 5px) / 2) !important;
+    width: calc((100% - 10px) / 2) !important;
     padding: 0.1em 0.4em;
     display: inline-block;
     border: 1px solid #C7D6DB;
