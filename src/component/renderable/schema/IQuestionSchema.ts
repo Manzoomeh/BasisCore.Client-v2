@@ -19,6 +19,7 @@ export interface IQuestion {
   cssClass: string;
   help?: string;
   disabled?: boolean;
+  useInList?: boolean;
   parts: Array<IQuestionPart>;
 }
 
