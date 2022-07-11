@@ -22,7 +22,7 @@ export default class SelectType extends ListBaseType {
         const item = this._select.options[this._select.selectedIndex];
         const value = this.answer?.values[0];
         const relatedSubSchemaAnswer =
-          item.value == value.value ? value.answer : null;
+          value && item.value == value.value ? value.answer : null;
         this.onItemSelected(item, relatedSubSchemaAnswer);
       }
     });
