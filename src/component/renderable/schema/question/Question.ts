@@ -17,6 +17,7 @@ export default class Question {
   readonly options: IFormMakerOptions;
   readonly _parts: Array<QuestionPart>;
   readonly button: HTMLButtonElement;
+  private _removeButton: HTMLButtonElement;
   readonly owner: QuestionContainer;
   readonly answer: IAnswerPart;
   private readonly _ui: HTMLElement;
@@ -38,13 +39,23 @@ export default class Question {
     this.answer = answer;
     this._ui = Util.parse(layout).querySelector("[data-bc-answer]");
     this.element = this._ui.querySelector("[data-bc-part-container]");
+    this.button = this._ui.querySelector("[data-bc-btn]");
+    this._removeButton = this._ui.querySelector("[data-bc-btn-remove]");
     if (
       this.question.multi &&
       this.options.displayMode != "view" &&
       !this.question.disabled
     ) {
-      this.button = this._ui.querySelector("[data-bc-btn]");
       this.button.setAttribute("data-bc-btn", "add");
+      if (this.answer) {
+        this._removeButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          this._ui.remove();
+          this.owner.addQuestion();
+        });
+      } else {
+        //this._removeButton.remove();
+      }
       this.button.addEventListener("click", this.onBtnClick.bind(this));
       this._onAddClick = () => {
         this.owner.addQuestion();
@@ -55,7 +66,9 @@ export default class Question {
         this._ui.remove();
       };
     } else {
-      this._ui.querySelector("[data-bc-btn]").remove();
+      this.button.remove();
+      this._removeButton.remove();
+      this._removeButton = null;
     }
     container.appendChild(this._ui);
 
@@ -68,6 +81,8 @@ export default class Question {
   public setRemovable() {
     if (!this.answer || this.question.parts.some((x) => !x.disabled)) {
       this.button?.setAttribute("data-bc-btn", "remove");
+      this._removeButton?.remove();
+      this._removeButton = null;
     } else {
       this.button?.remove();
     }

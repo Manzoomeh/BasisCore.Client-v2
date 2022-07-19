@@ -14,7 +14,8 @@
   vertical-align: top;
 }
 
-[data-bc-question] [data-bc-btn] {
+[data-bc-question] [data-bc-btn],
+[data-bc-question] [data-bc-btn-remove] {
   width: 30px;
   height: 30px;
   border: none;
@@ -36,11 +37,13 @@
   background-color: #6cb829;
 }
 
-[data-bc-question] [data-bc-btn="remove"] {
+[data-bc-question] [data-bc-btn="remove"],
+[data-bc-question] [data-bc-btn-remove] {
   background-image: url(remove.PNG);
 }
 
-[data-bc-question] [data-bc-btn="remove"]:hover {
+[data-bc-question] [data-bc-btn="remove"]:hover,
+[data-bc-question] [data-bc-btn-remove]:hover {
   background-image: url(remove-hover.PNG);
   background-color: #e03838;
 }
