@@ -1,4 +1,5 @@
-[data-bc-items] [data-bc-schema-main-container] {
+[data-bc-items] [data-bc-schema-main-container],
+[data-bc-part-related-cell] [data-bc-schema-main-container] {
   padding: 10px;
 }
 
