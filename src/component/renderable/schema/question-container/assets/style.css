@@ -12,7 +12,7 @@
   width: 300px;
   /* padding: 0 10px; */
   float: right;
-  line-height: 30px;
+  line-height: 35px;
   margin-left: 10px;
   position: relative;
 }
@@ -46,14 +46,14 @@
   display: inline-block;
   border: 1px solid #c7d6db;
   /* background: #f5f8f9; */
-  border-radius: 4px;
+  border-radius: 5px;
   transition: border 0.3s linear 0s;
   box-sizing: border-box;
   width: 100%;
   font-size: 12px;
   color: #555;
-  height: 30px;
-  line-height: 30px;
+  height: 35px;
+  line-height: 35px;
 }
 
 
@@ -65,7 +65,7 @@
   display: inline-block;
   border: 1px solid #c7d6db;
   background: #f5f8f9;
-  border-radius: 4px;
+  border-radius: 5px;
   transition: border 0.3s linear 0s;
   box-sizing: border-box;
   width: 100%;
@@ -76,7 +76,7 @@
 [data-bc-answer-container] input[type="text"],
 [data-bc-answer-container] input[type="password"],
 [data-bc-answer-container] select {
-  height: 30px;
+  height: 35px;
 }
 
 [data-bc-answer-container] textarea {
@@ -110,13 +110,13 @@
 
 [data-bc-answer-title-container] {
   /* margin-bottom: 5px; */
-  width: calc(100% - 30px);
+  width: calc(100% - 35px);
 }
 
 [data-bc-answer-title-container] [data-bc-answer-title] {
   /* float: right; */
   display: inline-block;
-  line-height: 30px;
+  line-height: 35px;
 }
 
 @media only screen and (max-width:800px) {
@@ -140,7 +140,7 @@
   }
 
   [data-bc-answer-title-container] {
-    width: calc(100% - 30px);
+    width: calc(100% - 35px);
     display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
     display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
     display: -ms-flexbox; /* TWEENER - IE 10 */

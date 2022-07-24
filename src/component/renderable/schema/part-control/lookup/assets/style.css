@@ -8,14 +8,14 @@
     padding: 0.1em 0.4em;
     display: inline-block;
     border: 1px solid #C7D6DB;
-    border-radius: 4px;
+    border-radius: 5px;
     transition: border 0.3s linear 0s;
     box-sizing: border-box;
-    height: 30px;
+    height: 35px;
     font-size: 12px;
     color: #555;
     position: relative;
-    line-height: 30px;
+    line-height: 35px;
     vertical-align: top;
 }
 
@@ -24,7 +24,7 @@
     /* border: 1px solid #c5c5c5; */
     background: #FFF;
     /* position: absolute; */
-    top: 30px;
+    top: 35px;
     left: 0px;
     max-height: 200px;
     overflow-y: auto;
