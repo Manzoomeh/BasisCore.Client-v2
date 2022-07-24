@@ -47,10 +47,10 @@ export default class QuestionContainer {
       template.setAttribute("data-sys-text", "");
       questionSchema.parts.forEach((part) => {
         const cpy = template.cloneNode();
-        if (part.caption) {
-          cpy.appendChild(document.createTextNode(part.caption));
+        // if (part.caption) {
+          cpy.appendChild(document.createTextNode(part.caption??""));
           headerContainer.appendChild(cpy);
-        }
+        // }
       });
     } else {
       headerContainer.remove();
