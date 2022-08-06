@@ -41,6 +41,7 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     const data = {
       prpId: this.owner.question.prpId,
       part: this.part.part,
+      ...this.owner.options.queryStrings,
     };
     const url = Util.formatString(this.part.link, data);
     const result = await Util.getDataAsync<Array<IFixValue>>(url);
