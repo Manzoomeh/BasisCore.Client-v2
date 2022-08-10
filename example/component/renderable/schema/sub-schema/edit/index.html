@@ -7,37 +7,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/basiscore.js"></script>
   <title>Schema Command - Edit Sub-Schema</title>
-  <link href="https://basispanel.ir/asset/css/dark.css" rel="stylesheet" type="text/css" />
-  <style>
-    [data-sys-widget] {
-      padding: 20px;
-    }
-  </style>
 </head>
 
-<body dir="rtl" data-sys-container="">
-  <div data-sys-widget="">
-
-
-    <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient">
-    </Basis>
-    <button data-btn-edit>Edit</button>
-    <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" displayMode="edit" button="[data-btn-edit]" resultSourceId="demo.data">
-    </Basis>
-    <button data-btn-edit>Edit</button>
-    <basis core="callback" run="atclient" triggers="demo.data"></basis>
-    <script>
-      const host = {
-        sources: {
-          "inline.object": [{
-            id: 1423332
-          }]
-        }
-      }
-    </script>
-
-
-  </div>
+<body dir="rtl">
+  <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient">
+  </Basis>
+  <button data-btn-edit>Edit</button>
+  <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" displayMode="edit" button="[data-btn-edit]" resultSourceId="demo.data">
+  </Basis>
+  <button data-btn-edit>Edit</button>
+  <basis core="callback" run="atclient" triggers="demo.data"></basis>
 </body>
+<script>
+  const host = {
+    sources: {
+      "inline.object": [{ id: 1423332 }]
+    }
+  }
+</script>
 
 </html>

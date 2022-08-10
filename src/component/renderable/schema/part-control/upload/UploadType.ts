@@ -177,8 +177,6 @@ export default class UploadType extends EditableQuestionPart {
         };
       }
     }
-    console.log("qqqq", retVal);
-
     return retVal;
   }
 
