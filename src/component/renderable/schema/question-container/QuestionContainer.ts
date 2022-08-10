@@ -48,8 +48,8 @@ export default class QuestionContainer {
       questionSchema.parts.forEach((part) => {
         const cpy = template.cloneNode();
         // if (part.caption) {
-          cpy.appendChild(document.createTextNode(part.caption??""));
-          headerContainer.appendChild(cpy);
+        cpy.appendChild(document.createTextNode(part.caption ?? ""));
+        headerContainer.appendChild(cpy);
         // }
       });
     } else {

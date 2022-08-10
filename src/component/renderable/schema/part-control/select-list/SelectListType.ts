@@ -22,6 +22,12 @@ export default abstract class SelectListType extends ListBaseType {
     super(part, layout, owner, answer);
   }
 
+  public getSelectedItems(): Array<number> {
+    return Array.from(this.element.querySelectorAll("input"))
+      .map((x) => (x.checked ? parseInt(x.value) : null))
+      .filter((x) => x);
+  }
+
   private async getChangeSet(): Promise<Array<Array<IUserActionPartValue>>> {
     let addedItems: Array<IUserActionPartValue> = null;
     let deletedItems: Array<IUserActionPartValue> = null;

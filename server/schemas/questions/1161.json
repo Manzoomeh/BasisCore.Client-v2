@@ -181,7 +181,7 @@
                   "cssClass": "css_13060_1",
                   "validations": {
                     "required": true,
-                    "maxLength": 1
+                    "maxLength": 10
                   },
                   "fixValues": [
                     {
