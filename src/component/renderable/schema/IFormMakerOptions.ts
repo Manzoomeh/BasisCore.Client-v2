@@ -1,5 +1,6 @@
 import { DependencyContainer } from "tsyringe";
 import IContext from "../../../context/IContext";
+import IDictionary from "../../../IDictionary";
 import IQuestionSchema from "./IQuestionSchema";
 
 export default interface IFormMakerOptions {
@@ -11,6 +12,7 @@ export default interface IFormMakerOptions {
   callback: (params: IEditParams) => void;
   subSchemaOptions: SubSchemaOptions;
   dc: DependencyContainer;
+  queryStrings: IDictionary<string>;
 }
 
 export interface IEditParams {

@@ -1,3 +1,4 @@
+import IDictionary from "../../../../../IDictionary";
 import Util from "../../../../../Util";
 import { IFixValue } from "../../IQuestionSchema";
 import layout from "./assets/popup-layout.html";
@@ -7,13 +8,16 @@ export default class SearchPopup {
   private readonly _valueSelectCallback: OnValueSelectCallback;
   private readonly _url: string;
   private readonly _multi: boolean;
+  private readonly _queryStrings: IDictionary<string>;
   constructor(
     url: string,
     valueSelectCallback: OnValueSelectCallback,
-    multi: boolean
+    multi: boolean,
+    queryStrings: IDictionary<string>
   ) {
     this._url = url;
     this._multi = multi;
+    this._queryStrings = queryStrings;
     this._valueSelectCallback = valueSelectCallback;
     this._element = Util.parse(layout).querySelector(
       "[data-bc-autocomplete-popup-container]"
@@ -33,7 +37,7 @@ export default class SearchPopup {
   private async onKeyUpAsync(e: KeyboardEvent) {
     e.preventDefault();
     const term = (e.target as HTMLFormElement).value;
-    const url = Util.formatString(this._url, { term });
+    const url = Util.formatString(this._url, { term, ...this._queryStrings });
     const result = await Util.getDataAsync<Array<IFixValue>>(url);
     const ul =
       this._element.querySelector<HTMLUListElement>("[data-bc-result]");

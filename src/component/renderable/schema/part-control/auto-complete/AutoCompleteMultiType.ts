@@ -28,7 +28,8 @@ export default class AutoCompleteMultiType extends AutoCompleteType {
     const popup = new SearchPopup(
       this.part.link,
       this.setValue.bind(this),
-      true
+      true,
+      this.owner.options.queryStrings
     );
   }
 

@@ -28,7 +28,10 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
 
   protected async getValueAsync(id: number): Promise<IFixValue> {
     const rootUrl = this.part.link.split("?")[0];
-    const url = `${rootUrl}?fixid=${id}`;
+    const url = Util.formatString(
+      `${rootUrl}?fixid=${id}`,
+      this.owner.options.queryStrings
+    );
     return await Util.getDataAsync<IFixValue>(url);
   }
 
