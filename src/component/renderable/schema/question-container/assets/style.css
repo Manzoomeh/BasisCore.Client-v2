@@ -59,6 +59,7 @@
 
 [data-bc-answer-container] input[type="text"],
 [data-bc-answer-container] input[type="password"],
+[data-bc-answer-container] input[type="file"],
 [data-bc-answer-container] select,
 [data-bc-answer-container] textarea {
   padding: 0.1em 0.4em;
@@ -75,6 +76,7 @@
 
 [data-bc-answer-container] input[type="text"],
 [data-bc-answer-container] input[type="password"],
+[data-bc-answer-container] input[type="file"],
 [data-bc-answer-container] select {
   height: 35px;
 }
@@ -90,6 +92,7 @@
 }
 
 [data-bc-answer-container] input[type="text"]:focus,
+[data-bc-answer-container] input[type="file"]:focus,
 [data-bc-answer-container] select:focus,
 [data-bc-answer-container] textarea:focus {
   border-color: #66afe9;

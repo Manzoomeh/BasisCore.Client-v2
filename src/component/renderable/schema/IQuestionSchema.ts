@@ -35,6 +35,7 @@ export interface IQuestionPart {
   method?: WebMethod;
   disabled?: boolean;
   options?: any;
+  multiple?: boolean;
 }
 
 export type WebMethod = "POST" | "GET";
@@ -68,6 +69,7 @@ export interface IValidationOptions {
   dataType?: AnswerDataType;
   required?: boolean;
   regex?: string;
+  size?: number;
 }
 
 export interface IFixValue {
