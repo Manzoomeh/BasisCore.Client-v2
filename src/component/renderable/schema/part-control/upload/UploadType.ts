@@ -62,16 +62,17 @@ export default class UploadType extends EditableQuestionPart {
         size: file.size,
         data: file,
       };
-      if (ExtensionList[file.type] === null) {
-        var oFReader = new FileReader();
-        oFReader.readAsDataURL(file);
-        oFReader.onload = (e) => {
-          fileInfo.image = e.target.result;
-          this.addFileToUI(fileInfo);
-        };
-      } else {
-        this.addFileToUI(fileInfo);
-      }
+      // if (ExtensionList[file.type] === null) {
+      //   var oFReader = new FileReader();
+      //   oFReader.readAsDataURL(file);
+      //   oFReader.onload = (e) => {
+      //     fileInfo.image = e.target.result;
+      //     this.addFileToUI(fileInfo);
+      //   };
+      // } else {
+      //   this.addFileToUI(fileInfo);
+      // }
+      this.addFileToUI(fileInfo);
     });
     input.value = "";
   }
@@ -129,7 +130,6 @@ export default class UploadType extends EditableQuestionPart {
   }
 
   public getValidationErrorsAsync(): Promise<IValidationError> {
-    // const filesItems = Array.from(this.element.querySelectorAll("li"));
     const filesItems = Object.getOwnPropertyNames(this.files)
       .map((x) => this.files[x])
       .filter((x) => !x.mustDelete)
@@ -139,43 +139,49 @@ export default class UploadType extends EditableQuestionPart {
     return Promise.resolve(this.ValidateValue(filesItems));
   }
 
-  public async getAddedAsync(): Promise<IUserActionPart> {
+  public async getMainAddedAsync(): Promise<IUserActionPart> {
+    let retVal = null;
+    const l = new Array<FileReader>();
+    const process = Object.getOwnPropertyNames(this.files)
+      .map((x) => this.files[x])
+      .filter((x) => x.data)
+      .map((x) => {
+        return new Promise<IFileValue>((resolve, reject) => {
+          const reader = new FileReader();
+          l.push(reader);
+          reader.readAsDataURL(x.data);
+          reader.onload = () =>
+            resolve({
+              content: reader.result,
+              name: x.title,
+              size: x.size,
+              type: x.type,
+            });
+          reader.onerror = (error) => reject(error);
+        });
+      });
+    let result: Array<IFileValue> = null;
+    result = await Promise.all(process);
+    const mustAdded = result.map((x) => {
+      const retVal: IPartValue = {
+        value: x,
+      };
+      return retVal;
+    });
+    const newValues = mustAdded.length > 0 ? mustAdded : null;
+    if (newValues) {
+      retVal = {
+        part: this.part.part,
+        values: newValues,
+      };
+    }
+    return retVal;
+  }
+
+  public getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (!this.answer) {
-      const l = new Array<FileReader>();
-      const process = Object.getOwnPropertyNames(this.files)
-        .map((x) => this.files[x])
-        .filter((x) => x.data)
-        .map((x) => {
-          return new Promise<IFileValue>((resolve, reject) => {
-            const reader = new FileReader();
-            l.push(reader);
-            reader.readAsDataURL(x.data);
-            reader.onload = () =>
-              resolve({
-                content: reader.result,
-                name: x.title,
-                size: x.size,
-                type: x.type,
-              });
-            reader.onerror = (error) => reject(error);
-          });
-        });
-      let result: Array<IFileValue> = null;
-      result = await Promise.all(process);
-      const mustAdded = result.map((x) => {
-        const retVal: IPartValue = {
-          value: x,
-        };
-        return retVal;
-      });
-      const newValues = mustAdded.length > 0 ? mustAdded : null;
-      if (newValues) {
-        retVal = {
-          part: this.part.part,
-          values: newValues,
-        };
-      }
+      retVal = this.getMainAddedAsync();
     }
     return retVal;
   }
@@ -183,40 +189,7 @@ export default class UploadType extends EditableQuestionPart {
   public async getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
-      const l = new Array<FileReader>();
-      const process = Object.getOwnPropertyNames(this.files)
-        .map((x) => this.files[x])
-        .filter((x) => x.data)
-        .map((x) => {
-          return new Promise<IFileValue>((resolve, reject) => {
-            const reader = new FileReader();
-            l.push(reader);
-            reader.readAsDataURL(x.data);
-            reader.onload = () =>
-              resolve({
-                content: reader.result,
-                name: x.title,
-                size: x.size,
-                type: x.type,
-              });
-            reader.onerror = (error) => reject(error);
-          });
-        });
-      let result: Array<IFileValue> = null;
-      result = await Promise.all(process);
-      const mustAdded = result.map((x) => {
-        const retVal: IPartValue = {
-          value: x,
-        };
-        return retVal;
-      });
-      const newValues = mustAdded.length > 0 ? mustAdded : null;
-      if (newValues) {
-        retVal = {
-          part: this.part.part,
-          values: newValues,
-        };
-      }
+      retVal = this.getMainAddedAsync();
     }
     return retVal;
   }

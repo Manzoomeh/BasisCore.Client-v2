@@ -69,6 +69,7 @@ export interface IValidationOptions {
   dataType?: AnswerDataType;
   required?: boolean;
   regex?: string;
+  mimes?: Array<IMimes>;
   size?: number;
 }
 
@@ -84,4 +85,9 @@ export interface IDependency {
   part: number;
   schemaId: number;
   prpId: number;
+}
+export interface IMimes {
+  mime: string;
+  minSize: number;
+  maxSize: number;
 }

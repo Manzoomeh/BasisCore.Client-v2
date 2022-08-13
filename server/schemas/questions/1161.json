@@ -502,16 +502,14 @@
               "vocab": "/فایل",
               "title": "فایل",
               "wordId": 63228,
-              "multi": true,
-              "parts": [
-                {
-                  "part": 1,
-                  "viewType": "upload",
-                  "validations": {
-                    "required": false
-                  }
+              "multi": false,
+              "parts": [{
+                "part": 1,
+                "viewType": "upload",
+                "validations": {
+                  "required": false
                 }
-              ]
+              }]
             },
             {
               "prpId": 22222,
@@ -520,14 +518,45 @@
               "vocab": "/فایل",
               "title": "فایل multiple",
               "wordId": 63228,
-              "multi": true,
-              "parts": [
-                {
-                  "part": 1,
-                  "viewType": "upload",
-                  "multiple": true
+              "multi": false,
+              "parts": [{
+                "part": 1,
+                "viewType": "upload",
+                "multiple": true
+              }]
+            },
+            {
+              "prpId": 33333,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل multiple",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [{
+                "part": 1,
+                "viewType": "upload",
+                "multiple": true,
+                "validations": {
+                  "mimes": [{
+                      "mime": "image/jpeg",
+                      "minSize": 10,
+                      "maxSize": 10000
+                    },
+                    {
+                      "mime": "image/jpg",
+                      "minSize": 10,
+                      "maxSize": 10000
+                    },
+                    {
+                      "mime": "image/png",
+                      "minSize": 10,
+                      "maxSize": 10000
+                    }
+                  ],
+                  "size": 100000000
                 }
-              ]
+              }]
             }
           ]
         }

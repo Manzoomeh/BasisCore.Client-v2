@@ -154,6 +154,74 @@ export default abstract class QuestionPart {
             console.error("Error in apply min and max validation", ex);
           }
         }
+        if (this.part.validations.size && isArray) {
+          try {
+            let sizeOk = true;
+            let sumSize = 0;
+            userValue.forEach((file, index) => {
+              sumSize += file.size;
+            });
+            sizeOk = this.part.validations.size >= sumSize;
+            if (!sizeOk) {
+              errors.push({
+                type: "size",
+                params: [ this.part.validations.size ],
+              });
+            }
+          } catch (ex) {
+            console.error(
+              "Error in apply size validation",
+              ex
+            );
+          }
+        }
+        if (this.part.validations.mimes && isArray) {
+          try {
+            let mimeOk = true;
+            let mimeSizeOk = true;
+            const mimes = this.part.validations.mimes;
+            userValue.forEach((file) => {
+              const typeFile = file.type;
+              const sizeFile = file.size;
+              mimes.find((m) => {
+                if (m.mime === typeFile) {
+                  mimeSizeOk = m.minSize <= sizeFile && sizeFile <= m.maxSize;
+                  return true;
+                } else {
+                  mimeOk = false;
+                }
+              });
+            });
+
+            if (!mimeOk) {
+              const mimesArray = [];
+              mimes.forEach((mime) => {
+                mimesArray.push(mime.mime);
+              });
+              errors.push({
+                type: "mime",
+                params: [ mimesArray ],
+              });
+            }
+
+            if (!mimeSizeOk) {
+              let mimeSizeArray = "";
+              mimes.forEach((mime) => {
+                mimeSizeArray += ` ${mime.mime} : ${mime.minSize} - ${mime.maxSize} , `;
+              });
+              mimeSizeArray = mimeSizeArray.substring(0, mimeSizeArray.length - 2);
+              errors.push({
+                type: "mime-size",
+                params: [ mimeSizeArray ],
+              });
+            }
+          } catch (ex) {
+            console.error(
+              "Error in apply size validation",
+              ex
+            );
+          }
+        }
       }
     }
     if (errors.length > 0) {

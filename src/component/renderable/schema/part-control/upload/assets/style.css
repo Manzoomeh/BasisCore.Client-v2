@@ -1,3 +1,72 @@
+[data-bc-answer-container] input[type="file"] {
+    padding: 7px 0.4em !important;
+}
+
+/* [data-bc-file-input]::-ms-browse {
+    visibility: hidden;
+    display: none;
+}
+
+[data-bc-file-input]::-webkit-file-upload-button {
+    visibility: hidden;
+    display: none;
+}
+
+[data-bc-file-input]::file-selector-button {
+    visibility: hidden;
+    display: none;
+} */
+
+[data-bc-upload-file-list] {
+    padding: 5px 0 0px;
+    margin: 0;
+    list-style: none;
+}
+
+[data-bc-upload-file-list] [data-bc-upload-file-item] {
+    position: relative;
+    display: inline-block;
+    margin: 10px 10px;
+    width: 90px;
+}
+
+[data-bc-upload-file-list] [data-bc-item-btn-delete] {
+    cursor: pointer;
+    position: absolute;
+    right: 0px;
+    top: -7px;
+}
+
+[data-bc-upload-file-list] [data-bc-item-icon-frame] {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto;
+    float: none;
+    text-align: center;
+    /* border: 1px solid rgba(121, 121, 121, 0.25); */
+    border-radius: 5px;
+    /* padding: 3px; */
+}
+
 [data-bc-upload-file-list] [data-bc-item-icon] {
-    width: 50px;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+[data-bc-upload-file-list] [data-bc-item-title] {
+    width: 100%;
+    height: 20px;
+    display: block;
+    font-size: 12px;
+    color: #000;
+    opacity: 0.55;
+    text-align: center;
+    direction: ltr;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
 }
