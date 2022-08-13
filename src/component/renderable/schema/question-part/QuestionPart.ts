@@ -165,7 +165,7 @@ export default abstract class QuestionPart {
             if (!sizeOk) {
               errors.push({
                 type: "size",
-                params: [ this.part.validations.size ],
+                params: [ this.formatBytes(this.part.validations.size) ],
               });
             }
           } catch (ex) {
@@ -207,7 +207,7 @@ export default abstract class QuestionPart {
             if (!mimeSizeOk) {
               let mimeSizeArray = "";
               mimes.forEach((mime) => {
-                mimeSizeArray += ` ${mime.mime} : ${mime.minSize} - ${mime.maxSize} , `;
+                mimeSizeArray += ` ${mime.mime} : ${this.formatBytes(mime.minSize)} - ${this.formatBytes(mime.maxSize)} , `;
               });
               mimeSizeArray = mimeSizeArray.substring(0, mimeSizeArray.length - 2);
               errors.push({
@@ -245,6 +245,15 @@ export default abstract class QuestionPart {
       this._validationElement.innerHTML = "";
     }
     return retVal;
+  }
+
+  private formatBytes(bytes: number, decimals: number = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
 
   public abstract getValidationErrorsAsync(): Promise<IValidationError>;

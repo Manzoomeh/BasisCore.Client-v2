@@ -139,7 +139,7 @@ export default class UploadType extends EditableQuestionPart {
     return Promise.resolve(this.ValidateValue(filesItems));
   }
 
-  public async getMainAddedAsync(): Promise<IUserActionPart> {
+  public async getChangedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     const l = new Array<FileReader>();
     const process = Object.getOwnPropertyNames(this.files)
@@ -181,7 +181,7 @@ export default class UploadType extends EditableQuestionPart {
   public getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (!this.answer) {
-      retVal = this.getMainAddedAsync();
+      retVal = this.getChangedAsync();
     }
     return retVal;
   }
@@ -189,7 +189,7 @@ export default class UploadType extends EditableQuestionPart {
   public async getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
-      retVal = this.getMainAddedAsync();
+      retVal = this.getChangedAsync();
     }
     return retVal;
   }
