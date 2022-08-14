@@ -183,14 +183,12 @@ export default abstract class QuestionPart {
             userValue.forEach((file) => {
               const typeFile = file.type;
               const sizeFile = file.size;
-              mimes.find((m) => {
-                if (m.mime === typeFile) {
-                  mimeSizeOk = m.minSize <= sizeFile && sizeFile <= m.maxSize;
-                  return true;
-                } else {
-                  mimeOk = false;
-                }
-              });
+              var searchMime = mimes.filter(m => m.mime === typeFile);
+              if (searchMime.length > 0) {
+                mimeSizeOk = searchMime[0].minSize <= sizeFile && sizeFile <= searchMime[0].maxSize;
+              } else {
+                mimeOk = false;
+              }
             });
 
             if (!mimeOk) {
