@@ -10,7 +10,10 @@ export type ValidationErrorType =
   | "range"
   | "type"
   | "length"
-  | "sub-schema";
+  | "sub-schema"
+  | "size"
+  | "mime"
+  | "mime-size";
 
 export interface IValidationErrorPart {
   type: ValidationErrorType;

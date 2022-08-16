@@ -1,0 +1,93 @@
+{
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [{
+    "options": {
+      "tableName": "answer.data",
+      "keyFieldName": null,
+      "statusFieldName": null,
+      "mergeType": 0
+    },
+    "data": [{
+      "schemaId": 1165,
+      "paramUrl": "/1165",
+      "schemaVersion": 1.1,
+      "lid": 1,
+      "baseVocab": "http://schema.site/FA/vo",
+      "sections": [{
+          "id": 1,
+          "title": "Sec 1",
+          "description": "Simple description"
+        },
+        {
+          "id": 2
+        }
+      ],
+      "questions": [{
+          "prpId": 11111,
+          "typeId": 123,
+          "ord": 1000,
+          "vocab": "/فایل",
+          "title": "فایل",
+          "wordId": 63228,
+          "multi": false,
+          "parts": [{
+            "part": 1,
+            "viewType": "upload",
+            "validations": {
+              "required": false
+            }
+          }]
+        },
+        {
+          "prpId": 22222,
+          "typeId": 123,
+          "ord": 1000,
+          "vocab": "/فایل",
+          "title": "فایل multiple",
+          "wordId": 63228,
+          "multi": false,
+          "parts": [{
+            "part": 1,
+            "viewType": "upload",
+            "multiple": true
+          }]
+        },
+        {
+          "prpId": 33333,
+          "typeId": 123,
+          "ord": 1000,
+          "vocab": "/فایل",
+          "title": "فایل multiple",
+          "wordId": 63228,
+          "multi": false,
+          "parts": [{
+            "part": 1,
+            "viewType": "upload",
+            "multiple": true,
+            "validations": {
+              "mimes": [{
+                  "mime": "image/jpeg",
+                  "minSize": 10,
+                  "maxSize": 10000
+                },
+                {
+                  "mime": "image/jpg",
+                  "minSize": 10,
+                  "maxSize": 10000
+                },
+                {
+                  "mime": "image/png",
+                  "minSize": 10,
+                  "maxSize": 10000
+                }
+              ],
+              "size": 100000000
+            }
+          }]
+        }
+      ]
+    }]
+  }]
+}
