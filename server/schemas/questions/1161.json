@@ -93,7 +93,7 @@
                     "required": true
                   },
                   "caption": "واحد اندازه گیری",
-                  "link": "/schema/fix-data/${prpId}/${part}"
+                  "link": "/schema/fix-data/${prpId}/${part}?rkey=${rkey}"
                 },
                 {
                   "part": 2,
@@ -270,7 +270,7 @@
                   "viewType": "autocomplete",
                   "cssClass": "css_13060_1",
                   "caption": "کشور",
-                  "link": "/schema/autocomplete?term=${term}"
+                  "link": "/schema/autocomplete?term=${term}&rkey=${rkey}"
                 },
                 {
                   "part": 2,

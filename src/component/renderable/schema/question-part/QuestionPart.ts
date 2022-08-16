@@ -43,6 +43,7 @@ export default abstract class QuestionPart {
     const data = {
       prpId: this.owner.question.prpId,
       part: this.part.part,
+      ...this.owner.options.queryStrings,
     };
     const url = Util.formatString(this.part.link, data);
     return url;

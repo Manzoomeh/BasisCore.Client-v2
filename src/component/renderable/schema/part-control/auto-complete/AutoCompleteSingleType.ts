@@ -30,7 +30,8 @@ export default class AutoCompleteSingleType extends AutoCompleteType {
       const t = new SearchPopup(
         this.part.link,
         this.setValue.bind(this),
-        false
+        false,
+        this.owner.options.queryStrings
       );
     } else {
       this.selectedId = null;
