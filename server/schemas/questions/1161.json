@@ -42,7 +42,7 @@
                   "viewType": "text",
                   "validations": {
                     "regex": "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)",
-                    "required": false
+                    "required": true
                   }
                 }
               ]
@@ -64,7 +64,7 @@
                   "viewType": "text",
                   "cssClass": "css_13050_1",
                   "validations": {
-                    "required": false,
+                    "required": true,
                     "minLength": 3,
                     "maxLength": 20
                   },
@@ -90,7 +90,7 @@
                   "viewType": "select",
                   "cssClass": "css_13057_1",
                   "validations": {
-                    "required": false
+                    "required": true
                   },
                   "caption": "واحد اندازه گیری",
                   "link": "/schema/fix-data/${prpId}/${part}"
@@ -100,7 +100,7 @@
                   "viewType": "text",
                   "cssClass": "css_13057_2",
                   "validations": {
-                    "required": false,
+                    "required": true,
                     "min": 200,
                     "max": 4000,
                     "dataType": "int"
@@ -180,7 +180,7 @@
                   "viewType": "checklist",
                   "cssClass": "css_13060_1",
                   "validations": {
-                    "required": false,
+                    "required": true,
                     "maxLength": 1
                   },
                   "fixValues": [
@@ -222,7 +222,7 @@
                   "caption": "",
                   "link": "",
                   "validations": {
-                    "required": false,
+                    "required": true,
                     "minLength": 2,
                     "maxLength": 30
                   }
@@ -246,7 +246,7 @@
                   "viewType": "autocomplete",
                   "cssClass": "css_13060_1",
                   "validations": {
-                    "required": false
+                    "required": true
                   },
                   "caption": "",
                   "link": "/schema/autocomplete?term=${term}"
@@ -326,7 +326,7 @@
                   "caption": "",
                   "link": "",
                   "validations": {
-                    "required": false,
+                    "required": true,
                     "dataType": "int"
                   }
                 }
@@ -349,7 +349,7 @@
                   "viewType": "radio",
                   "cssClass": "css_13060_1",
                   "validations": {
-                    "required": false
+                    "required": true
                   },
                   "fixValues": [
                     {
@@ -383,7 +383,7 @@
                   "viewType": "radio",
                   "cssClass": "css_13060_1",
                   "validations": {
-                    "required": false
+                    "required": true
                   },
                   "fixValues": [
                     {
@@ -434,7 +434,7 @@
                   "viewType": "time",
                   "cssClass": "css_13060_1",
                   "validations": {
-                    "required": false
+                    "required": true
                   },
                   "caption": "",
                   "link": ""
@@ -458,7 +458,7 @@
                   "viewType": "color",
                   "cssClass": "css_13060_1",
                   "validations": {
-                    "required": false
+                    "required": true
                   },
                   "caption": "",
                   "link": ""
