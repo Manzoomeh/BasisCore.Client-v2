@@ -52,6 +52,19 @@
             "part": 1,
             "viewType": "upload",
             "multiple": true
+          },
+          {
+            "part": 2,
+            "viewType": "text",
+            "cssClass": "css_13057_2",
+            "validations": {
+              "required": false,
+              "min": 200,
+              "max": 4000,
+              "dataType": "int"
+            },
+            "caption": "سرعت (دور بر دقیقه)",
+            "link": ""
           }]
         },
         {

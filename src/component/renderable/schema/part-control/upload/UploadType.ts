@@ -57,7 +57,7 @@ export default class UploadType extends EditableQuestionPart {
     files.forEach((file) => {
       const fileInfo: IFileInfo = {
         mustDelete: false,
-        title: file.name,
+        name: file.name,
         type: file.type,
         size: file.size,
         data: file,
@@ -81,7 +81,7 @@ export default class UploadType extends EditableQuestionPart {
     const container = this.element.querySelector<any>(
       "[data-bc-upload-file-list]"
     );
-    const template = imageLayout.replace("@title", file.title);
+    const template = imageLayout.replace("@name", file.name);
     const fileElement = $bc.util.toNode(template).childNodes[0] as Element;
     const imageElement = fileElement.querySelector<HTMLImageElement>(
       "[data-bc-item-icon]"
@@ -115,7 +115,7 @@ export default class UploadType extends EditableQuestionPart {
         .map((x) => {
           const retVal: IFileInfo = {
             id: x.id,
-            title: x.value.title,
+            name: x.value.name,
             type: x.value.type,
             size: 0,
             url: null,
@@ -134,7 +134,7 @@ export default class UploadType extends EditableQuestionPart {
       .map((x) => this.files[x])
       .filter((x) => !x.mustDelete)
       .map((x) => {
-        return { title: x.title, size: x.size, type: x.type };
+        return { name: x.name, size: x.size, type: x.type };
       });
     return Promise.resolve(this.ValidateValue(filesItems));
   }
@@ -153,7 +153,7 @@ export default class UploadType extends EditableQuestionPart {
           reader.onload = () =>
             resolve({
               content: reader.result,
-              name: x.title,
+              name: x.name,
               size: x.size,
               type: x.type,
             });
