@@ -441,7 +441,7 @@
                         {
                           "id": 111,
                           "value": {
-                            "title": "readme test.txt",
+                            "name": "readme test.txt",
                             "type": "text/plain"
                           }
                         }
@@ -463,22 +463,38 @@
                         {
                           "id": 222,
                           "value": {
-                            "title": "readme.txt",
+                            "name": "readme.txt",
                             "type": "text/plain"
                           }
                         },
                         {
                           "id": 333,
                           "value": {
-                            "title": "ebook.pdf",
+                            "name": "ebook.pdf",
                             "type": "application/pdf"
                           }
                         },
                         {
                           "id": 444,
                           "value": {
-                            "title": "ebook test name long.pdf",
+                            "name": "ebook test name long.pdf",
                             "type": "application/pdf"
+                          }
+                        },
+                        {
+                          "id": 555,
+                          "value": {
+                            "name": "sample.jpg",
+                            "image": "component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "image/jpg"
+                          }
+                        },
+                        {
+                          "id": 666,
+                          "value": {
+                            "name": "sample1.jpg",
+                            "image": "",
+                            "type": "image/jpg"
                           }
                         }
                       ]

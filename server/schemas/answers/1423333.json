@@ -70,6 +70,22 @@
                             "name": "ebook test name long.pdf",
                             "type": "application/pdf"
                           }
+                        },
+                        {
+                          "id": 555,
+                          "value": {
+                            "name": "sample.jpg",
+                            "image": "component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "image/jpg"
+                          }
+                        },
+                        {
+                          "id": 666,
+                          "value": {
+                            "name": "sample1.jpg",
+                            "image": "",
+                            "type": "image/jpg"
+                          }
                         }
                       ]
                     },

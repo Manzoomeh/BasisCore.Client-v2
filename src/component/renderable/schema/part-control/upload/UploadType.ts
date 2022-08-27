@@ -92,8 +92,11 @@ export default class UploadType extends EditableQuestionPart {
       container.innerHTML = "";
     }
     this.files[localId] = file;
-    (imageElement as any).src =
-      file.image ?? ExtensionList[file.type] ?? ExtensionList["???"];
+    if (file.image && file.image != "") {
+      (imageElement as any).src = `/${file.image}`;
+    } else {
+      (imageElement as any).src = ExtensionList[file.type] ?? ExtensionList["???"];
+    }
     fileElement
       .querySelector("[data-bc-item-btn-delete]")
       .addEventListener("click", (e) => {
@@ -119,7 +122,7 @@ export default class UploadType extends EditableQuestionPart {
             type: x.value.type,
             size: 0,
             url: null,
-            image: null,
+            image: x.value.image ?? null,
             data: null,
             mustDelete: false,
           };
