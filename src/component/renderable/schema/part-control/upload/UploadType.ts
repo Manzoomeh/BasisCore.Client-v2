@@ -206,7 +206,11 @@ export default class UploadType extends EditableQuestionPart {
         .map((x) => {
           const retVal: IPartValue = {
             id: x.id,
-            value: x,
+            // value: x,
+            value: {
+              name: x.name,
+              type: x.type
+            },
           };
           return retVal;
         });
