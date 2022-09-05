@@ -26,10 +26,26 @@
   /* border: 1px solid #c7d6db; */
   border-radius: 5px;
   text-align: center;
+  display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
+  display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
+  display: -ms-flexbox; /* TWEENER - IE 10 */
+  display: -moz-flex;
+  display: -webkit-flex; /* NEW - Chrome */
+  display: flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
 }
 
-[data-bc-question] [data-bc-btn] svg {
-  /* vertical-align: middle; */
+[data-bc-question] [data-bc-btn="add"] svg {
+  width: 12px;
+  height: 12px;
+}
+
+[data-bc-question] [data-bc-btn="remove"] svg {
+  width: 10px;
+  height: 10px;
 }
 
 [data-bc-question] [data-bc-btn="add"] {
