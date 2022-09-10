@@ -43,23 +43,27 @@ export default class SearchPopup {
       this._element.querySelector<HTMLUListElement>("[data-bc-result]");
     ul.innerHTML = "";
 
-    result.forEach((item) => {
-      const li = document.createElement("li");
-      li.setAttribute("data-bc-value", item.value);
-      li.innerHTML = item.value;
-      li.addEventListener("dblclick", (e) => {
-        e.preventDefault();
-        if (this._valueSelectCallback(item)) {
-          li.remove();
-          if (!this._multi) {
-            this._element.remove();
+    if (result.length > 0) {
+      result.forEach((item) => {
+        const li = document.createElement("li");
+        li.setAttribute("data-bc-value", item.value);
+        li.setAttribute("data-sys-hover", "");
+        li.setAttribute("data-sys-text", "");
+        li.innerHTML = item.value;
+        li.addEventListener("dblclick", (e) => {
+          e.preventDefault();
+          if (this._valueSelectCallback(item)) {
+            li.remove();
+            if (!this._multi) {
+              this._element.remove();
+            }
+          } else {
+            //TODO:
           }
-        } else {
-          //TODO:
-        }
+        });
+        ul.appendChild(li);
       });
-      ul.appendChild(li);
-    });
+    }
   }
 }
 

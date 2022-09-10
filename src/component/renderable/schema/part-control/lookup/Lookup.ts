@@ -81,6 +81,8 @@ export default class Lookup extends EditableQuestionPart {
       result.forEach((item) => {
         const li = document.createElement("li");
         li.setAttribute("data-bc-value", item.value);
+        li.setAttribute("data-sys-hover", "");
+        li.setAttribute("data-sys-text", "");
         li.innerHTML = item.value;
         li.addEventListener("dblclick", (e) => {
           e.preventDefault();

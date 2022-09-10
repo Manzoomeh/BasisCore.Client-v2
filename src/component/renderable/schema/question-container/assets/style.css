@@ -65,7 +65,7 @@
   padding: 0.1em 0.4em;
   display: inline-block;
   border: 1px solid #c7d6db;
-  background: #f5f8f9;
+  background-color: #f5f8f9;
   border-radius: 5px;
   transition: border 0.3s linear 0s;
   box-sizing: border-box;
@@ -87,7 +87,7 @@
 }
 
 [data-bc-answer-container] textarea:disabled {
-  background: inherit;
+  background-color: inherit;
   height: max-content;
 }
 
@@ -98,7 +98,7 @@
   border-color: #66afe9;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(102, 175, 233, 0.6);
   outline: 0 none;
-  background: #fff8ee;
+  background-color: #fff8ee;
 }
 
 [data-bc-answer-container] [data-bc-view-pass] {

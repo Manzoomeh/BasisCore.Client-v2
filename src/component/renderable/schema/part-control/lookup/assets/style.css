@@ -22,7 +22,7 @@
 [data-bc-fm-lookup] [data-bc-result] {
     width: 100%;
     /* border: 1px solid #c5c5c5; */
-    background: #FFF;
+    background-color: #FFF;
     /* position: absolute; */
     top: 35px;
     left: 0px;
@@ -49,5 +49,5 @@
 }
 
 [data-bc-fm-lookup] [data-bc-result] li:hover {
-    background: #f4faff;
+    background-color: #f4faff;
 }
