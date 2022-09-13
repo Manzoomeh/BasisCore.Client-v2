@@ -157,4 +157,5 @@
 [data-bc-auto-complete-single-type-btn] {
     position: absolute;
     left: -45px;
+    top: 0;
 }
