@@ -54,7 +54,8 @@ export default class GroupComponent extends CommandComponent {
       });
       this.oldLocalContext = this.currentDC.resolve(LocalRootContext);
     } else {
-      this.oldLocalContext = this.currentDC.resolve("ILocalContext");
+      this.oldLocalContext = this.currentDC.resolve(LocalRootContext);
+      //this.oldLocalContext = this.currentDC.resolve("ILocalContext");
     }
     this.currentDC.register("context", {
       useValue: this.oldLocalContext,
