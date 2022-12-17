@@ -1,6 +1,6 @@
 {
   "name": "basiscore",
-  "version": "2.15.2",
+  "version": "2.15.1",
   "description": "Client side and light version of BasisCore web programming language",
   "main": "dist/basiscore.js",
   "types": "dist/basiscore.d.ts",
@@ -22,7 +22,7 @@
   "files": [
     "dist/**/*"
   ],
-  "author": "Manzoomeh Negaran <info@manzoomeh.ir> (https://www.manzoomeh.ir)",
+  "author": "Manzoomeh Negaran <info@manzoomeh.com> (https://www.manzoomeh.ir)",
   "license": "ISC",
   "homepage": "https://github.com/Manzoomeh/BasisCore.Client-v2",
   "bugs": {
