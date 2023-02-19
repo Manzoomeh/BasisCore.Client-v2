@@ -58,6 +58,7 @@ export default class UploadType extends EditableQuestionPart {
       const fileInfo: IFileInfo = {
         mustDelete: false,
         name: file.name,
+        url: null,
         type: file.type,
         size: file.size,
         data: file,
@@ -81,7 +82,10 @@ export default class UploadType extends EditableQuestionPart {
     const container = this.element.querySelector<any>(
       "[data-bc-upload-file-list]"
     );
-    const template = imageLayout.replace("@name", file.name);
+    const template = imageLayout
+      .replace("@name", file.name)
+      .replace("@downloadName", file.name)
+      .replace("@url", file.url);
     const fileElement = $bc.util.toNode(template).childNodes[0] as Element;
     const imageElement = fileElement.querySelector<HTMLImageElement>(
       "[data-bc-item-icon]"
@@ -121,7 +125,7 @@ export default class UploadType extends EditableQuestionPart {
             name: x.value.name,
             type: x.value.type,
             size: 0,
-            url: null,
+            url: x.value.url ?? null,
             image: x.value.image ?? null,
             data: null,
             mustDelete: false,

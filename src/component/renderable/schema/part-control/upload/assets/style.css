@@ -37,6 +37,10 @@
     top: -7px;
 }
 
+[data-bc-upload-file-list] [data-bc-item-download] {
+    text-decoration: none;
+}
+
 [data-bc-upload-file-list] [data-bc-item-icon-frame] {
     width: 52px;
     height: 52px;

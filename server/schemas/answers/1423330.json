@@ -464,6 +464,7 @@
                           "id": 222,
                           "value": {
                             "name": "readme.txt",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
                             "type": "text/plain"
                           }
                         },
@@ -471,6 +472,7 @@
                           "id": 333,
                           "value": {
                             "name": "ebook.pdf",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
                             "type": "application/pdf"
                           }
                         },
@@ -478,6 +480,7 @@
                           "id": 444,
                           "value": {
                             "name": "ebook test name long.pdf",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
                             "type": "application/pdf"
                           }
                         },
@@ -486,6 +489,7 @@
                           "value": {
                             "name": "sample.jpg",
                             "image": "component/renderable/schema/edit/assets/images/sample.jpg",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
                             "type": "image/jpg"
                           }
                         },
@@ -494,6 +498,7 @@
                           "value": {
                             "name": "sample1.jpg",
                             "image": "",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
                             "type": "image/jpg"
                           }
                         }
