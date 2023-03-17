@@ -166,14 +166,11 @@ export default abstract class QuestionPart {
             if (!sizeOk) {
               errors.push({
                 type: "size",
-                params: [ this.formatBytes(this.part.validations.size) ],
+                params: [this.formatBytes(this.part.validations.size)],
               });
             }
           } catch (ex) {
-            console.error(
-              "Error in apply size validation",
-              ex
-            );
+            console.error("Error in apply size validation", ex);
           }
         }
         if (this.part.validations.mimes && isArray) {
@@ -184,9 +181,11 @@ export default abstract class QuestionPart {
             userValue.forEach((file) => {
               const typeFile = file.type;
               const sizeFile = file.size;
-              var searchMime = mimes.filter(m => m.mime === typeFile);
+              var searchMime = mimes.filter((m) => m.mime === typeFile);
               if (searchMime.length > 0) {
-                mimeSizeOk = searchMime[0].minSize <= sizeFile && sizeFile <= searchMime[0].maxSize;
+                mimeSizeOk =
+                  searchMime[0].minSize <= sizeFile &&
+                  sizeFile <= searchMime[0].maxSize;
               } else {
                 mimeOk = false;
               }
@@ -199,26 +198,28 @@ export default abstract class QuestionPart {
               });
               errors.push({
                 type: "mime",
-                params: [ mimesArray ],
+                params: [mimesArray],
               });
             }
 
             if (!mimeSizeOk) {
               let mimeSizeArray = "";
               mimes.forEach((mime) => {
-                mimeSizeArray += ` ${mime.mime} : ${this.formatBytes(mime.minSize)} - ${this.formatBytes(mime.maxSize)} , `;
+                mimeSizeArray += ` ${mime.mime} : ${this.formatBytes(
+                  mime.minSize
+                )} - ${this.formatBytes(mime.maxSize)} , `;
               });
-              mimeSizeArray = mimeSizeArray.substring(0, mimeSizeArray.length - 2);
+              mimeSizeArray = mimeSizeArray.substring(
+                0,
+                mimeSizeArray.length - 2
+              );
               errors.push({
                 type: "mime-size",
-                params: [ mimeSizeArray ],
+                params: [mimeSizeArray],
               });
             }
           } catch (ex) {
-            console.error(
-              "Error in apply size validation",
-              ex
-            );
+            console.error("Error in apply size validation", ex);
           }
         }
       }
@@ -247,16 +248,17 @@ export default abstract class QuestionPart {
   }
 
   private formatBytes(bytes: number, decimals: number = 2) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   }
 
   public abstract getValidationErrorsAsync(): Promise<IValidationError>;
   public abstract getAddedAsync(): Promise<IUserActionPart>;
   public abstract getEditedAsync(): Promise<IUserActionPart>;
   public abstract getDeletedAsync(): Promise<IUserActionPart>;
+  public abstract getValuesAsync(): Promise<IUserActionPart>;
 }

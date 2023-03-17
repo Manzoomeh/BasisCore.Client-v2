@@ -22,10 +22,16 @@ export default abstract class ReadOnlyListBaseType extends ListBaseType {
   public getAddedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
+
   public getEditedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
+
   public getDeletedAsync(): Promise<IUserActionPart> {
+    throw new Error("Method not supported.");
+  }
+
+  public getValuesAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
 }

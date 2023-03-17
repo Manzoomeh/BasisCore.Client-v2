@@ -142,4 +142,20 @@ export default class Lookup extends EditableQuestionPart {
     }
     return Promise.resolve(retVal);
   }
+
+  public getValuesAsync(): Promise<IUserActionPart> {
+    let retVal = null;
+    if (this.selectedId) {
+      retVal = {
+        part: this.part.part,
+        values: [
+          {
+            value: this.selectedId,
+            title: this.title,
+          },
+        ],
+      };
+    }
+    return Promise.resolve(retVal);
+  }
 }

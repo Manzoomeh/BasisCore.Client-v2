@@ -99,7 +99,8 @@ export default class UploadType extends EditableQuestionPart {
     if (file.image && file.image != "") {
       (imageElement as any).src = `/${file.image}`;
     } else {
-      (imageElement as any).src = ExtensionList[file.type] ?? ExtensionList["???"];
+      (imageElement as any).src =
+        ExtensionList[file.type] ?? ExtensionList["???"];
     }
     fileElement
       .querySelector("[data-bc-item-btn-delete]")
@@ -213,7 +214,7 @@ export default class UploadType extends EditableQuestionPart {
             // value: x,
             value: {
               name: x.name,
-              type: x.type
+              type: x.type,
             },
           };
           return retVal;
@@ -230,6 +231,10 @@ export default class UploadType extends EditableQuestionPart {
     console.table(this.files);
     console.log(retVal);
     return Promise.resolve(retVal);
+  }
+
+  public getValuesAsync(): Promise<IUserActionPart> {
+    return this.getChangedAsync();
   }
 }
 

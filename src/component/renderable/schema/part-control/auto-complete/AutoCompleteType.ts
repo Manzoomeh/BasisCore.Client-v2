@@ -7,6 +7,7 @@ import { IEditParams } from "../../IFormMakerOptions";
 import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import { IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
+import IDictionary from "../../../../../IDictionary";
 
 export default abstract class AutoCompleteType extends EditableQuestionPart {
   protected selectedId?: number;
@@ -53,6 +54,42 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     return mustChange;
   }
 
+  protected async getQueryStringsAsync(): Promise<IDictionary<string>> {
+    let retVal = this.owner.options.queryStrings;
+    if (this.part.dependency) {
+      retVal = retVal || {};
+      const tasks = this.owner.owner.AllQuestions.map((x) =>
+        x.getAllValuesAsync()
+      );
+      const taskResult = await Promise.all(tasks);
+      const allValues = taskResult.map((x) => {
+        return {
+          propId: x.propId,
+          parts: x.values.filter((y) => y).flatMap((y) => y.parts),
+        };
+      });
+      this.part.dependency.forEach((item) => {
+        const relatedPart = allValues.find((x) => x.propId == item.prpId);
+        if (relatedPart) {
+          const allParts = relatedPart.parts
+            .filter((x) => x.part == item.part)
+            .flatMap((x) => x.values);
+
+          let value = "";
+          if (allParts.length > 0) {
+            value = JSON.stringify(
+              allParts.length > 1
+                ? allParts.map((x) => x.value)
+                : allParts[0].value
+            );
+          }
+          retVal[item.name] = value;
+        }
+      });
+    }
+    return retVal;
+  }
+
   public getValidationErrorsAsync(): Promise<IValidationError> {
     return Promise.resolve(this.ValidateValue(this.selectedId));
   }
@@ -96,6 +133,21 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
     let retVal = null;
     if (this.answer && !this.selectedId) {
       retVal = this.answer;
+    }
+    return Promise.resolve(retVal);
+  }
+
+  public getValuesAsync(): Promise<IUserActionPart> {
+    let retVal = null;
+    if (this.selectedId) {
+      retVal = {
+        part: this.part.part,
+        values: [
+          {
+            value: this.selectedId,
+          },
+        ],
+      };
     }
     return Promise.resolve(retVal);
   }
