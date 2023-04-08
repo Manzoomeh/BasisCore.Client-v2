@@ -13,6 +13,12 @@ export interface IUserActionProperty {
   deleted?: Array<IUserActionAnswer>;
 }
 
+export interface IAnswerValues {
+  propId: number;
+  multi: boolean;
+  values?: Array<IUserActionAnswer>;
+}
+
 export interface IUserActionAnswer {
   id?: number;
   parts?: Array<IUserActionPart>;

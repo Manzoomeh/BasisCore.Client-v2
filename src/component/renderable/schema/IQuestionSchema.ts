@@ -81,10 +81,10 @@ export interface IFixValue {
 }
 
 export interface IDependency {
-  id: number;
-  part: number;
-  schemaId: number;
   prpId: number;
+  part: number;
+  name: string;
+  required: boolean;
 }
 export interface IMimes {
   mime: string;

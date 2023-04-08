@@ -50,6 +50,7 @@ export default class SelectType extends ListBaseType {
       }
     }
   }
+
   protected fillUI(values: Array<IFixValue>) {
     super.fillUI(values);
     const select = this.element.querySelector("select");
@@ -158,5 +159,23 @@ export default class SelectType extends ListBaseType {
       }
     }
     return Promise.resolve(retVal);
+  }
+
+  public async getValuesAsync(): Promise<IUserActionPart> {
+    let retVal = null;
+    const newValue = this._select.options[this._select.selectedIndex].value;
+    if (newValue !== "0") {
+      const subSchemaValue = await this.getSubSchemaValueAsync(newValue);
+      retVal = {
+        part: this.part.part,
+        values: [
+          {
+            value: newValue,
+            ...(subSchemaValue && { answer: subSchemaValue }),
+          },
+        ],
+      };
+    }
+    return retVal;
   }
 }

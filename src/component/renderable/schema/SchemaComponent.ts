@@ -190,12 +190,24 @@ export default class SchemaComponent extends SourceBaseComponent {
         if (options.displayMode == "view") {
           if (partAnswer && partAnswer != undefined) {
             this._questions.push(
-              new QuestionCollection(question, options, cellManager, partAnswer)
+              new QuestionCollection(
+                this._questions,
+                question,
+                options,
+                cellManager,
+                partAnswer
+              )
             );
           }
         } else {
           this._questions.push(
-            new QuestionCollection(question, options, cellManager, partAnswer)
+            new QuestionCollection(
+              this._questions,
+              question,
+              options,
+              cellManager,
+              partAnswer
+            )
           );
         }
       });

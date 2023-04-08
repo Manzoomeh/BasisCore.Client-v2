@@ -68,6 +68,7 @@ export default abstract class TextBaseType<
     }
     return Promise.resolve(retVal);
   }
+
   public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
@@ -83,6 +84,21 @@ export default abstract class TextBaseType<
           ],
         };
       }
+    }
+    return Promise.resolve(retVal);
+  }
+
+  public getValuesAsync(): Promise<IUserActionPart> {
+    let retVal = null;
+    if (this.input.value.length > 0) {
+      retVal = {
+        part: this.part.part,
+        values: [
+          {
+            value: this.input.value,
+          },
+        ],
+      };
     }
     return Promise.resolve(retVal);
   }

@@ -3,29 +3,33 @@ import IFormMakerOptions from "../IFormMakerOptions";
 import layout from "./assets/layout.html";
 import "./assets/style";
 import Util from "../../../../Util";
-import { IUserActionProperty } from "../IUserActionResult";
+import { IUserActionProperty, IAnswerValues } from "../IUserActionResult";
 import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
 import IQuestionCellManager from "../IQuestionCellManager";
+import QuestionPart from "../question-part/QuestionPart";
 
 export default class QuestionContainer {
-  private readonly questionSchema: IQuestion;
+  public readonly QuestionSchema: IQuestion;
   protected readonly element: Element;
   private readonly _questions: Array<Question> = new Array<Question>();
   public readonly options: IFormMakerOptions;
   public readonly answer: IAnswerProperty;
   private _removedQuestions: Array<number>;
+  public AllQuestions: Array<QuestionContainer>;
 
   constructor(
+    all: Array<QuestionContainer>,
     questionSchema: IQuestion,
     options: IFormMakerOptions,
     cellManager: IQuestionCellManager,
     answer: IAnswerProperty
   ) {
-    this.questionSchema = questionSchema;
+    this.AllQuestions = all;
+    this.QuestionSchema = questionSchema;
     this.options = options;
     this.answer = answer;
-    var copyTemplate = layout.replace("@title", this.questionSchema.title);
+    const copyTemplate = layout.replace("@title", this.QuestionSchema.title);
     const uiElement =
       Util.parse(copyTemplate).querySelector<HTMLDivElement>(
         "[data-bc-question]"
@@ -47,10 +51,8 @@ export default class QuestionContainer {
       template.setAttribute("data-sys-text", "");
       questionSchema.parts.forEach((part) => {
         const cpy = template.cloneNode();
-        // if (part.caption) {
         cpy.appendChild(document.createTextNode(part.caption ?? ""));
         headerContainer.appendChild(cpy);
-        // }
       });
     } else {
       headerContainer.remove();
@@ -99,7 +101,7 @@ export default class QuestionContainer {
 
   public addQuestion(answer?: IAnswerPart): Question {
     const question = new Question(
-      this.questionSchema,
+      this.QuestionSchema,
       this.options,
       this,
       this.element,
@@ -121,6 +123,57 @@ export default class QuestionContainer {
     }
   }
 
+  public async getAllValuesAsync(): Promise<IAnswerValues> {
+    const values = await Promise.all(
+      this._questions.map((x) => x.getAllValuesAsync())
+    );
+    return {
+      propId: this.QuestionSchema.prpId,
+      multi: this.QuestionSchema.multi,
+      values: values,
+    };
+  }
+
+  public async getChangeValuesAsync(): Promise<IUserActionProperty> {
+    let userAction: IUserActionProperty = null;
+
+    const added = (
+      await Promise.all(this._questions.map((x) => x.getAddedPartsAsync()))
+    ).filter((x) => x);
+    const edited = (
+      await Promise.all(this._questions.map((x) => x.getEditedPartsAsync()))
+    ).filter((x) => x);
+    const deleted = (
+      await Promise.all(this._questions.map((x) => x.getDeletedPartsAsync()))
+    )
+      .filter((x) => x)
+      .map((x) =>
+        x.parts.length == this.QuestionSchema.parts.length &&
+        edited.length == 0 &&
+        added.length == 0
+          ? { id: x.id }
+          : x
+      );
+
+    this._removedQuestions?.forEach((x) => {
+      deleted.push({
+        id: x,
+      });
+    });
+
+    if (added.length > 0 || edited.length > 0 || deleted.length > 0) {
+      userAction = {
+        propId: this.QuestionSchema.prpId,
+        multi: this.QuestionSchema.multi,
+        ...(added.length > 0 && { added: added }),
+        ...(edited.length > 0 && { edited: edited }),
+        ...(deleted.length > 0 && { deleted: deleted }),
+      };
+    }
+
+    return userAction;
+  }
+
   public async getUserActionAsync(): Promise<IUserActionProperty> {
     let userAction: IUserActionProperty = null;
     const errors = (
@@ -130,42 +183,16 @@ export default class QuestionContainer {
     ).filter((x) => x);
 
     if (errors.length == 0) {
-      const added = (
-        await Promise.all(this._questions.map((x) => x.getAddedPartsAsync()))
-      ).filter((x) => x);
-      const edited = (
-        await Promise.all(this._questions.map((x) => x.getEditedPartsAsync()))
-      ).filter((x) => x);
-      const deleted = (
-        await Promise.all(this._questions.map((x) => x.getDeletedPartsAsync()))
-      )
-        .filter((x) => x)
-        .map((x) =>
-          x.parts.length == this.questionSchema.parts.length &&
-          edited.length == 0 &&
-          added.length == 0
-            ? { id: x.id }
-            : x
-        );
-
-      this._removedQuestions?.forEach((x) => {
-        deleted.push({
-          id: x,
-        });
-      });
-
-      if (added.length > 0 || edited.length > 0 || deleted.length > 0) {
-        userAction = {
-          propId: this.questionSchema.prpId,
-          multi: this.questionSchema.multi,
-          ...(added.length > 0 && { added: added }),
-          ...(edited.length > 0 && { edited: edited }),
-          ...(deleted.length > 0 && { deleted: deleted }),
-        };
-      }
+      userAction = await this.getChangeValuesAsync();
     } else {
       throw Error("invalid");
     }
     return userAction;
+  }
+
+  public getParts(part: number): QuestionPart[] {
+    return this._questions
+      .flatMap((x) => x._parts)
+      .filter((x) => x.part.part == part);
   }
 }

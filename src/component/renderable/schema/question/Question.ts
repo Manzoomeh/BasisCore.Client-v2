@@ -132,6 +132,17 @@ export default class Question {
         }
       : null;
   }
+
+  public async getAllValuesAsync() {
+    const userActionTaskList = this._parts.map((x) => x.getValuesAsync());
+    const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
+    return userAction.length > 0
+      ? {
+          ...(this.answer && { id: this.answer.id }),
+          parts: userAction,
+        }
+      : null;
+  }
 }
 
 declare type AddRemoveCallback = () => void;
