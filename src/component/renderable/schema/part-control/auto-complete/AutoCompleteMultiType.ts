@@ -35,7 +35,7 @@ export default class AutoCompleteMultiType extends AutoCompleteType {
         );
       })
       .catch((error) => {
-        console.error(error);
+        //Has empty required part!
       });
   }
 
