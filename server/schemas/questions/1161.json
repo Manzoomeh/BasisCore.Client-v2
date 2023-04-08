@@ -275,12 +275,14 @@
                     {
                       "name": "data1",
                       "prpId": 130602,
-                      "part": 1
+                      "part": 1,
+                      "required": true
                     },
                     {
                       "name": "data2",
                       "prpId": 1355,
-                      "part": 1
+                      "part": 1,
+                      "required": false
                     }
                   ]
                 },

@@ -84,6 +84,7 @@ export interface IDependency {
   prpId: number;
   part: number;
   name: string;
+  required: boolean;
 }
 export interface IMimes {
   mime: string;

@@ -231,9 +231,14 @@ export default abstract class QuestionPart {
         errors: errors,
       };
     }
+    this.updateUIAboutError(retVal);
+    return retVal;
+  }
+
+  public updateUIAboutError(retVal: IValidationError) {
     if (retVal) {
       this.element.setAttribute("data-bc-invalid", "");
-      var str = "";
+      let str = "";
       retVal.errors.forEach((error) => {
         str += `<li>${error.type} ${
           error.params ? " - [" + error.params.join(",") + "]" : ""
@@ -244,7 +249,6 @@ export default abstract class QuestionPart {
       this.element.removeAttribute("data-bc-invalid");
       this._validationElement.innerHTML = "";
     }
-    return retVal;
   }
 
   private formatBytes(bytes: number, decimals: number = 2) {

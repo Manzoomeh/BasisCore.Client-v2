@@ -25,14 +25,18 @@ export default class AutoCompleteMultiType extends AutoCompleteType {
   }
 
   private onShowPopUpBtnClick() {
-    this.getQueryStringsAsync().then((x) => {
-      const popup = new SearchPopup(
-        this.part.link,
-        this.setValue.bind(this),
-        true,
-        x
-      );
-    });
+    this.getQueryStringsAsync()
+      .then((x) => {
+        const popup = new SearchPopup(
+          this.part.link,
+          this.setValue.bind(this),
+          true,
+          x
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   protected setValue(value: IFixValue): boolean {

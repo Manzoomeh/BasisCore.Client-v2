@@ -7,6 +7,7 @@ import { IUserActionProperty, IAnswerValues } from "../IUserActionResult";
 import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
 import IQuestionCellManager from "../IQuestionCellManager";
+import QuestionPart from "../question-part/QuestionPart";
 
 export default class QuestionContainer {
   public readonly QuestionSchema: IQuestion;
@@ -132,6 +133,7 @@ export default class QuestionContainer {
       values: values,
     };
   }
+
   public async getChangeValuesAsync(): Promise<IUserActionProperty> {
     let userAction: IUserActionProperty = null;
 
@@ -186,5 +188,11 @@ export default class QuestionContainer {
       throw Error("invalid");
     }
     return userAction;
+  }
+
+  public getParts(part: number): QuestionPart[] {
+    return this._questions
+      .flatMap((x) => x._parts)
+      .filter((x) => x.part.part == part);
   }
 }

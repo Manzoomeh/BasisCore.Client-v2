@@ -26,22 +26,26 @@ export default class AutoCompleteSingleType extends AutoCompleteType {
 
   private onShowPopUpBtnClick(e: MouseEvent) {
     e.preventDefault();
-    this.getQueryStringsAsync().then((x) => {
-      if (this._btn.getAttribute("data-bc-btn") === "add") {
-        const popup = new SearchPopup(
-          this.part.link,
-          this.setValue.bind(this),
-          false,
-          x
-        );
-      } else {
-        this.selectedId = null;
-        this.element.querySelector("label").innerHTML = "";
-        this._btn.setAttribute("data-bc-btn", "add");
-        this._btn.setAttribute("data-sys-plus", "");
-        this._btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
-      }
-    });
+    this.getQueryStringsAsync()
+      .then((x) => {
+        if (this._btn.getAttribute("data-bc-btn") === "add") {
+          const popup = new SearchPopup(
+            this.part.link,
+            this.setValue.bind(this),
+            false,
+            x
+          );
+        } else {
+          this.selectedId = null;
+          this.element.querySelector("label").innerHTML = "";
+          this._btn.setAttribute("data-bc-btn", "add");
+          this._btn.setAttribute("data-sys-plus", "");
+          this._btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   protected setValue(value: IFixValue): boolean {
