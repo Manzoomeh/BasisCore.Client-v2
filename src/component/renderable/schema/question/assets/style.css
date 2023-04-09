@@ -15,7 +15,8 @@
 }
 
 [data-bc-question] [data-bc-btn],
-[data-bc-question] [data-bc-btn-remove] {
+[data-bc-question] [data-bc-btn-remove],
+[data-bc-question] [data-bc-btn-add]  {
   width: 35px;
   height: 35px;
   border: none;
@@ -49,12 +50,14 @@
   height: 10px;
 }
 
-[data-bc-question] [data-bc-btn="add"] {
+[data-bc-question] [data-bc-btn="add"],
+[data-bc-question] [data-bc-btn-add] {
   /* background-image: url(add.PNG); */
   background-color: #eef4f9;
 }
 
-[data-bc-question] [data-bc-btn="add"]:hover {
+[data-bc-question] [data-bc-btn="add"]:hover,
+[data-bc-question] [data-bc-btn-add]:hover {
   /* background-image: url(add-hover.PNG); */
   /* background-color: #6cb829; */
 }

@@ -109,6 +109,9 @@ export default class QuestionContainer {
     );
     this._questions.forEach((x) => x.setRemovable());
     this._questions.push(question);
+    if (answer != null) {
+      question.setAddAndRemovable();
+    }
     return question;
   }
 

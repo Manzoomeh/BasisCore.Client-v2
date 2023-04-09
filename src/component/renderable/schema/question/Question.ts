@@ -18,6 +18,8 @@ export default class Question {
   readonly _parts: Array<QuestionPart>;
   readonly button: HTMLButtonElement;
   private _removeButton: HTMLButtonElement;
+  private _addButton: HTMLButtonElement;
+  private _pairBtnContainer: HTMLDivElement;
   readonly owner: QuestionContainer;
   readonly answer: IAnswerPart;
   private readonly _ui: HTMLElement;
@@ -41,6 +43,10 @@ export default class Question {
     this.element = this._ui.querySelector("[data-bc-part-container]");
     this.button = this._ui.querySelector("[data-bc-btn]");
     this._removeButton = this._ui.querySelector("[data-bc-btn-remove]");
+    this._addButton = this._ui.querySelector("[data-bc-btn-add]");
+    this._pairBtnContainer = this._ui.querySelector(
+      "[data-bc-pair-btn-container]"
+    );
     if (
       this.question.multi &&
       this.options.displayMode != "view" &&
@@ -49,18 +55,18 @@ export default class Question {
       this.button.setAttribute("data-bc-btn", "add");
       this.button.setAttribute("data-sys-plus", "");
       this.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
-      if (this.answer) {
-        this._removeButton.addEventListener("click", (e) => {
-          e.preventDefault();
-          this._ui.remove();
-          this.owner.addQuestion();
-        });
-      } else {
-        //this._removeButton.remove();
-      }
       this.button.addEventListener("click", this.onBtnClick.bind(this));
+      this._removeButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        this._onRemoveClick();
+        this.owner.addQuestion(null);
+      });
+      this._addButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        this._onAddClick();
+      });
       this._onAddClick = () => {
-        this.owner.addQuestion();
+        this.owner.addQuestion(null);
         this.setRemovable();
       };
       this._onRemoveClick = () => {
@@ -68,9 +74,8 @@ export default class Question {
         this._ui.remove();
       };
     } else {
+      this._pairBtnContainer.remove();
       this.button.remove();
-      this._removeButton.remove();
-      this._removeButton = null;
     }
     container.appendChild(this._ui);
 
@@ -82,14 +87,20 @@ export default class Question {
 
   public setRemovable() {
     if (!this.answer || this.question.parts.some((x) => !x.disabled)) {
-      this.button?.setAttribute("data-bc-btn", "remove");
-      this.button?.setAttribute("data-sys-minus", "");
+      this._pairBtnContainer?.remove();
+      this.button.style.display = "block";
+      this.button.setAttribute("data-bc-btn", "remove");
+      this.button.setAttribute("data-sys-minus", "");
       this.button.innerHTML = `<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-minus-icon="" d="M2.04028 0.0603034L0.0603845 2.0402L4.02018 6L0.0603845 9.9598L2.04028 11.9397L6.00008 7.9799L9.95988 11.9397L11.9398 9.9598L7.97998 6L11.9398 2.0402L9.95988 0.0603037L6.00008 4.0201L2.04028 0.0603034Z" fill="#B40020"></path></svg>`;
-      this._removeButton?.remove();
-      this._removeButton = null;
     } else {
-      this.button?.remove();
+      this.button.remove();
+      this._pairBtnContainer?.remove();
     }
+  }
+
+  public setAddAndRemovable() {
+    this._pairBtnContainer.style.display = "block";
+    this.button.style.display = "none";
   }
 
   private onBtnClick(e: MouseEvent) {
