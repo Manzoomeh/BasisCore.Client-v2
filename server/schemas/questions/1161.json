@@ -93,7 +93,7 @@
                     "required": true
                   },
                   "caption": "واحد اندازه گیری",
-                  "link": "/schema/fix-data/${prpId}/${part}"
+                  "link": "/schema/fix-data/${prpId}/${part}?rkey=${rkey}"
                 },
                 {
                   "part": 2,
@@ -181,7 +181,7 @@
                   "cssClass": "css_13060_1",
                   "validations": {
                     "required": true,
-                    "maxLength": 1
+                    "maxLength": 10
                   },
                   "fixValues": [
                     {
@@ -270,7 +270,21 @@
                   "viewType": "autocomplete",
                   "cssClass": "css_13060_1",
                   "caption": "کشور",
-                  "link": "/schema/autocomplete?term=${term}"
+                  "link": "/schema/autocomplete?term=${term}&rkey=${rkey}&d1=${data1}&d2=${data2}",
+                  "dependency": [
+                    {
+                      "name": "data1",
+                      "prpId": 130602,
+                      "part": 1,
+                      "required": true
+                    },
+                    {
+                      "name": "data2",
+                      "prpId": 1355,
+                      "part": 1,
+                      "required": false
+                    }
+                  ]
                 },
                 {
                   "part": 2,
@@ -492,6 +506,76 @@
                 {
                   "part": 1,
                   "viewType": "password"
+                }
+              ]
+            },
+            {
+              "prpId": 11111,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "validations": {
+                    "required": false
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 22222,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل multiple",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "multiple": true
+                }
+              ]
+            },
+            {
+              "prpId": 33333,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل multiple",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "multiple": true,
+                  "validations": {
+                    "mimes": [
+                      {
+                        "mime": "image/jpeg",
+                        "minSize": 10,
+                        "maxSize": 10000
+                      },
+                      {
+                        "mime": "image/jpg",
+                        "minSize": 10,
+                        "maxSize": 10000
+                      },
+                      {
+                        "mime": "image/png",
+                        "minSize": 10,
+                        "maxSize": 10000
+                      }
+                    ],
+                    "size": 100000000
+                  }
                 }
               ]
             }

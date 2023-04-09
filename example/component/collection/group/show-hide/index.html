@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.js"></script>
+    <title>Group Command - Simple</title>
+</head>
+
+<body>
+    current state is : [##local.group.value##]
+    <br />
+    <input type="button" value="show/hide group" onclick="fn()" />
+    <basis core="group" run="atclient" triggers="local.group" if="[##local.group.value##]">
+        <h1>Group start</h1>
+        <Basis core="print" datamembername="local.print" run="atclient">
+            <face>
+                <li>
+                    <span>@id ( @name ) </span>
+                </li>
+            </face>
+        </Basis>
+        <h1>Group end</h1>
+    </basis>
+
+    <script>
+        var show = true;
+        var id = 0;
+        function fn() {
+            show = !show
+            $bc.setSource("local.group", show);
+        }
+        $bc.setSource(
+            "local.print",
+            [
+                { id: 1, name: "btn-t=1" },
+                { id: 2, name: "btn-t=2" },
+                { id: 3, name: "btn-t=3" },
+            ]
+        );
+        setInterval(() => {
+            id++;
+            $bc.setSource(
+                "local.print",
+                [
+                    { id: 1, name: `btn-t=${id}` },
+                    { id: 2, name: `btn-t=${id + 1}` },
+                    { id: 3, name: `btn-t=${id + 2}` },
+                ]
+            );
+        }, 1_000)
+        $bc.setSource("local.group", show);
+    </script>
+</body>
+
+</html>

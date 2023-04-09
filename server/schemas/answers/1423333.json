@@ -1,0 +1,110 @@
+{
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "answer.data",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
+      "data": [
+        {
+          "usedForId": 1423330,
+          "schemaId": 1165,
+          "paramUrl": "/1165",
+          "schemaVersion": 1.1,
+          "lastUpdate": "",
+          "lid": 1,
+          "properties": [
+            {
+              "prpId": 11111,
+              "answers": [
+                {
+                  "id": 1987,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 111,
+                          "value": {
+                            "name": "readme test.txt",
+                            "type": "text/plain"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 22222,
+              "answers": [
+                {
+                  "id": 1785,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 222,
+                          "value": {
+                            "name": "readme.txt",
+                            "type": "text/plain"
+                          }
+                        },
+                        {
+                          "id": 333,
+                          "value": {
+                            "name": "ebook.pdf",
+                            "type": "application/pdf"
+                          }
+                        },
+                        {
+                          "id": 444,
+                          "value": {
+                            "name": "ebook test name long.pdf",
+                            "type": "application/pdf"
+                          }
+                        },
+                        {
+                          "id": 555,
+                          "value": {
+                            "name": "sample.jpg",
+                            "image": "component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "image/jpg"
+                          }
+                        },
+                        {
+                          "id": 666,
+                          "value": {
+                            "name": "sample1.jpg",
+                            "image": "",
+                            "type": "image/jpg"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "part": 2,
+                      "values": [
+                        {
+                          "id": 85257,
+                          "value": "1000"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

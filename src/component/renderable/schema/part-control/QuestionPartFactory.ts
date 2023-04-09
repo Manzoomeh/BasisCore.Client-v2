@@ -6,6 +6,7 @@ import RadioListType from "./select-list/radio/RadioListType";
 import SelectType from "./select/SelectType";
 import TextAriaType from "./text-area/TextAriaType";
 import TextType from "./text/TextType";
+import UploadType from "./upload/UploadType";
 import UnknownType from "./unknown/UnknownType";
 import QuestionPart from "../question-part/QuestionPart";
 import ReadonlyCheckListType from "./select-list/check-list/ReadonlyCheckListType";
@@ -79,6 +80,10 @@ export default class QuestionPartFactory {
           retVal = new PasswordType(part, owner, answer);
           break;
         }
+        case "upload": {
+          retVal = new UploadType(part, owner, answer);
+          break;
+        }
         default: {
           retVal = viewType.startsWith("component.")
             ? new ComponentContainer(part, owner, answer)
@@ -129,6 +134,10 @@ export default class QuestionPartFactory {
         }
         case "password": {
           retVal = new PasswordType(part, owner, answer);
+          break;
+        }
+        case "upload": {
+          retVal = new UploadType(part, owner, answer);
           break;
         }
         default: {

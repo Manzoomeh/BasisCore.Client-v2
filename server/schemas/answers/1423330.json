@@ -23,7 +23,7 @@
               "prpId": 55,
               "answers": [
                 {
-                  "id": 1236,
+                  "id": 12361,
                   "parts": [
                     {
                       "part": 1,
@@ -42,7 +42,7 @@
               "prpId": 132621,
               "answers": [
                 {
-                  "id": 1236,
+                  "id": 12362,
                   "parts": [
                     {
                       "part": 1,
@@ -61,7 +61,7 @@
               "prpId": 1406031,
               "answers": [
                 {
-                  "id": 1236,
+                  "id": 12363,
                   "parts": [
                     {
                       "part": 1,
@@ -80,14 +80,14 @@
               "prpId": 130604,
               "answers": [
                 {
-                  "id": 1236,
+                  "id": 12364,
                   "parts": [
                     {
                       "part": 1,
                       "values": [
                         {
                           "id": 33,
-                          "value": "57"
+                          "value": 57
                         }
                       ]
                     }
@@ -99,7 +99,7 @@
               "prpId": 140603,
               "answers": [
                 {
-                  "id": 1236,
+                  "id": 12365,
                   "parts": [
                     {
                       "part": 1,
@@ -178,6 +178,10 @@
                         {
                           "id": 78854,
                           "value": 5
+                        },
+                        {
+                          "id": 78854,
+                          "value": 6
                         }
                       ]
                     }
@@ -418,6 +422,85 @@
                         {
                           "id": 78854,
                           "value": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 11111,
+              "answers": [
+                {
+                  "id": 1987,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 111,
+                          "value": {
+                            "name": "readme test.txt",
+                            "type": "text/plain"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 22222,
+              "answers": [
+                {
+                  "id": 1785,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 222,
+                          "value": {
+                            "name": "readme.txt",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "text/plain"
+                          }
+                        },
+                        {
+                          "id": 333,
+                          "value": {
+                            "name": "ebook.pdf",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "application/pdf"
+                          }
+                        },
+                        {
+                          "id": 444,
+                          "value": {
+                            "name": "ebook test name long.pdf",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "application/pdf"
+                          }
+                        },
+                        {
+                          "id": 555,
+                          "value": {
+                            "name": "sample.jpg",
+                            "image": "component/renderable/schema/edit/assets/images/sample.jpg",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "image/jpg"
+                          }
+                        },
+                        {
+                          "id": 666,
+                          "value": {
+                            "name": "sample1.jpg",
+                            "image": "",
+                            "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
+                            "type": "image/jpg"
+                          }
                         }
                       ]
                     }

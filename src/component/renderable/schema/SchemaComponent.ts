@@ -136,6 +136,10 @@ export default class SchemaComponent extends SourceBaseComponent {
       };
     }
     //const viewMode = this._answer ? (viewModeStr ?? "true") == "true" : false;
+    let data = {};
+    Array.from(this.node.attributes)
+      .filter((x) => x.name.startsWith("qs_"))
+      .map((x) => (data[x.name.substring(3)] = x.value));
     const options: IFormMakerOptions = {
       displayMode: displayMode,
       paramUrl: paramUrlStr ?? this._answer?.paramUrl,
@@ -151,6 +155,7 @@ export default class SchemaComponent extends SourceBaseComponent {
         schemaCallback: schemaCallbackStr,
         displayMode: displayMode,
       },
+      queryStrings: data,
     };
 
     this._schema = await schemaCallback(this.context, options.paramUrl);
@@ -185,12 +190,24 @@ export default class SchemaComponent extends SourceBaseComponent {
         if (options.displayMode == "view") {
           if (partAnswer && partAnswer != undefined) {
             this._questions.push(
-              new QuestionCollection(question, options, cellManager, partAnswer)
+              new QuestionCollection(
+                this._questions,
+                question,
+                options,
+                cellManager,
+                partAnswer
+              )
             );
           }
         } else {
           this._questions.push(
-            new QuestionCollection(question, options, cellManager, partAnswer)
+            new QuestionCollection(
+              this._questions,
+              question,
+              options,
+              cellManager,
+              partAnswer
+            )
           );
         }
       });

@@ -22,6 +22,30 @@ export default abstract class SelectListType extends ListBaseType {
     super(part, layout, owner, answer);
   }
 
+  public getSelectedItems(): Array<number> {
+    return Array.from(this.element.querySelectorAll("input"))
+      .map((x) => (x.checked ? parseInt(x.value) : null))
+      .filter((x) => x);
+  }
+
+  private async getAllSet(): Promise<Array<IUserActionPartValue>> {
+    const selectedItems = Array.from(this.element.querySelectorAll("input"))
+      .map((x) => (x.checked ? parseInt(x.value) : null))
+      .filter((x) => x);
+
+    return await Promise.all(
+      selectedItems.map(async (x) => {
+        const answer = this.hasSubSchema
+          ? await this.getSubSchemaValueAsync(x.toString())
+          : null;
+        return {
+          value: x,
+          ...(answer && { answer: answer }),
+        };
+      })
+    );
+  }
+
   private async getChangeSet(): Promise<Array<Array<IUserActionPartValue>>> {
     let addedItems: Array<IUserActionPartValue> = null;
     let deletedItems: Array<IUserActionPartValue> = null;
@@ -99,9 +123,6 @@ export default abstract class SelectListType extends ListBaseType {
         ? answerItem ?? false
         : item.selected ?? false;
 
-      // const checked = this.answer
-      //   ? this.answer.values.find((x) => x.value == item.id) ?? false
-      //   : item.selected ?? false;
       const newTemplate = this.itemLayout
         .replace("@type", this.controlType)
         .replace("@title", item.value)
@@ -169,6 +190,18 @@ export default abstract class SelectListType extends ListBaseType {
       retVal = {
         part: this.part.part,
         values: deletedItems,
+      };
+    }
+    return retVal;
+  }
+
+  public async getValuesAsync(): Promise<IUserActionPart> {
+    let retVal = null;
+    const all = await this.getAllSet();
+    if (all) {
+      retVal = {
+        part: this.part.part,
+        values: all,
       };
     }
     return retVal;

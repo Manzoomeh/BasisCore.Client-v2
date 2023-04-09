@@ -60,13 +60,19 @@ export default class Lookup extends EditableQuestionPart {
 
   protected async getValueAsync(id: number): Promise<IFixValue> {
     const rootUrl = this.part.link.split("?")[0];
-    const url = `${rootUrl}?fixid=${id}`;
+    const url = Util.formatString(
+      `${rootUrl}?fixid=${id}`,
+      this.owner.options.queryStrings
+    );
     return await Util.getDataAsync<IFixValue>(url);
   }
 
   private async displaySuggestionListAsync(e: KeyboardEvent) {
     const term = this._input.value;
-    const url = Util.formatString(this.part.link, { term });
+    const url = Util.formatString(this.part.link, {
+      term,
+      ...this.owner.options.queryStrings,
+    });
     const ul = this.element.querySelector<HTMLUListElement>("[data-bc-result]");
     ul.innerHTML = "";
     const result = await Util.getDataAsync<Array<IFixValue>>(url);
@@ -75,6 +81,8 @@ export default class Lookup extends EditableQuestionPart {
       result.forEach((item) => {
         const li = document.createElement("li");
         li.setAttribute("data-bc-value", item.value);
+        li.setAttribute("data-sys-hover", "");
+        li.setAttribute("data-sys-text", "");
         li.innerHTML = item.value;
         li.addEventListener("dblclick", (e) => {
           e.preventDefault();
@@ -131,6 +139,22 @@ export default class Lookup extends EditableQuestionPart {
     let retVal = null;
     if (this.answer && !this.selectedId) {
       retVal = this.answer;
+    }
+    return Promise.resolve(retVal);
+  }
+
+  public getValuesAsync(): Promise<IUserActionPart> {
+    let retVal = null;
+    if (this.selectedId) {
+      retVal = {
+        part: this.part.part,
+        values: [
+          {
+            value: this.selectedId,
+            title: this.title,
+          },
+        ],
+      };
     }
     return Promise.resolve(retVal);
   }

@@ -43,6 +43,7 @@ export default abstract class QuestionPart {
     const data = {
       prpId: this.owner.question.prpId,
       part: this.part.part,
+      ...this.owner.options.queryStrings,
     };
     const url = Util.formatString(this.part.link, data);
     return url;
@@ -154,6 +155,73 @@ export default abstract class QuestionPart {
             console.error("Error in apply min and max validation", ex);
           }
         }
+        if (this.part.validations.size && isArray) {
+          try {
+            let sizeOk = true;
+            let sumSize = 0;
+            userValue.forEach((file, index) => {
+              sumSize += file.size;
+            });
+            sizeOk = this.part.validations.size >= sumSize;
+            if (!sizeOk) {
+              errors.push({
+                type: "size",
+                params: [this.formatBytes(this.part.validations.size)],
+              });
+            }
+          } catch (ex) {
+            console.error("Error in apply size validation", ex);
+          }
+        }
+        if (this.part.validations.mimes && isArray) {
+          try {
+            let mimeOk = true;
+            let mimeSizeOk = true;
+            const mimes = this.part.validations.mimes;
+            userValue.forEach((file) => {
+              const typeFile = file.type;
+              const sizeFile = file.size;
+              var searchMime = mimes.filter((m) => m.mime === typeFile);
+              if (searchMime.length > 0) {
+                mimeSizeOk =
+                  searchMime[0].minSize <= sizeFile &&
+                  sizeFile <= searchMime[0].maxSize;
+              } else {
+                mimeOk = false;
+              }
+            });
+
+            if (!mimeOk) {
+              const mimesArray = [];
+              mimes.forEach((mime) => {
+                mimesArray.push(mime.mime);
+              });
+              errors.push({
+                type: "mime",
+                params: [mimesArray],
+              });
+            }
+
+            if (!mimeSizeOk) {
+              let mimeSizeArray = "";
+              mimes.forEach((mime) => {
+                mimeSizeArray += ` ${mime.mime} : ${this.formatBytes(
+                  mime.minSize
+                )} - ${this.formatBytes(mime.maxSize)} , `;
+              });
+              mimeSizeArray = mimeSizeArray.substring(
+                0,
+                mimeSizeArray.length - 2
+              );
+              errors.push({
+                type: "mime-size",
+                params: [mimeSizeArray],
+              });
+            }
+          } catch (ex) {
+            console.error("Error in apply size validation", ex);
+          }
+        }
       }
     }
     if (errors.length > 0) {
@@ -163,9 +231,14 @@ export default abstract class QuestionPart {
         errors: errors,
       };
     }
+    this.updateUIAboutError(retVal);
+    return retVal;
+  }
+
+  public updateUIAboutError(retVal: IValidationError) {
     if (retVal) {
       this.element.setAttribute("data-bc-invalid", "");
-      var str = "";
+      let str = "";
       retVal.errors.forEach((error) => {
         str += `<li>${error.type} ${
           error.params ? " - [" + error.params.join(",") + "]" : ""
@@ -176,11 +249,20 @@ export default abstract class QuestionPart {
       this.element.removeAttribute("data-bc-invalid");
       this._validationElement.innerHTML = "";
     }
-    return retVal;
+  }
+
+  private formatBytes(bytes: number, decimals: number = 2) {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   }
 
   public abstract getValidationErrorsAsync(): Promise<IValidationError>;
   public abstract getAddedAsync(): Promise<IUserActionPart>;
   public abstract getEditedAsync(): Promise<IUserActionPart>;
   public abstract getDeletedAsync(): Promise<IUserActionPart>;
+  public abstract getValuesAsync(): Promise<IUserActionPart>;
 }

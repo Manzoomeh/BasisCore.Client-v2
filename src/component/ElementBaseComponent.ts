@@ -18,6 +18,7 @@ export default abstract class ElementBaseComponent<
   protected onProcessingAsync: (args: CallbackArgument) => Promise<void>;
   protected onProcessedAsync: (args: CallbackArgument) => Promise<void>;
   protected ifToken: IToken<string>;
+  protected isHide: boolean = false;
 
   private _triggers: string[];
   public get triggers(): string[] {
@@ -98,6 +99,7 @@ export default abstract class ElementBaseComponent<
     let runResult: any = null;
     if (canRender) {
       runResult = await this.runAsync(source);
+      this.isHide = false;
       if (runResult !== null && this.onRenderedAsync) {
         await this.onRenderedAsync(
           this.createCallbackArgument<RenderedCallbackArgument>({
@@ -106,6 +108,9 @@ export default abstract class ElementBaseComponent<
           })
         );
       }
+    } else if (!this.isHide) {
+      await this.hideAsync();
+      this.isHide = true;
     }
   }
 
@@ -148,4 +153,7 @@ export default abstract class ElementBaseComponent<
   }
 
   protected abstract runAsync(source?: ISource): Promise<any>;
+  protected async hideAsync(): Promise<void> {
+    return Promise.resolve();
+  }
 }

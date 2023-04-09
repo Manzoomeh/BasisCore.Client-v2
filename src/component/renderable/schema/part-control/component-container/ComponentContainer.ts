@@ -143,4 +143,33 @@ export default class ComponentContainer extends EditableQuestionPart {
     }
     return retVal;
   }
+
+  public async getValuesAsync(): Promise<IUserActionPart> {
+    let retVal: IUserActionPart = null;
+
+    if (!this.answer) {
+      const manager = this.command.manager as any as ISchemaBaseComponent;
+      try {
+        if (typeof manager.getValuesAsync == "function") {
+          const newValues = await manager.getValuesAsync();
+          if (newValues) {
+            retVal = {
+              part: this.part.part,
+              values: newValues,
+            };
+          }
+        } else {
+          console.warn(
+            `the getValuesAsync() method not exist in '${this.part.viewType}'!`
+          );
+        }
+      } catch (ex) {
+        console.error(
+          `Error in getValuesAsync() of '${this.part.viewType}'!`,
+          ex
+        );
+      }
+    }
+    return retVal;
+  }
 }

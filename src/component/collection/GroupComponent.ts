@@ -23,13 +23,20 @@ export default class GroupComponent extends CommandComponent {
   ) {
     super(element, context);
     this.container = container;
-    const content = document.createDocumentFragment();
     this.childNodes = [...element.childNodes];
+    this.fillContent();
+  }
+
+  private fillContent() {
+    const content = document.createDocumentFragment();
     this.childNodes.forEach((node) => content.appendChild(node));
     this.range.setContent(content);
   }
 
   public async runAsync(): Promise<void> {
+    if (this.isHide) {
+      this.fillContent();
+    }
     this.oldLocalContext?.dispose();
     this.currentDC = this.container.createChildContainer();
     this.currentDC.register("parent.context", { useValue: this.context });
@@ -47,7 +54,8 @@ export default class GroupComponent extends CommandComponent {
       });
       this.oldLocalContext = this.currentDC.resolve(LocalRootContext);
     } else {
-      this.oldLocalContext = this.currentDC.resolve("ILocalContext");
+      this.oldLocalContext = this.currentDC.resolve(LocalRootContext);
+      //this.oldLocalContext = this.currentDC.resolve("ILocalContext");
     }
     this.currentDC.register("context", {
       useValue: this.oldLocalContext,
@@ -55,6 +63,12 @@ export default class GroupComponent extends CommandComponent {
     const collection = this.currentDC.resolve(ComponentCollection);
     this._collections.push(collection);
     await collection.processNodesAsync(this.childNodes);
+  }
+
+  protected override hideAsync(): Promise<void> {
+    this.oldLocalContext?.dispose();
+    this.range.deleteContents();
+    return super.hideAsync();
   }
 
   public async processNodesAsync(

@@ -14,16 +14,24 @@ export default abstract class ReadonlyQuestionPart extends QuestionPart {
   ) {
     super(part, layout, owner, answer);
   }
+
   public getValidationErrorsAsync(): Promise<IValidationError> {
     throw new Error("Method not supported.");
   }
+
   public getAddedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
+
   public getEditedAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
+
   public getDeletedAsync(): Promise<IUserActionPart> {
+    throw new Error("Method not supported.");
+  }
+
+  public getValuesAsync(): Promise<IUserActionPart> {
     throw new Error("Method not supported.");
   }
 }

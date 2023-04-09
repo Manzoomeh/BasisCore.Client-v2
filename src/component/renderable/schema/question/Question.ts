@@ -47,6 +47,8 @@ export default class Question {
       !this.question.disabled
     ) {
       this.button.setAttribute("data-bc-btn", "add");
+      this.button.setAttribute("data-sys-plus", "");
+      this.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
       if (this.answer) {
         this._removeButton.addEventListener("click", (e) => {
           e.preventDefault();
@@ -81,6 +83,8 @@ export default class Question {
   public setRemovable() {
     if (!this.answer || this.question.parts.some((x) => !x.disabled)) {
       this.button?.setAttribute("data-bc-btn", "remove");
+      this.button?.setAttribute("data-sys-minus", "");
+      this.button.innerHTML = `<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-minus-icon="" d="M2.04028 0.0603034L0.0603845 2.0402L4.02018 6L0.0603845 9.9598L2.04028 11.9397L6.00008 7.9799L9.95988 11.9397L11.9398 9.9598L7.97998 6L11.9398 2.0402L9.95988 0.0603037L6.00008 4.0201L2.04028 0.0603034Z" fill="#B40020"></path></svg>`;
       this._removeButton?.remove();
       this._removeButton = null;
     } else {
@@ -139,6 +143,17 @@ export default class Question {
     return userAction.length > 0
       ? {
           id: this.answer.id,
+          parts: userAction,
+        }
+      : null;
+  }
+
+  public async getAllValuesAsync() {
+    const userActionTaskList = this._parts.map((x) => x.getValuesAsync());
+    const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
+    return userAction.length > 0
+      ? {
+          ...(this.answer && { id: this.answer.id }),
           parts: userAction,
         }
       : null;

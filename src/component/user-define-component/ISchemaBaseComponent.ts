@@ -14,4 +14,5 @@ export default interface ISchemaBaseComponent {
   getDeletedValuesAsync(
     baseValues: Array<IPartValue>
   ): Promise<Array<IUserActionPartValue>>;
+  getValuesAsync(): Promise<Array<IUserActionPartValue>>;
 }

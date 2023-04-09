@@ -35,6 +35,7 @@ export interface IQuestionPart {
   method?: WebMethod;
   disabled?: boolean;
   options?: any;
+  multiple?: boolean;
 }
 
 export type WebMethod = "POST" | "GET";
@@ -68,6 +69,8 @@ export interface IValidationOptions {
   dataType?: AnswerDataType;
   required?: boolean;
   regex?: string;
+  mimes?: Array<IMimes>;
+  size?: number;
 }
 
 export interface IFixValue {
@@ -78,8 +81,13 @@ export interface IFixValue {
 }
 
 export interface IDependency {
-  id: number;
-  part: number;
-  schemaId: number;
   prpId: number;
+  part: number;
+  name: string;
+  required: boolean;
+}
+export interface IMimes {
+  mime: string;
+  minSize: number;
+  maxSize: number;
 }

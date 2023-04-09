@@ -17,6 +17,7 @@ declare const $bc: IBCUtil;
 export default abstract class RenderableComponent<
   TRenderResult extends FaceRenderResult
 > extends SourceBaseComponent {
+  private _preCollection: ComponentCollection = null;
   readonly container: DependencyContainer;
   readonly reservedKeys: Array<string>;
   protected renderResultRepository: FaceRenderResultRepository<TRenderResult>;
@@ -141,8 +142,11 @@ export default abstract class RenderableComponent<
   ): Promise<Array<ChildNode>> {
     const generatedNodes = Array.from(doc.childNodes);
     this.setContent(doc, false);
-    const collection = this.container.resolve(ComponentCollection);
-    await collection.processNodesAsync(generatedNodes);
+    if (this._preCollection) {
+      await this._preCollection.disposeAsync();
+    }
+    this._preCollection = this.container.resolve(ComponentCollection);
+    await this._preCollection.processNodesAsync(generatedNodes);
     return generatedNodes;
   }
 }
