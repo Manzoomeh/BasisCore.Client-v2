@@ -3,3 +3,4 @@ dist
 example/personal
 *.rar
 types
+test_*
