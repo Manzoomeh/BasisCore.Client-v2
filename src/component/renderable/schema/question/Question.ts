@@ -58,7 +58,6 @@ export default class Question {
     });
     this._onAddClick = () => {
       this.owner.addQuestion(null);
-      //this.setRemovable();
     };
     this._onRemoveClick = () => {
       this.owner.onQuestionRemove(this);
@@ -78,31 +77,10 @@ export default class Question {
       this.button.style.display = "none";
     }
     container.appendChild(this._ui);
-
     this._parts = question.parts.map((part) => {
       const value = this.answer?.parts.find((x) => x.part === part.part);
       return QuestionPartFactory.generate(question, part, this, value);
     });
-  }
-
-  public setRemovable() {
-    if (!this.answer || this.question.parts.some((x) => !x.disabled)) {
-      this._pairBtnContainer.style.display = "none";
-      this.button.style.display = "block";
-      this.button.setAttribute("data-bc-btn", "remove");
-      this.button.setAttribute("data-sys-minus", "");
-      this.button.innerHTML = `<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-minus-icon="" d="M2.04028 0.0603034L0.0603845 2.0402L4.02018 6L0.0603845 9.9598L2.04028 11.9397L6.00008 7.9799L9.95988 11.9397L11.9398 9.9598L7.97998 6L11.9398 2.0402L9.95988 0.0603037L6.00008 4.0201L2.04028 0.0603034Z" fill="#B40020"></path></svg>`;
-    } else {
-      this._pairBtnContainer.style.display = "none";
-      this.button.style.display = "none";
-    }
-  }
-
-  public setAddAndRemovable() {
-    if (!this.answer || this.question.parts.some((x) => !x.disabled)) {
-      this._pairBtnContainer.style.display = "block";
-      this.button.style.display = "none";
-    }
   }
 
   public updateButtonState(isLastQuestion: boolean) {
