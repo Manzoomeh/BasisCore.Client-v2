@@ -107,12 +107,18 @@ export default class QuestionContainer {
       this.element,
       answer
     );
-    this._questions.forEach((x) => x.setRemovable());
+    //this._questions.forEach((x) => x.setRemovable());
     this._questions.push(question);
-    if (answer != null) {
-      question.setAddAndRemovable();
-    }
+    // if (answer != null) {
+    //   question.setAddAndRemovable();
+    // }
+    this.updateButtonState();
     return question;
+  }
+
+  public updateButtonState() {
+    const lastIndex = this._questions.length - 1;
+    this._questions.forEach((x, i) => x.updateButtonState(i == lastIndex));
   }
 
   public onQuestionRemove(question: Question) {
