@@ -73,8 +73,8 @@ export default class Question {
       this.button.setAttribute("data-sys-plus", "");
       this.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
     } else {
-      this._pairBtnContainer.style.display = "none";
-      this.button.style.display = "none";
+      this._pairBtnContainer.remove();
+      this.button.remove();
     }
     container.appendChild(this._ui);
     this._parts = question.parts.map((part) => {
