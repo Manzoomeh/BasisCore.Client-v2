@@ -51,6 +51,7 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
         };
         this.owner.options.callback(param);
       }
+      this.owner.owner.updateButtonsState();
     }
     return mustChange;
   }

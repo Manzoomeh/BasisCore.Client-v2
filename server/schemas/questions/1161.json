@@ -276,7 +276,7 @@
                       "name": "data1",
                       "prpId": 130602,
                       "part": 1,
-                      "required": true
+                      "required": false
                     },
                     {
                       "name": "data2",
