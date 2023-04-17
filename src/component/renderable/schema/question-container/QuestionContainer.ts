@@ -149,17 +149,29 @@ export default class QuestionContainer {
       await Promise.all(this._questions.map((x) => x.getEditedPartsAsync()))
     ).filter((x) => x);
     const deleted = (
-      await Promise.all(this._questions.map((x) => x.getDeletedPartsAsync()))
+      await Promise.all(
+        this._questions.map(async (x) => {
+          return { x, userAction: await x.getDeletedPartsAsync() };
+        })
+      )
     )
-      .filter((x) => x)
-      .map((x) =>
-        x.parts.length == this.QuestionSchema.parts.length &&
-        edited.length == 0 &&
-        added.length == 0
-          ? { id: x.id }
-          : x
-      );
-
+      .filter((x) => x.userAction)
+      .map((x) => {
+        const deletedValues = x.userAction.parts.reduce(
+          (sum, item) => sum + item.values.length,
+          0
+        );
+        const allValues = x.x.answer.parts.reduce(
+          (sum, item) => sum + item.values.length,
+          0
+        );
+        return x.userAction.parts.length === this.QuestionSchema.parts.length &&
+          edited.length === 0 &&
+          added.length === 0 &&
+          allValues === deletedValues
+          ? { id: x.userAction.id }
+          : x.userAction;
+      });
     this._removedQuestions?.forEach((x) => {
       deleted.push({
         id: x,
@@ -187,7 +199,7 @@ export default class QuestionContainer {
       )
     ).filter((x) => x);
 
-    if (errors.length == 0) {
+    if (errors.length === 0) {
       userAction = await this.getChangeValuesAsync();
     } else {
       throw Error("invalid");
@@ -198,6 +210,6 @@ export default class QuestionContainer {
   public getParts(part: number): QuestionPart[] {
     return this._questions
       .flatMap((x) => x._parts)
-      .filter((x) => x.part.part == part);
+      .filter((x) => x.part.part === part);
   }
 }
