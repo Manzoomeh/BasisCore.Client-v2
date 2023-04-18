@@ -33,24 +33,10 @@ export default class UploadType extends EditableQuestionPart {
     } else {
       this.input.removeAttribute("multiple");
     }
-    // this.initializeAsync();
     if (answer) {
       this.setValue(answer.values);
     }
   }
-
-  // initializeAsync(): Promise<void> {
-  //   this.input.addEventListener("change", (e) => {
-  //     e.preventDefault();
-  //     this.addFilesFromClient(this.input);
-  //   });
-  //   if (this.part.multiple) {
-  //     this.input.setAttribute("multiple", "");
-  //   } else {
-  //     this.input.removeAttribute("multiple");
-  //   }
-  //   return Promise.resolve();
-  // }
 
   addFilesFromClient(input: HTMLInputElement) {
     const files = Array.from(input.files);
@@ -63,16 +49,6 @@ export default class UploadType extends EditableQuestionPart {
         size: file.size,
         data: file,
       };
-      // if (ExtensionList[file.type] === null) {
-      //   var oFReader = new FileReader();
-      //   oFReader.readAsDataURL(file);
-      //   oFReader.onload = (e) => {
-      //     fileInfo.image = e.target.result;
-      //     this.addFileToUI(fileInfo);
-      //   };
-      // } else {
-      //   this.addFileToUI(fileInfo);
-      // }
       this.addFileToUI(fileInfo);
     });
     input.value = "";
@@ -149,14 +125,12 @@ export default class UploadType extends EditableQuestionPart {
 
   public async getChangedAsync(): Promise<IUserActionPart> {
     let retVal = null;
-    const l = new Array<FileReader>();
     const process = Object.getOwnPropertyNames(this.files)
       .map((x) => this.files[x])
       .filter((x) => x.data)
       .map((x) => {
         return new Promise<IFileValue>((resolve, reject) => {
           const reader = new FileReader();
-          l.push(reader);
           reader.readAsDataURL(x.data);
           reader.onload = () =>
             resolve({
@@ -211,7 +185,6 @@ export default class UploadType extends EditableQuestionPart {
         .map((x) => {
           const retVal: IPartValue = {
             id: x.id,
-            // value: x,
             value: {
               name: x.name,
               type: x.type,
@@ -229,7 +202,6 @@ export default class UploadType extends EditableQuestionPart {
       }
     }
     console.table(this.files);
-    console.log(retVal);
     return Promise.resolve(retVal);
   }
 
