@@ -2,6 +2,7 @@ import ISchema from "./ISchema";
 
 export default interface IUserActionResult extends ISchema {
   usedForId?: number;
+  ownerid?: number;
   properties: Array<IUserActionProperty>;
 }
 

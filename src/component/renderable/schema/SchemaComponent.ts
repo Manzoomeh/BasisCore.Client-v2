@@ -263,6 +263,7 @@ export default class SchemaComponent extends SourceBaseComponent {
         schemaId: this._schema.schemaId,
         schemaVersion: this._schema.schemaVersion,
         usedForId: this._answer?.usedForId,
+        ownerid: this._answer?.ownerid,
         properties: userActionList,
       };
     }

@@ -2,6 +2,7 @@ import ISchema from "./ISchema";
 
 export default interface IAnswerSchema extends ISchema {
   usedForId: number;
+  ownerid?: number;
   lastUpdate: string;
   properties: Array<IAnswerProperty>;
 }
