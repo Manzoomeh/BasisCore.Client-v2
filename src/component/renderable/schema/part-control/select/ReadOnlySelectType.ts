@@ -13,7 +13,7 @@ export default class ReadOnlySelectType extends ReadOnlyListBaseType {
   protected fillUI(values: Array<IFixValue>) {
     const value = this.answer?.values[0];
     const item = values.find((x) => x.id == value.value);
-    this.element.querySelector("label").innerHTML = item?.value;
+    this.element.querySelector("label").innerHTML = item?.value ?? null;
     if (this.owner.options.callback) {
       const param: IEditParams = {
         element: this.element,

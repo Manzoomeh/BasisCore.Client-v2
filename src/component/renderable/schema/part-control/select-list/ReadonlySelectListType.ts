@@ -15,7 +15,7 @@ export default abstract class ReadonlySelectListType extends ReadOnlyListBaseTyp
   protected fillUI(values: Array<IFixValue>) {
     values.forEach((item) => {
       if (this.answer?.values.find((x) => x.value == item.id)) {
-        const newTemplate = this.itemLayout.replace("@title", item.value);
+        const newTemplate = this.itemLayout.replace("@title", item.value ?? null);
         const template = Util.parse(newTemplate).querySelector("div");
         this.element.querySelector("div").appendChild(template);
         if (this.owner.options.callback) {

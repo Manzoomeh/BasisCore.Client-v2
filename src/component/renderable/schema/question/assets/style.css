@@ -46,6 +46,12 @@
   justify-content: center;
 }
 
+[data-part-btn-container] [data-bc-btn],
+[data-part-btn-container] [data-bc-btn-remove],
+[data-part-btn-container] [data-bc-btn-add] {
+  position: unset !important;
+}
+
 [data-bc-question] [data-bc-btns]:last-child {
   margin-left: 0;
 }
