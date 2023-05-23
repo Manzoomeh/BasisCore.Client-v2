@@ -37,6 +37,8 @@ export default class QuestionContainer {
     this.element = uiElement.querySelector("[data-bc-answer-collection]");
     if (!questionSchema.help) {
       uiElement.querySelector("[data-bc-help-btn]").remove();
+    } else {
+      uiElement.querySelector("[data-bc-help-btn]").setAttribute("data-bc-help-tooltip", questionSchema.help);
     }
     const headerContainer = uiElement.querySelector(
       "[data-bc-answer-title-container]"
