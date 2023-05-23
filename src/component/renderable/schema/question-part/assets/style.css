@@ -23,3 +23,8 @@
   color: #B40020;
   font-size: 14px;
 }
+
+[data-bc-part][data-bc-invalid] [data-bc-validation-part] li {
+  color: #B40020;
+  font-size: 14px;
+}
