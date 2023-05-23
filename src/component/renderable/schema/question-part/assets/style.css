@@ -7,8 +7,8 @@
 
 [data-bc-part][data-bc-invalid],
 [data-bc-part][data-bc-invalid] * {
-  background-color: #fefe !important;
-  color: lightcoral !important;
+  /* background-color: #fefe !important; */
+  /* color: lightcoral !important; */
 }
 
 [data-bc-part] [data-bc-validation-part] {
@@ -18,6 +18,8 @@
 [data-bc-part][data-bc-invalid] [data-bc-validation-part] {
   display: block;
   padding-right: 10px;
-  list-style: inside;
+  list-style: none;
   margin: 5px 0;
+  color: #B40020;
+  font-size: 14px;
 }

@@ -58,6 +58,7 @@ export default abstract class QuestionPart {
     if (addSubSchemaError) {
       errors.push({
         type: "sub-schema",
+        description: "",
       });
     }
     const isArray = Array.isArray(userValue);
@@ -70,6 +71,7 @@ export default abstract class QuestionPart {
           if (!hasValue) {
             errors.push({
               type: "required",
+              description: "پر کردن این فیلد الزامیست"
             });
           }
         }
@@ -87,6 +89,7 @@ export default abstract class QuestionPart {
             if (!ok) {
               errors.push({
                 type: "type",
+                description: "عدد وارد شده صحیح نیست",
                 params: [this.part.validations.dataType],
               });
             }
@@ -103,6 +106,7 @@ export default abstract class QuestionPart {
             ) {
               errors.push({
                 type: "regex",
+                description: `فرمت وارد شده صحیح نیست. فرمت صحیح به صورت ${this.part.validations.regex} است`,
                 params: [this.part.validations.regex, userValue],
               });
             }
@@ -121,6 +125,7 @@ export default abstract class QuestionPart {
           if (!lengthOk) {
             errors.push({
               type: "length",
+              description: `طول رشته وارد شده باید در بازه ${this.part.validations.minLength} و ${this.part.validations.maxLength} باشد`,
               params: [
                 this.part.validations.minLength ?? null,
                 this.part.validations.maxLength ?? null,
@@ -145,6 +150,7 @@ export default abstract class QuestionPart {
             if (!rangeOk) {
               errors.push({
                 type: "range",
+                description: `عدد وارد شده باید در بازه ${this.part.validations.min} و ${this.part.validations.max} باشد`,
                 params: [
                   this.part.validations.min ?? null,
                   this.part.validations.max ?? null,
@@ -166,6 +172,7 @@ export default abstract class QuestionPart {
             if (!sizeOk) {
               errors.push({
                 type: "size",
+                description: `حجم فایل بیشتر از حجم مجاز (${this.formatBytes(this.part.validations.size)}) است.`,
                 params: [this.formatBytes(this.part.validations.size)],
               });
             }
@@ -198,6 +205,7 @@ export default abstract class QuestionPart {
               });
               errors.push({
                 type: "mime",
+                description: `نوع فایل در بین انواع فایل مجاز (${mimesArray}) نیست`,
                 params: [mimesArray],
               });
             }
@@ -215,6 +223,7 @@ export default abstract class QuestionPart {
               );
               errors.push({
                 type: "mime-size",
+                description: `سایز فایل در بین سایزهای فایل مجاز (${mimeSizeArray}) نیست`,
                 params: [mimeSizeArray],
               });
             }
@@ -240,9 +249,10 @@ export default abstract class QuestionPart {
       this.element.setAttribute("data-bc-invalid", "");
       let str = "";
       retVal.errors.forEach((error) => {
-        str += `<li>${error.type} ${
-          error.params ? " - [" + error.params.join(",") + "]" : ""
-        }</li>`;
+        // str += `<li> * ${error.type} ${
+        //   error.params ? " - [" + error.params.join(",") + "]" : ""
+        // }</li>`;
+        str += `<li> * ${error.description} </li>`;
       });
       this._validationElement.innerHTML = str;
     } else {

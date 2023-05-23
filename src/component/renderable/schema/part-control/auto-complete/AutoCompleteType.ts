@@ -99,6 +99,7 @@ export default abstract class AutoCompleteType extends EditableQuestionPart {
               errors: [
                 {
                   type: "required",
+                  description: "پر کردن این فیلد الزامیست"
                 },
               ],
             };

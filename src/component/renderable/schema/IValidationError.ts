@@ -17,5 +17,6 @@ export type ValidationErrorType =
 
 export interface IValidationErrorPart {
   type: ValidationErrorType;
+  description: string;
   params?: Array<any>;
 }
