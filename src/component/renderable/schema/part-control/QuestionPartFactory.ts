@@ -1,6 +1,8 @@
 import Question from "../question/Question";
-import AutoCompleteMultiType from "./auto-complete/AutoCompleteMultiType";
-import AutoCompleteSingleType from "./auto-complete/AutocompleteSingleType";
+import AutoCompleteMultiType from "./auto-fill/auto-complete/AutoCompleteMultiType";
+import AutoCompleteSingleType from "./auto-fill/auto-complete/AutoCompleteSingleType";
+import ReferenceMultiType from "./auto-fill/reference/ReferenceMultiType";
+import ReferenceSingleType from "./auto-fill/reference/ReferenceSingleType";
 import CheckListType from "./select-list/check-list/CheckListType";
 import RadioListType from "./select-list/radio/RadioListType";
 import SelectType from "./select/SelectType";
@@ -64,6 +66,17 @@ export default class QuestionPartFactory {
             : new AutoCompleteSingleType(part, owner, answer);
           break;
         }
+        case "reference": {
+          retVal = question.multi
+            ? new ReferenceMultiType(
+                part,
+                owner,
+                answer?.values[0].id ? answer : null,
+                answer
+              )
+            : new ReferenceSingleType(part, owner, answer);
+          break;
+        }
         case "lookup": {
           retVal = new Lookup(part, owner, answer);
           break;
@@ -118,6 +131,17 @@ export default class QuestionPartFactory {
                 answer
               )
             : new AutoCompleteSingleType(part, owner, answer);
+          break;
+        }
+        case "reference": {
+          retVal = question.multi
+            ? new ReferenceMultiType(
+                part,
+                owner,
+                answer?.values[0].id ? answer : null,
+                answer
+              )
+            : new ReferenceSingleType(part, owner, answer);
           break;
         }
         case "lookup": {

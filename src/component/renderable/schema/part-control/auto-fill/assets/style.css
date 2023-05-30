@@ -131,6 +131,12 @@
     /* margin-bottom: 5px; */
 }
 
+[data-bc-answer-container] [data-bc-invalid] [data-bc-add-item] {
+    border: 1px solid #B40020;
+    border: 1px solid #B40020;
+    box-shadow: 0px 0px 4px rgba(180, 0, 32, 0.25);
+}
+
 [data-bc-add-item] [data-bc-btn-remove] {
     width: 35px;
     height: 35px;

@@ -134,6 +134,8 @@
 
 [data-bc-answer-container] input[type="text"],
 [data-bc-answer-container] input[type="password"],
+[data-bc-answer-container] input[type="time"],
+/* [data-bc-answer-container] input[type="color"], */
 [data-bc-answer-container] input[type="file"],
 [data-bc-answer-container] select,
 [data-bc-answer-container] textarea {
@@ -151,6 +153,8 @@
 
 [data-bc-answer-container] [data-bc-invalid] input[type="text"],
 [data-bc-answer-container] [data-bc-invalid] input[type="password"],
+[data-bc-answer-container] [data-bc-invalid] input[type="time"],
+[data-bc-answer-container] [data-bc-invalid] input[type="color"],
 [data-bc-answer-container] [data-bc-invalid] input[type="file"],
 [data-bc-answer-container] [data-bc-invalid] select,
 [data-bc-answer-container] [data-bc-invalid] textarea {
@@ -160,6 +164,8 @@
 
 [data-bc-answer-container] input[type="text"],
 [data-bc-answer-container] input[type="password"],
+[data-bc-answer-container] input[type="time"],
+[data-bc-answer-container] input[type="color"],
 [data-bc-answer-container] input[type="file"],
 [data-bc-answer-container] select {
   height: 35px;

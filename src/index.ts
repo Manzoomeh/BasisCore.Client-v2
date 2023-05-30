@@ -41,7 +41,7 @@ ______           _                               _ _            _
                                                                     
 %cWelcome To BasisCore Ecosystem%c
 follow us on https://BasisCore.com/
-version:2.19.1`,
+version:2.20.0`,
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
 );

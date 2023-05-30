@@ -10,7 +10,7 @@ import IValidationError from "../../IValidationError";
 import IDictionary from "../../../../../IDictionary";
 import QuestionPart from "../../question-part/QuestionPart";
 
-export default abstract class AutoCompleteType extends EditableQuestionPart {
+export default abstract class AutoFillType extends EditableQuestionPart {
   protected selectedId?: number;
   protected readonly label: HTMLLabelElement;
   public get changed(): boolean {

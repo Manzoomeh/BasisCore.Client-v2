@@ -2,12 +2,12 @@
 import { IPartCollection, IAnswerPart } from "../../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import Question from "../../question/Question";
-import layout from "./assets/auto-complete-multi-type.html";
+import layout from "./assets/auto-fill-multi-type.html";
 import "./assets/style";
-import AutoCompleteType from "./AutoCompleteType";
+import AutoFillType from "./AutoFillType";
 import SearchPopup from "./SearchPopup";
 
-export default class AutoCompleteMultiType extends AutoCompleteType {
+export default class AutoFillMultiType extends AutoFillType {
   constructor(
     part: IQuestionPart,
     owner: Question,

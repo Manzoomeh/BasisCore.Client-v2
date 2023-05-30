@@ -57,7 +57,7 @@
               "multi": true,
               "sectionId": 1,
               "cssClass": "css_13050",
-              "help": "help data",
+              "help": "متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help ",
               "parts": [
                 {
                   "part": 1,
@@ -480,6 +480,30 @@
               ]
             },
             {
+              "prpId": 1406032,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "رنگ",
+              "title": "color",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "color",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
               "prpId": 550,
               "typeId": 150,
               "ord": 1000,
@@ -574,8 +598,63 @@
                         "maxSize": 10000
                       }
                     ],
-                    "size": 100000000
+                    "size": 1000
                   }
+                }
+              ]
+            },
+            {
+              "prpId": 44444,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "reference no multi",
+              "wordId": 50678,
+              "multi": false,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "reference",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 55555,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "reference multi",
+              "wordId": 50678,
+              "multi": true,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "reference",
+                  "cssClass": "css_13060_1",
+                  "caption": "کشور",
+                  "link": "/schema/autocomplete?term=${term}"
+                },
+                {
+                  "part": 2,
+                  "viewType": "text",
+                  "cssClass": "css_13057_2",
+                  "validations1": {
+                    "minLength": "2",
+                    "maxLength": "4000",
+                    "dataType": "int"
+                  },
+                  "caption": "سرعت (دور بر دقیقه)",
+                  "link": ""
                 }
               ]
             }

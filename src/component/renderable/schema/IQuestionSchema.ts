@@ -44,6 +44,7 @@ export type ViewType =
   | "Text"
   | "Textarea"
   | "Autocomplete"
+  | "Reference"
   | "Select"
   | "Upload"
   | "Datepicker"
