@@ -18,12 +18,14 @@ export default class UploadType extends EditableQuestionPart {
   protected readonly input: HTMLInputElement;
   protected multiple: boolean = false;
   protected files: IDictionary<IFileInfo>;
+  protected filesPath: string;
 
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
     this.input = this.element.querySelector<any>("[data-bc-file-input]");
     this.files = {};
-
+    this.filesPath = owner.options.filesPath ?? "";
+    
     this.input.addEventListener("change", (e) => {
       e.preventDefault();
       this.addFilesFromClient(this.input);
@@ -58,10 +60,11 @@ export default class UploadType extends EditableQuestionPart {
     const container = this.element.querySelector<any>(
       "[data-bc-upload-file-list]"
     );
+    let fileUrl = `${this.filesPath}${file.url}`;
     const template = imageLayout
       .replace("@name", file.name)
       .replace("@downloadName", file.name)
-      .replace("@url", file.url);
+      .replace("@url", fileUrl);
     const fileElement = $bc.util.toNode(template).childNodes[0] as Element;
     const imageElement = fileElement.querySelector<HTMLImageElement>(
       "[data-bc-item-icon]"

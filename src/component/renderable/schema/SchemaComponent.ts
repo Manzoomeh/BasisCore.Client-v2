@@ -34,6 +34,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   private schemaCallbackToken: IToken<string>;
   //private lidToken: IToken<string>;
   private cellToken: IToken<string>;
+  private filesPathToken: IToken<string>;
   private _currentCellManager: IQuestionCellManager;
   private getAnswersAndSetAsSource: () => void;
   private _schema: IQuestionSchema;
@@ -63,6 +64,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
     //this.lidToken = this.getAttributeToken("lid");
     this.cellToken = this.getAttributeToken("cell");
+    this.filesPathToken = this.getAttributeToken("filesPath");
     document
       .querySelectorAll(this.buttonSelector)
       .forEach((btn) => btn.addEventListener("click", this.onClick.bind(this)));
@@ -114,6 +116,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     //const lid = lidStr ? parseInt(lidStr) : null;
     const cellStr = await this.cellToken?.getValueAsync();
     const cell = cellStr ? parseInt(cellStr) : 1;
+    const filesPath = await this.filesPathToken?.getValueAsync();
     var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
       ? eval(schemaCallbackStr)
       : null;
@@ -156,6 +159,7 @@ export default class SchemaComponent extends SourceBaseComponent {
         displayMode: displayMode,
       },
       queryStrings: data,
+      filesPath: filesPath,
     };
 
     this._schema = await schemaCallback(this.context, options.paramUrl);

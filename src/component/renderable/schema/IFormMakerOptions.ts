@@ -13,6 +13,7 @@ export default interface IFormMakerOptions {
   subSchemaOptions: SubSchemaOptions;
   dc: DependencyContainer;
   queryStrings: IDictionary<string>;
+  filesPath?: string;
 }
 
 export interface IEditParams {
