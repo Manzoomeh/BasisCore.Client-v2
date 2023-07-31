@@ -26,7 +26,7 @@ export default class AutoFillSingleType extends AutoFillType {
 
   private onShowPopUpBtnClick(e: MouseEvent) {
     e.preventDefault();
-    this.getQueryStringsAsync()
+    this.getQueryStringParamsAsync()
       .then((x) => {
         if (this._btn.getAttribute("data-bc-btn") === "add") {
           const popup = new SearchPopup(

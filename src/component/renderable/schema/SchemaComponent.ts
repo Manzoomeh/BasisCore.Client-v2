@@ -139,10 +139,18 @@ export default class SchemaComponent extends SourceBaseComponent {
       };
     }
     //const viewMode = this._answer ? (viewModeStr ?? "true") == "true" : false;
-    let data = {};
-    Array.from(this.node.attributes)
-      .filter((x) => x.name.startsWith("qs_"))
-      .map((x) => (data[x.name.substring(3)] = x.value));
+    const queryStringsMakerAsync = async () => {
+      const data = {};
+      const names = Array.from(this.node.attributes)
+        .filter((x) => x.name.startsWith("qs_"))
+        .map((x) => x.name);
+      for (const name of names) {
+        data[name.substring(3)] = await this.getAttributeToken(
+          name
+        ).getValueAsync(true);
+      }
+      return data;
+    };
     const options: IFormMakerOptions = {
       displayMode: displayMode,
       paramUrl: paramUrlStr ?? this._answer?.paramUrl,
@@ -158,7 +166,7 @@ export default class SchemaComponent extends SourceBaseComponent {
         schemaCallback: schemaCallbackStr,
         displayMode: displayMode,
       },
-      queryStrings: data,
+      getQueryStringParamsAsync: queryStringsMakerAsync,
       filesPath: filesPath,
     };
 
