@@ -203,7 +203,7 @@
 
 [data-bc-answer-title-container] {
   /* margin-bottom: 5px; */
-  width: calc(100% - 35px);
+  width: calc(100% - 75px);
 }
 
 [data-bc-answer-title-container] [data-bc-answer-title] {
