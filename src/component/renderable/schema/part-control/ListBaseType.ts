@@ -38,10 +38,12 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     this.hasSubSchema = values.some((x) => x.schema);
   }
   protected async loadFromServerAsync(): Promise<void> {
+    const queryStringParams =
+      await this.owner.options.getQueryStringParamsAsync();
     const data = {
       prpId: this.owner.question.prpId,
       part: this.part.part,
-      ...this.owner.options.queryStrings,
+      ...queryStringParams,
     };
     const url = Util.formatString(this.part.link, data);
     const result = await Util.getDataAsync<Array<IFixValue>>(url);

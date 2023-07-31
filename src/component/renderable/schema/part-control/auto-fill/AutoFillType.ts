@@ -30,10 +30,9 @@ export default abstract class AutoFillType extends EditableQuestionPart {
 
   protected async getValueAsync(id: number): Promise<IFixValue> {
     const rootUrl = this.part.link.split("?")[0];
-    const url = Util.formatString(
-      `${rootUrl}?fixid=${id}`,
-      this.owner.options.queryStrings
-    );
+    const queryStringParams =
+      await this.owner.options.getQueryStringParamsAsync();
+    const url = Util.formatString(`${rootUrl}?fixid=${id}`, queryStringParams);
     return await Util.getDataAsync<IFixValue>(url);
   }
 
@@ -56,8 +55,8 @@ export default abstract class AutoFillType extends EditableQuestionPart {
     return mustChange;
   }
 
-  protected async getQueryStringsAsync(): Promise<IDictionary<string>> {
-    let retVal = this.owner.options.queryStrings;
+  protected async getQueryStringParamsAsync(): Promise<IDictionary<string>> {
+    let retVal = await this.owner.options.getQueryStringParamsAsync();
     let hasError = false;
     if (this.part.dependency) {
       retVal = retVal || {};

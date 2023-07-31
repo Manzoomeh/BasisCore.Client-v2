@@ -39,11 +39,13 @@ export default abstract class QuestionPart {
     this.element.setAttribute("data-bc-part-related-cell", "");
   }
 
-  protected formatString(): string {
+  protected async formatStringAsync(): Promise<string> {
+    const queryStringParams =
+      await this.owner.options.getQueryStringParamsAsync();
     const data = {
       prpId: this.owner.question.prpId,
       part: this.part.part,
-      ...this.owner.options.queryStrings,
+      ...queryStringParams,
     };
     const url = Util.formatString(this.part.link, data);
     return url;

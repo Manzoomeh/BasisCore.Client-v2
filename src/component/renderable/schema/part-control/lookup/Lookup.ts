@@ -60,18 +60,19 @@ export default class Lookup extends EditableQuestionPart {
 
   protected async getValueAsync(id: number): Promise<IFixValue> {
     const rootUrl = this.part.link.split("?")[0];
-    const url = Util.formatString(
-      `${rootUrl}?fixid=${id}`,
-      this.owner.options.queryStrings
-    );
+    const queryStringParams =
+      await this.owner.options.getQueryStringParamsAsync();
+    const url = Util.formatString(`${rootUrl}?fixid=${id}`, queryStringParams);
     return await Util.getDataAsync<IFixValue>(url);
   }
 
   private async displaySuggestionListAsync(e: KeyboardEvent) {
     const term = this._input.value;
+    const queryStringParams =
+      await this.owner.options.getQueryStringParamsAsync();
     const url = Util.formatString(this.part.link, {
       term,
-      ...this.owner.options.queryStrings,
+      ...queryStringParams,
     });
     const ul = this.element.querySelector<HTMLUListElement>("[data-bc-result]");
     ul.innerHTML = "";

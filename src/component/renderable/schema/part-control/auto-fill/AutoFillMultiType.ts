@@ -25,7 +25,7 @@ export default class AutoFillMultiType extends AutoFillType {
   }
 
   private onShowPopUpBtnClick() {
-    this.getQueryStringsAsync()
+    this.getQueryStringParamsAsync()
       .then((x) => {
         const popup = new SearchPopup(
           this.part.link,

@@ -12,7 +12,7 @@ export default interface IFormMakerOptions {
   callback: (params: IEditParams) => void;
   subSchemaOptions: SubSchemaOptions;
   dc: DependencyContainer;
-  queryStrings: IDictionary<string>;
+  getQueryStringParamsAsync: () => Promise<IDictionary<string>>;
   filesPath?: string;
 }
 
