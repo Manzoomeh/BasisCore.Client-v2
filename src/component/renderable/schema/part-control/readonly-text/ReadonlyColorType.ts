@@ -1,16 +1,16 @@
-import { IPartCollection } from "../../IAnswerSchema";
-import { IEditParams } from "../../IFormMakerOptions";
-import { IQuestionPart } from "../../IQuestionSchema";
-import ReadonlyQuestionPart from "../../question-part/ReadonlyQuestionPart";
+import layout from "./assets/color-layout.html";
 import Question from "../../question/Question";
-import layout from "./assets/text-layout.html";
+import ReadonlyQuestionPart from "../../question-part/ReadonlyQuestionPart";
+import { IPartCollection } from "../../IAnswerSchema";
+import { IQuestionPart } from "../../IQuestionSchema";
+import { IEditParams } from "../../IFormMakerOptions";
 
-export default class ReadOnlyText extends ReadonlyQuestionPart {
-  private readonly _label: HTMLLabelElement;
+export default class ReadonlyColorType extends ReadonlyQuestionPart {
+  private readonly _label: HTMLInputElement;
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
     this._label = this.element.querySelector<any>("[data-bc-text-input]");
-    this._label.innerHTML = answer?.values[0].value ?? null;
+    this._label.value = answer?.values[0].value ?? null;
     if (this.owner.options.callback) {
       const param: IEditParams = {
         element: this.element,

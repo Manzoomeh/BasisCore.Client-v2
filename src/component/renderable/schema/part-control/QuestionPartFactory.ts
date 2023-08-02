@@ -22,6 +22,8 @@ import Lookup from "./lookup/Lookup";
 import TimeType from "./text/TimeType";
 import ColorType from "./text/ColorType";
 import PasswordType from "./text/PasswordType";
+import ReadonlyUploadType from "./upload/ReadOnlyUploadType";
+import ReadonlyColorType from "./readonly-text/ReadonlyColorType";
 import ComponentContainer from "./component-container/ComponentContainer";
 
 export default class QuestionPartFactory {
@@ -153,7 +155,7 @@ export default class QuestionPartFactory {
           break;
         }
         case "color": {
-          retVal = new ColorType(part, owner, answer);
+          retVal = new ReadonlyColorType(part, owner, answer);
           break;
         }
         case "password": {
@@ -161,7 +163,7 @@ export default class QuestionPartFactory {
           break;
         }
         case "upload": {
-          retVal = new UploadType(part, owner, answer);
+          retVal = new ReadonlyUploadType(part, owner, answer);
           break;
         }
         default: {
