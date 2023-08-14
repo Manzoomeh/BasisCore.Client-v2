@@ -31,7 +31,7 @@ export default class QuestionContainer {
     this.answer = answer;
     const copyTemplate = layout
       .replace("@title", this.QuestionSchema.title)
-      .replace("@prpid", this.QuestionSchema.prpId.toString());
+      .replace("@prpid", this.QuestionSchema.prpId?.toString());
     const uiElement =
       Util.parse(copyTemplate).querySelector<HTMLDivElement>(
         "[data-bc-question]"
