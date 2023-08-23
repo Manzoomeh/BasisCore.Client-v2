@@ -108,7 +108,8 @@ export default abstract class QuestionPart {
             ) {
               errors.push({
                 type: "regex",
-                description: `فرمت وارد شده صحیح نیست. فرمت صحیح به صورت ${this.part.validations.regex} است`,
+                // description: `فرمت وارد شده صحیح نیست. فرمت صحیح به صورت ${this.part.validations.regex} است`,
+                description: `فرمت وارد شده صحیح نیست.`,
                 params: [this.part.validations.regex, userValue],
               });
             }
