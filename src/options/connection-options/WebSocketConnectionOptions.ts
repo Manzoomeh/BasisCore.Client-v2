@@ -39,75 +39,79 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
       activeSockets.delete(sourceId);
     }
 
-    return new StreamPromise((resolve, reject) => {
-      let retry = 0;
-      function initAndConnect(reconnect: boolean) {
-        retry++;
-        const socket = new WebSocket(url);
-        let error = null;
-        socket.onopen = (e) => {
-          activeSockets.set(sourceId, socket);
-          console.log("%s %s", url, reconnect ? "Reconnected" : "Connected");
-          socket.send(JSON.stringify(parameters));
-        };
-        socket.onclose = (e) => {
-          activeSockets.delete(sourceId);
-          if (error != null) {
-            context.logger.logInformation("Try reconnect To %s", url);
-            if (retry < maxRetry) {
-              initAndConnect(true);
-              error = null;
+    return new StreamPromise<void>(
+      this.Name,
+      (resolve, reject) => {
+        let retry = 0;
+        function initAndConnect(reconnect: boolean) {
+          retry++;
+          const socket = new WebSocket(url);
+          let error = null;
+          socket.onopen = (e) => {
+            activeSockets.set(sourceId, socket);
+            console.log("%s %s", url, reconnect ? "Reconnected" : "Connected");
+            socket.send(JSON.stringify(parameters));
+          };
+          socket.onclose = (e) => {
+            activeSockets.delete(sourceId);
+            if (error != null) {
+              context.logger.logInformation("Try reconnect To %s", url);
+              if (retry < maxRetry) {
+                initAndConnect(true);
+                error = null;
+              } else {
+                reject(error);
+              }
             } else {
-              reject(error);
+              resolve();
+              context.logger.logInformation(`${url} Disconnected`);
             }
-          } else {
-            resolve();
-            context.logger.logInformation(`${url} Disconnected`);
-          }
-        };
-        socket.onerror = (e) => {
-          context.logger.logError(`Error On '${url}'`, <any>e);
-          error = e;
-        };
-        socket.onmessage = (e) => {
-          try {
-            var json: IServerResponse<any> = JSON.parse(e.data);
-            if (
-              json.setting &&
-              json.setting.keepalive !== undefined &&
-              !json.setting.keepalive
-            ) {
-              context.logger.logInformation(
-                "Disconnect from %s by server request",
-                url
-              );
-              socket.close();
-            }
-            if (json.sources) {
-              const dataList = json?.sources.map(
-                (x) => new Data(x.options.tableName, x.data, x.options)
-              );
-              if (dataList.length > 0) {
-                const receiverIsOk = onDataReceived(dataList);
-                if (!receiverIsOk) {
-                  context.logger.logInformation(
-                    "Disconnect from %s by receiver request. maybe disposed!",
-                    url
-                  );
-                  socket.close();
+          };
+          socket.onerror = (e) => {
+            context.logger.logError(`Error On '${url}'`, <any>e);
+            error = e;
+          };
+          socket.onmessage = (e) => {
+            try {
+              var json: IServerResponse<any> = JSON.parse(e.data);
+              if (
+                json.setting &&
+                json.setting.keepalive !== undefined &&
+                !json.setting.keepalive
+              ) {
+                context.logger.logInformation(
+                  "Disconnect from %s by server request",
+                  url
+                );
+                socket.close();
+              }
+              if (json.sources) {
+                const dataList = json?.sources.map(
+                  (x) => new Data(x.options.tableName, x.data, x.options)
+                );
+                if (dataList.length > 0) {
+                  const receiverIsOk = onDataReceived(dataList);
+                  if (!receiverIsOk) {
+                    context.logger.logInformation(
+                      "Disconnect from %s by receiver request. maybe disposed!",
+                      url
+                    );
+                    socket.close();
+                  }
                 }
               }
+            } catch (ex) {
+              context.logger.logError(
+                "Error in process WebSocket received message",
+                ex
+              );
             }
-          } catch (ex) {
-            context.logger.logError(
-              "Error in process WebSocket received message",
-              ex
-            );
-          }
-        };
-      }
-      initAndConnect(false);
-    });
+          };
+        }
+        initAndConnect(false);
+      },
+      () => this.activeSockets.get(sourceId) ?? null
+    );
   }
 
   TestConnectionAsync(context: IContext): Promise<boolean> {

@@ -10,7 +10,7 @@ export default abstract class MemberBaseSourceComponent<
   T extends Member
 > extends SourceComponent {
   protected id: SourceId;
-  private oldConnectionName: string;
+  private connection: StreamPromise<void>;
   readonly members: Array<Element>;
   abstract convertToMemberObject(element: Element): T;
 
@@ -26,7 +26,6 @@ export default abstract class MemberBaseSourceComponent<
   }
 
   protected async runAsync(): Promise<void> {
-    this.oldConnectionName = null;
     if (this.members.length > 0) {
       await this.loadDataAsync();
     }
@@ -52,29 +51,30 @@ export default abstract class MemberBaseSourceComponent<
 
   private async loadDataAsync(): Promise<void> {
     const connectionName = await this.getAttributeValueAsync("source");
-    if (this.oldConnectionName) {
-      if (this.oldConnectionName !== connectionName) {
-        throw new ClientException(
-          `Source Attribute Can't Change in Existing Context. Valid Connection Is '${this.oldConnectionName}'`
-        );
-      }
-    } else {
-      this.oldConnectionName = connectionName;
-    }
-
     const command = this.node.outerHTML.ToStringToken(this.context);
     const params: any = {
       command: await command.getValueAsync(),
       dmnid: this.context.options.getDefault("dmnid"),
     };
-    const promiseObj = this.context.loadDataAsync(
-      this.id,
-      connectionName,
-      params,
-      this.processLoadedDataSet.bind(this)
-    );
-    if (!(promiseObj instanceof StreamPromise)) {
-      await promiseObj;
+    if (this.connection?.isOpen ?? false) {
+      if (this.connection.connectionName !== connectionName) {
+        throw new ClientException(
+          `Source attribute can't change when socket is open . Valid connection is '${this.connection.connectionName}'`
+        );
+      }
+      this.connection.send(params);
+    } else {
+      const promiseObj = this.context.loadDataAsync(
+        this.id,
+        connectionName,
+        params,
+        this.processLoadedDataSet.bind(this)
+      );
+      if (promiseObj instanceof StreamPromise) {
+        this.connection = promiseObj;
+      } else {
+        await promiseObj;
+      }
     }
   }
 }
