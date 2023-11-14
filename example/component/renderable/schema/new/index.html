@@ -11,10 +11,24 @@
 
 <body dir="rtl">
   <button data-btn-add>Add</button>
-  <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1161" displayMode="new" button="[data-btn-add]" resultSourceId="demo.data" qs_rKey="www" qs_name="haha">
+  <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1161" displayMode="new" button="[data-btn-add]" resultSourceId="demo.data" errorResultSourceId="demo.error" qs_rKey="www" qs_name="haha">
   </Basis>
   <button data-btn-add>Add</button>
+  <div id="errorResultSourceId"></div>
   <basis core="callback" run="atclient" triggers="demo.data"></basis>
+  <basis core="callback" run="atclient" triggers="demo.error" method="onSource"></basis>
+
+  <script>
+    function onSource(args) {
+      console.table(args.source.rows);
+      console.log("errorResultSourceId: ", args.source.rows[0].value);
+      const errorResultContainer = document.getElementById("errorResultSourceId");
+      errorResultContainer.textContent = "error in validation";
+      setTimeout(() => {
+        errorResultContainer.textContent = "";
+      }, 3000);
+    }
+</script>
 </body>
 
 </html>

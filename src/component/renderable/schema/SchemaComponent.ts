@@ -30,6 +30,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   private displayModeToken: IToken<string>;
   private buttonSelector: string;
   private resultSourceIdToken: IToken<string>;
+  private errorResultSourceIdToken: IToken<string>;
   private callbackToken: IToken<string>;
   private schemaCallbackToken: IToken<string>;
   //private lidToken: IToken<string>;
@@ -60,6 +61,7 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     this.buttonSelector = await this.getAttributeValueAsync("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
+    this.errorResultSourceIdToken = this.getAttributeToken("errorResultSourceId");
     this.callbackToken = this.getAttributeToken("callback");
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
     //this.lidToken = this.getAttributeToken("lid");
@@ -244,6 +246,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     const userActionList = new Array<any>();
     let hasValidationError = false;
     let retVal: IUserActionResult = null;
+    const errorResultSourceId = await this.errorResultSourceIdToken?.getValueAsync();
     for (const question of this._questions) {
       try {
         var actions = await question.getUserActionAsync();
@@ -267,6 +270,8 @@ export default class SchemaComponent extends SourceBaseComponent {
     // });
     if (hasValidationError && throwError) {
       throw Error("invalid");
+    } else if (hasValidationError) {
+      this.context.setAsSource(errorResultSourceId, hasValidationError);
     }
     if (!hasValidationError && userActionList.length > 0) {
       retVal = {
