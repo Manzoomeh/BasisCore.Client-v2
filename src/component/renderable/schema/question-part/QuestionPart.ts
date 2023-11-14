@@ -18,6 +18,11 @@ export default abstract class QuestionPart {
       ? true
       : false;
   }
+  public get isReadonly(): boolean {
+    return this.owner.question.parts.length > 1 && this.part.readonly
+      ? true
+      : false;
+  }
   constructor(
     part: IQuestionPart,
     partLayout: string,

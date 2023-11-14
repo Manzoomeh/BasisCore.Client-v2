@@ -657,6 +657,73 @@
                   "link": ""
                 }
               ]
+            },
+            {
+              "prpId": 66666,
+              "typeId": 262,
+              "ord": 100,
+              "vocab": "/توان-اضطراری",
+              "title": "توان اضطراری",
+              "wordId": 51320,
+              "multi": true,
+              "cssClass": "css_66666",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "readonly": true,
+                  "viewType": "select",
+                  "cssClass": "css_66666_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "واحد اندازه گیری",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 5248,
+                      "value": "کیلووات"
+                    },
+                    {
+                      "id": 5247,
+                      "value": "کیلو ولت آمپر"
+                    },
+                    {
+                      "id": 3,
+                      "value": "اسب بخار"
+                    }
+                  ]
+                },
+                {
+                  "part": 2,
+                  "readonly": true,
+                  "viewType": "text",
+                  "cssClass": "css_66666_2",
+                  "validations": {
+                    "required": true,
+                    "min": 200,
+                    "max": 4000,
+                    "dataType": "int"
+                  },
+                  "caption": "سرعت (دور بر دقیقه)",
+                  "link": ""
+                },
+                {
+                  "part": 3,
+                  "viewType": "text",
+                  "cssClass": "css_66666_3",
+                  "validations1": {
+                    "minLength": "2",
+                    "maxLength": "4000",
+                    "dataType": "int"
+                  },
+                  "caption": "میزان توان",
+                  "link": ""
+                }
+              ]
             }
           ]
         }

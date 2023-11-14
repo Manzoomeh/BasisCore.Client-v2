@@ -129,7 +129,8 @@ export default abstract class SelectListType extends ListBaseType {
         .replace("@value", item.id.toString())
         .replace("@name", this.controlType == "radio" ? this.rndName : "")
         .replace("@checked", checked ? "checked" : "")
-        .replace("@disabled", this.isDisabled ? "disabled" : "");
+        .replace("@disabled", this.isDisabled ? "disabled" : "")
+        .replace("@disabled", this.isReadonly ? "readonly" : "");
 
       const template = Util.parse(newTemplate).querySelector("div");
       this.element.querySelector("[data-bc-items]").appendChild(template);

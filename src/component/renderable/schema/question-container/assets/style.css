@@ -191,6 +191,29 @@
   background-color: #fff8ee;
 }
 
+[data-bc-answer-container] input[type="text"]:disabled,
+[data-bc-answer-container] input[type="password"]:disabled,
+[data-bc-answer-container] input[type="time"]:disabled,
+[data-bc-answer-container] input[type="color"]:disabled,
+[data-bc-answer-container] input[type="file"]:disabled,
+[data-bc-answer-container] select:disabled,
+[data-bc-answer-container] textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+[data-bc-answer-container] input[type="text"][readonly],
+[data-bc-answer-container] input[type="password"][readonly],
+[data-bc-answer-container] input[type="time"][readonly],
+[data-bc-answer-container] input[type="color"][readonly],
+[data-bc-answer-container] input[type="file"][readonly],
+[data-bc-answer-container] select[readonly],
+[data-bc-answer-container] textarea[readonly] {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 [data-bc-answer-container] [data-bc-view-pass] {
   width: 20px;
   height: 20px;

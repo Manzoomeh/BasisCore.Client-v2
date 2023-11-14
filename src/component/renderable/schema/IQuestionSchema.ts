@@ -34,6 +34,7 @@ export interface IQuestionPart {
   dependency?: Array<IDependency>;
   method?: WebMethod;
   disabled?: boolean;
+  readonly?: boolean;
   options?: any;
   multiple?: boolean;
 }

@@ -15,6 +15,8 @@ export default class SelectType extends ListBaseType {
     this._select = this.element.querySelector("select");
     if (this.isDisabled) {
       this._select.setAttribute("disabled", "");
+    } else if (this.isReadonly) {
+      this._select.setAttribute("readonly", "");
     }
     this._select.addEventListener("change", (e) => {
       e.preventDefault();
