@@ -25,6 +25,7 @@ import ConsoleLogger from "./logger/ConsoleLogger";
 import Repository from "./repository/Repository";
 import { SchemaListComponent } from "./component/renderable/schema-list/SchemaListComponent";
 import InlineSourceComponent from "./component/source/InlineSourceComponent";
+import SchemaUploader from "./component/renderable/SchemaUploader";
 
 container.register("IBasisCore", { useToken: BasisCore });
 container.register("ILogger", { useToken: ConsoleLogger });
@@ -38,6 +39,7 @@ container.register("list", { useToken: ListComponent });
 container.register("list", { useToken: ListComponent });
 container.register("schema", { useToken: SchemaComponent });
 container.register("schemalist", { useToken: SchemaListComponent });
+container.register("schemauploader", { useToken: SchemaUploader });
 
 container.register("cookie", { useToken: CookieComponent });
 container.register("call", { useToken: CallComponent });

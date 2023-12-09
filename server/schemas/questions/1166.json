@@ -58,6 +58,7 @@
                 {
                   "part": 1,
                   "viewType": "blob",
+                  "multiple": true,
                   "uploadToken": "upload-token-value",
                   "validations": {
                     "required": false
