@@ -29,7 +29,7 @@
           ],
           "questions": [
             {
-              "prpId": 11111,
+              "prpId": 1,
               "typeId": 123,
               "ord": 1000,
               "vocab": "/فایل",
@@ -47,8 +47,8 @@
               ]
             },
             {
-              "prpId": 11111,
-              "typeId": 123,
+              "prpId": 2,
+              "typeId": 124,
               "ord": 1000,
               "vocab": "/فایل",
               "title": "Blob",

@@ -12,7 +12,6 @@ import "./assets/style";
 import IDictionary from "../../../../../IDictionary";
 import IBCUtil from "../../../../../wrapper/IBCUtil";
 import IFileValue from "./IFileValue";
-import IBlobInfo from "./IBlobValue";
 
 declare const $bc: IBCUtil;
 
@@ -147,7 +146,7 @@ export default class UploadType extends EditableQuestionPart {
     const process = Object.getOwnPropertyNames(this.files)
       .map((x) => this.files[x])
       .filter((x) => x.data)
-      .map(this.CreateFileValueAsync);
+      .map((x) => this.CreateFileValueAsync(x));
     let result: Array<IFileValue> = null;
     result = await Promise.all(process);
     const mustAdded = result.map((x) => {
@@ -207,7 +206,6 @@ export default class UploadType extends EditableQuestionPart {
         };
       }
     }
-    console.table(this.files);
     return Promise.resolve(retVal);
   }
 
