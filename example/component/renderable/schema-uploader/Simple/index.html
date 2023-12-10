@@ -17,7 +17,7 @@
   <div id="errorResultSourceId"></div>
   <basis core="callback" run="atclient" triggers="demo.data"></basis>
   <basis core="callback" run="atclient" triggers="demo.error" method="onSource"></basis>
-  <Basis datamembername="demo.data" core="schemauploader" run="atclient" url="/blob/answer-json" blob="/blob/answer-blob"> </Basis>
+  <Basis datamembername="demo.data" core="schemauploader" run="atclient" url="/blob/answer-json" blob="/blob/answer-blob" OnProcessed="OnProcessed"> </Basis>
 
   <script>
     function onSource(args) {
@@ -28,6 +28,10 @@
       setTimeout(() => {
         errorResultContainer.textContent = "";
       }, 3000);
+    }
+
+    function OnProcessed(args) {
+      console.log(args);
     }
   </script>
 </body>

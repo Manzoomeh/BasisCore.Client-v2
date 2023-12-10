@@ -1,3 +1,5 @@
+import { IFileInfo } from "./component/renderable/SchemaUploader";
+import IUserActionResult from "./component/renderable/schema/IUserActionResult";
 import IContext from "./context/IContext";
 import Data from "./data/Data";
 import ISource from "./data/ISource";
@@ -36,3 +38,11 @@ export declare type HtmlCallbackArgument = CallbackArgument & {
 export declare type SourceCallbackArgument = CallbackArgument & {
   source?: ISource;
 };
+
+export declare type SchemaUploaderProcessedCallbackArgument =
+  CallbackArgument & {
+    answer: IUserActionResult;
+    fileList: IFileInfo[];
+    postAnswerResult: any;
+    uploadFileResult: any[];
+  };

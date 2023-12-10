@@ -6,12 +6,12 @@ router.post("/answer-json", function (req, res) {
   res.json({
     errorid: 4,
     message: "successful",
-    returnID: "sample-returnObject",
+    usedforid: "sample-returnObject",
   });
 });
 
 router.post("/answer-blob", function (req, res) {
-  res.sendStatus(200);
+  res.json({ status: "ok" });
 });
 
 module.exports = router;
