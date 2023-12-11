@@ -7,10 +7,7 @@ import IUserActionResult, {
   IUserActionAnswer,
 } from "./schema/IUserActionResult";
 import IBCUtil from "../../wrapper/IBCUtil";
-import {
-  APIProcessingCallbackArgument,
-  SchemaUploaderProcessedCallbackArgument,
-} from "../../CallbackArgument";
+import { APIProcessingCallbackArgument } from "../../CallbackArgument";
 import IBlobValue from "./schema/part-control/upload/IBlobValue";
 
 declare const $bc: IBCUtil;
@@ -42,6 +39,7 @@ export default class SchemaUploader extends SourceBaseComponent {
     if (dataSource) {
       const fileList = Array<IFileInfo>();
       const source = dataSource.rows[0] as IUserActionResult;
+      const name = await this.nameToken?.getValueAsync();
       const extractFileValue = (propId: number, list: IUserActionAnswer[]) => {
         list?.forEach((item) => {
           item.parts?.forEach((part) => {
@@ -49,13 +47,13 @@ export default class SchemaUploader extends SourceBaseComponent {
               if (partValue?.value?.content instanceof File) {
                 const blobValue = <IBlobValue>partValue.value;
                 var data = <IFileInfo>{
-                  Id: $bc.util.getRandomName("blob"),
-                  File: blobValue.content,
-                  UploadToken: blobValue.uploadToken,
-                  Part: part.part,
-                  PrpId: propId,
+                  blobid: $bc.util.getRandomName("blob"),
+                  file: blobValue.content,
+                  uploadtoken: blobValue.uploadToken,
+                  part: part.part,
+                  prpid: propId,
                 };
-                partValue.value.content = data.Id;
+                partValue.value.content = data.blobid;
                 fileList.push(data);
               }
             });
@@ -99,24 +97,37 @@ export default class SchemaUploader extends SourceBaseComponent {
         response = await fetch(request);
       }
       const postAnswerResult = <IAnswerProcessResult>await response.json();
+      if (name) {
+        const data = {
+          answer: source,
+          postAnswerResult: postAnswerResult,
+          fileList: fileList,
+        };
+        this.context.setAsSource(`${name}.uploading`, data);
+      }
       if (postAnswerResult.usedforid) {
         if (fileList.length > 0) {
-          const blobUrl = (await this.blobToken?.getValueAsync(true)) ?? url;
           var taskList = fileList.map(async (fileInfo) => {
+            const blobUrl =
+              ((await this.blobToken?.getValueAsync(true)) ?? url) +
+              `?uploadtoken=${fileInfo.uploadtoken}&blobid=${fileInfo.blobid}` +
+              `&prpid=${fileInfo.prpid}&part=${fileInfo.part}` +
+              `&usedforid=${postAnswerResult.usedforid}&lid=${source.lid}`;
+
             const formData = new FormData();
-            formData.append("id", fileInfo.Id);
-            formData.append("uploadtoken", fileInfo.UploadToken);
+            formData.append("blobid", fileInfo.blobid);
+            formData.append("uploadtoken", fileInfo.uploadtoken);
             formData.append("usedforid", postAnswerResult.usedforid.toString());
             formData.append("lid", source.lid.toString());
-            formData.append("prpid", fileInfo.PrpId.toString());
-            formData.append("part", fileInfo.Part.toString());
-            formData.append(fileInfo.File.name, fileInfo.File);
+            formData.append("prpid", fileInfo.prpid.toString());
+            formData.append("part", fileInfo.part.toString());
+            formData.append(fileInfo.file.name, fileInfo.file);
             if (this.container.isRegistered("scheduler", true)) {
               const scheduler = this.container.resolve<IScheduler>("scheduler");
               var process = scheduler.startPost(
                 formData,
                 blobUrl,
-                fileInfo.File.name,
+                fileInfo.file.name,
                 null,
                 false
               );
@@ -129,32 +140,32 @@ export default class SchemaUploader extends SourceBaseComponent {
               return await request.json();
             }
           });
-        }
-        const uploadResult = await Promise.all(taskList);
-        if (this.onProcessedAsync) {
-          const args =
-            this.createCallbackArgument<SchemaUploaderProcessedCallbackArgument>(
-              {
-                answer: source,
-                postAnswerResult: postAnswerResult,
-                fileList: fileList,
-                uploadFileResult: uploadResult,
-              }
-            );
-          await this.onProcessedAsync(args);
+          const uploadResult = await Promise.all(taskList);
+          if (name) {
+            const data = {
+              answer: source,
+              postAnswerResult: postAnswerResult,
+              fileList: fileList,
+              uploadFileResult: uploadResult,
+            };
+            this.context.setAsSource(`${name}.uploaded`, data);
+          }
         }
       } else {
-        console.error("error in upload schema", postAnswerResult);
+        console.error(
+          `The 'usedforid' property not set in result returned from ${url}`,
+          postAnswerResult
+        );
       }
     }
   }
 }
 export interface IFileInfo {
-  Id: string;
-  File: File;
-  UploadToken: string;
-  Part: number;
-  PrpId: number;
+  blobid: string;
+  file: File;
+  uploadtoken: string;
+  part: number;
+  prpid: number;
 }
 interface IAnswerProcessResult {
   usedforid?: number;

@@ -38,11 +38,3 @@ export declare type HtmlCallbackArgument = CallbackArgument & {
 export declare type SourceCallbackArgument = CallbackArgument & {
   source?: ISource;
 };
-
-export declare type SchemaUploaderProcessedCallbackArgument =
-  CallbackArgument & {
-    answer: IUserActionResult;
-    fileList: IFileInfo[];
-    postAnswerResult: any;
-    uploadFileResult: any[];
-  };
