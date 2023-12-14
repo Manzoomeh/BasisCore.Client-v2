@@ -9,6 +9,7 @@ import SelectType from "./select/SelectType";
 import TextAriaType from "./text-area/TextAriaType";
 import TextType from "./text/TextType";
 import UploadType from "./upload/UploadType";
+import BlobType from "./upload/BlobType";
 import UnknownType from "./unknown/UnknownType";
 import QuestionPart from "../question-part/QuestionPart";
 import ReadonlyCheckListType from "./select-list/check-list/ReadonlyCheckListType";
@@ -97,6 +98,10 @@ export default class QuestionPartFactory {
         }
         case "upload": {
           retVal = new UploadType(part, owner, answer);
+          break;
+        }
+        case "blob": {
+          retVal = new BlobType(part, owner, answer);
           break;
         }
         default: {

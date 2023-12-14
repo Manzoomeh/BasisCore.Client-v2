@@ -1,8 +1,11 @@
 const path = require("path");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const express = require("express");
+var cors = require("cors");
 const apiHttpServer = require("./server/api-server");
 const schemaHttpServer = require("./server/schema-server");
+const blobHttpServer = require("./server/blob-server");
 
 module.exports = (env, options) => {
   return {
@@ -39,8 +42,10 @@ module.exports = (env, options) => {
         },
       ],
       onBeforeSetupMiddleware: function (server) {
+        server.app.use(cors());
         server.app.use("/api", apiHttpServer);
         server.app.use("/schema", schemaHttpServer);
+        server.app.use("/blob", blobHttpServer);
       },
       open: true,
       port: 3000,

@@ -30,6 +30,7 @@ export interface IQuestionPart {
   validations: IValidationOptions;
   caption?: string;
   link?: string;
+  uploadToken?: string;
   fixValues?: Array<IFixValue>;
   dependency?: Array<IDependency>;
   method?: WebMethod;
@@ -53,7 +54,8 @@ export type ViewType =
   | "Radio"
   | "Lookup"
   | "Time"
-  | "Color";
+  | "Color"
+  | "Blob";
 
 export interface ISection {
   id: number;

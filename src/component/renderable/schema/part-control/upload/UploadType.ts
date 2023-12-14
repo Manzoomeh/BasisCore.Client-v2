@@ -11,6 +11,7 @@ import imageLayout from "./assets/image-layout.html";
 import "./assets/style";
 import IDictionary from "../../../../../IDictionary";
 import IBCUtil from "../../../../../wrapper/IBCUtil";
+import IFileValue from "./IFileValue";
 
 declare const $bc: IBCUtil;
 
@@ -25,7 +26,6 @@ export default class UploadType extends EditableQuestionPart {
     this.input = this.element.querySelector<any>("[data-bc-file-input]");
     this.files = {};
     this.filesPath = owner.options.filesPath ?? "";
-    
     this.input.addEventListener("change", (e) => {
       e.preventDefault();
       this.addFilesFromClient(this.input);
@@ -126,25 +126,27 @@ export default class UploadType extends EditableQuestionPart {
     return Promise.resolve(this.ValidateValue(filesItems));
   }
 
+  protected CreateFileValueAsync(file: IFileInfo): Promise<IFileValue> {
+    return new Promise<IFileValue>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file.data);
+      reader.onload = () =>
+        resolve(<IFileValue>{
+          content: reader.result,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        });
+      reader.onerror = (error) => reject(error);
+    });
+  }
+
   public async getChangedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     const process = Object.getOwnPropertyNames(this.files)
       .map((x) => this.files[x])
       .filter((x) => x.data)
-      .map((x) => {
-        return new Promise<IFileValue>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(x.data);
-          reader.onload = () =>
-            resolve({
-              content: reader.result,
-              name: x.name,
-              size: x.size,
-              type: x.type,
-            });
-          reader.onerror = (error) => reject(error);
-        });
-      });
+      .map((x) => this.CreateFileValueAsync(x));
     let result: Array<IFileValue> = null;
     result = await Promise.all(process);
     const mustAdded = result.map((x) => {
@@ -204,18 +206,10 @@ export default class UploadType extends EditableQuestionPart {
         };
       }
     }
-    console.table(this.files);
     return Promise.resolve(retVal);
   }
 
   public getValuesAsync(): Promise<IUserActionPart> {
     return this.getChangedAsync();
   }
-}
-
-interface IFileValue {
-  content: any;
-  name: string;
-  type: string;
-  size: number;
 }

@@ -1,6 +1,6 @@
 {
   "name": "basiscore",
-  "version": "2.26.0",
+  "version": "2.27.0",
   "description": "Client side and light version of BasisCore web programming language",
   "main": "dist/basiscore.js",
   "types": "dist/basiscore.d.ts",
@@ -47,7 +47,8 @@
     "webpack": "^5.66.0",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.7.3",
-    "ws": "^7.5.5"
+    "ws": "^7.5.5",
+    "cors": "^2.8.5"
   },
   "dependencies": {
     "alasql": "^1.7.3",

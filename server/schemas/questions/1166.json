@@ -1,0 +1,74 @@
+{
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "answer.data",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
+      "data": [
+        {
+          "schemaId": 1161,
+          "paramUrl": "/1161",
+          "schemaVersion": 1.1,
+          "lid": 1,
+          "baseVocab": "http://schema.site/FA/vo",
+          "sections": [
+            {
+              "id": 1,
+              "title": "Sec 1",
+              "description": "Simple description"
+            },
+            {
+              "id": 2
+            }
+          ],
+          "questions": [
+            {
+              "prpId": 1,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "validations": {
+                    "required": false
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 2,
+              "typeId": 124,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "Blob",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "blob",
+                  "multiple": true,
+                  "uploadToken": "upload-token-value",
+                  "validations": {
+                    "required": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
