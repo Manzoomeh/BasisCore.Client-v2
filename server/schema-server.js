@@ -75,5 +75,11 @@ router.get("/lookup", (req, res) => {
     res.json(data);
   }
 });
-
+router.get("/popup", (req, res) => {
+  res.send({
+    body: `<div>
+  <input/>
+  </div>`,
+  });
+});
 module.exports = router;

@@ -1,4 +1,5 @@
 import ISchema from "./ISchema";
+import { IUserActionPart } from "./IUserActionResult";
 
 export default interface IQuestionSchema extends ISchema {
   schemaName: string;
@@ -24,6 +25,7 @@ export interface IQuestion {
 }
 
 export interface IQuestionPart {
+  onSubmit(popupElement: Element): IUserActionPart;
   part: number;
   viewType: string | ViewType;
   cssClass: string;
@@ -51,6 +53,7 @@ export type ViewType =
   | "Upload"
   | "Datepicker"
   | "Checklist"
+  | "Popup"
   | "Radio"
   | "Lookup"
   | "Time"
