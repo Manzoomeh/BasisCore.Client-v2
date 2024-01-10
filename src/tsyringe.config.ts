@@ -26,6 +26,7 @@ import Repository from "./repository/Repository";
 import { SchemaListComponent } from "./component/renderable/schema-list/SchemaListComponent";
 import InlineSourceComponent from "./component/source/InlineSourceComponent";
 import SchemaUploader from "./component/renderable/SchemaUploader";
+import ChartComponent from "./component/chart/ChartComponent";
 
 container.register("IBasisCore", { useToken: BasisCore });
 container.register("ILogger", { useToken: ConsoleLogger });
@@ -37,6 +38,7 @@ container.register("tree", { useToken: TreeComponent });
 container.register("view", { useToken: ViewComponent });
 container.register("list", { useToken: ListComponent });
 container.register("list", { useToken: ListComponent });
+container.register("chart", { useToken: ChartComponent });
 container.register("schema", { useToken: SchemaComponent });
 container.register("schemalist", { useToken: SchemaListComponent });
 container.register("schemauploader", { useToken: SchemaUploader });

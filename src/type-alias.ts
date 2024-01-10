@@ -20,7 +20,26 @@ export declare type ConnectionOptions = {
 };
 
 export declare type ConnectionSetting = string | ConnectionOptions;
+export declare type IChartSetting = {
+  chartType: string;
+  columnKey: string;
+  xKey: string;
+  yKey: string;
+  chartTitle: string;
+  legend: boolean;
+  axisLabel: boolean;
+  hover: boolean;
+  style: IChartStyle;
+};
+export declare type IChartStyle = {
+  backgroundColor: string;
+  textColor: string;
 
+  width: number;
+  height: number;
+  marginY: number;
+  marginX: number;
+};
 export interface IServerResponseSetting {
   keepalive?: boolean;
 }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/basiscore.js"></script>
+    <title>Funnel Chart</title>
+  </head>
+
+  <body>
+    <basis core="inlinesource" name="list" run="atclient"> </basis>
+    <basis
+      core="chart"
+      name="chart"
+      datamembername="chart.data"
+      run="atclient"
+      chartType="funnel"
+      marginX="40"
+      marginY="40"
+      hover="true"
+      width="800"
+      height="400"
+      yKey="y"
+      columnKey="column"
+      chartTitle="chart title"
+      axisLabel="true"
+    >
+    </basis>
+
+    <script>
+      const host = {
+        sources: {
+          "chart.data": [
+            {
+              y: "1",
+              column: "january",
+            },
+            {
+              y: "3",
+              column: "february",
+            },
+            {
+              y: "5",
+              column: "march",
+            },
+            {
+              y: "7",
+              column: "april",
+            },
+          ],
+        },
+      };
+    </script>
+  </body>
+</html>
