@@ -52,7 +52,7 @@ export default class PopupFieldType extends QuestionPart {
     let retVal = null;
     if (!this.answer) {
       const elements = document.querySelectorAll(
-        this.owner.options.popupQuestionClass
+        this.owner.options.popupQuestionSelector
       );
       const value = [];
       elements.forEach((e) => {
