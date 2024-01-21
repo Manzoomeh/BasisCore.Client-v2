@@ -72,20 +72,22 @@ export default class PopupFieldType extends QuestionPart {
 
   public getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
+    const elements = document.querySelectorAll(
+      this.owner.options.popupQuestionSelector
+    );
+    const currentValues = [];
+    elements.forEach((e) => {
+      currentValues.push((e as HTMLInputElement).value);
+    });
     if (this.answer) {
-      const changed =
-        this.popupElement.querySelector("input").value !=
-        this.answer.values[0].value;
-      if (
-        changed &&
-        this.popupElement.querySelector("input").value.length > 0
-      ) {
+      const changed = currentValues != this.answer.values[0].value;
+      if (changed) {
         retVal = {
           part: this.part.part,
           values: [
             {
               id: this.answer.values[0].id,
-              value: this.popupElement.querySelector("input").value,
+              value: currentValues,
             },
           ],
         };
@@ -96,20 +98,23 @@ export default class PopupFieldType extends QuestionPart {
 
   public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
+    const elements = document.querySelectorAll(
+      this.owner.options.popupQuestionSelector
+    );
+    const currentValues = [];
+    elements.forEach((e) => {
+      currentValues.push((e as HTMLInputElement).value);
+    });
     if (this.answer) {
-      const changed =
-        this.popupElement.querySelector("input").value !=
-        this.answer.values[0].value;
-      if (
-        changed &&
-        this.popupElement.querySelector("input").value.length == 0
-      ) {
+      const changed = currentValues != this.answer.values[0].value;
+
+      if (changed) {
         retVal = {
           part: this.part.part,
           values: [
             {
               id: this.answer.values[0].id,
-              value: this.popupElement.querySelector("input").value,
+              value: currentValues,
             },
           ],
         };
