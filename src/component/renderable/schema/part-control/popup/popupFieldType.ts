@@ -24,6 +24,7 @@ export default class PopupFieldType extends QuestionPart {
       "[data-bc-popup-container]"
     );
     this.owner.element.appendChild(this.popupElement);
+
     this.button = this.element.querySelector("[data-sys-plus]");
     this.button.addEventListener("click", () => this.onButtonClick());
     this.popupElement
@@ -50,16 +51,21 @@ export default class PopupFieldType extends QuestionPart {
   public getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (!this.answer) {
-      if (this.popupElement.querySelector("input").value.length > 0) {
-        retVal = {
-          part: this.part.part,
-          values: [
-            {
-              value: this.popupElement.querySelector("input").value,
-            },
-          ],
-        };
-      }
+      const elements = document.querySelectorAll(
+        this.owner.options.popupQuestionClass
+      );
+      const value = [];
+      elements.forEach((e) => {
+        value.push((e as HTMLInputElement).value);
+      });
+      retVal = {
+        part: this.part.part,
+        values: [
+          {
+            value,
+          },
+        ],
+      };
     }
     return Promise.resolve(retVal);
   }

@@ -40,6 +40,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   private getAnswersAndSetAsSource: () => void;
   private _schema: IQuestionSchema;
   private _answer: IAnswerSchema;
+  private popupQuestionClass: IToken<string>;
 
   constructor(
     @inject("element") element: Element,
@@ -61,7 +62,10 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     this.buttonSelector = await this.getAttributeValueAsync("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
-    this.errorResultSourceIdToken = this.getAttributeToken("errorResultSourceId");
+    this.popupQuestionClass = this.getAttributeToken("popupQuestionClass");
+    this.errorResultSourceIdToken = this.getAttributeToken(
+      "errorResultSourceId"
+    );
     this.callbackToken = this.getAttributeToken("callback");
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
     //this.lidToken = this.getAttributeToken("lid");
@@ -114,6 +118,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     //const version = await this.versionToken?.getValueAsync();
     const callback = await this.callbackToken?.getValueAsync();
     const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
+    const popupQuestionClass = await this.popupQuestionClass?.getValueAsync();
     //const lidStr = await this.lidToken?.getValueAsync();
     //const lid = lidStr ? parseInt(lidStr) : null;
     const cellStr = await this.cellToken?.getValueAsync();
@@ -161,6 +166,7 @@ export default class SchemaComponent extends SourceBaseComponent {
       version: this._answer?.schemaVersion,
       callback: callback ? eval(callback) : null,
       dc: this._dc,
+      popupQuestionClass: popupQuestionClass,
       subSchemaOptions: {
         schemaUrl: schemaUrlStr,
         callback: callback,
@@ -246,7 +252,8 @@ export default class SchemaComponent extends SourceBaseComponent {
     const userActionList = new Array<any>();
     let hasValidationError = false;
     let retVal: IUserActionResult = null;
-    const errorResultSourceId = await this.errorResultSourceIdToken?.getValueAsync();
+    const errorResultSourceId =
+      await this.errorResultSourceIdToken?.getValueAsync();
     for (const question of this._questions) {
       try {
         var actions = await question.getUserActionAsync();
