@@ -19,10 +19,7 @@
   </basis>
   <basis core="callback" run="AtClient" triggers="demo.data" method="onSource"></basis>
   <script>
-
     function onSource(arg) {
-
-      //console.log('from callback', arg.source.rows[0], arg);
       arg.context.setAsSource('demo.data-ex', { data: arg.source.rows[0], extraData: "extra value" })
     }
   </script>
