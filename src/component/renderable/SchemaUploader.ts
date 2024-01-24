@@ -38,7 +38,8 @@ export default class SchemaUploader extends SourceBaseComponent {
   protected async renderSourceAsync(dataSource: ISource): Promise<any> {
     if (dataSource) {
       const fileList = Array<IFileInfo>();
-      const source = dataSource.rows[0] as IUserActionResult;
+      const complexObject = dataSource.rows[0];
+      const source: IUserActionResult = complexObject.data ?? complexObject;
       const name = await this.nameToken?.getValueAsync();
       const extractFileValue = (propId: number, list: IUserActionAnswer[]) => {
         list?.forEach((item) => {
@@ -46,7 +47,7 @@ export default class SchemaUploader extends SourceBaseComponent {
             part.values?.forEach((partValue) => {
               if (partValue?.value?.content instanceof File) {
                 const blobValue = <IBlobValue>partValue.value;
-                var data = <IFileInfo>{
+                const data = <IFileInfo>{
                   blobid: $bc.util.getRandomName("blob"),
                   file: blobValue.content,
                   uploadtoken: blobValue.uploadToken,
@@ -73,7 +74,7 @@ export default class SchemaUploader extends SourceBaseComponent {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(source),
+        body: JSON.stringify(complexObject),
       };
 
       if (noCache) {
@@ -107,7 +108,7 @@ export default class SchemaUploader extends SourceBaseComponent {
       }
       if (postAnswerResult.usedforid) {
         if (fileList.length > 0) {
-          var taskList = fileList.map(async (fileInfo) => {
+          const taskList = fileList.map(async (fileInfo) => {
             const blobUrl =
               ((await this.blobToken?.getValueAsync(true)) ?? url) +
               `?uploadtoken=${fileInfo.uploadtoken}&blobid=${fileInfo.blobid}` +
@@ -124,7 +125,7 @@ export default class SchemaUploader extends SourceBaseComponent {
             formData.append(fileInfo.file.name, fileInfo.file);
             if (this.container.isRegistered("scheduler", true)) {
               const scheduler = this.container.resolve<IScheduler>("scheduler");
-              var process = scheduler.startPost(
+              const process = scheduler.startPost(
                 formData,
                 blobUrl,
                 fileInfo.file.name,
@@ -133,7 +134,7 @@ export default class SchemaUploader extends SourceBaseComponent {
               );
               return await process.task;
             } else {
-              var request = await fetch(blobUrl, {
+              const request = await fetch(blobUrl, {
                 method: "POST",
                 body: formData,
               });
@@ -160,7 +161,7 @@ export default class SchemaUploader extends SourceBaseComponent {
     }
   }
 }
-export interface IFileInfo {
+interface IFileInfo {
   blobid: string;
   file: File;
   uploadtoken: string;
