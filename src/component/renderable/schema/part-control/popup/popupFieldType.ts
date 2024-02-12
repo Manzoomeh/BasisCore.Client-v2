@@ -12,9 +12,6 @@ type popupResponse = {
   body: string;
 };
 export default class PopupFieldType extends QuestionPart {
-  public getValidationErrorsAsync(): Promise<IValidationError> {
-    return null;
-  }
   private button: Element;
   private value: IUserActionPart;
   private popupElement: Element;
@@ -23,8 +20,12 @@ export default class PopupFieldType extends QuestionPart {
     this.popupElement = Util.parse(popupLayout).querySelector(
       "[data-bc-popup-container]"
     );
-    this.owner.element.appendChild(this.popupElement);
 
+    this.owner.element.appendChild(this.popupElement);
+    const btn = this.popupElement.querySelector("[data-bc-btn-close");
+    btn.addEventListener("click", () => {
+      this.onSubmit();
+    });
     this.button = this.element.querySelector("[data-sys-plus]");
     this.button.addEventListener("click", () => this.onButtonClick());
     this.popupElement
@@ -51,13 +52,23 @@ export default class PopupFieldType extends QuestionPart {
   public getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (!this.answer) {
-      const elements = document.querySelectorAll(
-        this.owner.options.popupQuestionSelector
+      const value = {};
+
+      const form: any = this.popupElement.querySelector(
+        `#${this.part.formIdContent}`
       );
-      const value = [];
-      elements.forEach((e) => {
-        value.push((e as HTMLInputElement).value);
-      });
+      if (form.onsubmit == null) {
+        const data = new FormData(form);
+        for (const [name, v] of data) {
+          value[name] = v;
+        }
+      } else {
+        const data = form.onsubmit();
+        data.map((e) => {
+          value[e.key] = e.value;
+        });
+      }
+
       retVal = {
         part: this.part.part,
         values: [
@@ -69,16 +80,26 @@ export default class PopupFieldType extends QuestionPart {
     }
     return Promise.resolve(retVal);
   }
-
+  public getValidationErrorsAsync(): Promise<IValidationError> {
+    return null;
+  }
   public getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
-    const elements = document.querySelectorAll(
-      this.owner.options.popupQuestionSelector
+
+    const form: any = this.popupElement.querySelector(
+      `#${this.part.formIdContent}`
     );
-    const currentValues = [];
-    elements.forEach((e) => {
-      currentValues.push((e as HTMLInputElement).value);
-    });
+
+    const currentValues = {};
+
+    for (let i = 0; i < form.elements.length; i++) {
+      const element = form.elements[i];
+
+      if (element.name && element.currentValues) {
+        currentValues[element.name] = element.currentValues;
+      }
+    }
+
     if (this.answer) {
       const changed = currentValues != this.answer.values[0].value;
       if (changed) {
@@ -98,16 +119,23 @@ export default class PopupFieldType extends QuestionPart {
 
   public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
-    const elements = document.querySelectorAll(
-      this.owner.options.popupQuestionSelector
+
+    const form: any = this.popupElement.querySelector(
+      `#${this.part.formIdContent}`
     );
-    const currentValues = [];
-    elements.forEach((e) => {
-      currentValues.push((e as HTMLInputElement).value);
-    });
+
+    const currentValues = {};
+
+    for (let i = 0; i < form.elements.length; i++) {
+      const element = form.elements[i];
+
+      if (element.name && element.currentValues) {
+        currentValues[element.name] = element.currentValues;
+      }
+    }
+
     if (this.answer) {
       const changed = currentValues != this.answer.values[0].value;
-
       if (changed) {
         retVal = {
           part: this.part.part,

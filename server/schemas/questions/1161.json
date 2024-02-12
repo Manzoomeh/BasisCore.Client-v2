@@ -39,6 +39,24 @@
                 {
                   "part": 1,
                   "link": "/schema/popup",
+                  "formIdContent": "myForm",
+
+                  "viewType": "popup"
+                }
+              ]
+            },
+            {
+              "prpId": 52,
+              "typeId": 222,
+              "ord": 1000,
+              "vocab": "/عنوان",
+              "title": "پاپ آپ",
+              "wordId": 63228,
+              "parts": [
+                {
+                  "part": 1,
+                  "link": "/schema/popup",
+                  "formIdContent": "myForm",
 
                   "viewType": "popup"
                 }

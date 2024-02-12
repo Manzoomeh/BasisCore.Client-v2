@@ -40,7 +40,6 @@ export default class SchemaComponent extends SourceBaseComponent {
   private getAnswersAndSetAsSource: () => void;
   private _schema: IQuestionSchema;
   private _answer: IAnswerSchema;
-  private popupQuestionSelector: IToken<string>;
 
   constructor(
     @inject("element") element: Element,
@@ -62,9 +61,7 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     this.buttonSelector = await this.getAttributeValueAsync("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
-    this.popupQuestionSelector = this.getAttributeToken(
-      "popupQuestionSelector"
-    );
+
     this.errorResultSourceIdToken = this.getAttributeToken(
       "errorResultSourceId"
     );
@@ -120,8 +117,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     //const version = await this.versionToken?.getValueAsync();
     const callback = await this.callbackToken?.getValueAsync();
     const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
-    const popupQuestionSelector =
-      await this.popupQuestionSelector?.getValueAsync();
+
     //const lidStr = await this.lidToken?.getValueAsync();
     //const lid = lidStr ? parseInt(lidStr) : null;
     const cellStr = await this.cellToken?.getValueAsync();
@@ -169,7 +165,6 @@ export default class SchemaComponent extends SourceBaseComponent {
       version: this._answer?.schemaVersion,
       callback: callback ? eval(callback) : null,
       dc: this._dc,
-      popupQuestionSelector: popupQuestionSelector,
       subSchemaOptions: {
         schemaUrl: schemaUrlStr,
         callback: callback,

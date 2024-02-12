@@ -78,8 +78,18 @@ router.get("/lookup", (req, res) => {
 router.get("/popup", (req, res) => {
   res.send({
     body: `<div>
-  <input/>
+    <form id="myForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name"><br><br>
+    
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email"><br><br>
+    
+
+    
+  </form>
   </div>`,
   });
 });
+
 module.exports = router;

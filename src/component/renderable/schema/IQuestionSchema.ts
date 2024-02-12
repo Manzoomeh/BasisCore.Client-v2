@@ -40,6 +40,7 @@ export interface IQuestionPart {
   readonly?: boolean;
   options?: any;
   multiple?: boolean;
+  formIdContent?: string;
 }
 
 export type WebMethod = "POST" | "GET";

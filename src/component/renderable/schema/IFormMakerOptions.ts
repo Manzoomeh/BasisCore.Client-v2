@@ -13,7 +13,6 @@ export default interface IFormMakerOptions {
   subSchemaOptions: SubSchemaOptions;
   dc: DependencyContainer;
   getQueryStringParamsAsync: () => Promise<IDictionary<string>>;
-  popupQuestionSelector?: string;
   filesPath?: string;
 }
 
