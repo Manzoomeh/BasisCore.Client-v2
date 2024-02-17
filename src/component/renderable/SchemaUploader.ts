@@ -109,9 +109,11 @@ export default class SchemaUploader extends SourceBaseComponent {
       if (postAnswerResult.usedforid) {
         if (fileList.length > 0) {
           const taskList = fileList.map(async (fileInfo) => {
+            const baseUrl = (await this.blobToken?.getValueAsync(true)) ?? url;
             const blobUrl =
-              ((await this.blobToken?.getValueAsync(true)) ?? url) +
-              `?uploadtoken=${fileInfo.uploadtoken}&blobid=${fileInfo.blobid}` +
+              baseUrl +
+              (baseUrl.indexOf("?") != -1 ? "&" : "?") +
+              `uploadtoken=${fileInfo.uploadtoken}&blobid=${fileInfo.blobid}` +
               `&prpid=${fileInfo.prpid}&part=${fileInfo.part}` +
               `&usedforid=${postAnswerResult.usedforid}&lid=${source.lid}`;
 
