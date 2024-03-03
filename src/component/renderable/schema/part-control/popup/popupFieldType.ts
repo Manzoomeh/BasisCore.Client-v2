@@ -39,7 +39,13 @@ export default class PopupFieldType extends QuestionPart {
     this.popupElement.setAttribute("style", "display:block");
   }
   protected fillUI(html: string) {
-    this.popupElement.querySelector("[data-bc-body]").innerHTML = html;
+    const body = this.popupElement.querySelector("[data-bc-body]");
+    body.innerHTML = html;
+    // Execute scripts within the HTML string
+    const scripts = body.getElementsByTagName("script");
+    for (let i = 0; i < scripts.length; i++) {
+      eval(scripts[i].innerHTML);
+    }
   }
 
   protected async loadFromServerAsync(): Promise<void> {

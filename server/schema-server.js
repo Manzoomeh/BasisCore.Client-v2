@@ -88,6 +88,7 @@ router.get("/popup", (req, res) => {
 
     
   </form>
+  <script>console.log('test')</script>
   </div>`,
   });
 });
