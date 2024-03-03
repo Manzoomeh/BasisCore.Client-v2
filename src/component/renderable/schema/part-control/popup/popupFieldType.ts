@@ -13,6 +13,7 @@ type popupResponse = {
 };
 export default class PopupFieldType extends QuestionPart {
   private button: Element;
+  private valueInput: HTMLInputElement;
   private value: IUserActionPart;
   private popupElement: Element;
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
@@ -23,15 +24,17 @@ export default class PopupFieldType extends QuestionPart {
 
     this.owner.element.appendChild(this.popupElement);
     const btn = this.popupElement.querySelector("[data-bc-btn-close");
+    this.valueInput = this.element.querySelector("[data-bc-text-input");
     btn.addEventListener("click", () => {
-      this.onSubmit();
+      this.onClose();
     });
     this.button = this.element.querySelector("[data-sys-plus]");
     this.button.addEventListener("click", () => this.onButtonClick());
     this.popupElement
       .querySelector("[data-bc-submit-button]")
       .addEventListener("click", () => {
-        this.onSubmit();
+        this.onClose();
+        this.setInputValue();
       });
     this.loadFromServerAsync();
   }
@@ -41,18 +44,37 @@ export default class PopupFieldType extends QuestionPart {
   protected fillUI(html: string) {
     const body = this.popupElement.querySelector("[data-bc-body]");
     body.innerHTML = html;
-    // Execute scripts within the HTML string
     const scripts = body.getElementsByTagName("script");
     for (let i = 0; i < scripts.length; i++) {
       eval(scripts[i].innerHTML);
     }
   }
+  protected setInputValue(): void {
+    const value = {};
 
+    const form: any = this.popupElement.querySelector(
+      `#${this.part.formIdContent}`
+    );
+    if (form.onsubmit == null) {
+      const data = new FormData(form);
+      for (const [name, v] of data) {
+        if (v) {
+          value[name] = v;
+        }
+      }
+    } else {
+      const data = form.onsubmit();
+      data.map((e) => {
+        value[e.key] = e.value;
+      });
+    }
+    this.valueInput.value = JSON.stringify(value);
+  }
   protected async loadFromServerAsync(): Promise<void> {
     const result = await Util.getDataAsync<popupResponse>(this.part.link);
     this.fillUI(result.body);
   }
-  public onSubmit(): void {
+  public onClose(): void {
     this.popupElement.setAttribute("style", "display:none");
   }
   public getAddedAsync(): Promise<IUserActionPart> {
@@ -66,7 +88,9 @@ export default class PopupFieldType extends QuestionPart {
       if (form.onsubmit == null) {
         const data = new FormData(form);
         for (const [name, v] of data) {
-          value[name] = v;
+          if (v) {
+            value[name] = v;
+          }
         }
       } else {
         const data = form.onsubmit();
@@ -74,7 +98,7 @@ export default class PopupFieldType extends QuestionPart {
           value[e.key] = e.value;
         });
       }
-
+      this.valueInput.value = JSON.stringify(value);
       retVal = {
         part: this.part.part,
         values: [

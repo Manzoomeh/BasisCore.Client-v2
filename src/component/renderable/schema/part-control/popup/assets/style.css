@@ -45,7 +45,9 @@
   opacity: 0.8;
   font-weight: bold;
 }
-
+[data-bc-popup-field-row] {
+  display: flex;
+}
 [data-bc-popup-container] [data-bc-btn-close]:hover {
   opacity: 1;
 }
