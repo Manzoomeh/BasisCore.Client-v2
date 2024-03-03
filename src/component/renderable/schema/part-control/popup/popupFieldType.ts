@@ -99,14 +99,16 @@ export default class PopupFieldType extends QuestionPart {
         });
       }
       this.valueInput.value = JSON.stringify(value);
-      retVal = {
-        part: this.part.part,
-        values: [
-          {
-            value,
-          },
-        ],
-      };
+      if (Object.keys(value).length > 0) {
+        retVal = {
+          part: this.part.part,
+          values: [
+            {
+              value,
+            },
+          ],
+        };
+      }
     }
     return Promise.resolve(retVal);
   }
