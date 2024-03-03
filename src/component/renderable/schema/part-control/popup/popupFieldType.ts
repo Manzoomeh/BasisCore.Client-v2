@@ -12,7 +12,6 @@ type popupResponse = {
   body: string;
 };
 export default class PopupFieldType extends QuestionPart {
-  private button: Element;
   private valueInput: HTMLInputElement;
   private value: IUserActionPart;
   private popupElement: Element;
@@ -21,15 +20,20 @@ export default class PopupFieldType extends QuestionPart {
     this.popupElement = Util.parse(popupLayout).querySelector(
       "[data-bc-popup-container]"
     );
-
+    this.owner.button.setAttribute("data-bc-btn", "");
+    this.owner.button.setAttribute("data-sys-plus", "");
+    this.owner.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
     this.owner.element.appendChild(this.popupElement);
     const btn = this.popupElement.querySelector("[data-bc-btn-close");
     this.valueInput = this.element.querySelector("[data-bc-text-input");
     btn.addEventListener("click", () => {
       this.onClose();
     });
-    this.button = this.element.querySelector("[data-sys-plus]");
-    this.button.addEventListener("click", () => this.onButtonClick());
+    this.owner.button.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.onButtonClick();
+    });
+
     this.popupElement
       .querySelector("[data-bc-submit-button]")
       .addEventListener("click", () => {
@@ -98,8 +102,8 @@ export default class PopupFieldType extends QuestionPart {
           value[e.key] = e.value;
         });
       }
-      this.valueInput.value = JSON.stringify(value);
       if (Object.keys(value).length > 0) {
+        this.valueInput.value = JSON.stringify(value);
         retVal = {
           part: this.part.part,
           values: [
