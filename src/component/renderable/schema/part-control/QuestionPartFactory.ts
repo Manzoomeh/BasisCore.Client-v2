@@ -167,7 +167,8 @@ export default class QuestionPartFactory {
           retVal = new PasswordType(part, owner, answer);
           break;
         }
-        case "upload": {
+        case "upload":
+        case "blob": {
           retVal = new ReadonlyUploadType(part, owner, answer);
           break;
         }
