@@ -39,7 +39,6 @@
                 {
                   "part": 1,
                   "link": "/schema/popup",
-                  "formIdContent": "myForm",
 
                   "viewType": "popup"
                 }
@@ -56,7 +55,6 @@
                 {
                   "part": 1,
                   "link": "/schema/popup",
-                  "formIdContent": "myForm",
 
                   "viewType": "popup"
                 }

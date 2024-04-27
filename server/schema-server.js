@@ -75,20 +75,31 @@ router.get("/lookup", (req, res) => {
     res.json(data);
   }
 });
-router.get("/popup", (req, res) => {
-  res.send({
+
+router.post("/popup", (req, res) => {
+  res.json({
     body: `<div>
-    <form id="myForm">
+   
     <label for="name">Name:</label>
-    <input type="text" id="name" name="name"><br><br>
+    <input type="text" id="name" name="name" value="${
+      req.body?.name || ""
+    }"><br><br>
     
     <label for="email">Email:</label>
-    <input type="email" id="email" name="email"><br><br>
+    <input type="email" id="email" name="email" value="${
+      req.body?.email || ""
+    }"><br><br>
+    <button onclick='onSubmit()'>submit</button>
     
 
     
-  </form>
-  <script>console.log('test')</script>
+ 
+  <script>function onSubmit(){
+    
+    const values = {name:document.getElementById('name').value,email:document.getElementById('email').value}
+    window.parent.postMessage(JSON.stringify(values),"http://localhost:3000"  );
+
+  }</script>
   </div>`,
   });
 });
