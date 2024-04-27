@@ -103,7 +103,6 @@ export default class PopupFieldType extends QuestionPart {
         };
       }
     }
-    console.log("objectrr :>> ", retVal);
     return Promise.resolve(retVal);
   }
   public getValidationErrorsAsync(): Promise<IValidationError> {
