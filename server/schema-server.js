@@ -94,12 +94,20 @@ router.post("/popup", (req, res) => {
 
     
  
-  <script>function onSubmit(){
+  <script>
+  // Third party function
+  function onSubmit(){
     
     const values = {name:document.getElementById('name').value,email:document.getElementById('email').value}
-    window.parent.postMessage(JSON.stringify(values),"http://localhost:3000"  );
+    bcCallback(values)
 
-  }</script>
+  }
+  // Our static function
+  function bcCallback(values){
+    window.parent.postMessage(JSON.stringify(values),"http://localhost:3000"  );
+  }
+  
+  </script>
   </div>`,
   });
 });

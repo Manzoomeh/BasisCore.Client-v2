@@ -64,24 +64,6 @@ export default class PopupFieldType extends QuestionPart {
     });
   }
   protected setInputValue(): void {
-    // const value = {};
-
-    // const form: any = this.popupElement.querySelector(
-    //   `#${this.part.formIdContent}`
-    // );
-    // if (form.onsubmit == null) {
-    //   const data = new FormData(form);
-    //   for (const [name, v] of data) {
-    //     if (v) {
-    //       value[name] = v;
-    //     }
-    //   }
-    // } else {
-    //   const data = form.onsubmit();
-    //   data.map((e) => {
-    //     value[e.key] = e.value;
-    //   });
-    // }
     this.valueInput.value = JSON.stringify(this.value) || "";
   }
 
