@@ -1,4 +1,4 @@
-import IAnswerSchema, { IPartCollection } from "../../IAnswerSchema";
+import { IPartCollection } from "../../IAnswerSchema";
 import Question from "../../question/Question";
 import layout from "./assets/layout.html";
 import popupLayout from "./assets/popupLayout.html";
@@ -8,9 +8,7 @@ import { IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
 import "./assets/style";
 import { IQuestionPart } from "../../IQuestionSchema";
-type popupResponse = {
-  body: string;
-};
+
 export default class PopupFieldType extends QuestionPart {
   private valueInput: HTMLInputElement;
   private value: IUserActionPart;
@@ -34,34 +32,56 @@ export default class PopupFieldType extends QuestionPart {
       e.preventDefault();
       this.onButtonClick();
     });
-
-    this.loadFromServerAsync();
   }
   protected onButtonClick() {
     this.popupElement.style.display = "block";
+    this.fillUI();
   }
-  protected async loadFromServerAsync(): Promise<void> {
-    const result = await Util.fetchDataAsync<popupResponse>(
-      this.part.link,
-      "POST",
-      this.value
-    );
-    this.fillUI(result.body);
-  }
-  protected fillUI(html: string) {
+
+  protected fillUI() {
     const body = this.popupElement.querySelector("[data-bc-body]");
+    body.innerHTML = "";
     const iframe = document.createElement("iframe");
-    iframe.src = "data:text/html," + encodeURIComponent(html);
-    body.append(iframe);
-    window.addEventListener("message", (e) => {
-      if (
-        e.origin != window.location.origin &&
-        this.popupElement.style.display == "block"
-      ) {
-        this.value = JSON.parse(e.data);
-        this.onClose();
+    iframe.setAttribute("data-bc-iframe", "");
+    const loading = document.createElement("div");
+    loading.innerText = "loading ...";
+    iframe.src = this.part.link;
+    iframe.style.display = "none";
+    iframe.onload = () => {
+      if (this.value) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ ...this.value, mode: "edit" })
+        );
+      } else {
+        iframe.contentWindow.postMessage(JSON.stringify({ mode: "new" }));
       }
-    });
+    };
+    body.append(iframe);
+    body.append(loading);
+    const onEventReceived = (e) => {
+      let data;
+      try {
+        data = JSON.parse(e.data);
+      } catch {}
+      if (data) {
+        if (Object.keys(data).find((e) => e == "isLoaded")) {
+          if (data.isLoaded) {
+            iframe.style.display = "block";
+            loading.style.display = "none";
+          } else {
+            this.onClose();
+            window.removeEventListener("message", onEventReceived);
+          }
+        }
+        if (Object.keys(data).find((i) => i == "isSubmited")) {
+          delete data["isSubmited"];
+          this.value = data;
+          this.onClose();
+          window.removeEventListener("message", onEventReceived);
+        }
+      }
+    };
+    window.addEventListener("message", onEventReceived);
   }
   protected setInputValue(): void {
     this.valueInput.value = JSON.stringify(this.value) || "";

@@ -76,40 +76,64 @@ router.get("/lookup", (req, res) => {
   }
 });
 
-router.post("/popup", (req, res) => {
-  res.json({
-    body: `<div>
+router.get("/popup", (req, res) => {
+  res.send(
+    `<div>
    
     <label for="name">Name:</label>
-    <input type="text" id="name" name="name" value="${
-      req.body?.name || ""
-    }"><br><br>
+    <input type="text" id="name" name="name" ><br><br>
     
     <label for="email">Email:</label>
-    <input type="email" id="email" name="email" value="${
-      req.body?.email || ""
-    }"><br><br>
+    <input type="email" id="email" name="email"><br><br>
     <button onclick='onSubmit()'>submit</button>
     
 
     
  
   <script>
+ 
   // Third party function
+
   function onSubmit(){
     
-    const values = {name:document.getElementById('name').value,email:document.getElementById('email').value}
-    bcCallback(values)
+    const values = {}
+    if(document.getElementById('name').value){
+      values.name = document.getElementById('name').value
+    }
+    if(document.getElementById('email').value){
+      values.email=document.getElementById('email').value
+    }
+    bcCallback({...values,isSubmited:true})
 
   }
-  // Our static function
-  function bcCallback(values){
-    window.parent.postMessage(JSON.stringify(values),"http://localhost:3000"  );
+  // Third party setValues function
+  function setValues (values)  {
+    Object.keys(values).map(e => {
+      document.getElementById(e).value = values[e]
+    })
+
   }
-  
+  // Our static scripts
+  function bcCallback(values){
+    window.parent.postMessage(JSON.stringify(values));
+  }
+  window.addEventListener('message',(e)=>{
+    const answer =JSON.parse(e.data)
+
+    if(answer.mode){
+    if(answer.mode == 'new'){
+      bcCallback({isLoaded:true})
+    }else{
+      delete answer['mode']
+      setValues(answer)
+     
+      bcCallback({isLoaded:true})
+
+    }}
+  })
   </script>
-  </div>`,
-  });
+  </div>`
+  );
 });
 
 module.exports = router;

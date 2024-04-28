@@ -63,6 +63,12 @@
   cursor: pointer;
   background-color: #0058a0;
 }
+[data-bc-iframe] {
+  width: -webkit-fill-available;
+  height: -webkit-fill-available;
+  border: 2px solid #d8e2e6;
+  border-radius: 4px;
+}
 [data-bc-popup-container] [data-bc-body] {
   min-height: 50px;
   padding: 20px;
