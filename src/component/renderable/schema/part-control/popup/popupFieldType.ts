@@ -45,19 +45,6 @@ export default class PopupFieldType extends QuestionPart {
     iframe.setAttribute("data-bc-iframe", "");
     const loading = document.createElement("div");
     loading.innerText = "loading ...";
-    iframe.src = this.part.link;
-    iframe.style.display = "none";
-    iframe.onload = () => {
-      if (this.value) {
-        iframe.contentWindow.postMessage(
-          JSON.stringify({ ...this.value, mode: "edit" })
-        );
-      } else {
-        iframe.contentWindow.postMessage(JSON.stringify({ mode: "new" }));
-      }
-    };
-    body.append(iframe);
-    body.append(loading);
     const onEventReceived = (e) => {
       let data;
       try {
@@ -82,6 +69,19 @@ export default class PopupFieldType extends QuestionPart {
       }
     };
     window.addEventListener("message", onEventReceived);
+    iframe.src = this.part.link;
+    iframe.style.display = "none";
+    iframe.onload = () => {
+      if (this.value) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ ...this.value, mode: "edit" })
+        );
+      } else {
+        iframe.contentWindow.postMessage(JSON.stringify({ mode: "new" }));
+      }
+    };
+    body.append(iframe);
+    body.append(loading);
   }
   protected setInputValue(): void {
     this.valueInput.value = JSON.stringify(this.value) || "";
