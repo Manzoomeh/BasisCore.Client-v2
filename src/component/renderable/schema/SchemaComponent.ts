@@ -275,7 +275,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     // });
     if (hasValidationError && throwError) {
       throw Error("invalid");
-    } else if (hasValidationError) {
+    } else if (hasValidationError && errorResultSourceId) {
       this.context.setAsSource(errorResultSourceId, hasValidationError);
     }
     if (!hasValidationError && userActionList.length > 0) {
