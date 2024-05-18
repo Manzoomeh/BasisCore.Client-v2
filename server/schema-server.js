@@ -122,6 +122,7 @@ router.get("/popup", (req, res) => {
 
     if(answer.mode){
     if(answer.mode == 'new'){
+      delete answer['mode']
       bcCallback({isLoaded:true})
     }else{
       delete answer['mode']
