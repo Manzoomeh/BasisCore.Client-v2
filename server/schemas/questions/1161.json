@@ -59,6 +59,703 @@
                   "viewType": "html"
                 }
               ]
+            },
+            {
+              "prpId": 55,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/عنوان",
+              "title": "وب سایت",
+              "wordId": 63228,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text",
+                  "validations": {
+                    "regex": "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)",
+                    "required": true
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 13050,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/عنوان",
+              "title": "نام دیزل ژنراتور",
+              "wordId": 63228,
+              "multi": true,
+              "sectionId": 1,
+              "cssClass": "css_13050",
+              "help": "متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help متن تستی برای help ",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text",
+                  "cssClass": "css_13050_1",
+                  "validations": {
+                    "required": true,
+                    "minLength": 3,
+                    "maxLength": 20
+                  },
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 13057,
+              "typeId": 262,
+              "ord": 100,
+              "vocab": "/توان-اضطراری",
+              "title": "توان اضطراری",
+              "wordId": 51320,
+              "multi": true,
+              "sectionId": 1,
+              "cssClass": "css_13057",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "select",
+                  "cssClass": "css_13057_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "واحد اندازه گیری",
+                  "link": "/schema/fix-data/${prpId}/${part}?rkey=${rkey}"
+                },
+                {
+                  "part": 2,
+                  "viewType": "text",
+                  "cssClass": "css_13057_2",
+                  "validations": {
+                    "required": true,
+                    "min": 200,
+                    "max": 4000,
+                    "dataType": "int"
+                  },
+                  "caption": "سرعت (دور بر دقیقه)",
+                  "link": ""
+                },
+                {
+                  "part": 3,
+                  "viewType": "text",
+                  "cssClass": "css_13057_3",
+                  "validations1": {
+                    "minLength": "2",
+                    "maxLength": "4000",
+                    "dataType": "int"
+                  },
+                  "caption": "میزان توان",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 13060,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "ولتاژ",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "disabled": true,
+                  "part": 1,
+                  "viewType": "select",
+                  "cssClass": "css_13060_1",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 4,
+                      "value": "110"
+                    },
+                    {
+                      "id": 5,
+                      "value": "220"
+                    },
+                    {
+                      "id": 6,
+                      "value": "R1",
+                      "selected": true
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 130601,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "ولتاژ",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "checklist",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true,
+                    "maxLength": 10
+                  },
+                  "fixValues": [
+                    {
+                      "id": 4,
+                      "value": "110"
+                    },
+                    {
+                      "id": 5,
+                      "value": "220"
+                    },
+                    {
+                      "id": 6,
+                      "value": "R1",
+                      "selected": true
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 130621,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "توضیحات",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 2,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "textarea",
+                  "cssClass": "css_13060_1",
+                  "caption": "",
+                  "link": "",
+                  "validations": {
+                    "required": true,
+                    "minLength": 2,
+                    "maxLength": 30
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 130602,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "autocomplete no multi",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 2,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "autocomplete",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 130631,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "autocomplete multi",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "autocomplete",
+                  "cssClass": "css_13060_1",
+                  "caption": "کشور",
+                  "link": "/schema/autocomplete?term=${term}&rkey=${rkey}&d1=${data1}&d2=${data2}",
+                  "dependency": [
+                    {
+                      "name": "data1",
+                      "prpId": 130602,
+                      "part": 1,
+                      "required": false
+                    },
+                    {
+                      "name": "data2",
+                      "prpId": 1355,
+                      "part": 1,
+                      "required": false
+                    }
+                  ]
+                },
+                {
+                  "part": 2,
+                  "viewType": "text",
+                  "cssClass": "css_13057_2",
+                  "validations1": {
+                    "minLength": "2",
+                    "maxLength": "4000",
+                    "dataType": "int"
+                  },
+                  "caption": "سرعت (دور بر دقیقه)",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 1355,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "lookup",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "lookup",
+                  "cssClass": "css_13060_1",
+                  "caption": "کشور",
+                  "link": "/schema/lookup?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 132621,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "عدد",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 2,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text",
+                  "cssClass": "css_13060_1",
+                  "caption": "",
+                  "link": "",
+                  "validations": {
+                    "required": true,
+                    "dataType": "int"
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 130603,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "radio",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "fixValues": [
+                    {
+                      "id": 44,
+                      "value": "123456"
+                    },
+                    {
+                      "id": 45,
+                      "value": "456789"
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 130604,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "radio multi",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "fixValues": [
+                    {
+                      "id": 54,
+                      "value": "987"
+                    },
+                    {
+                      "id": 55,
+                      "value": "654"
+                    },
+                    {
+                      "id": 56,
+                      "value": "321"
+                    },
+                    {
+                      "id": 57,
+                      "value": "147",
+                      "selected": true
+                    },
+                    {
+                      "id": 58,
+                      "value": "258"
+                    },
+                    {
+                      "id": 59,
+                      "value": "369"
+                    }
+                  ],
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 140603,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "زمان",
+              "title": "time",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "time",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 1406031,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "رنگ",
+              "title": "color",
+              "wordId": 50678,
+              "multi": false,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "color",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 1406032,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "رنگ",
+              "title": "color",
+              "wordId": 50678,
+              "multi": true,
+              "sectionId": 3,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "color",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 550,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/پسوورد",
+              "title": "پسوورد",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "password"
+                }
+              ]
+            },
+            {
+              "prpId": 551,
+              "typeId": 150,
+              "ord": 1000,
+              "vocab": "/پسوورد",
+              "title": "پسوورد مالتی",
+              "wordId": 63228,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "password"
+                }
+              ]
+            },
+            {
+              "prpId": 11111,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "validations": {
+                    "required": false
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 22222,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل multiple",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "multiple": true
+                }
+              ]
+            },
+            {
+              "prpId": 33333,
+              "typeId": 123,
+              "ord": 1000,
+              "vocab": "/فایل",
+              "title": "فایل multiple",
+              "wordId": 63228,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "multiple": true,
+                  "validations": {
+                    "mimes": [
+                      {
+                        "mime": "image/jpeg",
+                        "minSize": 10,
+                        "maxSize": 10000
+                      },
+                      {
+                        "mime": "image/jpg",
+                        "minSize": 10,
+                        "maxSize": 10000
+                      },
+                      {
+                        "mime": "image/png",
+                        "minSize": 10,
+                        "maxSize": 10000
+                      }
+                    ],
+                    "size": 1000
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 44444,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "reference no multi",
+              "wordId": 50678,
+              "multi": false,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "reference",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 55555,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": "reference multi",
+              "wordId": 50678,
+              "multi": true,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "reference",
+                  "cssClass": "css_13060_1",
+                  "caption": "کشور",
+                  "link": "/schema/autocomplete?term=${term}"
+                },
+                {
+                  "part": 2,
+                  "viewType": "text",
+                  "cssClass": "css_13057_2",
+                  "validations1": {
+                    "minLength": "2",
+                    "maxLength": "4000",
+                    "dataType": "int"
+                  },
+                  "caption": "سرعت (دور بر دقیقه)",
+                  "link": ""
+                }
+              ]
+            },
+            {
+              "prpId": 66666,
+              "typeId": 262,
+              "ord": 100,
+              "vocab": "/توان-اضطراری",
+              "title": "توان اضطراری",
+              "wordId": 51320,
+              "multi": true,
+              "cssClass": "css_66666",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 1,
+                  "readonly": true,
+                  "viewType": "select",
+                  "cssClass": "css_66666_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "واحد اندازه گیری",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 5248,
+                      "value": "کیلووات"
+                    },
+                    {
+                      "id": 5247,
+                      "value": "کیلو ولت آمپر"
+                    },
+                    {
+                      "id": 3,
+                      "value": "اسب بخار"
+                    }
+                  ]
+                },
+                {
+                  "part": 2,
+                  "readonly": true,
+                  "viewType": "text",
+                  "cssClass": "css_66666_2",
+                  "validations": {
+                    "required": true,
+                    "min": 200,
+                    "max": 4000,
+                    "dataType": "int"
+                  },
+                  "caption": "سرعت (دور بر دقیقه)",
+                  "link": ""
+                },
+                {
+                  "part": 3,
+                  "viewType": "text",
+                  "cssClass": "css_66666_3",
+                  "validations1": {
+                    "minLength": "2",
+                    "maxLength": "4000",
+                    "dataType": "int"
+                  },
+                  "caption": "میزان توان",
+                  "link": ""
+                }
+              ]
             }
           ]
         }
