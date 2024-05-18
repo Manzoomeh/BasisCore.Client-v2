@@ -38,9 +38,9 @@
               "parts": [
                 {
                   "part": 1,
-                  "link": "/schema/popup",
+                  "link": "/schema/html",
 
-                  "viewType": "popup"
+                  "viewType": "html"
                 }
               ]
             },
@@ -54,9 +54,9 @@
               "parts": [
                 {
                   "part": 1,
-                  "link": "/schema/popup",
+                  "link": "/schema/html",
 
-                  "viewType": "popup"
+                  "viewType": "html"
                 }
               ]
             }

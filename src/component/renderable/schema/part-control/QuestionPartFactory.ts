@@ -26,7 +26,7 @@ import PasswordType from "./text/PasswordType";
 import ReadonlyUploadType from "./upload/ReadOnlyUploadType";
 import ReadonlyColorType from "./readonly-text/ReadonlyColorType";
 import ComponentContainer from "./component-container/ComponentContainer";
-import PopupFieldType from "./popup/popupFieldType";
+import HTMLFieldType from "./html/HTMLFieldType";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -55,8 +55,8 @@ export default class QuestionPartFactory {
           retVal = new RadioListType(part, owner, answer);
           break;
         }
-        case "popup": {
-          retVal = new PopupFieldType(part, owner, answer);
+        case "html": {
+          retVal = new HTMLFieldType(part, owner, answer);
           break;
         }
         case "textarea": {

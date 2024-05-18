@@ -9,19 +9,20 @@ import IValidationError from "../../IValidationError";
 import "./assets/style";
 import { IQuestionPart } from "../../IQuestionSchema";
 
-export default class PopupFieldType extends QuestionPart {
+export default class HTMLFieldType extends QuestionPart {
   private valueInput: HTMLInputElement;
   private value: IUserActionPart;
-  private popupElement: HTMLElement;
+  private modalElement: HTMLElement;
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
-    this.popupElement = Util.parse(popupLayout).querySelector(
+    this.modalElement = Util.parse(popupLayout).querySelector(
       "[data-bc-popup-container]"
     );
+    console.log("this.owner :>> ", this.owner);
     this.owner.button.setAttribute("data-bc-btn", "");
     this.owner.button.setAttribute("data-sys-plus", "");
     this.owner.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
-    this.owner.element.appendChild(this.popupElement);
+    this.owner.element.appendChild(this.modalElement);
     this.valueInput = this.element.querySelector("[data-bc-text-input");
     document
       .querySelector("[data-bc-btn-close]")
@@ -34,12 +35,12 @@ export default class PopupFieldType extends QuestionPart {
     });
   }
   protected onButtonClick() {
-    this.popupElement.style.display = "block";
+    this.modalElement.style.display = "block";
     this.fillUI();
   }
 
   protected fillUI() {
-    const body = this.popupElement.querySelector("[data-bc-body]");
+    const body = this.modalElement.querySelector("[data-bc-body]");
     body.innerHTML = "";
     const iframe = document.createElement("iframe");
     iframe.setAttribute("data-bc-iframe", "");
@@ -88,7 +89,7 @@ export default class PopupFieldType extends QuestionPart {
   }
 
   public onClose(): void {
-    this.popupElement.style.display = "none";
+    this.modalElement.style.display = "none";
     this.setInputValue();
   }
   public getAddedAsync(): Promise<IUserActionPart> {

@@ -76,7 +76,7 @@ router.get("/lookup", (req, res) => {
   }
 });
 
-router.get("/popup", (req, res) => {
+router.get("/html", (req, res) => {
   res.send(
     `<div>
    
