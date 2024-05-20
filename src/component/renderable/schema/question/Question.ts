@@ -63,11 +63,14 @@ export default class Question {
       this.owner.onQuestionRemove(this);
       this._ui.remove();
     };
-    this.button.addEventListener("click", this.onBtnClick.bind(this));
+    if (!(this.question.parts[0].viewType == "html")) {
+      this.button.addEventListener("click", this.onBtnClick.bind(this));
+    }
     if (
-      this.question.multi &&
-      this.options.displayMode != "view" &&
-      !this.question.disabled
+      (this.question.multi &&
+        this.options.displayMode != "view" &&
+        !this.question.disabled) ||
+      this.question.parts[0].viewType == "html"
     ) {
       this.button.setAttribute("data-bc-btn", "add");
       this.button.setAttribute("data-sys-plus", "");

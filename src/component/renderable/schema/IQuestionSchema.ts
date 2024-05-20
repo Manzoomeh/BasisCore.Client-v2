@@ -1,4 +1,5 @@
 import ISchema from "./ISchema";
+import { IUserActionPart } from "./IUserActionResult";
 
 export default interface IQuestionSchema extends ISchema {
   schemaName: string;
@@ -38,6 +39,7 @@ export interface IQuestionPart {
   readonly?: boolean;
   options?: any;
   multiple?: boolean;
+  formIdContent?: string;
 }
 
 export type WebMethod = "POST" | "GET";
@@ -51,6 +53,7 @@ export type ViewType =
   | "Upload"
   | "Datepicker"
   | "Checklist"
+  | "Popup"
   | "Radio"
   | "Lookup"
   | "Time"

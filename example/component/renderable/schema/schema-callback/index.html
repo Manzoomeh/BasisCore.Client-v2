@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/basiscore.js"></script>
+    <title>Schema Command - New</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="/basiscore.js"></script>
-  <title>Schema Command - New</title>
-</head>
+  <body dir="rtl">
+    <button data-btn-add>Add</button>
+    <Basis
+      core="schema"
+      run="atclient"
+      schemaCallback="getSchemaAsync"
+      button="[data-btn-add]"
+      resultSourceId="demo.data"
+    >
+    </Basis>
+    <button data-btn-add>Add</button>
+    <basis core="callback" run="atclient" triggers="demo.data"></basis>
 
-<body dir="rtl">
-  <button data-btn-add>Add</button>
-  <Basis core="schema" run="atclient" schemaCallback="getSchemaAsync" button="[data-btn-add]" resultSourceId="demo.data">
-  </Basis>
-  <button data-btn-add>Add</button>
-  <basis core="callback" run="atclient" triggers="demo.data"></basis>
-
-  <script>
-    async function getSchemaAsync(context, schemaUrl) {
-      const r = await fetch(`/schema/questions/1161`);
-      const json = await r.json();
-      console.log("schema load from callback ", json);
-      return json.sources[0].data[0];
-    }
-  </script>
-</body>
-
+    <script>
+      async function getSchemaAsync(context, schemaUrl) {
+        const r = await fetch(`/schema/questions/1161`);
+        const json = await r.json();
+        console.log("schema load from callback ", json);
+        return json.sources[0].data[0];
+      }
+    </script>
+  </body>
 </html>
