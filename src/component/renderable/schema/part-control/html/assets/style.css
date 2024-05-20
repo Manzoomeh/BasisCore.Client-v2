@@ -1,4 +1,4 @@
-[data-bc-popup-container] {
+[data-bc-html-container] {
   background-color: rgba(0, 0, 0, 0.4);
   position: fixed;
   display: none;
@@ -10,7 +10,7 @@
   z-index: 999999999;
 }
 
-[data-bc-popup-container] [data-bc-popup] {
+[data-bc-html-container] [data-bc-html] {
   height: auto;
   width: 400px;
   position: absolute;
@@ -22,7 +22,7 @@
   padding-bottom: 10px;
 }
 
-[data-bc-popup-container] [data-bc-title] {
+[data-bc-html-container] [data-bc-title] {
   line-height: 20px;
   border-bottom: 1px dashed #ccc;
   -webkit-border-top-left-radius: 5px;
@@ -37,7 +37,7 @@
   padding: 5px 0px;
 }
 
-[data-bc-popup-container] [data-bc-btn-close] {
+[data-bc-html-container] [data-bc-btn-close] {
   border: none;
   background-color: inherit;
   padding: 0 10px;
@@ -45,13 +45,13 @@
   opacity: 0.8;
   font-weight: bold;
 }
-[data-bc-popup-field-row] {
+[data-bc-html-field-row] {
   display: flex;
 }
-[data-bc-popup-container] [data-bc-btn-close]:hover {
+[data-bc-html-container] [data-bc-btn-close]:hover {
   opacity: 1;
 }
-[data-sys-popup-footer] button {
+[data-sys-html-footer] button {
   background-color: #034b85;
   border: none;
   border-radius: 8px;
@@ -59,7 +59,7 @@
   width: 80px;
   height: 36px;
 }
-[data-sys-popup-footer] button:hover {
+[data-sys-html-footer] button:hover {
   cursor: pointer;
   background-color: #0058a0;
 }
@@ -69,7 +69,7 @@
   border: 2px solid #d8e2e6;
   border-radius: 4px;
 }
-[data-bc-popup-container] [data-bc-body] {
+[data-bc-html-container] [data-bc-body] {
   min-height: 50px;
   padding: 20px;
   background-color: #fff;

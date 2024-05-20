@@ -1,7 +1,7 @@
 import { IPartCollection } from "../../IAnswerSchema";
 import Question from "../../question/Question";
 import layout from "./assets/layout.html";
-import popupLayout from "./assets/popupLayout.html";
+import HTMLLayout from "./assets/HTMLLayout.html";
 import Util from "../../../../../Util";
 import QuestionPart from "../../question-part/QuestionPart";
 import { IUserActionPart } from "../../IUserActionResult";
@@ -15,10 +15,9 @@ export default class HTMLFieldType extends QuestionPart {
   private modalElement: HTMLElement;
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
-    this.modalElement = Util.parse(popupLayout).querySelector(
+    this.modalElement = Util.parse(HTMLLayout).querySelector(
       "[data-bc-popup-container]"
     );
-    console.log("this.owner :>> ", this.owner);
     this.owner.button.setAttribute("data-bc-btn", "");
     this.owner.button.setAttribute("data-sys-plus", "");
     this.owner.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;

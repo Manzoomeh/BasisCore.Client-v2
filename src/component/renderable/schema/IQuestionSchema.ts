@@ -25,7 +25,6 @@ export interface IQuestion {
 }
 
 export interface IQuestionPart {
-  onSubmit(popupElement: Element): IUserActionPart;
   part: number;
   viewType: string | ViewType;
   cssClass: string;
