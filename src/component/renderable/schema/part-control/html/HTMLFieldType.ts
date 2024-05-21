@@ -16,7 +16,7 @@ export default class HTMLFieldType extends QuestionPart {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
     this.modalElement = Util.parse(HTMLLayout).querySelector(
-      "[data-bc-popup-container]"
+      "[data-bc-html-container]"
     );
     this.owner.button.setAttribute("data-bc-btn", "");
     this.owner.button.setAttribute("data-sys-plus", "");
