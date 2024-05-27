@@ -28,10 +28,32 @@ export default class HTMLFieldType extends QuestionPart {
       .addEventListener("click", () => {
         this.onClose();
       });
+
+    this.owner._addButton.removeEventListener(
+      "click",
+      this.owner.onAddBtnClick
+    );
+    this.owner._removeButton.removeEventListener(
+      "click",
+      this.owner.onRemoveBtnClick
+    );
+    this.owner._addButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.onButtonClick();
+    });
+    this.owner._removeButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.owner._onRemoveClick();
+      this.owner.owner.addQuestion(null);
+    });
     this.owner.button.addEventListener("click", (e) => {
       e.preventDefault();
       this.onButtonClick();
     });
+    if (answer) {
+      this.valueInput.value = JSON.stringify(answer.values[0].value);
+      this.value = answer.values[0].value;
+    }
   }
   protected onButtonClick() {
     this.modalElement.style.display = "block";
