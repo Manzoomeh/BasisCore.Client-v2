@@ -32,6 +32,10 @@ export default class HTMLFieldType extends QuestionPart {
       e.preventDefault();
       this.onButtonClick();
     });
+    if (answer) {
+      this.valueInput.value = JSON.stringify(answer.values[0].value);
+      this.value = answer.values[0].value;
+    }
   }
   protected onButtonClick() {
     this.modalElement.style.display = "block";
