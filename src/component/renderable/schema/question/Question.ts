@@ -17,15 +17,15 @@ export default class Question {
   readonly options: IFormMakerOptions;
   readonly _parts: Array<QuestionPart>;
   readonly button: HTMLButtonElement;
-  private _removeButton: HTMLButtonElement;
-  private _addButton: HTMLButtonElement;
+  public _removeButton: HTMLButtonElement;
+  public addButton: HTMLButtonElement;
   private _pairBtnContainer: HTMLDivElement;
   readonly owner: QuestionContainer;
   readonly answer: IAnswerPart;
   private readonly _ui: HTMLElement;
-
+  public onAddBtnClick: (e: Event) => void;
   private _onAddClick: AddRemoveCallback;
-  private readonly _onRemoveClick: AddRemoveCallback;
+  private _onRemoveClick: AddRemoveCallback;
 
   constructor(
     question: IQuestion,
@@ -43,19 +43,23 @@ export default class Question {
     this.element = this._ui.querySelector("[data-bc-part-container]");
     this.button = this._ui.querySelector("[data-bc-btn]");
     this._removeButton = this._ui.querySelector("[data-bc-btn-remove]");
-    this._addButton = this._ui.querySelector("[data-bc-btn-add]");
+    this.addButton = this._ui.querySelector("[data-bc-btn-add]");
     this._pairBtnContainer = this._ui.querySelector(
       "[data-bc-pair-btn-container]"
     );
-    this._removeButton.addEventListener("click", (e) => {
-      e.preventDefault();
-      this._onRemoveClick();
-      this.owner.addQuestion(null);
-    });
-    this._addButton.addEventListener("click", (e) => {
+
+    this.onAddBtnClick = (e) => {
       e.preventDefault();
       this._onAddClick();
+    };
+
+    this._removeButton.addEventListener("click", (e) => {
+      e.preventDefault;
+      this.owner.onQuestionRemove(this);
+      this._ui.remove();
+      this.owner.addQuestion(null);
     });
+    this.addButton.addEventListener("click", this.onAddBtnClick);
     this._onAddClick = () => {
       this.owner.addQuestion(null);
     };

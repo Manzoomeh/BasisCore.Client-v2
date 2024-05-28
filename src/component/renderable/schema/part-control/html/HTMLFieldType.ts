@@ -16,22 +16,34 @@ export default class HTMLFieldType extends QuestionPart {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
     this.modalElement = Util.parse(HTMLLayout).querySelector(
-      "[data-bc-popup-container]"
+      "[data-bc-html-container]"
     );
     this.owner.button.setAttribute("data-bc-btn", "");
     this.owner.button.setAttribute("data-sys-plus", "");
     this.owner.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
     this.owner.element.appendChild(this.modalElement);
     this.valueInput = this.element.querySelector("[data-bc-text-input");
-    document
+    this.owner.element
       .querySelector("[data-bc-btn-close]")
       .addEventListener("click", () => {
         this.onClose();
       });
+
+    this.owner.addButton.removeEventListener("click", this.owner.onAddBtnClick);
+
+    this.owner.addButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.onButtonClick();
+    });
+
     this.owner.button.addEventListener("click", (e) => {
       e.preventDefault();
       this.onButtonClick();
     });
+    if (answer) {
+      this.valueInput.value = JSON.stringify(answer.values[0].value);
+      this.value = answer.values[0].value;
+    }
   }
   protected onButtonClick() {
     this.modalElement.style.display = "block";
@@ -62,7 +74,15 @@ export default class HTMLFieldType extends QuestionPart {
         }
         if (Object.keys(data).find((i) => i == "isSubmited")) {
           delete data["isSubmited"];
-          this.value = data;
+          if (Object.keys(data).length > 0) {
+            this.value = data;
+            this.owner.element.parentElement
+              .querySelector("[data-bc-pair-btn-container]")
+              .setAttribute("style", "display:block");
+            this.owner.element.parentElement
+              .querySelector("[data-bc-btn]")
+              .setAttribute("style", "display:none");
+          }
           this.onClose();
           window.removeEventListener("message", onEventReceived);
         }
