@@ -23,9 +23,9 @@ export default class Question {
   readonly owner: QuestionContainer;
   readonly answer: IAnswerPart;
   private readonly _ui: HTMLElement;
-
+  public onAddBtnClick: (e: Event) => void;
   private _onAddClick: AddRemoveCallback;
-  private readonly _onRemoveClick: AddRemoveCallback;
+  private _onRemoveClick: AddRemoveCallback;
 
   constructor(
     question: IQuestion,
@@ -50,14 +50,12 @@ export default class Question {
     this.button.addEventListener("click", this.onBtnClick.bind(this));
 
     this._removeButton.addEventListener("click", (e) => {
-      e.preventDefault();
-      this._onRemoveClick();
+      e.preventDefault;
+      this.owner.onQuestionRemove(this);
+      this._ui.remove();
       this.owner.addQuestion(null);
     });
-    this._addButton.addEventListener("click", (e) => {
-      e.preventDefault();
-      this._onAddClick();
-    });
+    this._addButton.addEventListener("click", this.onAddBtnClick);
     this._onAddClick = () => {
       this.owner.addQuestion(null);
     };

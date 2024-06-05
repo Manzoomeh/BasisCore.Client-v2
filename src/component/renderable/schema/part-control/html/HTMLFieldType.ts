@@ -21,7 +21,7 @@ export default class HTMLFieldType extends QuestionPart {
     this.modalElement.addEventListener("click", () => this.onClose());
     this.owner.element.appendChild(this.modalElement);
     this.valueInput = this.element.querySelector("[data-bc-text-input");
-    document
+    this.owner.element
       .querySelector("[data-bc-btn-close]")
       .addEventListener("click", () => {
         this.onClose();
@@ -77,7 +77,15 @@ export default class HTMLFieldType extends QuestionPart {
         }
         if (Object.keys(data).find((i) => i == "isSubmited")) {
           delete data["isSubmited"];
-          this.value = data;
+          if (Object.keys(data).length > 0) {
+            this.value = data;
+            this.owner.element.parentElement
+              .querySelector("[data-bc-pair-btn-container]")
+              .setAttribute("style", "display:block");
+            this.owner.element.parentElement
+              .querySelector("[data-bc-btn]")
+              .setAttribute("style", "display:none");
+          }
           this.onClose();
           window.removeEventListener("message", onEventReceived);
         }
