@@ -47,6 +47,13 @@ export default class Question {
     this._pairBtnContainer = this._ui.querySelector(
       "[data-bc-pair-btn-container]"
     );
+
+    this.onAddBtnClick = (e) => {
+      e.preventDefault();
+      this._onAddClick();
+    };
+    this.button.addEventListener("click", this.onBtnClick.bind(this));
+
     this._removeButton.addEventListener("click", (e) => {
       e.preventDefault();
       this._onRemoveClick();
@@ -63,9 +70,7 @@ export default class Question {
       this.owner.onQuestionRemove(this);
       this._ui.remove();
     };
-    if (!(this.question.parts[0].viewType == "html")) {
-      this.button.addEventListener("click", this.onBtnClick.bind(this));
-    }
+
     if (
       (this.question.multi &&
         this.options.displayMode != "view" &&

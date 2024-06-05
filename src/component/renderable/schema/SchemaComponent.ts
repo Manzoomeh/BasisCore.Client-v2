@@ -27,6 +27,10 @@ export default class SchemaComponent extends SourceBaseComponent {
   //private versionToken: IToken<string>;
   //private viewModeToken: IToken<string>;
   private paramUrlToken: IToken<string>;
+  private minWidthToken: IToken<string>;
+  private maxWidthToken: IToken<string>;
+  private minHeightToken: IToken<string>;
+  private maxHeightToken: IToken<string>;
   private displayModeToken: IToken<string>;
   private buttonSelector: string;
   private resultSourceIdToken: IToken<string>;
@@ -70,6 +74,10 @@ export default class SchemaComponent extends SourceBaseComponent {
     //this.lidToken = this.getAttributeToken("lid");
     this.cellToken = this.getAttributeToken("cell");
     this.filesPathToken = this.getAttributeToken("filesPath");
+    this.minWidthToken = this.getAttributeToken("min_width");
+    this.maxWidthToken = this.getAttributeToken("max_width");
+    this.minHeightToken = this.getAttributeToken("min_height");
+    this.maxHeightToken = this.getAttributeToken("max_height");
     document
       .querySelectorAll(this.buttonSelector)
       .forEach((btn) => btn.addEventListener("click", this.onClick.bind(this)));
@@ -109,6 +117,10 @@ export default class SchemaComponent extends SourceBaseComponent {
     this.setContent(container, false);
     //if (schemaId) {
     const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
+    const minWidth = await this.minWidthToken?.getValueAsync();
+    const minHeight = await this.minHeightToken?.getValueAsync();
+    const maxWidth = await this.maxWidthToken?.getValueAsync();
+    const maxHeight = await this.maxHeightToken?.getValueAsync();
     //const viewModeStr = await this.viewModeToken?.getValueAsync();
     const displayMode = ((await this.displayModeToken?.getValueAsync()) ??
       "new") as DisplayMode;
@@ -165,6 +177,10 @@ export default class SchemaComponent extends SourceBaseComponent {
       version: this._answer?.schemaVersion,
       callback: callback ? eval(callback) : null,
       dc: this._dc,
+      minWidth,
+      maxWidth,
+      minHeight,
+      maxHeight,
       subSchemaOptions: {
         schemaUrl: schemaUrlStr,
         callback: callback,

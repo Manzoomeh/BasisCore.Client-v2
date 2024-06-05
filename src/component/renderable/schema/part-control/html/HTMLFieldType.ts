@@ -18,9 +18,7 @@ export default class HTMLFieldType extends QuestionPart {
     this.modalElement = Util.parse(HTMLLayout).querySelector(
       "[data-bc-html-container]"
     );
-    this.owner.button.setAttribute("data-bc-btn", "");
-    this.owner.button.setAttribute("data-sys-plus", "");
-    this.owner.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
+    this.modalElement.addEventListener("click", () => this.onClose());
     this.owner.element.appendChild(this.modalElement);
     this.valueInput = this.element.querySelector("[data-bc-text-input");
     document
@@ -28,10 +26,16 @@ export default class HTMLFieldType extends QuestionPart {
       .addEventListener("click", () => {
         this.onClose();
       });
-    this.owner.button.addEventListener("click", (e) => {
-      e.preventDefault();
+    this.element.addEventListener("click", (e) => {
+      // e.stopPropagation();
+      // e.preventDefault();
       this.onButtonClick();
     });
+
+    if (answer) {
+      this.valueInput.value = JSON.stringify(answer.values[0].value);
+      this.value = answer.values[0].value;
+    }
   }
   protected onButtonClick() {
     this.modalElement.style.display = "block";
@@ -55,6 +59,20 @@ export default class HTMLFieldType extends QuestionPart {
           if (data.isLoaded) {
             iframe.style.display = "block";
             loading.style.display = "none";
+            var doc = iframe.contentDocument || iframe.contentWindow.document;
+
+            // Get the document body height
+            var height =
+              doc.documentElement.scrollHeight || doc.body.offsetHeight;
+            var width = doc.documentElement.scrollWidth || doc.body.offsetWidth;
+            iframe.style.height = `${Math.min(
+              Number(this.owner.options.maxHeight || 300),
+              Math.max(Number(this.owner.options.minHeight || 300), height)
+            )}px`;
+            iframe.style.width = `${Math.min(
+              Number(this.owner.options.maxWidth || 450),
+              Math.max(Number(this.owner.options.minWidth || 450), width)
+            )}px`;
           } else {
             this.onClose();
             window.removeEventListener("message", onEventReceived);
@@ -71,7 +89,7 @@ export default class HTMLFieldType extends QuestionPart {
     window.addEventListener("message", onEventReceived);
     iframe.src = this.part.link;
     iframe.style.display = "none";
-    iframe.onload = () => {
+    iframe.onload = (e) => {
       if (this.value) {
         iframe.contentWindow.postMessage(
           JSON.stringify({ ...this.value, mode: "edit" })
