@@ -78,7 +78,7 @@ router.get("/lookup", (req, res) => {
 
 router.get("/html", (req, res) => {
   res.send(
-    `<div>
+    `<div style="height:400px;width:600px">
    
     <label for="name">Name:</label>
     <input type="text" id="name" name="name" ><br><br>

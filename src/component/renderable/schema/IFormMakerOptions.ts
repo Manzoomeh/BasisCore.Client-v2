@@ -9,6 +9,10 @@ export default interface IFormMakerOptions {
   schemaId?: string;
   version?: string;
   lid?: number;
+  minWidth?: string;
+  maxWidth?: string;
+  minHeight?: string;
+  maxHeight?: string;
   callback: (params: IEditParams) => void;
   subSchemaOptions: SubSchemaOptions;
   dc: DependencyContainer;
