@@ -27,8 +27,6 @@ export default class HTMLFieldType extends QuestionPart {
         this.onClose();
       });
     this.element.addEventListener("click", (e) => {
-      // e.stopPropagation();
-      // e.preventDefault();
       this.onButtonClick();
     });
 
@@ -61,7 +59,6 @@ export default class HTMLFieldType extends QuestionPart {
             loading.style.display = "none";
             var doc = iframe.contentDocument || iframe.contentWindow.document;
 
-            // Get the document body height
             var height =
               doc.documentElement.scrollHeight || doc.body.offsetHeight;
             var width = doc.documentElement.scrollWidth || doc.body.offsetWidth;

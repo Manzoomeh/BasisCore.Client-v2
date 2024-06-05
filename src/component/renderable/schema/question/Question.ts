@@ -47,11 +47,6 @@ export default class Question {
     this._pairBtnContainer = this._ui.querySelector(
       "[data-bc-pair-btn-container]"
     );
-
-    this.onAddBtnClick = (e) => {
-      e.preventDefault();
-      this._onAddClick();
-    };
     this.button.addEventListener("click", this.onBtnClick.bind(this));
 
     this._removeButton.addEventListener("click", (e) => {
