@@ -23,7 +23,6 @@ export default class Question {
   readonly owner: QuestionContainer;
   readonly answer: IAnswerPart;
   private readonly _ui: HTMLElement;
-  public onAddBtnClick: (e: Event) => void;
   private _onAddClick: AddRemoveCallback;
   private _onRemoveClick: AddRemoveCallback;
 
@@ -55,7 +54,7 @@ export default class Question {
       this._ui.remove();
       this.owner.addQuestion(null);
     });
-    this._addButton.addEventListener("click", this.onAddBtnClick);
+    this._addButton.addEventListener("click", () => this._onAddClick());
     this._onAddClick = () => {
       this.owner.addQuestion(null);
     };
@@ -65,17 +64,21 @@ export default class Question {
     };
 
     if (
-      (this.question.multi &&
-        this.options.displayMode != "view" &&
-        !this.question.disabled) ||
-      this.question.parts[0].viewType == "html"
+      this.question.multi &&
+      this.options.displayMode != "view" &&
+      !this.question.disabled
     ) {
       this.button.setAttribute("data-bc-btn", "add");
       this.button.setAttribute("data-sys-plus", "");
       this.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
     } else {
-      this._pairBtnContainer.remove();
-      this.button.remove();
+      if (this.question.parts[0].viewType == "html") {
+        this._pairBtnContainer.querySelector("[data-bc-btn-add]").remove();
+        this.button.remove();
+      } else {
+        this._pairBtnContainer.remove();
+        this.button.remove();
+      }
     }
     container.appendChild(this._ui);
     this._parts = question.parts.map((part) => {
@@ -85,8 +88,10 @@ export default class Question {
   }
 
   public updateButtonState(isLastQuestion: boolean) {
+    console.log("isLastQuestion", isLastQuestion);
     const disabled = this.question.parts.some((x) => x.disabled);
     if (isLastQuestion) {
+      console.log("disabled :>> ", disabled, this.answer);
       if (disabled || !this.answer) {
         this.button.setAttribute("data-bc-btn", "add");
         this.button.setAttribute("data-sys-plus", "");
@@ -106,6 +111,7 @@ export default class Question {
         this.button.setAttribute("data-sys-minus", "");
         this.button.innerHTML = `<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-minus-icon="" d="M2.04028 0.0603034L0.0603845 2.0402L4.02018 6L0.0603845 9.9598L2.04028 11.9397L6.00008 7.9799L9.95988 11.9397L11.9398 9.9598L7.97998 6L11.9398 2.0402L9.95988 0.0603037L6.00008 4.0201L2.04028 0.0603034Z" fill="#B40020"></path></svg>`;
         this._pairBtnContainer.style.display = "none";
+
         this.button.style.display = "flex";
       }
     }
