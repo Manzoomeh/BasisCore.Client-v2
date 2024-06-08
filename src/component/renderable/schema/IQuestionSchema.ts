@@ -60,14 +60,13 @@ export type ViewType =
   | "Color"
   | "Blob";
 
+export type AnswerDataType = "float" | "int";
 export interface ISection {
   id: number;
-  title: string;
+  title: string | { value: string; id: number };
+  titleData: { value: string; id: number };
   description: string;
 }
-
-export type AnswerDataType = "float" | "int";
-
 export interface IValidationOptions {
   minLength?: number;
   maxLength?: number;
