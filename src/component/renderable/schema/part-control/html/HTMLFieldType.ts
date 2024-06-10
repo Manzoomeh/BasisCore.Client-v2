@@ -79,12 +79,7 @@ export default class HTMLFieldType extends QuestionPart {
           delete data["isSubmited"];
           if (Object.keys(data).length > 0) {
             this.value = data;
-            this.owner.element.parentElement
-              .querySelector("[data-bc-pair-btn-container]")
-              .setAttribute("style", "display:block");
-            this.owner.element.parentElement
-              .querySelector("[data-bc-btn]")
-              .setAttribute("style", "display:none");
+            this.owner.owner.updateButtonsState();
           }
           this.onClose();
           window.removeEventListener("message", onEventReceived);

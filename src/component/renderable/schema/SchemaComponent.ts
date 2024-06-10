@@ -116,25 +116,39 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     this.setContent(container, false);
     //if (schemaId) {
-    const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
-    const minWidth = await this.minWidthToken?.getValueAsync();
-    const minHeight = await this.minHeightToken?.getValueAsync();
-    const maxWidth = await this.maxWidthToken?.getValueAsync();
-    const maxHeight = await this.maxHeightToken?.getValueAsync();
+    const [
+      resultSourceId,
+      minWidth,
+      minHeight,
+      maxWidth,
+      maxHeight,
+      displayMode,
+      schemaUrlStr,
+      paramUrlStr,
+      callback,
+      schemaCallbackStr,
+      cellStr,
+      filesPath,
+    ] = await Promise.all([
+      this.resultSourceIdToken?.getValueAsync(),
+      this.minWidthToken?.getValueAsync(),
+      this.minHeightToken?.getValueAsync(),
+      this.maxWidthToken?.getValueAsync(),
+      this.maxHeightToken?.getValueAsync(),
+      (this.displayModeToken?.getValueAsync() ?? "new") as DisplayMode,
+      this.schemaUrlToken?.getValueAsync(),
+      this.paramUrlToken?.getValueAsync(),
+      this.callbackToken?.getValueAsync(),
+      this.schemaCallbackToken?.getValueAsync(),
+      this.cellToken?.getValueAsync(),
+      this.filesPathToken?.getValueAsync(),
+    ]);
     //const viewModeStr = await this.viewModeToken?.getValueAsync();
-    const displayMode = ((await this.displayModeToken?.getValueAsync()) ??
-      "new") as DisplayMode;
-    const schemaUrlStr = await this.schemaUrlToken?.getValueAsync();
-    const paramUrlStr = await this.paramUrlToken?.getValueAsync();
     //const version = await this.versionToken?.getValueAsync();
-    const callback = await this.callbackToken?.getValueAsync();
-    const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
 
     //const lidStr = await this.lidToken?.getValueAsync();
     //const lid = lidStr ? parseInt(lidStr) : null;
-    const cellStr = await this.cellToken?.getValueAsync();
     const cell = cellStr ? parseInt(cellStr) : 1;
-    const filesPath = await this.filesPathToken?.getValueAsync();
     var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
       ? eval(schemaCallbackStr)
       : null;
