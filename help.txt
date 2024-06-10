@@ -1,0 +1,2 @@
+npm run pub
+npm publish --access public
