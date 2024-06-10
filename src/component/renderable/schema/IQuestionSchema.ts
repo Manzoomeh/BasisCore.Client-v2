@@ -61,10 +61,11 @@ export type ViewType =
   | "Blob";
 
 export type AnswerDataType = "float" | "int";
+export type HTMLValueType = { value: string; id: number };
 export interface ISection {
   id: number;
-  title: string | { value: string; id: number };
-  titleData: { value: string; id: number };
+  title: string | HTMLValueType;
+  titleData: HTMLValueType;
   description: string;
 }
 export interface IValidationOptions {
