@@ -13,7 +13,10 @@ export default class Section {
     this.element = Util.parse(layout).querySelector("[data-bc-section]");
     const title = this.element.querySelector("[data-bc-section-title]");
     if (sectionSchema.title) {
-      title.innerHTML = sectionSchema.title;
+      title.innerHTML =
+        typeof sectionSchema.title === "string"
+          ? sectionSchema.title
+          : sectionSchema.title.value;
     } else {
       title.remove();
     }

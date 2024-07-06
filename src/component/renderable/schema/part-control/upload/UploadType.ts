@@ -104,7 +104,7 @@ export default class UploadType extends EditableQuestionPart {
             id: x.id,
             name: x.value.name,
             type: x.value.type,
-            size: 0,
+            size: x.value.size ?? 0,
             url: x.value.url ?? null,
             image: x.value.image ?? null,
             data: null,

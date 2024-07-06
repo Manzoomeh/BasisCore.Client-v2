@@ -1,4 +1,5 @@
 import ISchema from "./ISchema";
+import { IUserActionPart } from "./IUserActionResult";
 
 export default interface IQuestionSchema extends ISchema {
   schemaName: string;
@@ -38,6 +39,7 @@ export interface IQuestionPart {
   readonly?: boolean;
   options?: any;
   multiple?: boolean;
+  formIdContent?: string;
 }
 
 export type WebMethod = "POST" | "GET";
@@ -51,20 +53,21 @@ export type ViewType =
   | "Upload"
   | "Datepicker"
   | "Checklist"
+  | "Popup"
   | "Radio"
   | "Lookup"
   | "Time"
   | "Color"
   | "Blob";
 
+export type AnswerDataType = "float" | "int";
+export type HTMLValueType = { value: string; id: number };
 export interface ISection {
   id: number;
-  title: string;
+  title: string | HTMLValueType;
+  titleData: HTMLValueType;
   description: string;
 }
-
-export type AnswerDataType = "float" | "int";
-
 export interface IValidationOptions {
   minLength?: number;
   maxLength?: number;

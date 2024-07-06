@@ -27,6 +27,10 @@ export default class SchemaComponent extends SourceBaseComponent {
   //private versionToken: IToken<string>;
   //private viewModeToken: IToken<string>;
   private paramUrlToken: IToken<string>;
+  private minWidthToken: IToken<string>;
+  private maxWidthToken: IToken<string>;
+  private minHeightToken: IToken<string>;
+  private maxHeightToken: IToken<string>;
   private displayModeToken: IToken<string>;
   private buttonSelector: string;
   private resultSourceIdToken: IToken<string>;
@@ -61,12 +65,19 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     this.buttonSelector = await this.getAttributeValueAsync("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
-    this.errorResultSourceIdToken = this.getAttributeToken("errorResultSourceId");
+
+    this.errorResultSourceIdToken = this.getAttributeToken(
+      "errorResultSourceId"
+    );
     this.callbackToken = this.getAttributeToken("callback");
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
     //this.lidToken = this.getAttributeToken("lid");
     this.cellToken = this.getAttributeToken("cell");
     this.filesPathToken = this.getAttributeToken("filesPath");
+    this.minWidthToken = this.getAttributeToken("min_width");
+    this.maxWidthToken = this.getAttributeToken("max_width");
+    this.minHeightToken = this.getAttributeToken("min_height");
+    this.maxHeightToken = this.getAttributeToken("max_height");
     document
       .querySelectorAll(this.buttonSelector)
       .forEach((btn) => btn.addEventListener("click", this.onClick.bind(this)));
@@ -105,20 +116,39 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     this.setContent(container, false);
     //if (schemaId) {
-    const resultSourceId = await this.resultSourceIdToken?.getValueAsync();
+    const [
+      resultSourceId,
+      minWidth,
+      minHeight,
+      maxWidth,
+      maxHeight,
+      displayMode,
+      schemaUrlStr,
+      paramUrlStr,
+      callback,
+      schemaCallbackStr,
+      cellStr,
+      filesPath,
+    ] = await Promise.all([
+      this.resultSourceIdToken?.getValueAsync(),
+      this.minWidthToken?.getValueAsync(),
+      this.minHeightToken?.getValueAsync(),
+      this.maxWidthToken?.getValueAsync(),
+      this.maxHeightToken?.getValueAsync(),
+      (this.displayModeToken?.getValueAsync() ?? "new") as DisplayMode,
+      this.schemaUrlToken?.getValueAsync(),
+      this.paramUrlToken?.getValueAsync(),
+      this.callbackToken?.getValueAsync(),
+      this.schemaCallbackToken?.getValueAsync(),
+      this.cellToken?.getValueAsync(),
+      this.filesPathToken?.getValueAsync(),
+    ]);
     //const viewModeStr = await this.viewModeToken?.getValueAsync();
-    const displayMode = ((await this.displayModeToken?.getValueAsync()) ??
-      "new") as DisplayMode;
-    const schemaUrlStr = await this.schemaUrlToken?.getValueAsync();
-    const paramUrlStr = await this.paramUrlToken?.getValueAsync();
     //const version = await this.versionToken?.getValueAsync();
-    const callback = await this.callbackToken?.getValueAsync();
-    const schemaCallbackStr = await this.schemaCallbackToken?.getValueAsync();
+
     //const lidStr = await this.lidToken?.getValueAsync();
     //const lid = lidStr ? parseInt(lidStr) : null;
-    const cellStr = await this.cellToken?.getValueAsync();
     const cell = cellStr ? parseInt(cellStr) : 1;
-    const filesPath = await this.filesPathToken?.getValueAsync();
     var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
       ? eval(schemaCallbackStr)
       : null;
@@ -161,6 +191,10 @@ export default class SchemaComponent extends SourceBaseComponent {
       version: this._answer?.schemaVersion,
       callback: callback ? eval(callback) : null,
       dc: this._dc,
+      minWidth,
+      maxWidth,
+      minHeight,
+      maxHeight,
       subSchemaOptions: {
         schemaUrl: schemaUrlStr,
         callback: callback,
@@ -246,7 +280,8 @@ export default class SchemaComponent extends SourceBaseComponent {
     const userActionList = new Array<any>();
     let hasValidationError = false;
     let retVal: IUserActionResult = null;
-    const errorResultSourceId = await this.errorResultSourceIdToken?.getValueAsync();
+    const errorResultSourceId =
+      await this.errorResultSourceIdToken?.getValueAsync();
     for (const question of this._questions) {
       try {
         var actions = await question.getUserActionAsync();
@@ -270,7 +305,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     // });
     if (hasValidationError && throwError) {
       throw Error("invalid");
-    } else if (hasValidationError) {
+    } else if (hasValidationError && errorResultSourceId) {
       this.context.setAsSource(errorResultSourceId, hasValidationError);
     }
     if (!hasValidationError && userActionList.length > 0) {

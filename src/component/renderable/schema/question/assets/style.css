@@ -117,6 +117,26 @@
   width: calc(20% - 10px);
 }
 
+[data-bc-schema-info-part="6"] [data-bc-part-related-cell] {
+  width: calc(16.6666% - 10px);
+}
+
+[data-bc-schema-info-part="7"] [data-bc-part-related-cell] {
+  width: calc(14.2857% - 10px);
+}
+
+[data-bc-schema-info-part="8"] [data-bc-part-related-cell] {
+  width: calc(12.5% - 10px);
+}
+
+[data-bc-schema-info-part="9"] [data-bc-part-related-cell] {
+  width: calc(11.1111% - 10px);
+}
+
+[data-bc-schema-info-part="10"] [data-bc-part-related-cell] {
+  width: calc(10% - 10px);
+}
+
 [data-bc-part-related-cell] [data-bc-part-checkbox] {
   padding: 0.5em 0.6em;
   border: 1px solid #c7d6db;
@@ -155,6 +175,14 @@
 
 [data-bc-part-related-cell] [data-bc-show-search-popup-btn]:hover {
   /* background-image: url(add-hover.PNG); */
+}
+
+[data-bc-part-related-cell] [data-bc-part-radio] [data-bc-keyword-verification="false"],
+[data-bc-part-related-cell] [data-bc-part-checkbox] [data-bc-keyword-verification="false"],
+[data-bc-answer-container] select [data-bc-keyword-verification="false"],
+[data-bc-autocomplete-popup-container] [data-bc-result] li[data-bc-keyword-verification="false"],
+[data-bc-fm-lookup] [data-bc-result] li[data-bc-keyword-verification="false"] {
+  color: #FFA500;
 }
 
 @media only screen and (max-width:700px) {

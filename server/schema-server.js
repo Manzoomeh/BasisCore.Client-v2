@@ -76,4 +76,65 @@ router.get("/lookup", (req, res) => {
   }
 });
 
+router.get("/html", (req, res) => {
+  res.send(
+    `<div style="height:400px;width:600px">
+   
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" ><br><br>
+    
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email"><br><br>
+    <button onclick='onSubmit()'>submit</button>
+    
+
+    
+ 
+  <script>
+ 
+  // Third party function
+
+  function onSubmit(){
+    
+    const values = {}
+    if(document.getElementById('name').value){
+      values.name = document.getElementById('name').value
+    }
+    if(document.getElementById('email').value){
+      values.email=document.getElementById('email').value
+    }
+    bcCallback({...values,isSubmited:true})
+
+  }
+  // Third party setValues function
+  function setValues (values)  {
+    Object.keys(values).map(e => {
+      document.getElementById(e).value = values[e]
+    })
+
+  }
+  // Our static scripts
+  function bcCallback(values){
+    window.parent.postMessage(JSON.stringify(values));
+  }
+  window.addEventListener('message',(e)=>{
+    const answer =JSON.parse(e.data)
+
+    if(answer.mode){
+    if(answer.mode == 'new'){
+      delete answer['mode']
+      bcCallback({isLoaded:true})
+    }else{
+      delete answer['mode']
+      setValues(answer)
+     
+      bcCallback({isLoaded:true})
+
+    }}
+  })
+  </script>
+  </div>`
+  );
+});
+
 module.exports = router;
