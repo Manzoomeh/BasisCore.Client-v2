@@ -85,6 +85,7 @@ export default class WebSocketConnectionOptions extends ConnectionOptions {
                 );
                 socket.close();
               }
+              console.log(json);
               if (json.sources) {
                 const dataList = json?.sources.map(
                   (x) => new Data(x.options.tableName, x.data, x.options)
