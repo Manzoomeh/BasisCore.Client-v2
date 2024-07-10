@@ -6,6 +6,7 @@ var cors = require("cors");
 const apiHttpServer = require("./server/api-server");
 const schemaHttpServer = require("./server/schema-server");
 const blobHttpServer = require("./server/blob-server");
+const assetHttpServer = require("./server/asset-server");
 
 module.exports = (env, options) => {
   return {
@@ -46,6 +47,7 @@ module.exports = (env, options) => {
         server.app.use("/api", apiHttpServer);
         server.app.use("/schema", schemaHttpServer);
         server.app.use("/blob", blobHttpServer);
+        server.app.use("/assets", assetHttpServer);
       },
       open: true,
       port: 3000,

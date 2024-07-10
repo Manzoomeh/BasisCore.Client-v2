@@ -7,26 +7,18 @@ import "./assets/style.css";
 import BarChart from "./BarChart";
 import LineChart from "./LineChart";
 import FunnelChart from "./FunnelChart";
-import { IChartSetting } from "../../type-alias";
+import { IBarChartSetting, IChartSetting, IChartStyle, IDonutChartSetting } from "../../type-alias";
+import DonutChart from "./DonutChart";
+import HalfDonutChart from "./HalfDonutChart";
 @injectable()
 export default class ChartComponent extends SourceBaseComponent {
   readonly container: DependencyContainer;
-  chartType: string;
-  xKey: string;
-  yKey: string;
-  chartTitle: string;
-  legend: string;
-  axisLabel: string;
-  columnKey: string;
-  backgroundColor: string;
-  height: string;
-  width: string;
-  marginX: string;
-  marginY: string;
-  textColor: string;
-  hover: string;
+
+  chartSetting: IChartSetting
+
   chart: object;
 
+  style: IChartStyle = { width: 800, height: 400, marginX: 40, marginY: 40, backgroundColor: '#fff', textColor: '#000', opacity: 1, color: ["#004B85", "#FF7A00", "#00A693", "#B40020"] }
   chartManager: BarChart | LineChart | FunnelChart;
   constructor(
     @inject("element") element: Element,
@@ -38,19 +30,39 @@ export default class ChartComponent extends SourceBaseComponent {
   }
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
-    this.chartType = await this.getAttributeValueAsync("chartType");
-    this.columnKey = await this.getAttributeValueAsync("columnKey");
-    this.yKey = await this.getAttributeValueAsync("yKey");
-    this.xKey = await this.getAttributeValueAsync("xKey");
-    this.chartTitle = await this.getAttributeValueAsync("chartTitle");
-    this.axisLabel = await this.getAttributeValueAsync("axisLabel");
-    this.backgroundColor = await this.getAttributeValueAsync("backgroundColor");
-    this.width = await this.getAttributeValueAsync("width");
-    this.height = await this.getAttributeValueAsync("height");
-    this.marginY = await this.getAttributeValueAsync("marginY");
-    this.marginX = await this.getAttributeValueAsync("marginX");
-    this.textColor = await this.getAttributeValueAsync("textColor");
-    this.hover = await this.getAttributeValueAsync("hover");
+
+    const [chartType, group, y, x, chartTitle, axisLabel, grid, legend, horizontal, hover, chartContentVar, chartStyle] = await Promise.all([this.getAttributeValueAsync("chartType"), this.getAttributeValueAsync("group"), this.getAttributeValueAsync("y"), this.getAttributeValueAsync("x"), this.getAttributeValueAsync("chartTitle"), this.getAttributeValueAsync("axisLabel"), this.getAttributeValueAsync("grid"), this.getAttributeValueAsync("legend"), this.getAttributeValueAsync("horizontal", 'false'), this.getAttributeValueAsync("hover"), this.getAttributeValueAsync("chartContent"), this.getAttributeValueAsync("chartStyle")])
+
+
+    let code = `if(${chartStyle}) return ${chartStyle};`;
+    let func = new Function(code);
+    let styleVar = func();
+    if (this.style) {
+      this.style = { ...this.style, ...styleVar, }
+    }
+    //@ts-ignore
+    for (const node of this.node.attributes) {
+      // Create an object for each attribute
+      if (node.name.startsWith('style_')) {
+        this.style[node.name.split('_')[1]] = node.value
+
+      }
+      // Push the object to the array
+    }
+
+    const chartContent = eval(chartContentVar)
+    this.chartSetting = {
+      chartType,
+      group,
+      y,
+      x,
+      chartTitle,
+      legend: legend == "true",
+      hover: hover == "true",
+      grid: grid == "true",
+      style: this.style, axisLabel: axisLabel == 'true',
+      chartContent: chartContent
+    };
   }
   protected renderSourceAsync(dataSource: ISource): Promise<any> {
     return this.initUIAsync(dataSource.rows);
@@ -62,48 +74,46 @@ export default class ChartComponent extends SourceBaseComponent {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     this.chart = d3
       .select(svg)
-      .attr("width", Number(this.width) + 2 * Number(this.marginX))
-      .attr("height", Number(this.height) + 2 * Number(this.marginY))
-
-      .style("background-color", this.backgroundColor)
+      .attr("width", Number(this.style.width) + 2 * Number(this.style.marginX))
+      .attr("height", this.chartSetting.legend ? Number(this.style.height) + 2 * Number(this.style.marginY) + 20 : Number(this.style.height) + 2 * Number(this.style.marginY))
+      .attr('xmlns:xhtml', "http://www.w3.org/1999/xhtml")
+      .style("background-color", this.style.backgroundColor)
       .append("g")
       .attr(
         "transform",
-        "translate(" + Number(this.marginX) + "," + this.marginY + ")"
+        "translate(" + Number(this.style.marginX) + "," + this.style.marginY + ")"
       );
 
     document.body.appendChild(svg);
-    const chartSetting: IChartSetting = {
-      chartType: this.chartType,
-      columnKey: this.columnKey,
-      xKey: this.xKey,
-      yKey: this.yKey,
-      chartTitle: this.chartTitle,
-      legend: this.legend == "true",
-      axisLabel: this.axisLabel == "true",
-      hover: this.hover == "true",
-      style: {
-        backgroundColor: this.backgroundColor,
-        textColor: this.textColor,
-        width: Number(this.width),
-        height: Number(this.height),
-        marginY: Number(this.marginY),
-        marginX: Number(this.marginX),
-      },
-    };
+
     // Create the chart based on the chart type
-    switch (this.chartType) {
+    switch (this.chartSetting.chartType) {
       case "bar":
-        this.chartManager = new BarChart(data, chartSetting, this.chart);
+        (this.chartSetting as IBarChartSetting).horizontal = (this.chartSetting as IBarChartSetting).horizontal
+
+        this.chartManager = new BarChart(data, (this.chartSetting as IBarChartSetting), this.chart);
         break;
       case "line":
-        this.chartManager = new LineChart(data, chartSetting, this.chart);
+        this.chartManager = new LineChart(data, this.chartSetting, this.chart);
         break;
       case "funnel":
-        this.chartManager = new FunnelChart(data, chartSetting, this.chart);
+
+        this.chartManager = new FunnelChart(data, this.chartSetting, this.chart);
+        break;
+      case "donut":
+
+        (this.chartSetting as IDonutChartSetting).chartContent = this.chartSetting.chartContent
+
+        this.chartManager = new DonutChart(data, this.chartSetting, this.chart);
+        break;
+      case "halfdonut":
+
+        (this.chartSetting as IDonutChartSetting).chartContent = this.chartSetting.chartContent
+
+        this.chartManager = new HalfDonutChart(data, this.chartSetting, this.chart);
         break;
       default:
-        throw new Error(`Chart type ${this.chartType} is not supported`);
+        throw new Error(`Chart type ${this.chartSetting.chartType} is not supported`);
     }
     this.chartManager.renderChart();
     this.chartManager.applyFeatures();
