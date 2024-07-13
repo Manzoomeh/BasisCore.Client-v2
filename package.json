@@ -8,6 +8,7 @@
     "dev:no-serve": "webpack --mode=development",
     "dev": "webpack serve --mode=development ",
     "ws": "node server/websocket.js",
+    "cb": "node server/chunkBased.js",
     "prerel": "if exist dist rd /s /q dist",
     "rel": "webpack --mode=production",
     "prepub": "if exist dist rd /s /q dist",

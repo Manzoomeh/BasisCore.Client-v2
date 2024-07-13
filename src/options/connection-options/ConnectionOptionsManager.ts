@@ -1,6 +1,7 @@
 ﻿import IContext from "../../context/IContext";
 import ConfigNotFoundException from "../../exception/ConfigNotFoundException";
 import IDictionary from "../../IDictionary";
+import ChunkBasedConnectionOptions from "./ChunkBasedConnectionOptions";
 import ConnectionOptions from "./ConnectionOptions";
 import LocalStorageConnectionOptions from "./LocalStorageConnectionOptions";
 import { PushConnectionOptions } from "./PushConnectionOptions";
@@ -27,6 +28,10 @@ export default class ConnectionOptionsManager {
         switch (x.provider) {
           case "web": {
             obj = new WebConnectionOptions(x.name, x.value);
+            break;
+          }
+          case "chunkbased": {
+            obj = new ChunkBasedConnectionOptions(x.name, x.value);
             break;
           }
           case "websocket": {
