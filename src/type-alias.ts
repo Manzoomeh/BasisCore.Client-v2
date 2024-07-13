@@ -22,23 +22,53 @@ export declare type ConnectionOptions = {
 export declare type ConnectionSetting = string | ConnectionOptions;
 export declare type IChartSetting = {
   chartType: string;
-  columnKey: string;
-  xKey: string;
-  yKey: string;
+  group: string;
+  y: string;
   chartTitle: string;
   legend: boolean;
-  axisLabel: boolean;
   hover: boolean;
   style: IChartStyle;
+  axisLabel?: boolean
+  x?: string;
+  chartContent?: string
+  grid?: boolean;
+};
+export declare interface IBarChartSetting extends IChartSetting {
+  horizontal: boolean;
+};
+export declare interface IFunnelChartSetting extends IChartSetting {
+  style: IFunnelChartStyle;
+};
+export declare interface IDonutChartSetting extends IChartSetting {
+  style: IDonutChartStyle;
+};
+export declare interface ILineChartSetting extends IChartSetting {
+  style: ILineChartStyle;
 };
 export declare type IChartStyle = {
   backgroundColor: string;
   textColor: string;
-
   width: number;
   height: number;
   marginY: number;
+  opacity: number;
+  color: string[]
   marginX: number;
+};
+export declare interface IDonutChartStyle extends IChartStyle {
+
+  innerRadiusDistance?: number
+  outerRadiusDistance?: number
+  cornerRadius?: number
+};
+export declare interface IFunnelChartStyle extends IChartStyle {
+
+  innerPadding?: number
+};
+export declare interface ILineChartStyle extends IChartStyle {
+
+  curveTension?: number
+  thickness?: number
 };
 export interface IServerResponseSetting {
   keepalive?: boolean;

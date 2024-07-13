@@ -6,44 +6,35 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/basiscore.js"></script>
-  <title>Single Line Chart</title>
+  <title>Funnel Chart</title>
 </head>
-
 
 <body>
   <basis core="inlinesource" name="list" run="atclient"> </basis>
-  <basis core="chart" name="chart" datamembername="chart.data" run="atclient" chartType="line" marginX="40" marginY="40"
-    hover="true" width="800" height="400" y="y" x="x" chartTitle="chart title" axisLabel="true">
+  <basis core="chart" name="chart" datamembername="chart.data" run="atclient" chartType="funnel" marginX="40"
+    marginY="40" hover="true" width="800" height="400" y="y" legend="true" group="column" chartTitle="chart title"
+    axisLabel="true">
   </basis>
 
   <script>
-
     const host = {
       sources: {
         "chart.data": [
           {
+            y: "7",
+            column: "january",
+          },
+          {
+            y: "5",
+            column: "february",
+          },
+          {
             y: "3",
-            x: "0",
+            column: "march",
           },
           {
             y: "1",
-            x: "1",
-          },
-          {
-            y: "8",
-            x: "2",
-          },
-          {
-            y: "6",
-            x: "3",
-          },
-          {
-            y: "7",
-            x: "4",
-          },
-          {
-            y: "4",
-            x: "5",
+            column: "april",
           },
         ],
       },

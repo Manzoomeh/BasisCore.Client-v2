@@ -34,6 +34,7 @@
   "repository": "https://github.com/Manzoomeh/BasisCore.Client-v2",
   "devDependencies": {
     "circular-dependency-plugin": "^5.2.2",
+    "cors": "^2.8.5",
     "css-loader": "^6.5.1",
     "dts-bundle-generator": "^6.7.0",
     "ignore-loader": "^0.1.2",
@@ -47,11 +48,11 @@
     "webpack": "^5.66.0",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.7.3",
-    "ws": "^7.5.5",
-    "cors": "^2.8.5"
+    "ws": "^7.5.5"
   },
   "dependencies": {
     "alasql": "^1.7.3",
+    "d3": "^7.9.0",
     "tsyringe": "^4.6.0"
   }
 }
