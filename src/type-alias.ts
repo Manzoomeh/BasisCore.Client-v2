@@ -32,9 +32,15 @@ export declare type IChartSetting = {
   x?: string;
   chartContent?: string
   grid?: boolean;
+  onLabelClick?: Function
 };
 export declare interface IBarChartSetting extends IChartSetting {
   horizontal: boolean;
+};
+export declare interface IStackedChartSetting extends IChartSetting {
+  style: IStackedChartStyle;
+  horizontal: boolean;
+
 };
 export declare interface IFunnelChartSetting extends IChartSetting {
   style: IFunnelChartStyle;
@@ -60,11 +66,17 @@ export declare interface IDonutChartStyle extends IChartStyle {
   innerRadiusDistance?: number
   outerRadiusDistance?: number
   cornerRadius?: number
+  padAngel?: number
 };
 export declare interface IFunnelChartStyle extends IChartStyle {
 
   innerPadding?: number
 };
+export declare interface IStackedChartStyle extends IChartStyle {
+
+  thickness?: number
+};
+
 export declare interface ILineChartStyle extends IChartStyle {
 
   curveTension?: number

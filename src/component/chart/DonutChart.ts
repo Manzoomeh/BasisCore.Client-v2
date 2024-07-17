@@ -18,15 +18,15 @@ export default class DonutChart {
   }
   renderChart() {
     const { group, y, legend, chartContent } = this.chartSetting;
-    const { width, height, cornerRadius, innerRadiusDistance, outerRadiusDistance, opacity, color } = this.chartSetting.style;
+    const { width, height, cornerRadius, innerRadiusDistance, outerRadiusDistance, opacity, color, padAngel } = this.chartSetting.style;
 
 
-    var arc = d3.arc()
+    var arc = d3.arc().padAngle(padAngel || 0)
       .outerRadius(this.radius - (outerRadiusDistance || 10))
       .innerRadius(this.radius - (innerRadiusDistance || 70))
-      .cornerRadius(cornerRadius || 0);
+      .cornerRadius(cornerRadius || 0)
 
-    var pie = d3.pie()
+    var pie = d3.pie().padAngle(padAngel || 0)
       .sort(null)
       .value((d) => { return d[y]; })
 

@@ -7,9 +7,10 @@ import "./assets/style.css";
 import BarChart from "./BarChart";
 import LineChart from "./LineChart";
 import FunnelChart from "./FunnelChart";
-import { IBarChartSetting, IChartSetting, IChartStyle, IDonutChartSetting } from "../../type-alias";
+import { IBarChartSetting, IChartSetting, IChartStyle, IDonutChartSetting, IStackedChartSetting, IStackedChartStyle } from "../../type-alias";
 import DonutChart from "./DonutChart";
 import HalfDonutChart from "./HalfDonutChart";
+import StackedChart from "./StackedChart";
 @injectable()
 export default class ChartComponent extends SourceBaseComponent {
   readonly container: DependencyContainer;
@@ -31,26 +32,25 @@ export default class ChartComponent extends SourceBaseComponent {
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
 
-    const [chartType, group, y, x, chartTitle, axisLabel, grid, legend, horizontal, hover, chartContentVar, chartStyle] = await Promise.all([this.getAttributeValueAsync("chartType"), this.getAttributeValueAsync("group"), this.getAttributeValueAsync("y"), this.getAttributeValueAsync("x"), this.getAttributeValueAsync("chartTitle"), this.getAttributeValueAsync("axisLabel"), this.getAttributeValueAsync("grid"), this.getAttributeValueAsync("legend"), this.getAttributeValueAsync("horizontal", 'false'), this.getAttributeValueAsync("hover"), this.getAttributeValueAsync("chartContent"), this.getAttributeValueAsync("chartStyle")])
+    const [chartType, group, y, x, chartTitle, axisLabel, grid, legend, horizontal, hover, chartContentVar, chartStyle, onLabelClick] = await Promise.all([this.getAttributeValueAsync("chartType"), this.getAttributeValueAsync("group"), this.getAttributeValueAsync("y"), this.getAttributeValueAsync("x"), this.getAttributeValueAsync("chartTitle"), this.getAttributeValueAsync("axisLabel"), this.getAttributeValueAsync("grid"), this.getAttributeValueAsync("legend"), this.getAttributeValueAsync("horizontal", 'false'), this.getAttributeValueAsync("hover"), this.getAttributeValueAsync("chartContent"), this.getAttributeValueAsync("chartStyle"), this.getAttributeValueAsync("onLabelClick")])
 
 
-    let code = `if(${chartStyle}) return ${chartStyle};`;
-    let func = new Function(code);
-    let styleVar = func();
+    let returnStyleFunc = `if(${chartStyle}) return ${chartStyle};`;
+    let styleFunc = new Function(returnStyleFunc);
+    let styleVar = styleFunc();
     if (this.style) {
       this.style = { ...this.style, ...styleVar, }
     }
     //@ts-ignore
     for (const node of this.node.attributes) {
-      // Create an object for each attribute
       if (node.name.startsWith('style_')) {
         this.style[node.name.split('_')[1]] = node.value
 
       }
-      // Push the object to the array
     }
-
-    const chartContent = eval(chartContentVar)
+    let returnContentFunc = `if(${chartContentVar}) return ${chartContentVar};`;
+    let contentFunc = new Function(returnContentFunc);
+    let contentVar = contentFunc();
     this.chartSetting = {
       chartType,
       group,
@@ -61,8 +61,13 @@ export default class ChartComponent extends SourceBaseComponent {
       hover: hover == "true",
       grid: grid == "true",
       style: this.style, axisLabel: axisLabel == 'true',
-      chartContent: chartContent
+      chartContent: contentVar,
+      onLabelClick: eval(onLabelClick)
+
     };
+    (this.chartSetting as IBarChartSetting).horizontal = horizontal == 'true';
+    (this.chartSetting as IDonutChartSetting).chartContent = this.chartSetting.chartContent
+
   }
   protected renderSourceAsync(dataSource: ISource): Promise<any> {
     return this.initUIAsync(dataSource.rows);
@@ -89,9 +94,11 @@ export default class ChartComponent extends SourceBaseComponent {
     // Create the chart based on the chart type
     switch (this.chartSetting.chartType) {
       case "bar":
-        (this.chartSetting as IBarChartSetting).horizontal = (this.chartSetting as IBarChartSetting).horizontal
 
         this.chartManager = new BarChart(data, (this.chartSetting as IBarChartSetting), this.chart);
+        break;
+      case "stacked":
+        this.chartManager = new StackedChart(data, (this.chartSetting as IBarChartSetting), this.chart);
         break;
       case "line":
         this.chartManager = new LineChart(data, this.chartSetting, this.chart);
@@ -102,13 +109,11 @@ export default class ChartComponent extends SourceBaseComponent {
         break;
       case "donut":
 
-        (this.chartSetting as IDonutChartSetting).chartContent = this.chartSetting.chartContent
 
         this.chartManager = new DonutChart(data, this.chartSetting, this.chart);
         break;
       case "halfdonut":
 
-        (this.chartSetting as IDonutChartSetting).chartContent = this.chartSetting.chartContent
 
         this.chartManager = new HalfDonutChart(data, this.chartSetting, this.chart);
         break;

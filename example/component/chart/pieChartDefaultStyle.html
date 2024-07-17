@@ -6,27 +6,20 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/basiscore.js"></script>
-  <title>Donut Chart</title>
+  <title>Pie Chart</title>
 </head>
 
 
 <body>
   <basis core="inlinesource" name="list" run="atclient"> </basis>
   <basis core="chart" name="chart" datamembername="chart.data" run="atclient" chartType="donut" group="column"
-    hover="true" y="y" chartTitle="chart title" axisLabel="true" legend="true" chartStyle="chartStyle"
-    chartContent="chartContent">
+    hover="true" y="y" chartTitle="chart title" axisLabel="true" legend="true" chartStyle="chartStyle">
   </basis>
 
   <script>
-    const chartContent = `<div style='display:flex;justify-content:center;align-items:center;flex-direction:column;width:100%;height:100%'><img src="/assets/expireinformation1.png">
-    </img><div  style="text-wrap:wrap" font-family="IRANSansWeb" text-anchor="middle"  font-size="12px">تعداد روز های باقی مانده</div><div style='font-size:30px' class="count">172 روز</div>
-    </div>`
     const chartStyle = {
-      height: 400,
-      width: 700,
-      marginX: 40
-      , marginY: 40, cornerRadius: 8
-      , innerRadiusDistance: 70, color: ['#01D6BD', "#E5F6F4"]
+
+      innerRadiusDistance: 200,
     }
     const host = {
       sources: {
@@ -40,7 +33,14 @@
             column: "april",
             y: "6",
           },
-
+          {
+            column: "may",
+            y: "7",
+          },
+          {
+            column: "june",
+            y: "4",
+          },
         ],
       },
     };

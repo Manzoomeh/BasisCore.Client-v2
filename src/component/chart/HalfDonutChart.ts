@@ -18,15 +18,15 @@ export default class HalfDonutChart {
   }
   renderChart() {
     const { group, y, legend, chartContent } = this.chartSetting;
-    const { width, height, cornerRadius, innerRadiusDistance, outerRadiusDistance, opacity } = this.chartSetting.style;
+    const { width, height, cornerRadius, innerRadiusDistance, outerRadiusDistance, opacity, color, padAngel } = this.chartSetting.style;
     console.log('hereee')
 
-    var arc = d3.arc()
+    var arc = d3.arc().padAngle(padAngel || 0)
       .outerRadius(this.radius - (outerRadiusDistance || 10))
       .innerRadius(this.radius - (innerRadiusDistance || 70))
       .cornerRadius(cornerRadius || 0);
 
-    var pie = d3.pie().startAngle(-0.5 * Math.PI)
+    var pie = d3.pie().padAngle(padAngel || 0).startAngle(-0.5 * Math.PI)
       .endAngle(0.5 * Math.PI)
       .sort(null)
       .value((d) => { return d[y]; })
@@ -47,11 +47,11 @@ export default class HalfDonutChart {
 
       .attr("d", arc).attr("title", (d) => { return d.data[group] })
       .attr("fill", (d) => {
-        var rgb = d3.rgb(this.color[d.index % this.color.length]);
+        var rgb = d3.rgb(color[d.index % color.length]);
         return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + ", " + (opacity || 1.0) + ")";
       })
       .attr("stroke", (d) => {
-        return this.color[d.index];
+        return color[d.index];
       }).attr("rx", 10) // Add border radius to the path
       .attr("ry", 10); // Add border radius to the path
 
@@ -72,7 +72,7 @@ export default class HalfDonutChart {
     }
   }
   applyFeatures() {
-    const { height, width, marginY, textColor, opacity } = this.chartSetting.style;
+    const { height, width, marginY, textColor, opacity, color } = this.chartSetting.style;
     const { chartTitle, hover, legend, group } = this.chartSetting;
 
     if (legend && group) {
@@ -96,11 +96,11 @@ export default class HalfDonutChart {
         .attr("width", 24)
         .attr("height", 12).attr("rx", 5)
         .attr("fill", (d, i) => {
-          var rgb = d3.rgb(this.color[i % this.color.length]);
+          var rgb = d3.rgb(color[i % color.length]);
           return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + ", " + (opacity || 1.0) + ")";
         })
         .attr("stroke", (_, i) => {
-          return this.color[i % this.color.length];
+          return color[i % color.length];
         })
       legendElement.append("text")
         .attr("x", 30)

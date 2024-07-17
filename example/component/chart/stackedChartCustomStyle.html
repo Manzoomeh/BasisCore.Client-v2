@@ -6,29 +6,26 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/basiscore.js"></script>
-  <title>Bar Chart</title>
+  <title>Stacked Chart</title>
 </head>
 
 <body>
   <basis core="inlinesource" name="list" run="atclient"> </basis>
-  <basis core="chart" name="chart" datamembername="chart.data" run="atclient" grid="true" chartType="bar" group="column"
-    hover="true" y="y" chartTitle="chart title" axisLabel="true" onLabelClick="labelClicked">
+  <basis core="chart" name="chart" datamembername="chart.data" run="atclient" chartType="stacked" group="column"
+    hover="true" y="y" chartTitle="chart title" horizontal="true" axisLabel="true" style_opacity="0.2" legend="true">
   </basis>
 
   <script>
-    const labelClicked = (event, data) => {
-      console.log(event, data)
-    }
     const host = {
       sources: {
         "chart.data": [
           {
             column: "january",
-            y: "3",
+            y: "8",
           },
           {
             column: "february",
-            y: "1",
+            y: "8",
           },
           {
             column: "march",
@@ -36,16 +33,9 @@
           },
           {
             column: "april",
-            y: "6",
+            y: "8",
           },
-          {
-            column: "may",
-            y: "7",
-          },
-          {
-            column: "june",
-            y: "4",
-          },
+
         ],
       },
     };

@@ -17,7 +17,7 @@ export default class LineChart {
   }
   renderChart() {
     const { x, y, group } = this.chartSetting;
-    const { width, height, thickness, curveTension } = this.chartSetting.style;
+    const { width, height, thickness, curveTension, color } = this.chartSetting.style;
     this.xScale = d3
       .scaleLinear()
       .domain(d3.extent(this.data, (d) => d[x]))
@@ -37,16 +37,18 @@ export default class LineChart {
       this.chart
         .append("path")
         .datum(this.data)
-        .attr("title", (d) => {
-          return d[x];
-        })
+
         .attr("stroke-width", `${thickness || 2}px`)
 
         .attr("d", line)
+        .attr("title", (d) => {
+
+          return d[x];
+        })
         .attr("class", "line")
         .style("fill", "none")
         .attr("stroke", (_, i) => {
-          return this.color[i % this.color.length];
+          return color[i % color.length];
         });
     } else {
       const aggregatedData = d3.group(this.data, (d) => d[group]);
@@ -56,6 +58,7 @@ export default class LineChart {
         .data(aggregatedData)
         .join("path")
         .attr("title", (d) => {
+          console.log('d', d)
           return d[0];
         })
         .attr("class", "line")
@@ -64,22 +67,22 @@ export default class LineChart {
         .attr("d", (d) => line(d[1]))
 
         .attr("stroke", (_, i) => {
-          return this.color[i % this.color.length];
+          return color[i % color.length];
         });
     }
   }
   applyFeatures() {
-    const { height, width, marginY, textColor } = this.chartSetting.style;
-    const { chartTitle, axisLabel, hover, group, legend, grid } = this.chartSetting;
+    const { height, width, marginY, textColor, color } = this.chartSetting.style;
+    const { chartTitle, axisLabel, hover, group, legend, grid, onLabelClick } = this.chartSetting;
 
     if (axisLabel) {
       // Add the x-axis
 
-      this.chart
+      const xAxis = this.chart
         .append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale));
-
+      xAxis.selectAll('.tick').on('mousedown', (d, i) => onLabelClick(d, this.data.find(j => j[group] == i)))
       // Add the y-axis
       this.chart.append("g").call(d3.axisLeft(this.yScale));
     }
@@ -129,7 +132,7 @@ export default class LineChart {
           .attr("y", 0)
           .attr("width", 24)
           .attr("height", 12).attr("rx", 5)
-          .style("fill", (_, i) => this.color[i % this.color.length])
+          .style("fill", (_, i) => color[i % color.length])
 
         legendElement.append("text")
           .attr("x", 30)
