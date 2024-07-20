@@ -286,7 +286,7 @@ export default class BarChart {
     console.log("onLabelClick", onLabelClick);
     if (axisLabel) {
       // Add the x-axis
-
+      console.log('heree')
       const xAxis = this.chart
         .append("g")
         .attr("transform", `translate(0,${height})`)
@@ -305,7 +305,7 @@ export default class BarChart {
           d3.axisLeft(
             x ? (horizontal ? this.groupScale : this.yScale) : this.yScale
           )
-        );
+        )
       if (onLabelClick) {
         xAxis.selectAll(".tick").on("mousedown", (d, i) =>
           onLabelClick(
@@ -383,7 +383,6 @@ export default class BarChart {
           .attr("stroke-dasharray", "3, 3")
           .attr("opacity", 0.5);
         const yGridLines = d3.axisLeft(this.yScale).tickSize(-width);
-
         this.chart
           .append("g")
           .attr("class", "grid")
@@ -391,6 +390,8 @@ export default class BarChart {
           .selectAll("line")
           .attr("stroke-dasharray", "3, 3")
           .attr("opacity", 0.5);
+        this.chart.selectAll('.grid').selectAll('text').remove()
+
       } else {
         const groupCount = new Set(this.data.map((d) => d[x])).size;
         const xCount = new Set(this.data.map((d) => d[group])).size;
@@ -401,12 +402,12 @@ export default class BarChart {
         );
         const xGridLines = d3
           .axisBottom(horizontal ? this.yScale : this.groupScale)
-          .tickSize(horizontal ? height - 140 : -width)
+          .tickSize(horizontal ? -height : -width)
           .tickFormat("");
         this.chart
           .append("g")
           .attr("class", "grid")
-          .attr("transform", `translate(0, ${horizontal ? height : width})`)
+          .attr("transform", `translate(0, ${height})`)
           .call(xGridLines)
           .selectAll("line")
           .attr("stroke-dasharray", "3, 3")
@@ -460,11 +461,11 @@ export default class BarChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-            (event.pageY - 10) +
-            "px;left:" +
-            (event.pageX + 80) +
-            "px" +
-            ";opacity:0.8"
+          (event.pageY - 10) +
+          "px;left:" +
+          (event.pageX + 80) +
+          "px" +
+          ";opacity:0.8"
         );
       };
       const mouseleave = function (event) {
