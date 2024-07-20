@@ -55,7 +55,6 @@ export default class LineChart {
         .data(aggregatedData)
         .join("path")
         .attr("title", (d) => {
-          console.log("d", d);
           return d[0];
         })
         .attr("class", "line")
@@ -91,7 +90,6 @@ export default class LineChart {
       this.chart.append("g").call(d3.axisLeft(this.yScale));
     }
     if (grid) {
-      console.log('here')
       const xGridLines = d3
         .axisBottom(this.xScale)
         .tickSize(-height)

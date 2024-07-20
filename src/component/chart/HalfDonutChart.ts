@@ -19,7 +19,6 @@ export default class HalfDonutChart {
   renderChart() {
     const { group, y, legend, chartContent } = this.chartSetting;
     const { width, height, cornerRadius, innerRadiusDistance, outerRadiusDistance, opacity, color, padAngel } = this.chartSetting.style;
-    console.log('hereee')
 
     var arc = d3.arc().padAngle(padAngel || 0)
       .outerRadius(this.radius - (outerRadiusDistance || 10))
@@ -128,12 +127,7 @@ export default class HalfDonutChart {
         event.target.setAttribute("style", "opacity:0.7");
       };
       const mousemove = function (event) {
-        console.log(' event.target.attributes', '<div style="display:flex;flex-direction:column;padding:4px"><div style="padding:3px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;direction:ltr"><div class="colorbox" style="background-color:' +
-          event.target.attributes.stroke.value
-          +
-          '"></div>' +
-          event.target.attributes.title.value +
-          "</div></div>")
+
         tooltip.innerHTML =
           '<div style="display:flex;flex-direction:column;padding:4px"><div style="padding:3px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;direction:ltr"><div class="colorbox" style="background-color:' +
           event.target.attributes.stroke.value +

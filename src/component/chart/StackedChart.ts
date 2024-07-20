@@ -12,7 +12,6 @@ export default class StackedChart {
   yScale: any;
   constructor(data, chartSetting: IStackedChartSetting, chart: any) {
     this.chartSetting = chartSetting;
-    console.log('data', data)
     this.total = d3.sum(data, d => d[this.chartSetting.y]);
     this.data = this.groupDataFunc(data);
     this.chart = chart;
@@ -36,7 +35,6 @@ export default class StackedChart {
 
 
 
-      console.log('this.data', this.data)
       this.chart
         .selectAll('g')
         .data(this.data)
@@ -81,13 +79,11 @@ export default class StackedChart {
 
   }
   applyFeatures() {
-    const { height, width, marginY, textColor, opacity, color, thickness: settingThickness } = this.chartSetting.style;
+    const { height, width, marginY, textColor, opacity, color } = this.chartSetting.style;
     const { chartTitle, axisLabel, hover, grid, group, legend, horizontal } = this.chartSetting;
-    const thickness = settingThickness || horizontal ? height / 2 : width / 2
 
     if (axisLabel) {
       if (horizontal) {
-        console.log(' this.chart.selectAll(', this.chart.selectAll('rect'))
 
         this.chart.selectAll('.rect-stacked').append('text')
           .attr('class', 'text-percent')
@@ -166,7 +162,6 @@ export default class StackedChart {
         event.target.style.opacity = '0.7'
       };
       const mousemove = function (event) {
-        console.log(' event.target.attributes', event.target.attributes, event.target.attributes.stroke, event.target.attributes.stroke.value)
         tooltip.innerHTML =
           '<div style="display:flex;flex-direction:column;padding:4px"><div style="padding:3px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;direction:ltr"><div class="colorbox" style="background-color:' +
           event.target.attributes.stroke.value +
@@ -210,7 +205,6 @@ export default class StackedChart {
         percent: percent(d[y])
       }
     }).filter(d => d.value > 0)
-    console.log('_data', _data)
     return _data
   };
 }

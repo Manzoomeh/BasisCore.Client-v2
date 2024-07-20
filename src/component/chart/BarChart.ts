@@ -102,12 +102,7 @@ export default class BarChart {
           .domain(new Set(this.data.map((d) => d[group])))
           .range([0, width])
           .paddingInner(0.1);
-        console.log(
-          "this.groupScale.bandwidth()",
-          this.groupScale.bandwidth(),
-          width,
-          new Set(this.data.map((d) => d[group]))
-        );
+
         this.xScale = d3
           .scaleBand()
           .domain(new Set(this.data.map((d) => d[x])))
@@ -283,10 +278,8 @@ export default class BarChart {
       legend,
       onLabelClick,
     } = this.chartSetting;
-    console.log("onLabelClick", onLabelClick);
     if (axisLabel) {
       // Add the x-axis
-      console.log('heree')
       const xAxis = this.chart
         .append("g")
         .attr("transform", `translate(0,${height})`)
@@ -451,7 +444,6 @@ export default class BarChart {
         event.target.setAttribute("style", "opacity:0.7");
       };
       const mousemove = function (event) {
-        console.log(" event.target.attributes", event.target.attributes);
         tooltip.innerHTML =
           '<div style="display:flex;flex-direction:column;padding:4px"><div style="padding:3px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;direction:ltr"><div class="colorbox" style="background-color:' +
           event.target.attributes.stroke.value +
