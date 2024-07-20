@@ -91,12 +91,12 @@ export default class LineChart {
       this.chart.append("g").call(d3.axisLeft(this.yScale));
     }
     if (grid) {
+      console.log('here')
       const xGridLines = d3
         .axisBottom(this.xScale)
         .tickSize(-height)
-        .tickFormat();
       // Y-axis grid lines
-      const yGridLines = d3.axisLeft(this.yScale).tickSize(-width).tickFormat();
+      const yGridLines = d3.axisLeft(this.yScale).tickSize(-width)
       this.chart
         .append("g")
         .attr("class", "grid")
@@ -113,6 +113,8 @@ export default class LineChart {
         .selectAll("line")
         .attr("stroke-dasharray", "3, 3")
         .attr("opacity", 0.5);
+      this.chart.selectAll('.grid').selectAll('text').remove()
+
     }
     if (legend && group) {
       if (group) {
@@ -186,11 +188,11 @@ export default class LineChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-            (event.pageY - 10) +
-            "px;left:" +
-            (event.pageX + 80) +
-            "px" +
-            ";opacity:0.8"
+          (event.pageY - 10) +
+          "px;left:" +
+          (event.pageX + 80) +
+          "px" +
+          ";opacity:0.8"
         );
       };
       const mouseleave = function (d) {
