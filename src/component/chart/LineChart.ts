@@ -12,12 +12,11 @@ export default class LineChart {
     this.data = data;
     this.chart = chart;
     this.chartSetting = chartSetting;
-
-
   }
   renderChart() {
     const { x, y, group } = this.chartSetting;
-    const { width, height, thickness, curveTension, color } = this.chartSetting.style;
+    const { width, height, thickness, curveTension, color } =
+      this.chartSetting.style;
     this.xScale = d3
       .scaleLinear()
       .domain(d3.extent(this.data, (d) => d[x]))
@@ -33,7 +32,6 @@ export default class LineChart {
       .y((d) => this.yScale(d[y]))
       .curve(d3.curveCardinal.tension(curveTension || 1));
     if (!group) {
-
       this.chart
         .append("path")
         .datum(this.data)
@@ -42,7 +40,6 @@ export default class LineChart {
 
         .attr("d", line)
         .attr("title", (d) => {
-
           return d[x];
         })
         .attr("class", "line")
@@ -58,7 +55,7 @@ export default class LineChart {
         .data(aggregatedData)
         .join("path")
         .attr("title", (d) => {
-          console.log('d', d)
+          console.log("d", d);
           return d[0];
         })
         .attr("class", "line")
@@ -72,8 +69,10 @@ export default class LineChart {
     }
   }
   applyFeatures() {
-    const { height, width, marginY, textColor, color } = this.chartSetting.style;
-    const { chartTitle, axisLabel, hover, group, legend, grid, onLabelClick } = this.chartSetting;
+    const { height, width, marginY, textColor, color } =
+      this.chartSetting.style;
+    const { chartTitle, axisLabel, hover, group, legend, grid, onLabelClick } =
+      this.chartSetting;
 
     if (axisLabel) {
       // Add the x-axis
@@ -82,65 +81,78 @@ export default class LineChart {
         .append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale));
-      xAxis.selectAll('.tick').on('mousedown', (d, i) => onLabelClick(d, this.data.find(j => j[group] == i)))
+      xAxis.selectAll(".tick").on("mousedown", (d, i) =>
+        onLabelClick(
+          d,
+          this.data.find((j) => j[group] == i)
+        )
+      );
       // Add the y-axis
       this.chart.append("g").call(d3.axisLeft(this.yScale));
     }
     if (grid) {
-      const xGridLines = d3.axisBottom(this.xScale)
+      const xGridLines = d3
+        .axisBottom(this.xScale)
         .tickSize(-height)
-        .tickFormat('');
-      // Y-axis grid lines  
-      const yGridLines = d3.axisLeft(this.yScale)
-        .tickSize(-width)
-        .tickFormat('');
-      this.chart.append('g')
-        .attr('class', 'grid')
-        .attr('transform', `translate(0, ${height})`)
+        .tickFormat();
+      // Y-axis grid lines
+      const yGridLines = d3.axisLeft(this.yScale).tickSize(-width).tickFormat();
+      this.chart
+        .append("g")
+        .attr("class", "grid")
+        .attr("transform", `translate(0, ${height})`)
         .call(xGridLines)
-        .selectAll('line')
-        .attr('stroke-dasharray', '3, 3')
-        .attr('opacity', 0.5);
+        .selectAll("line")
+        .attr("stroke-dasharray", "3, 3")
+        .attr("opacity", 0.5);
 
-      this.chart.append('g')
-        .attr('class', 'grid')
+      this.chart
+        .append("g")
+        .attr("class", "grid")
         .call(yGridLines)
-        .selectAll('line')
-        .attr('stroke-dasharray', '3, 3')
-        .attr('opacity', 0.5);
+        .selectAll("line")
+        .attr("stroke-dasharray", "3, 3")
+        .attr("opacity", 0.5);
     }
     if (legend && group) {
       if (group) {
         const aggregatedData = d3.group(this.data, (d) => d[group]);
 
-        var legendElement = this.chart.selectAll(".legend")
+        var legendElement = this.chart
+          .selectAll(".legend")
           .data(aggregatedData)
-          .enter().append("foreignObject").attr('x', function (_, i) {
-            return i * 75
+          .enter()
+          .append("foreignObject")
+          .attr("x", function (_, i) {
+            return i * 75;
           })
-          .attr('y', function () {
-            return height + 20
+          .attr("y", function () {
+            return height + 20;
           })
-          .attr('width', 100)
-          .attr('height', 100).append('xhtml:div')
-          .attr("class", "legend")
+          .attr("width", 100)
+          .attr("height", 100)
+          .append("xhtml:div")
+          .attr("class", "legend");
 
-        legendElement.append('svg').attr("width", 24)
+        legendElement
+          .append("svg")
+          .attr("width", 24)
           .attr("height", 12)
           .append("rect")
           .attr("x", 0)
           .attr("y", 0)
           .attr("width", 24)
-          .attr("height", 12).attr("rx", 5)
-          .style("fill", (_, i) => color[i % color.length])
+          .attr("height", 12)
+          .attr("rx", 5)
+          .style("fill", (_, i) => color[i % color.length]);
 
-        legendElement.append("text")
+        legendElement
+          .append("text")
           .attr("x", 30)
           .attr("y", 10)
           .attr("dy", ".35em")
           .text((d) => d[0]);
       }
-
     }
     if (chartTitle) {
       // Add the chart title
@@ -174,11 +186,11 @@ export default class LineChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-          (event.pageY - 10) +
-          "px;left:" +
-          (event.pageX + 80) +
-          "px" +
-          ";opacity:0.8"
+            (event.pageY - 10) +
+            "px;left:" +
+            (event.pageX + 80) +
+            "px" +
+            ";opacity:0.8"
         );
       };
       const mouseleave = function (d) {
