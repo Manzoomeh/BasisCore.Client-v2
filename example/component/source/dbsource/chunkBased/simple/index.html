@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.js"></script>
+    <title>chunk based connection - Simple</title>
+</head>
+
+<body>
+
+    <basis core='dbsource' source='simple' name='user' run="atclient">
+        <member name='list' />
+    </basis>
+
+    <fieldset>
+        <legend>filter</legend>
+        <label>name: <input name="demo.filter-name" bc-triggers="keyup change" /></label>
+        <br />
+
+    </fieldset>
+    <fieldset>
+        <legend>Order</legend>
+        <span name="demo.sort-by" bc-triggers="click" bc-value="id">Id</span>
+        <span name="demo.sort-by" bc-triggers="click" bc-value="name">Name</span>
+        <span name="demo.sort-by" bc-triggers="click" bc-value="age">Age</span>
+    </fieldset>
+    <fieldset>
+        <legend>Without Process</legend>
+        <Basis core="print" dataMemberName="user.list" run="atclient">
+            <layout>
+                <script type="text/template">
+            <table>
+                <thead>
+                    <tr>
+                        <td>Id</td>
+                        <td>Name</td>
+                        <td>Age</td>
+                    </tr>
+                </thead>
+                <tbody>@child</tbody>
+                <tfoot></tfoot>
+            </table></script>
+            </layout>
+            <face>
+                <script type="text/template">
+            <tr>
+                <td>@id@</td>
+                <td>@name@</td>
+                <td>@age@</td>
+            </tr>
+        </script>
+            </face>
+        </Basis>
+    </fieldset>
+    <fieldset>
+        <legend>With Process</legend>
+        [##demo.sql.value|( )##]
+        <Basis core="print" datamembername="user.list" run="atclient" OnProcessing="manipulation" triggers="demo.sort-by demo.filter-id demo.filter-name demo.filter-age">
+            <layout>
+                <script type="text/template">
+                <table>
+                    <thead>
+                        
+                        <tr>
+                            <td name="demo.sort-by" bc-triggers="click" bc-value="id"  >Id</td>
+                            <td name="demo.sort-by" bc-triggers="click" bc-value="name">Name</td>
+                            <td name="demo.sort-by" bc-triggers="click" bc-value="age">Age</td>
+                        </tr>
+                    </thead>
+                    <tbody>@child</tbody>
+                    <tfoot></tfoot>
+                </table></script>
+            </layout>
+            <face>
+                <script type="text/template">
+                <tr>
+                    <td>@id@</td>
+                    <td>@name@</td>
+                    <td>@age@</td>
+                </tr>
+            </script>
+            </face>
+        </Basis>
+    </fieldset>
+    <script>
+        var host = {
+            dbLibPath: '/alasql.min.js',
+            settings: {
+                'connection.chunkBased.simple': "http://localhost:2020/",
+                'default.dmnid': 2668
+            },
+
+        }
+
+        let preSort = null;
+        let preWhere = null;
+        let orderPart = null;
+        let wherePart = null;
+        async function manipulation(args) {
+            const source = args.source;
+            let retVal = source;
+
+            const where = args.context.tryToGetSource('demo.filter-name');
+            if (where && preWhere !== where) {
+                const nameValue = where.rows[0].value;
+                wherePart = nameValue ? `where name like '%${nameValue}%'` : ''
+            }
+
+            const sort = args.context.tryToGetSource('demo.sort-by');
+            if (sort && preSort !== sort) {
+                const sortCol = sort.rows[0].value;
+                let sortType = 'asc';
+                if (preSort?.rows[0].value == sortCol) {
+                    sortType = 'desc'
+                    preSort = null;
+                }
+                preSort = sort;
+
+                orderPart = `order by ${sortCol} ${sortType}`
+            }
+
+            const sql = `select * from ? ${wherePart ?? ""} ${orderPart ?? ""}`;
+            $bc.setSource('demo.sql', sql);
+            retVal = await $bc.util.source.runSqlAsync(source, sql, args.context);
+
+            args.source = retVal;
+        }
+
+    </script>
+</body>
+
+</html>

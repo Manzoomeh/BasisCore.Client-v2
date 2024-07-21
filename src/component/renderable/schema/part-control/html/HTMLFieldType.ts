@@ -51,7 +51,7 @@ export default class HTMLFieldType extends QuestionPart {
       let data;
       try {
         data = JSON.parse(e.data);
-      } catch {}
+      } catch { }
       if (data) {
         if (Object.keys(data).find((e) => e == "isLoaded")) {
           if (data.isLoaded) {
@@ -150,7 +150,7 @@ export default class HTMLFieldType extends QuestionPart {
   public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
 
-    if (this.answer) {
+    if (this.answer && Object.keys(this.value).length == 0) {
       const changed = this.value != this.answer.values[0].value;
       if (changed) {
         retVal = {
