@@ -20,6 +20,7 @@ import PrintComponent from "./component/renderable/PrintComponent";
 import IQuestionSchema from "./component/renderable/schema/IQuestionSchema";
 import IUserActionResult from "./component/renderable/schema/IUserActionResult";
 import SchemaComponent from "./component/renderable/schema/SchemaComponent";
+import ChartComponent from "./component/chart/ChartComponent";
 import TreeComponent from "./component/renderable/TreeComponent";
 import ViewComponent from "./component/renderable/ViewComponent";
 import APIComponent from "./component/source/APIComponent";
@@ -72,6 +73,7 @@ export {
   TreeComponent,
   ViewComponent,
   SchemaComponent,
+  ChartComponent,
   APIComponent,
   CallbackComponent,
   DbSourceComponent,

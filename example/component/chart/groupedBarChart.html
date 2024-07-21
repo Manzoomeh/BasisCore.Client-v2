@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/basiscore.js"></script>
+  <title>Bar Chart</title>
+</head>
+
+<body>
+  <basis core="inlinesource" name="list" run="atclient"> </basis>
+  <basis core="chart" name="chart" datamembername="chart.data" run="atclient" grid="true" chartType="bar" group="group"
+    hover="true" y="y" x="x" legend="true" chartTitle="chart title" axisLabel="true" onLabelClick="labelClicked"
+    style_opacity="0.2">
+  </basis>
+
+  <script>
+    const labelClicked = (event, data) => {
+      console.log(event, data);
+    };
+
+    const host = {
+      sources: {
+        "chart.data": [
+          {
+            x: "Chrome",
+            y: 250,
+            group: "2024-07-06",
+          },
+          {
+            x: "Firefox",
+            y: 195,
+            group: "2024-07-06",
+          },
+
+          {
+            x: "Android",
+            y: 647,
+            group: "2024-07-06",
+          },
+
+          {
+            x: "Chrome",
+            y: 377,
+            group: "2024-07-07",
+          },
+          {
+            x: "Firefox",
+            y: 352,
+            group: "2024-07-07",
+          },
+          {
+            x: "Android",
+            y: 647,
+            group: "2024-07-07",
+          },
+        ],
+      },
+    };
+  </script>
+</body>
+
+</html>

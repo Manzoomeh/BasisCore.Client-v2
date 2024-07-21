@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/basiscore.js"></script>
+  <title>Multi Line Chart</title>
+</head>
+
+
+<body>
+  <basis core="inlinesource" name="list" run="atclient"> </basis>
+  <basis core="chart" name="chart" datamembername="chart.data" run="atclient" chartType="line" group="column"
+    grid="true" marginX="40" marginY="40" hover="true" width="800" height="400" y="y" x="x" chartTitle="chart title"
+    chartStyle="chartStyle" axisLabel="true" legend="true">
+  </basis>
+
+  <script>
+    const chartStyle = {
+      height: 400,
+      width: 800,
+      marginX: 40
+      , marginY: 40
+      , colors: ["#004B85", "#FF7A00", "#00A693", "#B40020"], thickness: 4, curveTension: 0.6
+    }
+    const host = {
+      sources: {
+        "chart.data": [
+          {
+            column: "male",
+            y: "3",
+            x: "0",
+          },
+          {
+            column: "male",
+            y: "1",
+            x: "1",
+          },
+          {
+            column: "male",
+            y: "8",
+            x: "2",
+          },
+          {
+            column: "male",
+            y: "6",
+            x: "3",
+          },
+          {
+            column: "male",
+            y: "7",
+            x: "4",
+          },
+          {
+            column: "male",
+            y: "4",
+            x: "5",
+          },
+          {
+            column: "female",
+            y: "5",
+            x: "0",
+          },
+          {
+            column: "female",
+            y: "2",
+            x: "1",
+          },
+          {
+            column: "female",
+            y: "2",
+            x: "2",
+          },
+          {
+            column: "female",
+            y: "1",
+            x: "3",
+          },
+          {
+            column: "female",
+            y: "4",
+            x: "4",
+          },
+          {
+            column: "female",
+            y: "6",
+            x: "5",
+          },
+        ],
+      },
+    };
+  </script>
+</body>
+
+</html>
