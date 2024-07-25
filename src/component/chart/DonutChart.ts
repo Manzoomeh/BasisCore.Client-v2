@@ -44,7 +44,7 @@ export default class DonutChart {
     g.append("path")
       .attr("class", "arc")
 
-      .attr("d", arc).attr("title", (d) => { return d.data[group] })
+      .attr("d", arc).attr("title", (d) => { console.log('d.data[group] ', d, d.data, group, d.data[group]); return d.data[group] })
       .attr("fill", (d) => {
         var rgb = d3.rgb(color[d.index % color.length]);
         return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + ", " + (opacity || 1.0) + ")";
@@ -53,11 +53,7 @@ export default class DonutChart {
         return color[d.index];
       })
 
-    g.append("text")
-      .attr("transform", (d) => { return "translate(" + arc.centroid(d) + ")"; })
-      .attr("dy", ".35em")
-      .style("text-anchor", "middle")
-      .text((d) => { if (group) { return d.data[group] } else { return null } });
+
     if (chartContent) {
       this.chart.append("foreignObject").attr('x', () => {
         return ((width / 2) - ((innerRadiusDistance || 70) * Math.sqrt(2))) + 10
@@ -70,8 +66,8 @@ export default class DonutChart {
     }
   }
   applyFeatures() {
-    const { height, width, marginY, textColor, opacity, color } = this.chartSetting.style;
-    const { chartTitle, hover, legend, group } = this.chartSetting;
+    const { height, width, marginY, textColor, opacity, color, padAngel, cornerRadius, innerRadiusDistance, outerRadiusDistance } = this.chartSetting.style;
+    const { chartTitle, hover, legend, group, axisLabel } = this.chartSetting;
 
     if (legend && group) {
       var legendElement = this.chart.selectAll(".legend")
@@ -105,6 +101,19 @@ export default class DonutChart {
         .attr("y", 10)
         .attr("dy", ".35em")
         .text((d) => { return d[group]; });
+    }
+    if (axisLabel) {
+
+      var g = this.chart.selectAll(".arc")
+      var arc = d3.arc().padAngle(padAngel || 0)
+        .outerRadius(this.radius - (outerRadiusDistance || 10))
+        .innerRadius(this.radius - (innerRadiusDistance || 70))
+        .cornerRadius(cornerRadius || 0)
+      g.append("text")
+        .attr("transform", (d) => { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .text((d) => { if (group) { return d.data[group] } else { return null } });
     }
     if (chartTitle) {
       // Add the chart title
