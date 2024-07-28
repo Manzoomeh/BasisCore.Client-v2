@@ -7,28 +7,43 @@ export default class DonutChart {
   chart: any;
 
   xScale: any;
-  radius: number
+  radius: number;
   yScale: any;
   constructor(data, chartSetting: IDonutChartSetting, chart: any) {
     this.data = data;
     this.chart = chart;
     this.chartSetting = chartSetting;
-    this.radius = Math.min(this.chartSetting.style.width, this.chartSetting.style.height) / 2
-
+    this.radius =
+      Math.min(this.chartSetting.style.width, this.chartSetting.style.height) /
+      2;
   }
   renderChart() {
     const { group, y, legend, chartContent } = this.chartSetting;
-    const { width, height, cornerRadius, innerRadiusDistance, outerRadiusDistance, opacity, color, padAngel } = this.chartSetting.style;
+    const {
+      width,
+      height,
+      cornerRadius,
+      innerRadiusDistance,
+      outerRadiusDistance,
+      opacity,
+      color,
+      padAngel,
+    } = this.chartSetting.style;
 
-
-    var arc = d3.arc().padAngle(padAngel || 0)
+    var arc = d3
+      .arc()
+      .padAngle(padAngel || 0)
       .outerRadius(this.radius - (outerRadiusDistance || 10))
       .innerRadius(this.radius - (innerRadiusDistance || 70))
-      .cornerRadius(cornerRadius || 0)
+      .cornerRadius(cornerRadius || 0);
 
-    var pie = d3.pie().padAngle(padAngel || 0)
+    var pie = d3
+      .pie()
+      .padAngle(padAngel || 0)
       .sort(null)
-      .value((d) => { return d[y]; })
+      .value((d) => {
+        return d[y];
+      });
 
     var svg = this.chart
       .attr("width", width)
@@ -36,75 +51,140 @@ export default class DonutChart {
       .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
-
-    var g = svg.selectAll(".arc")
-      .data(pie(this.data))
-      .enter().append("g")
+    var g = svg.selectAll(".arc").data(pie(this.data)).enter().append("g");
 
     g.append("path")
       .attr("class", "arc")
 
-      .attr("d", arc).attr("title", (d) => { return d.data[group] })
+      .attr("d", arc)
+      .attr("title", (d) => d.data[group])
       .attr("fill", (d) => {
         var rgb = d3.rgb(color[d.index % color.length]);
-        return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + ", " + (opacity || 1.0) + ")";
+        return (
+          "rgba(" +
+          rgb.r +
+          "," +
+          rgb.g +
+          "," +
+          rgb.b +
+          ", " +
+          (opacity || 1.0) +
+          ")"
+        );
       })
       .attr("stroke", (d) => {
         return color[d.index];
-      })
+      });
 
-    g.append("text")
-      .attr("transform", (d) => { return "translate(" + arc.centroid(d) + ")"; })
-      .attr("dy", ".35em")
-      .style("text-anchor", "middle")
-      .text((d) => { if (group) { return d.data[group] } else { return null } });
     if (chartContent) {
-      this.chart.append("foreignObject").attr('x', () => {
-        return ((width / 2) - ((innerRadiusDistance || 70) * Math.sqrt(2))) + 10
-      })
-        .attr('y', (d) => {
-          return ((height / 2) - ((innerRadiusDistance || 70) * Math.sqrt(2))) + 10
+      this.chart
+        .append("foreignObject")
+        .attr("x", () => {
+          return width / 2 - (innerRadiusDistance || 70) * Math.sqrt(2) + 10;
         })
-        .attr('width', (this.radius - (innerRadiusDistance || 70)) * Math.sqrt(2) - 10)
-        .attr('height', (this.radius - (innerRadiusDistance || 70)) * Math.sqrt(2) - 10).html(chartContent)
+        .attr("y", (d) => {
+          return height / 2 - (innerRadiusDistance || 70) * Math.sqrt(2) + 10;
+        })
+        .attr(
+          "width",
+          (this.radius - (innerRadiusDistance || 70)) * Math.sqrt(2) - 10
+        )
+        .attr(
+          "height",
+          (this.radius - (innerRadiusDistance || 70)) * Math.sqrt(2) - 10
+        )
+        .html(chartContent);
     }
   }
   applyFeatures() {
-    const { height, width, marginY, textColor, opacity, color } = this.chartSetting.style;
-    const { chartTitle, hover, legend, group } = this.chartSetting;
+    const {
+      height,
+      width,
+      marginY,
+      textColor,
+      opacity,
+      color,
+      padAngel,
+      cornerRadius,
+      innerRadiusDistance,
+      outerRadiusDistance,
+    } = this.chartSetting.style;
+    const { chartTitle, hover, legend, group, axisLabel } = this.chartSetting;
 
     if (legend && group) {
-      var legendElement = this.chart.selectAll(".legend")
+      var legendElement = this.chart
+        .selectAll(".legend")
         .data(this.data)
-        .enter().append("foreignObject").attr('x', function (_, i) {
-          return i * 75
+        .enter()
+        .append("foreignObject")
+        .attr("x", function (_, i) {
+          return i * 75;
         })
-        .attr('y', function () {
-          return height
+        .attr("y", function () {
+          return height;
         })
-        .attr('width', 100)
-        .attr('height', 100).append('xhtml:div')
-        .attr("class", "legend")
+        .attr("width", 100)
+        .attr("height", 100)
+        .append("xhtml:div")
+        .attr("class", "legend");
 
-      legendElement.append('svg').attr("width", 24)
+      legendElement
+        .append("svg")
+        .attr("width", 24)
         .attr("height", 12)
         .append("rect")
         .attr("x", 0)
         .attr("y", 0)
         .attr("width", 24)
-        .attr("height", 12).attr("rx", 5)
+        .attr("height", 12)
+        .attr("rx", 5)
         .attr("fill", (d, i) => {
           var rgb = d3.rgb(color[i % color.length]);
-          return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + ", " + (opacity || 1.0) + ")";
+          return (
+            "rgba(" +
+            rgb.r +
+            "," +
+            rgb.g +
+            "," +
+            rgb.b +
+            ", " +
+            (opacity || 1.0) +
+            ")"
+          );
         })
         .attr("stroke", (_, i) => {
           return color[i % color.length];
-        })
-      legendElement.append("text")
+        });
+      legendElement
+        .append("text")
         .attr("x", 30)
         .attr("y", 10)
         .attr("dy", ".35em")
-        .text((d) => { return d[group]; });
+        .text((d) => {
+          return d[group];
+        });
+    }
+    if (axisLabel) {
+      var g = this.chart.selectAll(".arc");
+      var arc = d3
+        .arc()
+        .padAngle(padAngel || 0)
+        .outerRadius(this.radius - (outerRadiusDistance || 10))
+        .innerRadius(this.radius - (innerRadiusDistance || 70))
+        .cornerRadius(cornerRadius || 0);
+      g.append("text")
+        .attr("transform", (d) => {
+          return "translate(" + arc.centroid(d) + ")";
+        })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .text((d) => {
+          if (group) {
+            return d.data[group];
+          } else {
+            return null;
+          }
+        });
     }
     if (chartTitle) {
       // Add the chart title
@@ -128,19 +208,18 @@ export default class DonutChart {
       const mousemove = function (event) {
         tooltip.innerHTML =
           '<div style="display:flex;flex-direction:column;padding:4px"><div style="padding:3px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;direction:ltr"><div class="colorbox" style="background-color:' +
-          event.target.attributes.stroke.value
-          +
+          event.target.attributes.stroke.value +
           '"></div>' +
           event.target.attributes.title.value +
           "</div></div>";
         tooltip.setAttribute(
           "style",
           "top:" +
-          (event.pageY - 10) +
-          "px;left:" +
-          (event.pageX + 80) +
-          "px" +
-          ";opacity:0.8"
+            (event.pageY - 10) +
+            "px;left:" +
+            (event.pageX + 80) +
+            "px" +
+            ";opacity:0.8"
         );
       };
       const mouseleave = function (event) {
