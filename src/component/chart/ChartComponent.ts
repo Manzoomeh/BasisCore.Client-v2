@@ -30,6 +30,7 @@ export default class ChartComponent extends SourceBaseComponent {
     this.container = container;
   }
   public async initializeAsync(): Promise<void> {
+    console.log('hhhhh')
     await super.initializeAsync();
 
     const [chartType, group, y, x, chartTitle, axisLabel, grid, legend, horizontal, hover, chartContentVar, chartStyle, onLabelClick] = await Promise.all([this.getAttributeValueAsync("chartType"), this.getAttributeValueAsync("group"), this.getAttributeValueAsync("y"), this.getAttributeValueAsync("x"), this.getAttributeValueAsync("chartTitle"), this.getAttributeValueAsync("axisLabel"), this.getAttributeValueAsync("grid"), this.getAttributeValueAsync("legend"), this.getAttributeValueAsync("horizontal", 'false'), this.getAttributeValueAsync("hover"), this.getAttributeValueAsync("chartContent"), this.getAttributeValueAsync("chartStyle"), this.getAttributeValueAsync("onLabelClick")])
@@ -70,7 +71,15 @@ export default class ChartComponent extends SourceBaseComponent {
 
   }
   protected renderSourceAsync(dataSource: ISource): Promise<any> {
+    console.log('dataSource', dataSource)
     return this.initUIAsync(dataSource.rows);
+  }
+  public async runAsync(source) {
+    if (source) {
+      console.log('source', source)
+      return this.initUIAsync(source.rows[0].data);
+
+    }
   }
   public async initUIAsync(data?: any[]): Promise<any> {
     return this.createChart(data);
