@@ -298,7 +298,7 @@ export default class BarChart {
           d3.axisLeft(
             x ? (horizontal ? this.groupScale : this.yScale) : this.yScale
           )
-        )
+        );
       if (onLabelClick) {
         xAxis.selectAll(".tick").on("mousedown", (d, i) =>
           onLabelClick(
@@ -383,8 +383,7 @@ export default class BarChart {
           .selectAll("line")
           .attr("stroke-dasharray", "3, 3")
           .attr("opacity", 0.5);
-        this.chart.selectAll('.grid').selectAll('text').remove()
-
+        this.chart.selectAll(".grid").selectAll("text").remove();
       } else {
         const groupCount = new Set(this.data.map((d) => d[x])).size;
         const xCount = new Set(this.data.map((d) => d[group])).size;
@@ -395,8 +394,7 @@ export default class BarChart {
         );
         const xGridLines = d3
           .axisBottom(horizontal ? this.yScale : this.groupScale)
-          .tickSize(horizontal ? -height : -width)
-          .tickFormat("");
+          .tickSize(horizontal ? -height : -width);
         this.chart
           .append("g")
           .attr("class", "grid")
@@ -412,8 +410,7 @@ export default class BarChart {
               ? d3.scaleBand().domain(yDomain).range([0, height]).padding(0.05)
               : this.yScale
           )
-          .tickSize(-width)
-          .tickFormat("");
+          .tickSize(-width);
 
         this.chart
           .append("g")
@@ -453,11 +450,11 @@ export default class BarChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-          (event.pageY - 10) +
-          "px;left:" +
-          (event.pageX + 80) +
-          "px" +
-          ";opacity:0.8"
+            (event.pageY - 10) +
+            "px;left:" +
+            (event.pageX + 80) +
+            "px" +
+            ";opacity:0.8"
         );
       };
       const mouseleave = function (event) {
