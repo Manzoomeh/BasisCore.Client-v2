@@ -88,7 +88,6 @@ export default class Question {
   }
 
   public updateButtonState(isLastQuestion: boolean) {
-    console.log("isLastQuestion", isLastQuestion);
     const disabled = this.question.parts.some((x) => x.disabled);
     if (isLastQuestion) {
       if (disabled || !this.answer) {
