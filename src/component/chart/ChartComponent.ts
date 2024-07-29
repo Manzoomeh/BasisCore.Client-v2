@@ -45,7 +45,9 @@ export default class ChartComponent extends SourceBaseComponent {
   }
   public async initializeAsync(): Promise<void> {
     await super.initializeAsync();
-
+  }
+  protected async getArgs(): Promise<void> {
+    console.log("hhh");
     const [
       chartType,
       group,
@@ -113,6 +115,8 @@ export default class ChartComponent extends SourceBaseComponent {
   }
 
   public async initUIAsync(data?: any[]): Promise<any> {
+    await this.getArgs();
+
     return this.createChart(data);
   }
   createChart(data) {
