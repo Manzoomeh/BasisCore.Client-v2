@@ -29,11 +29,10 @@ export default abstract class TextBaseType<
     }
     if (answer) {
       this.input.value = answer.values[0].value;
-    } else {
-      console.log('here', part)
-      if (part.placeHolder) {
-        this.input.placeholder = part.placeHolder
-      }
+    }
+    if (part.placeHolder) {
+      this.input.placeholder = part.placeHolder
+
     }
   }
 
