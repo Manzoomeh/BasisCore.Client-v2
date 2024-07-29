@@ -22,6 +22,8 @@ export default class DonutChart {
     const {
       width,
       height,
+      marginX,
+      marginY,
       cornerRadius,
       innerRadiusDistance,
       outerRadiusDistance,
@@ -77,13 +79,19 @@ export default class DonutChart {
       });
 
     if (chartContent) {
+      console.log("object :>> ", this.radius, innerRadiusDistance);
       this.chart
         .append("foreignObject")
         .attr("x", () => {
-          return width / 2 - (innerRadiusDistance || 70) * Math.sqrt(2) + 10;
+          return (
+            width / 2 - ((this.radius - innerRadiusDistance) * Math.sqrt(2)) / 2
+          );
         })
         .attr("y", (d) => {
-          return height / 2 - (innerRadiusDistance || 70) * Math.sqrt(2) + 10;
+          return (
+            height / 2 -
+            ((this.radius - innerRadiusDistance) * Math.sqrt(2)) / 2
+          );
         })
         .attr(
           "width",
