@@ -154,8 +154,8 @@ export default class HalfDonutChart {
         .data(this.data)
         .enter()
         .append("foreignObject")
-        .attr("x", function (_, i) {
-          return i * 75;
+        .attr("x", (_, i) => {
+          return (width / this.data.length + 1) * i;
         })
         .attr("y", function () {
           return height + 20;
@@ -230,11 +230,11 @@ export default class HalfDonutChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-            (event.pageY - 10) +
-            "px;left:" +
-            (event.pageX + 80) +
-            "px" +
-            ";opacity:0.8"
+          (event.pageY - 10) +
+          "px;left:" +
+          (event.pageX + 80) +
+          "px" +
+          ";opacity:0.8"
         );
       };
       const mouseleave = function (event) {

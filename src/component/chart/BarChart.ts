@@ -63,7 +63,7 @@ export default class BarChart {
           .selectAll()
           .data(([, d]) => d)
           .join("path")
-          .attr("title", (d) => d[group])
+          .attr("title", (d) => d[x])
           .attr("class", "bar")
           .attr("d", (item) => {
             return (
@@ -126,7 +126,7 @@ export default class BarChart {
           .selectAll()
           .data(([, d]) => d)
           .join("path")
-          .attr("title", (d) => d[group])
+          .attr("title", (d) => d[x])
           .attr("class", "bar")
           .attr("d", (item) => {
             return (
@@ -135,11 +135,11 @@ export default class BarChart {
               "," +
               height +
               " v-" +
-              (height - this.yScale(item[y]) - 4) +
+              (height - this.yScale(item[y])) +
               "a 3 , 3 0 0 1 3, -3 l " +
               (this.xScale.bandwidth() - 4) +
               " 0 a 3, 3 0 0 1  3, 3 v" +
-              (height - this.yScale(item[y]) - 4)
+              (height - this.yScale(item[y]))
             );
           })
 
@@ -290,7 +290,6 @@ export default class BarChart {
             )
             .tickSizeOuter(0)
         )
-        .call((g) => g.selectAll(".domain").remove());
       // Add the y-axis
       this.chart
         .append("g")
@@ -309,57 +308,113 @@ export default class BarChart {
       }
     }
     if (legend && group) {
-      var legendElement = this.chart
-        .selectAll(".legend")
-        .data(this.data)
-        .enter()
-        .append("foreignObject")
-        .attr("x", function (d, i) {
-          return i * 75;
-        })
-        .attr("y", function (d) {
-          return height + 20;
-        })
-        .attr("width", 100)
-        .attr("height", 100)
-        .append("xhtml:div")
-        .attr("class", "legend");
+      if (!x) {
 
-      legendElement
-        .append("svg")
-        .attr("width", 24)
-        .attr("height", 12)
-        .append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", 24)
-        .attr("height", 12)
-        .attr("rx", 5)
-        .attr("fill", (d, i) => {
-          var rgb = d3.rgb(color[i % color.length]);
-          return (
-            "rgba(" +
-            rgb.r +
-            "," +
-            rgb.g +
-            "," +
-            rgb.b +
-            ", " +
-            (opacity || 1.0) +
-            ")"
-          );
-        })
-        .attr("stroke", (d, i) => {
-          return color[i % color.length];
-        });
-      legendElement
-        .append("text")
-        .attr("x", 30)
-        .attr("y", 10)
-        .attr("dy", ".35em")
-        .text((d) => {
-          return d[x ? x : group];
-        });
+        var legendElement = this.chart
+          .selectAll(".legend")
+          .data(this.data)
+          .enter()
+          .append("foreignObject")
+          .attr("x", (d, i) => {
+            return (width / this.data.length + 1) * i;
+          })
+          .attr("y", function (d) {
+            return height + 20;
+          })
+          .attr("width", 100)
+          .attr("height", 100)
+          .append("xhtml:div")
+          .attr("class", "legend");
+
+        legendElement
+          .append("svg")
+          .attr("width", 24)
+          .attr("height", 12)
+          .append("rect")
+          .attr("x", 0)
+          .attr("y", 0)
+          .attr("width", 24)
+          .attr("height", 12)
+          .attr("rx", 5)
+          .attr("fill", (d, i) => {
+            var rgb = d3.rgb(color[i % color.length]);
+            return (
+              "rgba(" +
+              rgb.r +
+              "," +
+              rgb.g +
+              "," +
+              rgb.b +
+              ", " +
+              (opacity || 1.0) +
+              ")"
+            );
+          })
+          .attr("stroke", (d, i) => {
+            return color[i % color.length];
+          });
+        legendElement
+          .append("text")
+          .attr("x", 30)
+          .attr("y", 10)
+          .attr("dy", ".35em")
+          .text((d) => {
+            return d[x ? x : group];
+          });
+      } else {
+        const labelData = [...new Map(this.data.map(d => [d[x], d]))]
+        var legendElement = this.chart
+          .selectAll(".legend")
+          .data(labelData)
+          .enter()
+          .append("foreignObject")
+          .attr("x", function (d, i) {
+            return (width / labelData.length + 1) * i;
+          })
+          .attr("y", function (d) {
+            return height + 20;
+          })
+          .attr("width", 100)
+          .attr("height", 100)
+          .append("xhtml:div")
+          .attr("class", "legend");
+
+        legendElement
+          .append("svg")
+          .attr("width", 24)
+          .attr("height", 12)
+          .append("rect")
+          .attr("x", 0)
+          .attr("y", 0)
+          .attr("width", 24)
+          .attr("height", 12)
+          .attr("rx", 5)
+          .attr("fill", (d, i) => {
+            var rgb = d3.rgb(color[i % color.length]);
+            return (
+              "rgba(" +
+              rgb.r +
+              "," +
+              rgb.g +
+              "," +
+              rgb.b +
+              ", " +
+              (opacity || 1.0) +
+              ")"
+            );
+          })
+          .attr("stroke", (d, i) => {
+            return color[i % color.length];
+          });
+        legendElement
+          .append("text")
+          .attr("x", 30)
+          .attr("y", 10)
+          .attr("dy", ".35em")
+          .text((d) => {
+            return d[0];
+          });
+      }
     }
     if (grid) {
       if (!x) {
@@ -383,7 +438,6 @@ export default class BarChart {
           .selectAll("line")
           .attr("stroke-dasharray", "3, 3")
           .attr("opacity", 0.5);
-        this.chart.selectAll(".grid").selectAll("text").remove();
       } else {
         const groupCount = new Set(this.data.map((d) => d[x])).size;
         const xCount = new Set(this.data.map((d) => d[group])).size;
@@ -394,7 +448,7 @@ export default class BarChart {
         );
         const xGridLines = d3
           .axisBottom(horizontal ? this.yScale : this.groupScale)
-          .tickSize(horizontal ? -height : -width);
+          .tickSize(horizontal ? -height : -width / 2);
         this.chart
           .append("g")
           .attr("class", "grid")
@@ -420,6 +474,8 @@ export default class BarChart {
           .attr("stroke-dasharray", "3, 3")
           .attr("opacity", 0.5);
       }
+      this.chart.selectAll(".grid").selectAll("text").remove();
+
     }
     if (chartTitle) {
       // Add the chart title
@@ -450,11 +506,11 @@ export default class BarChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-            (event.pageY - 10) +
-            "px;left:" +
-            (event.pageX + 80) +
-            "px" +
-            ";opacity:0.8"
+          (event.pageY - 10) +
+          "px;left:" +
+          (event.pageX + 80) +
+          "px" +
+          ";opacity:0.8"
         );
       };
       const mouseleave = function (event) {

@@ -33,6 +33,7 @@ export default class ChartComponent extends SourceBaseComponent {
     textColor: "#000",
     opacity: 1,
     color: ["#004B85", "#FF7A00", "#00A693", "#B40020"],
+
   };
   chartManager: BarChart | LineChart | FunnelChart;
   constructor(
@@ -47,7 +48,6 @@ export default class ChartComponent extends SourceBaseComponent {
     await super.initializeAsync();
   }
   protected async getArgs(): Promise<void> {
-    console.log("hhh");
     const [
       chartType,
       group,
@@ -136,10 +136,10 @@ export default class ChartComponent extends SourceBaseComponent {
       .attr(
         "transform",
         "translate(" +
-          Number(this.style.marginX) +
-          "," +
-          this.style.marginY +
-          ")"
+        Number(this.style.marginX) +
+        "," +
+        this.style.marginY +
+        ")"
       );
 
     document.body.appendChild(svg);

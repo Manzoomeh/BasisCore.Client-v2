@@ -111,8 +111,8 @@ export default class StackedChart {
     if (legend && group) {
       var legendElement = this.chart.selectAll(".legend")
         .data(this.data)
-        .enter().append("foreignObject").attr('x', function (d, i) {
-          return i * 75
+        .enter().append("foreignObject").attr('x', (d, i) => {
+          return (width / this.data.length + 1) * i;
         })
         .attr('y', function () {
           return height + 20
