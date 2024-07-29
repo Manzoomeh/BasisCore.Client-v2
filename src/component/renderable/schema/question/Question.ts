@@ -91,7 +91,6 @@ export default class Question {
     console.log("isLastQuestion", isLastQuestion);
     const disabled = this.question.parts.some((x) => x.disabled);
     if (isLastQuestion) {
-      console.log("disabled :>> ", disabled, this.answer);
       if (disabled || !this.answer) {
         this.button.setAttribute("data-bc-btn", "add");
         this.button.setAttribute("data-sys-plus", "");
@@ -135,9 +134,9 @@ export default class Question {
     const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
-          ...(this.answer && { id: this.answer.id }),
-          parts: userAction,
-        }
+        ...(this.answer && { id: this.answer.id }),
+        parts: userAction,
+      }
       : null;
   }
 
@@ -156,9 +155,9 @@ export default class Question {
     const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
-          id: this.answer.id,
-          parts: userAction,
-        }
+        id: this.answer.id,
+        parts: userAction,
+      }
       : null;
   }
 
@@ -167,9 +166,9 @@ export default class Question {
     const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
-          id: this.answer.id,
-          parts: userAction,
-        }
+        id: this.answer.id,
+        parts: userAction,
+      }
       : null;
   }
 
@@ -178,9 +177,9 @@ export default class Question {
     const userAction = (await Promise.all(userActionTaskList)).filter((x) => x);
     return userAction.length > 0
       ? {
-          ...(this.answer && { id: this.answer.id }),
-          parts: userAction,
-        }
+        ...(this.answer && { id: this.answer.id }),
+        parts: userAction,
+      }
       : null;
   }
 }
