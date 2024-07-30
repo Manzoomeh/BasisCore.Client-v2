@@ -5,12 +5,13 @@ import { IQuestionPart } from "../../IQuestionSchema";
 import { IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
 
-export interface ITestElement {
+export interface ITextElement {
   value: string;
+  placeholder: string
 }
 
 export default abstract class TextBaseType<
-  TTextElementType extends ITestElement
+  TTextElementType extends ITextElement
 > extends EditableQuestionPart {
   protected readonly input: TTextElementType;
   constructor(
@@ -28,6 +29,10 @@ export default abstract class TextBaseType<
     }
     if (answer) {
       this.input.value = answer.values[0].value;
+    }
+    if (part.placeHolder) {
+      this.input.placeholder = part.placeHolder
+
     }
   }
 

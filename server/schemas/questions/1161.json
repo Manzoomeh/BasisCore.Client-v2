@@ -34,13 +34,11 @@
               "ord": 1000,
               "vocab": "/عنوان",
               "title": "پاپ آپ",
-
               "wordId": 63228,
               "parts": [
                 {
                   "part": 1,
                   "link": "/schema/html",
-
                   "viewType": "html"
                 }
               ]
@@ -53,12 +51,10 @@
               "title": "پاپ آپ",
               "wordId": 63228,
               "multi": true,
-
               "parts": [
                 {
                   "part": 1,
                   "link": "/schema/html",
-
                   "viewType": "html"
                 }
               ]
@@ -96,6 +92,7 @@
               "parts": [
                 {
                   "part": 1,
+                  "placeHolder": "متن تستی placeHolder",
                   "viewType": "text",
                   "cssClass": "css_13050_1",
                   "validations": {
@@ -254,6 +251,7 @@
                   "part": 1,
                   "viewType": "textarea",
                   "cssClass": "css_13060_1",
+                  "placeHolder": "متن تستی placeHolder",
                   "caption": "",
                   "link": "",
                   "validations": {
