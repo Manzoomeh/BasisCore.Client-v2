@@ -22,6 +22,8 @@ export default class DonutChart {
     const {
       width,
       height,
+      marginX,
+      marginY,
       cornerRadius,
       innerRadiusDistance,
       outerRadiusDistance,
@@ -80,10 +82,15 @@ export default class DonutChart {
       this.chart
         .append("foreignObject")
         .attr("x", () => {
-          return width / 2 - (innerRadiusDistance || 70) * Math.sqrt(2) + 10;
+          return (
+            width / 2 - ((this.radius - innerRadiusDistance || 70) * Math.sqrt(2)) / 2
+          );
         })
         .attr("y", (d) => {
-          return height / 2 - (innerRadiusDistance || 70) * Math.sqrt(2) + 10;
+          return (
+            height / 2 -
+            ((this.radius - innerRadiusDistance || 70) * Math.sqrt(2)) / 2
+          );
         })
         .attr(
           "width",
@@ -110,15 +117,14 @@ export default class DonutChart {
       outerRadiusDistance,
     } = this.chartSetting.style;
     const { chartTitle, hover, legend, group, axisLabel } = this.chartSetting;
-
     if (legend && group) {
       var legendElement = this.chart
         .selectAll(".legend")
         .data(this.data)
         .enter()
         .append("foreignObject")
-        .attr("x", function (_, i) {
-          return i * 75;
+        .attr("x", (_, i) => {
+          return (width / this.data.length + 1) * i;
         })
         .attr("y", function () {
           return height;
@@ -215,11 +221,11 @@ export default class DonutChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-            (event.pageY - 10) +
-            "px;left:" +
-            (event.pageX + 80) +
-            "px" +
-            ";opacity:0.8"
+          (event.pageY - 10) +
+          "px;left:" +
+          (event.pageX + 80) +
+          "px" +
+          ";opacity:0.8"
         );
       };
       const mouseleave = function (event) {

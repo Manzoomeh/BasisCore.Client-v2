@@ -55,8 +55,8 @@ export default class FunnelChart {
     if (legend && group) {
       var legendElement = this.chart.selectAll(".legend")
         .data(this.data)
-        .enter().append("foreignObject").attr('x', function (_, i) {
-          return i * 75
+        .enter().append("foreignObject").attr('x', (_, i) => {
+          return (width / this.data.length + 1) * i;
         })
         .attr('y', function () {
           return height + 20

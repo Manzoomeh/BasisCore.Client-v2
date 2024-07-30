@@ -115,44 +115,42 @@ export default class LineChart {
 
     }
     if (legend && group) {
-      if (group) {
-        const aggregatedData = d3.group(this.data, (d) => d[group]);
+      const aggregatedData = d3.group(this.data, (d) => d[group]);
 
-        var legendElement = this.chart
-          .selectAll(".legend")
-          .data(aggregatedData)
-          .enter()
-          .append("foreignObject")
-          .attr("x", function (_, i) {
-            return i * 75;
-          })
-          .attr("y", function () {
-            return height + 20;
-          })
-          .attr("width", 100)
-          .attr("height", 100)
-          .append("xhtml:div")
-          .attr("class", "legend");
+      var legendElement = this.chart
+        .selectAll(".legend")
+        .data(aggregatedData)
+        .enter()
+        .append("foreignObject")
+        .attr("x", (_, i) => {
+          return (width / this.data.length + 1) * i;
+        })
+        .attr("y", function () {
+          return height + 20;
+        })
+        .attr("width", 100)
+        .attr("height", 100)
+        .append("xhtml:div")
+        .attr("class", "legend");
 
-        legendElement
-          .append("svg")
-          .attr("width", 24)
-          .attr("height", 12)
-          .append("rect")
-          .attr("x", 0)
-          .attr("y", 0)
-          .attr("width", 24)
-          .attr("height", 12)
-          .attr("rx", 5)
-          .style("fill", (_, i) => color[i % color.length]);
+      legendElement
+        .append("svg")
+        .attr("width", 24)
+        .attr("height", 12)
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 24)
+        .attr("height", 12)
+        .attr("rx", 5)
+        .style("fill", (_, i) => color[i % color.length]);
 
-        legendElement
-          .append("text")
-          .attr("x", 30)
-          .attr("y", 10)
-          .attr("dy", ".35em")
-          .text((d) => d[0]);
-      }
+      legendElement
+        .append("text")
+        .attr("x", 30)
+        .attr("y", 10)
+        .attr("dy", ".35em")
+        .text((d) => d[0]);
     }
     if (chartTitle) {
       // Add the chart title
