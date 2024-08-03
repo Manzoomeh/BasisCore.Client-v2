@@ -30,7 +30,10 @@
                       "values": [
                         {
                           "id": 33,
-                          "value": { "email": "test", "name": "test" }
+                          "value": {
+                            "email": "test",
+                            "name": "test"
+                          }
                         }
                       ]
                     }
@@ -520,6 +523,34 @@
                             "url": "/component/renderable/schema/edit/assets/images/sample.jpg",
                             "type": "image/jpg"
                           }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 3544,
+              "answers": [
+                {
+                  "id": 30000,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 59758,
+                          "title": "کیلو وات",
+                          "value": 5248
+                        }
+                      ]
+                    },
+                    {
+                      "part": 2,
+                      "values": [
+                        {
+                          "value": 7
                         }
                       ]
                     }
