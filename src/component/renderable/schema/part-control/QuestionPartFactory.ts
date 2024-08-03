@@ -27,6 +27,7 @@ import ReadonlyUploadType from "./upload/ReadOnlyUploadType";
 import ReadonlyColorType from "./readonly-text/ReadonlyColorType";
 import ComponentContainer from "./component-container/ComponentContainer";
 import HTMLFieldType from "./html/HTMLFieldType";
+import AutoCompleteSimpleType from "./auto-fill/auto-complete/AutoCompleteSimpleType";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -66,22 +67,26 @@ export default class QuestionPartFactory {
         case "autocomplete": {
           retVal = question.multi
             ? new AutoCompleteMultiType(
-                part,
-                owner,
-                answer?.values[0].id ? answer : null,
-                answer
-              )
+              part,
+              owner,
+              answer?.values[0].id ? answer : null,
+              answer
+            )
             : new AutoCompleteSingleType(part, owner, answer);
+          break;
+        }
+        case "simpleautocomplete": {
+          retVal = new AutoCompleteSimpleType(part, owner, answer);
           break;
         }
         case "reference": {
           retVal = question.multi
             ? new ReferenceMultiType(
-                part,
-                owner,
-                answer?.values[0].id ? answer : null,
-                answer
-              )
+              part,
+              owner,
+              answer?.values[0].id ? answer : null,
+              answer
+            )
             : new ReferenceSingleType(part, owner, answer);
           break;
         }
@@ -137,22 +142,22 @@ export default class QuestionPartFactory {
         case "autocomplete": {
           retVal = question.multi
             ? new AutoCompleteMultiType(
-                part,
-                owner,
-                answer?.values[0].id ? answer : null,
-                answer
-              )
+              part,
+              owner,
+              answer?.values[0].id ? answer : null,
+              answer
+            )
             : new AutoCompleteSingleType(part, owner, answer);
           break;
         }
         case "reference": {
           retVal = question.multi
             ? new ReferenceMultiType(
-                part,
-                owner,
-                answer?.values[0].id ? answer : null,
-                answer
-              )
+              part,
+              owner,
+              answer?.values[0].id ? answer : null,
+              answer
+            )
             : new ReferenceSingleType(part, owner, answer);
           break;
         }
