@@ -6868,19 +6868,19 @@ const server = http.createServer(async (req, res) => {
 
   let index = 0;
 
- // const initialChunk = await gzip("[null");
-  //res.write(initialChunk);
+ const initialChunk = await gzip("[null,");
+  res.write(initialChunk);
 
   const interval =setInterval(async () => {
     if (index >= array.length) {
       clearInterval(interval);
+      res.write("null]")
       res.end();
       return;
     }
     const element = array[index++];
     if (element) {
-      const chunk = JSON.stringify(element);
-      console.log(chunk)
+      const chunk = JSON.stringify(element) + ",";
       const compressedChunk = await gzip(chunk);
       res.write(compressedChunk);
     }
