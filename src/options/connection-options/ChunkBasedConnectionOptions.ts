@@ -2,9 +2,10 @@ import IContext from "../../context/IContext";
 import Data from "../../data/Data";
 import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import IDictionary from "../../IDictionary";
-import { IServerResponse } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
 import StreamPromise from "./StreamPromise";
+import pako from "pako";
+
 enum HttpMethod {
   GET = "GET",
   POST = "POST",
@@ -16,17 +17,26 @@ enum HttpMethod {
 }
 export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
+  readonly gzipMode: "none" | "full" | "perchunk";
+  readonly isFinalValueCanParsed: boolean;
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
-  readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<string, ReadableStreamDefaultReader>();
+  readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
+    string,
+    ReadableStreamDefaultReader
+  >();
   constructor(name: string, setting: any) {
     super(name);
     if (typeof setting === "string") {
       this.url = setting;
       this.method = HttpMethod.GET;
+      this.gzipMode = "none";
+      this.isFinalValueCanParsed = false;
     } else {
       this.url = setting.Connection;
       this.method = setting.method;
+      this.gzipMode = setting.gzipMode;
+      this.isFinalValueCanParsed = setting.isFinalValueCanParsed;
     }
   }
   public loadDataAsync(
@@ -36,8 +46,10 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     onDataReceived: EventHandlerWithReturn<Array<Data>, boolean>
   ): Promise<void> {
     const url = this.url;
-    const method = this.method
+    const method = this.method;
     const activeFetch = this.activeFetch;
+    const gzipMode = this.gzipMode;
+    const isFinalValueCanParsed = this.isFinalValueCanParsed;
     return new StreamPromise<void>(
       this.Name,
       (resolve, reject) => {
@@ -47,8 +59,14 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
           const init: RequestInit = {
             method: method,
           };
-          if(method!="GET"){
-              init.body = parameters ? JSON.stringify(parameters) : null;
+          if (method != "GET") {
+            init.body = parameters ? JSON.stringify(parameters) : null;
+          }
+          if (gzipMode == "full") {
+            throw new Error("gzip mode per chunk are not supported");
+          }
+          if (isFinalValueCanParsed && gzipMode == "perchunk") {
+            throw new Error("final value cannot be parsed in perchunk gzip mode");
           }
           const request = new Request(url, init);
           let response = await fetch(request);
@@ -62,10 +80,32 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             done = doneReading;
             if (value) {
               try {
-                const json : IServerResponse<any> = JSON.parse(
-                  decoder.decode(value, { stream: true })
-                );
+                let json;
+                let decodedStr;
+                if (gzipMode == "perchunk") {
+                  decodedStr = pako.ungzip(value, { to: "string" });
+                } else {
+                  if (this.isFinalValueCanParsed) {
+                    decodedStr = decoder
+                      .decode(value, { stream: true })
+                      .slice(0, -1);
+                  } else {
+                    decodedStr = decoder.decode(value, { stream: true });
+                  }
+                }
+                try {
+                  json = JSON.parse(decodedStr);
+                } catch (err) {
+                  if (
+                    isFinalValueCanParsed &&
+                    decodedStr != ",null]" &&
+                    decodedStr != "[null"
+                  ) {
+                    throw new Error("invalid json");
+                  }
+                }
                 if (
+                  json &&
                   json.setting &&
                   json.setting.keepalive !== undefined &&
                   !json.setting.keepalive
@@ -76,7 +116,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                   );
                   done = true;
                 }
-                if (json.sources) {
+                if (json && json.sources) {
                   const dataList = json?.sources.map(
                     (x) => new Data(x.options.tableName, x.data, x.options)
                   );
@@ -107,7 +147,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
         initAndConnect(false);
       },
       //@ts-ignore
-      () =>this.activeFetch.get(sourceId) ?? null
+      () => this.activeFetch.get(sourceId) ?? null
     );
   }
 
