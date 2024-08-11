@@ -1,5 +1,8 @@
-const http = require("http");
-const { gzip } = require("node-gzip");
+const express = require("express");
+const router = express.Router();
+const pako = require("pako")
+router.use(express.json());
+let id =0
 const array = [
   {
     sources: [
@@ -6860,7 +6863,47 @@ const array = [
     ],
   },
 ];
-const server = http.createServer(async (req, res) => {
+function generateRandomData() {
+  return {
+    sources: [
+      {
+        options: {
+          tableName: "user.list",
+          mergeType: 1,
+        },
+        data: [
+          {
+            id: id++,
+            age: Math.floor(Math.random() * 80) + 10,
+            name: Math.random().toString(36).substring(7),
+          },
+        ],
+      },
+    ],
+  };
+}
+router.get("/chunk-no-final-value", function (req, res) {
+  res.writeHead(200, {
+    "Content-Type": "application/json",
+  });
+
+  let index = 0;
+
+  const interval = setInterval(async () => {
+    if (index >= array.length) {
+      clearInterval(interval);
+      res.end();
+      return;
+    }
+    const element = array[index++];
+    if (element) {
+      const chunk = JSON.stringify(element);
+      const compressedChunk = await pako.gzip(chunk);
+      res.write(compressedChunk);
+    }
+  }, 500);
+});
+router.get("/chunk-no-final-value", async function (req, res) {
   res.writeHead(200, {
     "Content-Type": "application/json",
     //"Content-Encoding": "gzip",
@@ -6868,13 +6911,13 @@ const server = http.createServer(async (req, res) => {
 
   let index = 0;
 
- const initialChunk = await gzip("[null,");
+  const initialChunk = await gzip("[null,");
   res.write(initialChunk);
 
-  const interval =setInterval(async () => {
+  const interval = setInterval(async () => {
     if (index >= array.length) {
       clearInterval(interval);
-      res.write("null]")
+      res.write("null]");
       res.end();
       return;
     }
@@ -6886,6 +6929,18 @@ const server = http.createServer(async (req, res) => {
     }
   }, 500);
 });
-server.listen(2020, () => {
-  console.log("Server is listening on port 2020");
+router.get("/chunk-simple", async function (req, res) {
+  res.writeHead(200, { "Content-Type": "application/json" });
+
+  const interval = setInterval(() => {
+    const chunk = JSON.stringify(generateRandomData()) + "\n";
+    res.write(chunk);
+  }, 1000);
+
+  req.on("close", () => {
+    clearInterval(interval);
+    res.end();
+    console.log("Connection closed, stopped sending chunks.");
+  });
 });
+module.exports = router;

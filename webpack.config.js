@@ -7,7 +7,7 @@ const apiHttpServer = require("./server/api-server");
 const schemaHttpServer = require("./server/schema-server");
 const blobHttpServer = require("./server/blob-server");
 const assetHttpServer = require("./server/asset-server");
-const chunkHttpServer = require("./server/chuck-based-case-no-final-value");
+const chunkHttpServer = require("./server/chunk-server");
 
 module.exports = (env, options) => {
   return {
