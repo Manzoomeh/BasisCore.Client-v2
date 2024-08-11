@@ -1,4 +1,6 @@
-const http = require("http");
+const express = require("express");
+const path = require("path");
+const router = express.Router();
 const { gzip } = require("node-gzip");
 const array = [
   {
@@ -6860,7 +6862,8 @@ const array = [
     ],
   },
 ];
-const server = http.createServer(async (req, res) => {
+
+router.get("/no-final-value", function (req, res) {
   res.writeHead(200, {
     "Content-Type": "application/json",
     //"Content-Encoding": "gzip",
@@ -6868,10 +6871,10 @@ const server = http.createServer(async (req, res) => {
 
   let index = 0;
 
- // const initialChunk = await gzip("[null");
+  // const initialChunk = await gzip("[null");
   //res.write(initialChunk);
 
-  const interval =setInterval(async () => {
+  const interval = setInterval(async () => {
     if (index >= array.length) {
       clearInterval(interval);
       res.end();
@@ -6880,12 +6883,11 @@ const server = http.createServer(async (req, res) => {
     const element = array[index++];
     if (element) {
       const chunk = JSON.stringify(element);
-      console.log(chunk)
+      console.log(chunk);
       const compressedChunk = await gzip(chunk);
       res.write(compressedChunk);
     }
   }, 500);
 });
-server.listen(2020, () => {
-  console.log("Server is listening on port 2020");
-});
+
+module.exports = router;

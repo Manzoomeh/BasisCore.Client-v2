@@ -9,6 +9,7 @@
     "emitDecoratorMetadata": true,
     "strictNullChecks": false,
     "declaration": true,
-    "outDir": "src/types"
+    "outDir": "src/types",
+    "allowSyntheticDefaultImports": true
   }
 }
