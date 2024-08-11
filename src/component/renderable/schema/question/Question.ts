@@ -72,7 +72,7 @@ export default class Question {
       this.button.setAttribute("data-sys-plus", "");
       this.button.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-sys-plus-icon="" d="M8.4 0H5.6V5.6H0V8.4H5.6V14H8.4V8.4H14V5.6H8.4V0Z" fill="#004B85"/></svg>`;
     } else {
-      if (this.question.parts[0].viewType == "html") {
+      if (this.question.parts[0]?.viewType == "html") {
         this._pairBtnContainer.querySelector("[data-bc-btn-add]").remove();
         this.button.remove();
       } else {
