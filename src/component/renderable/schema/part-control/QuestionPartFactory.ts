@@ -150,6 +150,10 @@ export default class QuestionPartFactory {
             : new AutoCompleteSingleType(part, owner, answer);
           break;
         }
+        case "simpleautocomplete": {
+          retVal = new AutoCompleteSimpleType(part, owner, answer);
+          break;
+        }
         case "reference": {
           retVal = question.multi
             ? new ReferenceMultiType(
