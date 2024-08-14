@@ -4,7 +4,6 @@ import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 import StreamPromise from "./StreamPromise";
-//@ts-ignore
 import pako from "pako";
 
 enum HttpMethod {
@@ -80,13 +79,13 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
             if (value) {
-              try {
+              // try {
                 let json;
                 let decodedStr;
                 if (gzipMode == "perchunk") {
                   decodedStr = pako.ungzip(value, { to: "string" });
                 } else {
-                  if (this.isFinalValueCanParsed) {
+                  if (isFinalValueCanParsed) {
                     decodedStr = decoder
                       .decode(value, { stream: true })
                       .slice(0, -1);
@@ -102,7 +101,8 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                     decodedStr != ",null]" &&
                     decodedStr != "[null"
                   ) {
-                    throw new Error("invalid json");
+                    console.log("str",decodedStr);
+                    //throw new Error("invalid json");
                   }
                 }
                 if (
@@ -132,13 +132,13 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                     }
                   }
                 }
-              } catch (ex) {
-                reject(ex);
-                context.logger.logError(
-                  "Error in process chunk based request",
-                  ex
-                );
-              }
+              // } catch (ex) {
+              //   reject(ex);
+              //   context.logger.logError(
+              //     "Error in process chunk based request",
+              //     ex
+              //   );
+              // }
             }
           }
           activeFetch.delete(sourceId);
