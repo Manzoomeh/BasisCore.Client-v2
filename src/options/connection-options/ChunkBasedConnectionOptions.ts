@@ -4,6 +4,7 @@ import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 import StreamPromise from "./StreamPromise";
+//@ts-ignore
 import pako from "pako";
 
 enum HttpMethod {

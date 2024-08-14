@@ -8,6 +8,7 @@ import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
 import IQuestionCellManager from "../IQuestionCellManager";
 import QuestionPart from "../question-part/QuestionPart";
+import HTMLFieldType from "../part-control/html/HTMLFieldType";
 
 export default class QuestionContainer {
   public readonly QuestionSchema: IQuestion;
@@ -40,7 +41,9 @@ export default class QuestionContainer {
     if (!questionSchema.help) {
       uiElement.querySelector("[data-bc-help-btn]").remove();
     } else {
-      uiElement.querySelector("[data-bc-help-btn]").setAttribute("data-bc-help-tooltip", questionSchema.help);
+      uiElement
+        .querySelector("[data-bc-help-btn]")
+        .setAttribute("data-bc-help-tooltip", questionSchema.help);
     }
     const headerContainer = uiElement.querySelector(
       "[data-bc-answer-title-container]"
@@ -123,12 +126,16 @@ export default class QuestionContainer {
 
   public onQuestionRemove(question: Question) {
     const index = this._questions.indexOf(question);
-    this._questions.splice(index, 1);
-    if (question.answer?.id) {
-      if (!this._removedQuestions) {
-        this._removedQuestions = [];
+    if (question.question.parts[0].viewType == "html") {
+      (question._parts[0] as HTMLFieldType).value ="";
+    } else {
+      this._questions.splice(index, 1);
+      if (question.answer?.id) {
+        if (!this._removedQuestions) {
+          this._removedQuestions = [];
+        }
+        this._removedQuestions.push(question.answer.id);
       }
-      this._removedQuestions.push(question.answer.id);
     }
   }
 
