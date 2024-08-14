@@ -11,8 +11,9 @@ import { IQuestionPart } from "../../IQuestionSchema";
 
 export default class HTMLFieldType extends QuestionPart {
   private valueInput: HTMLInputElement;
-  private value: IUserActionPart;
+  public value: IUserActionPart | string;
   private modalElement: HTMLElement;
+  public answer;
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
     this.modalElement = Util.parse(HTMLLayout).querySelector(
@@ -51,7 +52,7 @@ export default class HTMLFieldType extends QuestionPart {
       let data;
       try {
         data = JSON.parse(e.data);
-      } catch { }
+      } catch {}
       if (data) {
         if (Object.keys(data).find((e) => e == "isLoaded")) {
           if (data.isLoaded) {
@@ -92,7 +93,7 @@ export default class HTMLFieldType extends QuestionPart {
     iframe.onload = (e) => {
       if (this.value) {
         iframe.contentWindow.postMessage(
-          JSON.stringify({ ...this.value, mode: "edit" })
+          JSON.stringify({ ...(this.value as IUserActionPart), mode: "edit" })
         );
       } else {
         iframe.contentWindow.postMessage(JSON.stringify({ mode: "new" }));
@@ -111,6 +112,8 @@ export default class HTMLFieldType extends QuestionPart {
   }
   public getAddedAsync(): Promise<IUserActionPart> {
     let retVal = null;
+
+
     if (!this.answer) {
       if (this.value) {
         retVal = {
@@ -130,6 +133,7 @@ export default class HTMLFieldType extends QuestionPart {
   }
   public getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
+
     if (this.answer) {
       const changed = this.value != this.answer.values[0].value;
       if (changed) {
@@ -149,7 +153,6 @@ export default class HTMLFieldType extends QuestionPart {
 
   public getDeletedAsync(): Promise<IUserActionPart> {
     let retVal = null;
-
     if (this.answer && Object.keys(this.value).length == 0) {
       const changed = this.value != this.answer.values[0].value;
       if (changed) {
@@ -168,6 +171,6 @@ export default class HTMLFieldType extends QuestionPart {
   }
 
   public getValuesAsync(): Promise<IUserActionPart> {
-    return Promise.resolve(this.value);
+    return Promise.resolve(this.value as  IUserActionPart);
   }
 }

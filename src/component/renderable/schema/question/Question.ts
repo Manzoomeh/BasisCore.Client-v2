@@ -21,7 +21,7 @@ export default class Question {
   private _addButton: HTMLButtonElement;
   private _pairBtnContainer: HTMLDivElement;
   readonly owner: QuestionContainer;
-  readonly answer: IAnswerPart;
+  answer: IAnswerPart;
   private readonly _ui: HTMLElement;
   private _onAddClick: AddRemoveCallback;
   private _onRemoveClick: AddRemoveCallback;
@@ -49,10 +49,11 @@ export default class Question {
     this.button.addEventListener("click", this.onBtnClick.bind(this));
 
     this._removeButton.addEventListener("click", (e) => {
+   
       e.preventDefault;
       this.owner.onQuestionRemove(this);
       this._ui.remove();
-      this.owner.addQuestion(null);
+      this.owner.addQuestion(null); 
     });
     this._addButton.addEventListener("click", () => this._onAddClick());
     this._onAddClick = () => {
@@ -180,6 +181,9 @@ export default class Question {
         parts: userAction,
       }
       : null;
+  }
+  public clearAnswer(){
+    this.answer =null
   }
 }
 

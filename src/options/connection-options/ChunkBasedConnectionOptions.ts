@@ -81,7 +81,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
             if (value) {
-              try {
+              // try {
                 let json;
                 let decodedStr;
                 if (gzipMode == "perchunk") {
@@ -103,7 +103,8 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                     decodedStr != ",null]" &&
                     decodedStr != "[null"
                   ) {
-                    throw new Error("invalid json");
+                    console.log("str",decodedStr);
+                    //throw new Error("invalid json");
                   }
                 }
                 if (
@@ -133,13 +134,13 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                     }
                   }
                 }
-              } catch (ex) {
-                reject(ex);
-                context.logger.logError(
-                  "Error in process chunk based request",
-                  ex
-                );
-              }
+              // } catch (ex) {
+              //   reject(ex);
+              //   context.logger.logError(
+              //     "Error in process chunk based request",
+              //     ex
+              //   );
+              // }
             }
           }
           activeFetch.delete(sourceId);
