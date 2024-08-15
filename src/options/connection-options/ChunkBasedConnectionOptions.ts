@@ -66,7 +66,9 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             throw new Error("gzip mode per chunk are not supported");
           }
           if (isFinalValueCanParsed && gzipMode == "perchunk") {
-            throw new Error("final value cannot be parsed in perchunk gzip mode");
+            throw new Error(
+              "final value cannot be parsed in perchunk gzip mode"
+            );
           }
           const request = new Request(url, init);
           let response = await fetch(request);
