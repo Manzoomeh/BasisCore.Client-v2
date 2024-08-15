@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const pako = require("pako")
+const pako = require("pako");
 router.use(express.json());
-let id =0
+let id = 0;
 const array = [
   {
     sources: [
@@ -6863,6 +6863,7 @@ const array = [
     ],
   },
 ];
+const delimiter = "__delimiter__";
 function generateRandomData() {
   return {
     sources: [
@@ -6882,58 +6883,37 @@ function generateRandomData() {
     ],
   };
 }
-router.get("/chunk-no-final-value", function (req, res) {
-  res.writeHead(200, {
-    "Content-Type": "application/json",
-  });
 
-  let index = 0;
-
-  const interval = setInterval(async () => {
-    if (index >= array.length) {
-      clearInterval(interval);
-      res.end();
-      return;
-    }
-    const element = array[index++];
-    if (element) {
-      const chunk = JSON.stringify(element);
-      const compressedChunk = await pako.gzip(chunk);
-      res.write(compressedChunk);
-    }
-  }, 500);
-});
 router.get("/chunk-no-final-value", async function (req, res) {
   res.writeHead(200, {
-    "Content-Type": "application/json",
+    "Content-Type": "text/html",
+    "X-Delimiter": delimiter,
     //"Content-Encoding": "gzip",
   });
 
   let index = 0;
 
-  const initialChunk = await gzip("[null,");
-  res.write(initialChunk);
-
   const interval = setInterval(async () => {
     if (index >= array.length) {
       clearInterval(interval);
-      res.write("null]");
       res.end();
       return;
     }
     const element = array[index++];
     if (element) {
-      const chunk = JSON.stringify(element) + ",";
-      const compressedChunk = await gzip(chunk);
-      res.write(compressedChunk);
+      const chunk = JSON.stringify(element) + delimiter;
+      res.write(chunk);
     }
   }, 500);
 });
 router.get("/chunk-simple", async function (req, res) {
-  res.writeHead(200, { "Content-Type": "application/json" });
+  res.writeHead(200, {
+    "Content-Type": "text/html",
+    "X-Delimiter": delimiter,
+  });
 
   const interval = setInterval(() => {
-    const chunk = JSON.stringify(generateRandomData()) + "\n";
+    const chunk = JSON.stringify(generateRandomData()) + delimiter;
     res.write(chunk);
   }, 1000);
 

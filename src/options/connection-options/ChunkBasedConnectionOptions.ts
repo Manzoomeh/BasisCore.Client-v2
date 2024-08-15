@@ -4,7 +4,6 @@ import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import IDictionary from "../../IDictionary";
 import ConnectionOptions from "./ConnectionOptions";
 import StreamPromise from "./StreamPromise";
-import pako from "pako";
 
 enum HttpMethod {
   GET = "GET",
@@ -18,7 +17,6 @@ enum HttpMethod {
 export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
   readonly gzipMode: "none" | "full" | "perchunk";
-  readonly isFinalValueCanParsed: boolean;
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
@@ -31,12 +29,10 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
       this.url = setting;
       this.method = HttpMethod.GET;
       this.gzipMode = "none";
-      this.isFinalValueCanParsed = false;
     } else {
       this.url = setting.Connection;
       this.method = setting.method;
       this.gzipMode = setting.gzipMode;
-      this.isFinalValueCanParsed = setting.isFinalValueCanParsed;
     }
   }
   public loadDataAsync(
@@ -49,7 +45,6 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     const method = this.method;
     const activeFetch = this.activeFetch;
     const gzipMode = this.gzipMode;
-    const isFinalValueCanParsed = this.isFinalValueCanParsed;
     return new StreamPromise<void>(
       this.Name,
       (resolve, reject) => {
@@ -62,47 +57,39 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
           if (method != "GET") {
             init.body = parameters ? JSON.stringify(parameters) : null;
           }
-          if (gzipMode == "full") {
+          if (gzipMode == "full" || gzipMode == "perchunk") {
             throw new Error("gzip mode per chunk are not supported");
-          }
-          if (isFinalValueCanParsed && gzipMode == "perchunk") {
-            throw new Error(
-              "final value cannot be parsed in perchunk gzip mode"
-            );
           }
           const request = new Request(url, init);
           let response = await fetch(request);
+          const delimiter = response.headers.get("X-Delimiter");
+          if (delimiter == null) {
+            throw new Error("X-Delimiter not set in header");
+          }
           console.log("%s %s", url, reconnect ? "Reconnected" : "Connected");
           const reader = response.body.getReader();
           activeFetch.set(sourceId, reader);
           const decoder = new TextDecoder();
           let done = false;
+          let remain = "";
           while (!done) {
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
             if (value) {
               // try {
-                let json;
-                let decodedStr;
-                if (gzipMode == "perchunk") {
-                  decodedStr = pako.ungzip(value, { to: "string" });
-                } else {
-                  if (isFinalValueCanParsed) {
-                    decodedStr = decoder
-                      .decode(value, { stream: true })
-                      .slice(0, -1);
-                  } else {
-                    decodedStr = decoder.decode(value, { stream: true });
-                  }
-                }
+              let json;
+              remain += decoder.decode(value, { stream: true });
+              const chunks = remain.split(delimiter);
+              for (let index = 0; index < chunks.length; index++) {
+                const chunk = chunks[index];
                 try {
-                  json = JSON.parse(decodedStr);
+                  json = JSON.parse(chunk);
                 } catch (err) {
-                  if (
-                    isFinalValueCanParsed &&
-                    decodedStr != ",null]" &&
-                    decodedStr != "[null"
-                  ) {
+                  if (index + 1 == chunks.length) {
+                    remain = chunk;
+                    json = null;
+                  } else {
+                    console.error(err, chunk);
                     throw new Error("invalid json");
                   }
                 }
@@ -133,13 +120,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                     }
                   }
                 }
-              // } catch (ex) {
-              //   reject(ex);
-              //   context.logger.logError(
-              //     "Error in process chunk based request",
-              //     ex
-              //   );
-              // }
+              }
             }
           }
           activeFetch.delete(sourceId);
