@@ -6863,7 +6863,6 @@ const array = [
     ],
   },
 ];
-const delimiter = "__delimiter__";
 function generateRandomData() {
   return {
     sources: [
@@ -6884,41 +6883,41 @@ function generateRandomData() {
   };
 }
 
-router.get("/chunk-no-final-value", async function (req, res) {
+router.get("/chunk-data", async function (req, res) {
   res.writeHead(200, {
-    "Content-Type": "text/html",
-    "X-Delimiter": delimiter,
-    //"Content-Encoding": "gzip",
+    "Content-Type": "application/json",
   });
+  res.write("[");
 
   let index = 0;
 
   const interval = setInterval(async () => {
     if (index >= array.length) {
       clearInterval(interval);
+      res.write("null]");
       res.end();
       return;
     }
     const element = array[index++];
     if (element) {
-      const chunk = JSON.stringify(element) + delimiter;
+      const chunk = JSON.stringify(element) + ",";
       res.write(chunk);
     }
   }, 500);
 });
-router.get("/chunk-simple", async function (req, res) {
+router.get("/chunk-stream", async function (req, res) {
   res.writeHead(200, {
-    "Content-Type": "text/html",
-    "X-Delimiter": delimiter,
+    "Content-Type": "application/json",
   });
-
+  res.write("[");
   const interval = setInterval(() => {
-    const chunk = JSON.stringify(generateRandomData()) + delimiter;
+    const chunk = JSON.stringify(generateRandomData()) + ",";
     res.write(chunk);
   }, 1000);
 
   req.on("close", () => {
     clearInterval(interval);
+    res.write("null]");
     res.end();
     console.log("Connection closed, stopped sending chunks.");
   });
