@@ -16,7 +16,6 @@ enum HttpMethod {
 }
 export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
-  readonly gzipMode: "none" | "full" | "perchunk";
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
@@ -28,13 +27,12 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     if (typeof setting === "string") {
       this.url = setting;
       this.method = HttpMethod.GET;
-      this.gzipMode = "none";
     } else {
       this.url = setting.Connection;
       this.method = setting.method;
-      this.gzipMode = setting.gzipMode;
     }
   }
+
   public loadDataAsync(
     context: IContext,
     sourceId: string,
@@ -44,7 +42,22 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     const url = this.url;
     const method = this.method;
     const activeFetch = this.activeFetch;
-    const gzipMode = this.gzipMode;
+    const extractNextJSON = (str, start = 0) => {
+      let firstOpen, firstClose, candidate;
+      firstOpen = str.indexOf("{", start);
+      firstClose = str.lastIndexOf("}");
+      if (firstClose <= firstOpen) {
+        return null;
+      }
+      do {
+        candidate = str.substring(firstOpen, firstClose + 1);
+        try {
+          var res = JSON.parse(candidate);
+          return [res, firstClose + 1];
+        } catch (e) {}
+        firstClose = str.substr(0, firstClose).lastIndexOf("}");
+      } while (firstClose > firstOpen);
+    };
     return new StreamPromise<void>(
       this.Name,
       (resolve, reject) => {
@@ -57,15 +70,8 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
           if (method != "GET") {
             init.body = parameters ? JSON.stringify(parameters) : null;
           }
-          if (gzipMode == "full" || gzipMode == "perchunk") {
-            throw new Error("gzip mode per chunk are not supported");
-          }
           const request = new Request(url, init);
           let response = await fetch(request);
-          const delimiter = response.headers.get("X-Delimiter");
-          if (delimiter == null) {
-            throw new Error("X-Delimiter not set in header");
-          }
           console.log("%s %s", url, reconnect ? "Reconnected" : "Connected");
           const reader = response.body.getReader();
           activeFetch.set(sourceId, reader);
@@ -76,51 +82,46 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
             if (value) {
-              // try {
-              let json;
               remain += decoder.decode(value, { stream: true });
-              const chunks = remain.split(delimiter);
-              for (let index = 0; index < chunks.length; index++) {
-                const chunk = chunks[index];
-                try {
-                  json = JSON.parse(chunk);
-                } catch (err) {
-                  if (index + 1 == chunks.length) {
-                    remain = chunk;
-                    json = null;
-                  } else {
-                    console.error(err, chunk);
-                    throw new Error("invalid json");
+              let lastEndFrom = 0;
+              let startFrom = 0;
+              let extractResult = null;
+              do {
+                startFrom = lastEndFrom;
+                extractResult = extractNextJSON(remain, startFrom);
+                if (extractResult) {
+                  var json = extractResult[0];
+                  lastEndFrom = extractResult[1];
+                  if (
+                    json &&
+                    json.setting &&
+                    json.setting.keepalive !== undefined &&
+                    !json.setting.keepalive
+                  ) {
+                    context.logger.logInformation(
+                      "Disconnect from %s by server request",
+                      url
+                    );
+                    done = true;
                   }
-                }
-                if (
-                  json &&
-                  json.setting &&
-                  json.setting.keepalive !== undefined &&
-                  !json.setting.keepalive
-                ) {
-                  context.logger.logInformation(
-                    "Disconnect from %s by server request",
-                    url
-                  );
-                  done = true;
-                }
-                if (json && json.sources) {
-                  const dataList = json?.sources.map(
-                    (x) => new Data(x.options.tableName, x.data, x.options)
-                  );
-                  if (dataList.length > 0) {
-                    const receiverIsOk = onDataReceived(dataList);
-                    if (!receiverIsOk) {
-                      context.logger.logInformation(
-                        "Disconnect from %s by receiver request. maybe disposed!",
-                        url
-                      );
-                      done = true;
+                  if (json && json.sources) {
+                    const dataList = json?.sources.map(
+                      (x) => new Data(x.options.tableName, x.data, x.options)
+                    );
+                    if (dataList.length > 0) {
+                      const receiverIsOk = onDataReceived(dataList);
+                      if (!receiverIsOk) {
+                        context.logger.logInformation(
+                          "Disconnect from %s by receiver request. maybe disposed!",
+                          url
+                        );
+                        done = true;
+                      }
                     }
                   }
                 }
-              }
+              } while (extractResult);
+              remain = remain.substring(startFrom);
             }
           }
           activeFetch.delete(sourceId);
