@@ -6883,7 +6883,7 @@ function generateRandomData() {
   };
 }
 
-router.get("/chunk-data", async function (req, res) {
+router.post("/chunk-data", async function (req, res) {
   res.writeHead(200, {
     "Content-Type": "application/json",
   });
