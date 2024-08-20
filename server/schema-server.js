@@ -86,6 +86,7 @@ router.get("/html", (req, res) => {
     <label for="email">Email:</label>
     <input type="email" id="email" name="email"><br><br>
     <button onclick='onSubmit()'>submit</button>
+    <button onclick='onReset()'>reset</button>
     
 
     
@@ -93,7 +94,9 @@ router.get("/html", (req, res) => {
   <script>
  
   // Third party function
-
+function onReset(){
+   bcCallback({isSubmited:true})
+}
   function onSubmit(){
     
     const values = {}
