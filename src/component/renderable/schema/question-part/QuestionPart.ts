@@ -5,6 +5,7 @@ import { IPartCollection } from "../IAnswerSchema";
 import { IQuestionPart } from "../IQuestionSchema";
 import { IUserActionPart } from "../IUserActionResult";
 import IValidationError, { IValidationErrorPart } from "../IValidationError";
+import ValidationHandler from "../../../ValidationHandler";
 
 export default abstract class QuestionPart {
   public readonly part: IQuestionPart;
@@ -56,17 +57,14 @@ export default abstract class QuestionPart {
     return url;
   }
 
-  protected ValidateValue(
+  protected async ValidateValue(
     userValue: any | Array<any>,
     addSubSchemaError: boolean = false
-  ): IValidationError {
+  ): Promise<IValidationError> {
     const errors: Array<IValidationErrorPart> = [];
     let retVal: IValidationError = null;
     if (addSubSchemaError) {
-      errors.push({
-        type: "sub-schema",
-        description: "",
-      });
+      errors.push(await ValidationHandler.getErrorElement("sub-schema"));
     }
     const isArray = Array.isArray(userValue);
     const hasValue = isArray
@@ -76,10 +74,7 @@ export default abstract class QuestionPart {
       try {
         if (this.part.validations.required) {
           if (!hasValue) {
-            errors.push({
-              type: "required",
-              description: "پر کردن این فیلد الزامیست"
-            });
+            errors.push(await ValidationHandler.getErrorElement("required"));
           }
         }
       } catch (ex) {
@@ -94,11 +89,11 @@ export default abstract class QuestionPart {
                 : /^[+-]?\d+(\.\d+)?$/
             ).test(userValue.toString());
             if (!ok) {
-              errors.push({
-                type: "type",
-                description: "عدد وارد شده صحیح نیست",
-                params: [this.part.validations.dataType],
-              });
+              errors.push(
+                await ValidationHandler.getErrorElement("type", null, [
+                  this.part.validations.dataType,
+                ])
+              );
             }
           } catch (ex) {
             console.error("Error in apply data type validation", ex);
@@ -111,12 +106,7 @@ export default abstract class QuestionPart {
                 userValue.toString()
               )
             ) {
-              errors.push({
-                type: "regex",
-                // description: `فرمت وارد شده صحیح نیست. فرمت صحیح به صورت ${this.part.validations.regex} است`,
-                description: `فرمت وارد شده صحیح نیست.`,
-                params: [this.part.validations.regex, userValue],
-              });
+              errors.push(ValidationHandler.getErrorElement("regex"));
             }
           } catch (ex) {
             console.error("Error in apply regex validation", ex);
@@ -131,14 +121,11 @@ export default abstract class QuestionPart {
             lengthOk = userValue.length <= this.part.validations.maxLength;
           }
           if (!lengthOk) {
-            errors.push({
-              type: "length",
-              description: `طول رشته وارد شده باید در بازه ${this.part.validations.minLength} و ${this.part.validations.maxLength} باشد`,
-              params: [
+            //@ts-expect-error
+            errors.push(await ValidationHandler.getErrorElement("length",null,[
                 this.part.validations.minLength ?? null,
                 this.part.validations.maxLength ?? null,
-              ],
-            });
+              ]));
           }
         } catch (ex) {
           console.error(
@@ -156,14 +143,13 @@ export default abstract class QuestionPart {
               rangeOk = userValue <= this.part.validations.max;
             }
             if (!rangeOk) {
-              errors.push({
-                type: "range",
-                description: `عدد وارد شده باید در بازه ${this.part.validations.min} و ${this.part.validations.max} باشد`,
-                params: [
+              //@ts-expect-error
+              errors.push(
+                await ValidationHandler.getErrorElement("range", null, [
                   this.part.validations.min ?? null,
                   this.part.validations.max ?? null,
-                ],
-              });
+                ])
+              );
             }
           } catch (ex) {
             console.error("Error in apply min and max validation", ex);
@@ -178,11 +164,8 @@ export default abstract class QuestionPart {
             });
             sizeOk = this.part.validations.size >= sumSize;
             if (!sizeOk) {
-              errors.push({
-                type: "size",
-                description: `حجم فایل بیشتر از حجم مجاز (${this.formatBytes(this.part.validations.size)}) است.`,
-                params: [this.formatBytes(this.part.validations.size)],
-              });
+              //@ts-expect-error
+              errors.push(await ValidationHandler.getErrorElement("size",null,[this.formatBytes(this.part.validations.size)]));
             }
           } catch (ex) {
             console.error("Error in apply size validation", ex);
@@ -211,11 +194,8 @@ export default abstract class QuestionPart {
               mimes.forEach((mime) => {
                 mimesArray.push(mime.mime);
               });
-              errors.push({
-                type: "mime",
-                description: `نوع فایل در بین انواع فایل مجاز (${mimesArray}) نیست`,
-                params: [mimesArray],
-              });
+              //@ts-ignore
+              errors.push(await ValidationHandler.getErrorElement("mime",null,[mimesArray]);
             }
 
             if (!mimeSizeOk) {
@@ -229,11 +209,7 @@ export default abstract class QuestionPart {
                 0,
                 mimeSizeArray.length - 2
               );
-              errors.push({
-                type: "mime-size",
-                description: `سایز فایل در بین سایزهای فایل مجاز (${mimeSizeArray}) نیست`,
-                params: [mimeSizeArray],
-              });
+              errors.push(await ValidationHandler.getErrorElement("mime-size",null,[mimeSizeArray]));
             }
           } catch (ex) {
             console.error("Error in apply size validation", ex);

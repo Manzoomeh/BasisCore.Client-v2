@@ -81,7 +81,7 @@ export default class SelectType extends ListBaseType {
   public async getValidationErrorsAsync(): Promise<IValidationError> {
     const value = this._select.options[this._select.selectedIndex].value;
     const subSchemaIsOk = await super.allSubSchemaIsOkAsync();
-    const retVal = this.ValidateValue(
+    const retVal = await await this.ValidateValue(
       value === "0" ? null : value,
       !subSchemaIsOk
     );

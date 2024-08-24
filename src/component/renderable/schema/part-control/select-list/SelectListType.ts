@@ -151,11 +151,11 @@ export default abstract class SelectListType extends ListBaseType {
     });
   }
 
-  public getValidationErrorsAsync(): Promise<IValidationError> {
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
     const selectedItems = Array.from(this.element.querySelectorAll("input"))
       .map((x) => (x.checked ? parseInt(x.value) : null))
       .filter((x) => x);
-    return Promise.resolve(this.ValidateValue(selectedItems));
+    return Promise.resolve(await this.ValidateValue(selectedItems));
   }
 
   public async getAddedAsync(): Promise<IUserActionPart> {

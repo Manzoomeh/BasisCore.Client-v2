@@ -97,8 +97,8 @@ export default class Lookup extends EditableQuestionPart {
     }
   }
 
-  public getValidationErrorsAsync(): Promise<IValidationError> {
-    return Promise.resolve(this.ValidateValue(this._input.value));
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
+    return Promise.resolve(await this.ValidateValue(this._input.value));
   }
 
   public getAddedAsync(): Promise<IUserActionPart> {

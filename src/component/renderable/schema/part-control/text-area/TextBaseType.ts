@@ -36,8 +36,8 @@ export default abstract class TextBaseType<
     }
   }
 
-  public getValidationErrorsAsync(): Promise<IValidationError> {
-    return Promise.resolve(this.ValidateValue(this.input.value));
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
+    return Promise.resolve(await this.ValidateValue(this.input.value));
   }
 
   public getAddedAsync(): Promise<IUserActionPart> {
