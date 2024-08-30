@@ -72,8 +72,8 @@
                   "part": 1,
                   "viewType": "text",
                   "validations": {
-                    "regex": "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)",
-                    "required": true
+                    "minLength": 5,
+                    "maxLength": 20
                   }
                 }
               ]
@@ -96,8 +96,7 @@
                   "viewType": "text",
                   "cssClass": "css_13050_1",
                   "validations": {
-                    "required": true,
-                    "minLength": 3,
+                    "minLength": 5,
                     "maxLength": 20
                   },
                   "caption": "",
@@ -122,7 +121,8 @@
                   "viewType": "select",
                   "cssClass": "css_13057_1",
                   "validations": {
-                    "required": true
+                    "required": true,
+                     "minLength" : 1000
                   },
                   "caption": "واحد اندازه گیری",
                   "link": "/schema/fix-data/${prpId}/${part}?rkey=${rkey}"

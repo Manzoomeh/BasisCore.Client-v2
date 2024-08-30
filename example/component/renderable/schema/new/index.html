@@ -18,6 +18,7 @@
       button="[data-btn-add]"
       resultSourceId="demo.data"
       errorResultSourceId="demo.error"
+      options = "test_1234"
       qs_rKey="www"
       qs_name="haha"
     >
@@ -44,6 +45,13 @@
         setTimeout(() => {
           errorResultContainer.textContent = "";
         }, 3000);
+      }
+      var test_1234 ={
+        "validationErrors" : {
+          required : "456",
+          length : "567"
+        },
+        "messagesApi" : "/validation"
       }
     </script>
   </body>

@@ -8,8 +8,10 @@ import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
 import IQuestionCellManager from "../IQuestionCellManager";
 import QuestionPart from "../question-part/QuestionPart";
+import ValidationHandler from "../../../ValidationHandler";
 
 export default class QuestionContainer {
+  public validationHandler : ValidationHandler;
   public readonly QuestionSchema: IQuestion;
   protected readonly element: Element;
   private readonly _questions: Array<Question> = new Array<Question>();
@@ -23,8 +25,11 @@ export default class QuestionContainer {
     questionSchema: IQuestion,
     options: IFormMakerOptions,
     cellManager: IQuestionCellManager,
-    answer: IAnswerProperty
+    answer: IAnswerProperty,
+    config : { validationErrors: NodeJS.Dict<string>; messagesApi: string },
+    lid  : number
   ) {
+    this.validationHandler = new ValidationHandler(lid,config)
     this.AllQuestions = all;
     this.QuestionSchema = questionSchema;
     this.options = options;

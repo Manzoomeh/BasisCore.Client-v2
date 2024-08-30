@@ -9,7 +9,6 @@ import { IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
 import IDictionary from "../../../../../IDictionary";
 import QuestionPart from "../../question-part/QuestionPart";
-import ValidationHandler from "../../../../ValidationHandler";
 
 export default abstract class AutoFillType extends EditableQuestionPart {
   protected selectedId?: number;
@@ -94,7 +93,7 @@ export default abstract class AutoFillType extends EditableQuestionPart {
             relatedParts?.forEach((x) => x.updateUIAboutError(null));
           } else if (item.required) {
             const requiredError: IValidationError =
-              await ValidationHandler.getError(item.part, "required");
+              await this.owner.owner.validationHandler.getError(item.part, "required",{});
             relatedParts.forEach((x) => x.updateUIAboutError(requiredError));
             hasError = true;
           }
@@ -108,7 +107,7 @@ export default abstract class AutoFillType extends EditableQuestionPart {
     return retVal;
   }
 
-  public getValidationErrorsAsync(): Promise<IValidationError> {
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
     return Promise.resolve(await this.ValidateValue(this.selectedId));
   }
 

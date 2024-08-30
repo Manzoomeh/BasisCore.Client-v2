@@ -5,7 +5,6 @@ import { IPartCollection } from "../IAnswerSchema";
 import { IQuestionPart } from "../IQuestionSchema";
 import { IUserActionPart } from "../IUserActionResult";
 import IValidationError, { IValidationErrorPart } from "../IValidationError";
-import ValidationHandler from "../../../ValidationHandler";
 
 export default abstract class QuestionPart {
   public readonly part: IQuestionPart;
@@ -64,7 +63,7 @@ export default abstract class QuestionPart {
     const errors: Array<IValidationErrorPart> = [];
     let retVal: IValidationError = null;
     if (addSubSchemaError) {
-      errors.push(await ValidationHandler.getErrorElement("sub-schema"));
+      errors.push(await this.owner.owner.validationHandler.getErrorElement("sub-schema",{}));
     }
     const isArray = Array.isArray(userValue);
     const hasValue = isArray
@@ -74,7 +73,7 @@ export default abstract class QuestionPart {
       try {
         if (this.part.validations.required) {
           if (!hasValue) {
-            errors.push(await ValidationHandler.getErrorElement("required"));
+            errors.push(await this.owner.owner.validationHandler.getErrorElement("required",{}));
           }
         }
       } catch (ex) {
@@ -90,9 +89,9 @@ export default abstract class QuestionPart {
             ).test(userValue.toString());
             if (!ok) {
               errors.push(
-                await ValidationHandler.getErrorElement("type", null, [
-                  this.part.validations.dataType,
-                ])
+                await this.owner.owner.validationHandler.getErrorElement("type",{
+                 dataType : this.part.validations.dataType,
+              })
               );
             }
           } catch (ex) {
@@ -106,7 +105,7 @@ export default abstract class QuestionPart {
                 userValue.toString()
               )
             ) {
-              errors.push(ValidationHandler.getErrorElement("regex"));
+              errors.push(await this.owner.owner.validationHandler.getErrorElement("regex",{}));
             }
           } catch (ex) {
             console.error("Error in apply regex validation", ex);
@@ -121,11 +120,11 @@ export default abstract class QuestionPart {
             lengthOk = userValue.length <= this.part.validations.maxLength;
           }
           if (!lengthOk) {
-            //@ts-expect-error
-            errors.push(await ValidationHandler.getErrorElement("length",null,[
-                this.part.validations.minLength ?? null,
-                this.part.validations.maxLength ?? null,
-              ]));
+            errors.push(await this.owner.owner.validationHandler.getErrorElement("length",{
+              minLength: this.part.validations.minLength ?? null,
+              maxLength :  this.part.validations.maxLength ?? null,
+            }
+            ));
           }
         } catch (ex) {
           console.error(
@@ -143,12 +142,11 @@ export default abstract class QuestionPart {
               rangeOk = userValue <= this.part.validations.max;
             }
             if (!rangeOk) {
-              //@ts-expect-error
               errors.push(
-                await ValidationHandler.getErrorElement("range", null, [
-                  this.part.validations.min ?? null,
-                  this.part.validations.max ?? null,
-                ])
+                await this.owner.owner.validationHandler.getErrorElement("range", {
+                 min : this.part.validations.min ?? null,
+                 max : this.part.validations.max ?? null,
+                })
               );
             }
           } catch (ex) {
@@ -164,8 +162,7 @@ export default abstract class QuestionPart {
             });
             sizeOk = this.part.validations.size >= sumSize;
             if (!sizeOk) {
-              //@ts-expect-error
-              errors.push(await ValidationHandler.getErrorElement("size",null,[this.formatBytes(this.part.validations.size)]));
+              errors.push(await this.owner.owner.validationHandler.getErrorElement("size",{size: this.formatBytes(this.part.validations.size)}));
             }
           } catch (ex) {
             console.error("Error in apply size validation", ex);
@@ -195,7 +192,7 @@ export default abstract class QuestionPart {
                 mimesArray.push(mime.mime);
               });
               //@ts-ignore
-              errors.push(await ValidationHandler.getErrorElement("mime",null,[mimesArray]);
+              errors.push(await this.owner.owner.validationHandler.getErrorElement("mime",{mimesArray : mimesArray}));
             }
 
             if (!mimeSizeOk) {
@@ -209,7 +206,7 @@ export default abstract class QuestionPart {
                 0,
                 mimeSizeArray.length - 2
               );
-              errors.push(await ValidationHandler.getErrorElement("mime-size",null,[mimeSizeArray]));
+              errors.push(await this.owner.owner.validationHandler.getErrorElement("mime-size",{mimeSizeArray : mimeSizeArray}));
             }
           } catch (ex) {
             console.error("Error in apply size validation", ex);

@@ -10,8 +10,7 @@ import Question from "../../question/Question";
 import layout from "./assets/auto-fill-simple-type.html";
 import "./assets/style";
 import AutoFillType from "./AutoFillType";
-import SearchPopup from "./SearchPopup";
-import ValidationHandler from "../../../../ValidationHandler";
+
 export default class AutoFillSimpleType extends AutoFillType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
@@ -79,7 +78,7 @@ export default class AutoFillSimpleType extends AutoFillType {
             retVal[item.name] = value;
           } else if (item.required) {
             const requiredError: IValidationError =
-              await ValidationHandler.getError(item.part, "required");
+              await this.owner.owner.validationHandler.getError(item.part, "required",{});
             relatedParts.forEach((x) => x.updateUIAboutError(requiredError));
             hasError = true;
             retVal[item.name] = value;
@@ -108,7 +107,7 @@ export default class AutoFillSimpleType extends AutoFillType {
               relatedParts?.forEach((x) => x.updateUIAboutError(null));
             } else if (item.required) {
               const requiredError: IValidationError =
-                await ValidationHandler.getError(item.part, "required");
+                await this.owner.owner.validationHandler.getError(item.part, "required",{});
               relatedParts.forEach((x) => x.updateUIAboutError(requiredError));
               hasError = true;
             }

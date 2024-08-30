@@ -209,7 +209,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     this._schema = await schemaCallback(this.context, options.paramUrl);
     const sections = new Map<number, Section>();
     if (this._schema && this._schema.questions?.length > 0) {
-      this._schema.questions.forEach((question) => {
+      this._schema.questions.forEach(async(question) => {
         const partAnswer = this._answer?.properties.find(
           (x) => x.prpId == question.prpId
         );
@@ -235,6 +235,8 @@ export default class SchemaComponent extends SourceBaseComponent {
           }
           cellManager = this._currentCellManager;
         }
+        const optionName = await this.getAttributeValueAsync("options");
+        let option = optionName ? eval(optionName) : null;
         if (options.displayMode == "view") {
           if (partAnswer && partAnswer != undefined) {
             this._questions.push(
@@ -243,7 +245,9 @@ export default class SchemaComponent extends SourceBaseComponent {
                 question,
                 options,
                 cellManager,
-                partAnswer
+                partAnswer,
+                option,
+                this._schema.lid
               )
             );
           }
@@ -254,7 +258,9 @@ export default class SchemaComponent extends SourceBaseComponent {
               question,
               options,
               cellManager,
-              partAnswer
+              partAnswer,
+              option,
+              this._schema.lid
             )
           );
         }

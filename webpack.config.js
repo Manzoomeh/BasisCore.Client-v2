@@ -8,6 +8,7 @@ const schemaHttpServer = require("./server/schema-server");
 const blobHttpServer = require("./server/blob-server");
 const assetHttpServer = require("./server/asset-server");
 const chunkHttpServer = require("./server/chunk-server");
+const validateHttpServer = require("./server/validation-server");
 
 module.exports = (env, options) => {
   return {
@@ -50,6 +51,7 @@ module.exports = (env, options) => {
         server.app.use("/blob", blobHttpServer);
         server.app.use("/assets", assetHttpServer);
         server.app.use("/chunk", chunkHttpServer);
+        server.app.use("/validation", validateHttpServer);
       },
       open: true,
       port: 3000,
