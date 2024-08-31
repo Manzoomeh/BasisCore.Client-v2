@@ -18,7 +18,7 @@
       button="[data-btn-add]"
       resultSourceId="demo.data"
       errorResultSourceId="demo.error"
-      options = "test_1234"
+      options = "optionsConfig"
       qs_rKey="www"
       qs_name="haha"
     >
@@ -46,10 +46,16 @@
           errorResultContainer.textContent = "";
         }, 3000);
       }
-      var test_1234 ={
+      var optionsConfig ={
         "validationErrors" : {
-          required : "456",
-          length : "567"
+          "required": 111,
+          "type": 222,
+          "regex": 333,
+          "length": 444,
+          "range": 555,
+          "size": 666,
+          "mime": 777,
+          "mime-size": 888
         },
         "messagesApi" : "/validation"
       }
