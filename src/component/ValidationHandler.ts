@@ -3,7 +3,7 @@ import {
   ValidationErrorType,
   IValidationErrorPart,
 } from "./renderable/schema/IValidationError";
-  let  ifSentenceApiFetched = false;
+  let  isSentenceApiFetched = false;
 let validationObject = {
   required: {
     fa: "پر کردن این فیلد الزامیست",
@@ -130,10 +130,10 @@ export default class ValidationHandler {
     });
   }
   async fetchSentences(): Promise<void> {
-    if(ifSentenceApiFetched== true || !this.config ||!this.url){
+    if(isSentenceApiFetched== true || !this.config ||!this.url){
       return
     }
-    ifSentenceApiFetched = true;
+    
     const response = await fetch(`${this.url}/${this.culture}`, {
       method: "POST",
       headers: {
@@ -144,6 +144,7 @@ export default class ValidationHandler {
       }),
     });
     const data = await response.json();
+    isSentenceApiFetched = true;
     data.forEach((sentence: { id: string; title: string }) => {
       const key = this.findKeyByValue(this.config, sentence.id);
       validationObject[key][this.culture] = sentence.title;
