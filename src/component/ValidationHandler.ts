@@ -142,8 +142,6 @@ export default class ValidationHandler {
           "sub-schema": {},
         };
         try {
-          console.log("test");
-
           if (!this.config || !this.url) {
             resolve(validationObject);
           }
