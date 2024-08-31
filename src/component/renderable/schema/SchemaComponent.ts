@@ -16,6 +16,7 @@ import IUserActionResult from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
 import QuestionCellManager from "./QuestionCellManager";
 import Section from "./section/Section";
+import ValidationHandler from "../../ValidationHandler";
 
 @injectable()
 export default class SchemaComponent extends SourceBaseComponent {
@@ -205,11 +206,13 @@ export default class SchemaComponent extends SourceBaseComponent {
       getQueryStringParamsAsync: queryStringsMakerAsync,
       filesPath: filesPath,
     };
-
     this._schema = await schemaCallback(this.context, options.paramUrl);
+    const optionName = await this.getAttributeValueAsync("options");
+    let option = optionName ? eval(optionName) : null;
+    const validationHandler = new ValidationHandler(this._schema.lid, option);
     const sections = new Map<number, Section>();
     if (this._schema && this._schema.questions?.length > 0) {
-      this._schema.questions.forEach(async(question) => {
+      this._schema.questions.forEach((question) => {
         const partAnswer = this._answer?.properties.find(
           (x) => x.prpId == question.prpId
         );
@@ -235,8 +238,6 @@ export default class SchemaComponent extends SourceBaseComponent {
           }
           cellManager = this._currentCellManager;
         }
-        const optionName = await this.getAttributeValueAsync("options");
-        let option = optionName ? eval(optionName) : null;
         if (options.displayMode == "view") {
           if (partAnswer && partAnswer != undefined) {
             this._questions.push(
@@ -246,8 +247,7 @@ export default class SchemaComponent extends SourceBaseComponent {
                 options,
                 cellManager,
                 partAnswer,
-                option,
-                this._schema.lid
+                validationHandler
               )
             );
           }
@@ -259,8 +259,7 @@ export default class SchemaComponent extends SourceBaseComponent {
               options,
               cellManager,
               partAnswer,
-              option,
-              this._schema.lid
+validationHandler
             )
           );
         }

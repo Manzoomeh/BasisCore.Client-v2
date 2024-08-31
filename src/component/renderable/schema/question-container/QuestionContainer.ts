@@ -26,10 +26,9 @@ export default class QuestionContainer {
     options: IFormMakerOptions,
     cellManager: IQuestionCellManager,
     answer: IAnswerProperty,
-    config : { validationErrors: NodeJS.Dict<string>; messagesApi: string },
-    lid  : number
+    validationHandler : ValidationHandler
   ) {
-    this.validationHandler = new ValidationHandler(lid,config)
+    this.validationHandler = validationHandler
     this.AllQuestions = all;
     this.QuestionSchema = questionSchema;
     this.options = options;
