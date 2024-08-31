@@ -3,7 +3,7 @@ import {
   ValidationErrorType,
   IValidationErrorPart,
 } from "./renderable/schema/IValidationError";
-
+  let  ifSentenceApiFetched = false;
 let validationObject = {
   required: {
     fa: "پر کردن این فیلد الزامیست",
@@ -51,7 +51,6 @@ export default class ValidationHandler {
   culture: string;
   url?: string;
   config?: NodeJS.Dict<string>;
-  ifSentenceApiFetched: boolean;
   constructor(
     lid: number,
     configObj?: { validationErrors: NodeJS.Dict<string>; messagesApi: string }
@@ -95,17 +94,13 @@ export default class ValidationHandler {
       this.url = configObj.messagesApi;
     }
 
-    this.ifSentenceApiFetched = false;
   }
   async getError(
     part: number,
     errorType: ValidationErrorType,
     params: any
   ): Promise<IValidationError> {
-    if (!this.ifSentenceApiFetched && this.url && this.config) {
       await this.fetchSentences();
-      this.ifSentenceApiFetched = true;
-    }
     return {
       part: part,
       title: errorType,
@@ -122,10 +117,7 @@ export default class ValidationHandler {
     errorType: ValidationErrorType,
     params: any
   ): Promise<IValidationErrorPart> {
-    if (!this.ifSentenceApiFetched && this.url && this.config) {
       await this.fetchSentences();
-      this.ifSentenceApiFetched = true;
-    }
     return {
       type: errorType,
       description: this.getErrorString(errorType, params),
@@ -138,6 +130,10 @@ export default class ValidationHandler {
     });
   }
   async fetchSentences(): Promise<void> {
+    if(ifSentenceApiFetched==true || !this.config ||this.url){
+      return
+    }
+    ifSentenceApiFetched = true;
     const response = await fetch(`${this.url}/${this.culture}`, {
       method: "POST",
       headers: {
@@ -152,6 +148,7 @@ export default class ValidationHandler {
       const key = this.findKeyByValue(this.config, sentence.id);
       validationObject[key][this.culture] = sentence.title;
     });
+    return
   }
   getErrorString(errorType: string, params): string {
     return this.replacePlaceholders(
