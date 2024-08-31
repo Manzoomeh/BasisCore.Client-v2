@@ -130,7 +130,7 @@ export default class ValidationHandler {
     });
   }
   async fetchSentences(): Promise<void> {
-    if(ifSentenceApiFetched==true || !this.config ||this.url){
+    if(ifSentenceApiFetched== true || !this.config ||!this.url){
       return
     }
     ifSentenceApiFetched = true;
