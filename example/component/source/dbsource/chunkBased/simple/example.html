@@ -105,7 +105,7 @@
 </head>
 
 <body>
-  <basis core="dbsource" source="simple" name="flight" run="atclient" OnProcessing="changeStructure">
+  <basis core="dbsource" source="simple" name="flight" attr="fffffffffffff" run="atclient" OnProcessing="changeStructure">
     <member name="list" />
   </basis>
   <fieldset>
@@ -257,7 +257,7 @@
     var host = {
       dbLibPath: "https://cdn.basiscore.net/_js/alasql.min.js",
       settings: {
-        "connection.chunkBased.simple": { "Connection": "http://localhost:3000/chunk/chunk-data", "method": "GET" },
+        "connection.chunkBased.simple": { "Connection": "http://localhost:3000/chunk/chunk-data", "method": "POST", "body" :{"example1": 1} },
         "default.dmnid": 2668,
       },
     };

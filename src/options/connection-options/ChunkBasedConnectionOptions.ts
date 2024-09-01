@@ -18,6 +18,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
+  readonly body : NodeJS.Dict<any>
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
     string,
     ReadableStreamDefaultReader
@@ -30,6 +31,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     } else {
       this.url = setting.Connection;
       this.method = setting.method;
+      this.body = setting.body
     }
   }
 
@@ -41,6 +43,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   ): Promise<void> {
     const url = this.url;
     const method = this.method;
+    const body = this.body
     const activeFetch = this.activeFetch;
     const extractNextJSON = (str, start = 0) => {
       let firstOpen, firstClose, candidate;
@@ -68,7 +71,10 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             method: method,
           };
           if (method != "GET") {
-            init.body = parameters ? JSON.stringify(parameters) : null;
+            init.body = body ? JSON.stringify(body) : parameters ? JSON.stringify(parameters) : null;
+            init.headers = {
+              "Content-Type": "application/json",
+            };
           }
           const request = new Request(url, init);
           let response = await fetch(request);
