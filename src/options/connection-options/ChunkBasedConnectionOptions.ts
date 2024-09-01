@@ -18,7 +18,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
-  readonly body : NodeJS.Dict<any>
+  readonly body: NodeJS.Dict<any>;
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
     string,
     ReadableStreamDefaultReader
@@ -31,7 +31,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     } else {
       this.url = setting.Connection;
       this.method = setting.method;
-      this.body = setting.body
+      this.body = setting.body;
     }
   }
 
@@ -43,23 +43,23 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   ): Promise<void> {
     const url = this.url;
     const method = this.method;
-    const body = this.body
+    const body = this.body;
     const activeFetch = this.activeFetch;
-    const extractNextJSON = (str, start = 0) => {
-      let firstOpen, firstClose, candidate;
+    const extractNextJSON = (str, start, validMinPosition) => {
+      let firstOpen, lastClose, candidate;
       firstOpen = str.indexOf("{", start);
-      firstClose = str.lastIndexOf("}");
-      if (firstClose <= firstOpen) {
+      lastClose = str.lastIndexOf("}");
+      if (lastClose <= firstOpen + validMinPosition) {
         return null;
       }
       do {
-        candidate = str.substring(firstOpen, firstClose + 1);
+        candidate = str.substring(firstOpen, lastClose + 1);
         try {
           var res = JSON.parse(candidate);
-          return [res, firstClose + 1];
+          return [res, lastClose + 1];
         } catch (e) {}
-        firstClose = str.substr(0, firstClose).lastIndexOf("}");
-      } while (firstClose > firstOpen);
+        lastClose = str.substr(validMinPosition, lastClose).lastIndexOf("}");
+      } while (lastClose > firstOpen);
     };
     return new StreamPromise<void>(
       this.Name,
@@ -71,7 +71,11 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             method: method,
           };
           if (method != "GET") {
-            init.body = body ? JSON.stringify(body) : parameters ? JSON.stringify(parameters) : null;
+            init.body = body
+              ? JSON.stringify(body)
+              : parameters
+              ? JSON.stringify(parameters)
+              : null;
             init.headers = {
               "Content-Type": "application/json",
             };
@@ -88,13 +92,18 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
             if (value) {
+              const minValidPosition = remain.length;
               remain += decoder.decode(value, { stream: true });
               let lastEndFrom = 0;
               let startFrom = 0;
               let extractResult = null;
               do {
                 startFrom = lastEndFrom;
-                extractResult = extractNextJSON(remain, startFrom);
+                extractResult = extractNextJSON(
+                  remain,
+                  startFrom,
+                  minValidPosition
+                );
                 if (extractResult) {
                   var json = extractResult[0];
                   lastEndFrom = extractResult[1];
