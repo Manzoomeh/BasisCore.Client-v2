@@ -43,7 +43,6 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     const method = this.method;
     const activeFetch = this.activeFetch;
     const extractNextJSON = (str, start = 0) => {
-      console.log(str)
       let firstOpen, firstClose, candidate;
       firstOpen = str.indexOf("{", start);
       firstClose = str.lastIndexOf("}");
