@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="http://cdn.basiscore.net/basisflydemo.ir/css/flight-api-sample.css" rel="stylesheet">
+    <script src="/basiscore.js"></script>
+</head>
+
+<body class="bg-slate-50">
+    <!-- header -->
+    <headr></headr>
+    <!-- main -->
+    <main class="py-10">
+        <basis core='dbsource' name='flight' run='AtClient' source='simple'>
+            <member name='list'></member>
+        </basis>
+        <basis core="callback" run="AtClient" triggers="flight.list" method="manipulation"></basis>
+        <basis core='api' name='api.rule' if='{##db.api.run|(false)##}' run='AtClient' url='http://185.44.36.58:1566/demoapi/Flight/{##db.api.type##}' method='post' content-type='application/json' triggers='db.api' body='{
+ "dmnid": "4483",
+ "SessionId": "66d30dc71d706fe36e8dc4da",
+ "FlightId": "{##db.api.FlightId##}",
+ "FlightGroup": "{##db.api.FlightGroup##}"
+ }' onprocessed='onProcessedFlightApi'></basis>
+        <div class="layout__main max-w-7xl mx-auto flex">
+            <!-- aside -->
+            <aside class="w-1/3">
+                <basis core='print' run='AtClient' datamembername='db.airlines'>
+                    <layout>
+                        <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
+                            <div class="filter__title__container text-gray-500 mb-3">شرکت های هواپیمایی</div>
+                            @child
+                        </div>
+                    </layout>
+                    <face>
+                        <script type="text/template">
+ <div class="my-1">
+ <input type="checkbox" class="ml-2" />
+ <label class="inline-block w-11/12">
+ <div class="flex justify-between text-xs">
+ <img class="route__airline" src="http://basisflydemo.ir/@Logo@" width="70" height="28" alt="@Name@"/>
+ <span class="">@Name@</span>
+ {{
+ return `<span><span class="font-bold">${new Intl.NumberFormat().format($data.Price)}</span><span class="m-2">${$data.Unit}</span></span>`
+ }}
+ </div>
+ </label>
+ </div>
+ </script>
+                    </face>
+                </basis>
+                <basis core='print' run='AtClient' datamembername='db.airports'>
+                    <layout>
+                        <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
+                            <div class="filter__title__container text-gray-500 mb-3">فرودگاه های مقصد</div>
+                            @child
+                        </div>
+                    </layout>
+                    <face>
+                        <script type="text/template">
+ <div class="my-1">
+ <input type="checkbox" class="ml-2" />
+ <label class="inline-block w-11/12">
+ <div class="flex justify-between">
+ <span class="text-xs">@Name@</span>
+ </div>
+ </label>
+ 
+ </div>
+ </script>
+                    </face>
+                </basis>
+                <basis core='print' run='AtClient' datamembername='db.stops'>
+                    <layout>
+                        <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
+                            <div class="filter__title__container text-gray-500 mb-3">تعداد توقف</div>
+                            @child
+                        </div>
+                    </layout>
+                    <face>
+                        <script type="text/template">
+ <div class="my-1">
+ <input type="checkbox" class="ml-2" />
+ <label class="inline-block w-11/12">
+ <div class="flex justify-between">
+ <span class="text-xs">@Name@</span>
+ </div>
+ </label>
+ 
+ </div>
+ </script>
+                    </face>
+                </basis>
+            </aside>
+            <!--content -->
+            <section class="w-3/4">
+                <!--card selection -->
+                <div class="card__selection__container"></div>
+                <!--sort cards -->
+                <div class="sort__cards__container"></div>
+
+                <basis core='print' run='AtClient' datamembername='qam.list' onprocessing1='manipulation'>
+                    <layout>
+                        <script type="text/template">
+ <div class="list__cards__container">@child</div>
+ </script>
+                    </layout>
+                    <face>
+                        <script type="text/template">
+ <div class="card__container border-b-6 border-gray-400 bg-white shadow-md rounded-2xl flex mb-10 relative transition" data-id="@FlightId@">
+ <div class="lg:w-8/12 p-5 border-l-2 border-dashed border-gray-400 relative">
+ {{
+ if($data.FlightGroup[0].isSystemFlight == 'true'){
+ return `<span class="bg-slate-200 text-gray-600 rounded p-1 text-xs absolute right-10 top--3">سیستمی</span>`
+ }else{
+ return `<span class="bg-slate-200 text-gray-600 rounded p-1 text-xs absolute right-10 top--3">چارتر</span>`
+ }
+ }}
+ {{
+ if($data.FlightGroup[0].FareFamily){
+ return `<span class="bg-slate-200 text-cyan-600 rounded p-1 text-xs absolute right-28 top--3">ارتقا امکانات</span>`
+ }
+ }}
+ {{
+ if($data.FlightGroup[0].RoutesInfo[0].OperatingAirlineCode){
+ return `<span class="bg-slate-200 text-amber-500 rounded p-1 text-xs absolute left-9 top--3">Codeshare</span>`
+ }
+ }}
+ <div class="flex gap-8 text-center">
+ <div class="card__logo__class__provider min-w-24">
+ {{ return await renderAirlineCode($data.FlightGroup[0].RoutesInfo[0].AirlineCode)}}
+ {{
+ if($data.FlightGroup[0].Class.toLowerCase() == 'economy'){
+ return `<div class="text-xs text-gray-600">اکونومی</div>`
+ }else if($data.FlightGroup[0].Class.toLowerCase() == 'business'){
+ return `<div class="text-xs text-gray-600">بیزینس</div>`
+ }else{
+ return `<div class="text-xs text-gray-600">فرست</div>`
+ }
+ }}
+ {{
+ if(1==1){
+ return await renderProvider($data.Provider.provider_id)
+ }
+ }}
+ 
+ </div>
+ <div class="card__route__map">
+ <div class="flex justify-between">
+ <div class="text-2xl font-bold min-w-8">@FlightGroup[0].DepartureTime@</div>
+ <div class="border-b border-dashed border-slate-600 min-w-52 relative mx-9">
+ <svg class="absolute right-0 top-4 fill-gray-600" width="25" height="25" viewBox="0 0 28.284 28.284"><g><path d="M19.435.565a1.929 1.929 0 0 0-2.756.028l-4.1 4.269-10-3.309-2.1 2.1 8.339 5.131L4.6 13.179l-2.7-.444L0 14.632l3.976 1.393L5.368 20l1.9-1.9-.444-2.7 4.394-4.217 5.131 8.334 2.1-2.1-3.309-10 4.269-4.1a1.929 1.929 0 0 0 .026-2.752z" transform="rotate(-135 12.929 11.213)"></path></g></svg>
+ <svg class="absolute left-0 size-6 top-2.5 stroke-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+ <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+ <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+ </svg>
+ <div class="text-xs">@FlightGroup[0].Duration@</div>
+ {{ return await renderNumberOfStops($data.FlightGroup[0])}}
+ </div>
+ <div class="text-2xl font-bold min-w-8">@FlightGroup[0].ArrivalTime@</div>
+ </div>
+ <div class="flex justify-between">
+ <div>
+ <div>
+ {{ return await renderCity($data.FlightGroup[0].Origin)}}
+ <span class="text-xs ml-1 text-gray-600">(@FlightGroup[0].Origin@)</span></div>
+ <div class="text-xs mt-1">@FlightGroup[0].DepartureDate@</div>
+ </div>
+ <div class="text-xs mt-6 mr-5"><span class="inline-block ml-1">@Baggages[0].Baggage@<span class="ml-1">@Baggages[0].Unit@</span></span>
+ <svg viewBox="0 0 20 23" class="inline" width="1.1rem" height="1.1rem" fill="text-grays-400" data-v-73e1bbdf=""><path d="M8.107 2.8a.8.8 0 0 1 .8-.8h5.5a.8.8 0 0 1 0 1.6h-5.5a.8.8 0 0 1-.8-.8Zm6.9 5.7h-7a1.5 1.5 0 0 0-1.5 1.5v8a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5Zm-7-1.5a3 3 0 0 0-3 3v8a3 3 0 0 0 2.218 2.897 1.181 1.181 0 0 0-.018.224v.22a1.65 1.65 0 0 0 3.3 0v-.22c0-.043-.002-.083-.005-.121h2.01a1.421 1.421 0 0 0-.005.12v.22a1.65 1.65 0 0 0 3.3 0v-.22c0-.085-.007-.159-.02-.223A3.001 3.001 0 0 0 18.008 18v-8a3 3 0 0 0-3-3h-1.1V3.6h-1.4V7h-1.6V3.6h-1.4V7h-1.5Zm6.686 14c.009.039.014.08.014.12v.22a.55.55 0 0 1-1.1 0v-.22c0-.04.004-.081.013-.12h1.073Zm-6.386.12c0-.04.004-.081.013-.12h1.073c.009.039.014.08.014.12v.22a.55.55 0 0 1-1.1 0v-.22Zm.2-10.82a.6.6 0 0 0-.6.6v6.452a.6.6 0 0 0 1.2 0V10.9a.6.6 0 0 0-.6-.6Zm2.956 0a.6.6 0 0 0-.6.6v6.452a.6.6 0 0 0 1.2 0V10.9a.6.6 0 0 0-.6-.6Zm2.357.6a.6.6 0 1 1 1.2 0v6.452a.6.6 0 0 1-1.2 0V10.9Z" fill-rule="evenodd"></path></svg>
+ </div>
+ <div>
+ <div>
+ {{ return await renderCity($data.FlightGroup[0].Destination)}}
+ <span class="text-xs ml-1 text-gray-600">(@FlightGroup[0].Destination@)</span></div>
+ <div class="text-xs mt-1">@FlightGroup[0].ArrivalDate@</div>
+ </div>
+ </div>
+ </div>
+ 
+ </div>
+ </div>
+ <div class="lg:w-4/12 text-center relative">
+ {{
+ if($data.FlightGroup[0].AvailableSeats == ''){
+ return `<span class="bg-slate-200 rounded p-1 text-red-600 text-xs absolute left-24 top--3"><span class="ml-1">-</span>صندلی باقی مونده</span>`
+ }else{
+ return `<span class="bg-slate-200 rounded p-1 text-red-600 text-xs absolute left-24 top--3"><span class="ml-1">${$data.FlightGroup[0].AvailableSeats}</span>صندلی باقی مونده</span>`
+ }
+ }}
+ 
+ <div class="mt-7 text-xs text-gray-600">قیمت برای هر نفر :</div>
+ <div class="my-2">
+ {{
+ if($data.PriceInfo.special_cost_table){
+ return `<span class="text-xl font-bold">${new Intl.NumberFormat().format($data.PriceInfo.special_cost_table.adults[0].unit)}</span>`
+ }else{
+ return `<span class="text-xl font-bold">${new Intl.NumberFormat().format($data.PriceInfo.Total)}</span>`
+ }
+ }}
+ {{ return await renderCurrency($data.PriceInfo.Currency)}}
+ </div>
+ <button type="button" class="card__btn bg-sky-600 hasColor rounded px-2 py-1 cursor-pointer mt-2 text-white" data-open="0" onclick="selectModalContainer(this)">جزئیات و خرید</button>
+ </div>
+ <div class="modal__container left--full bg-white fixed h-full w-[560px] top-0 bottom-0 transition shadow-md z-10">
+ <div class="modal__content w-full p-5">
+ 
+ <div class="mb-5"><span>بستن</span><svg onclick="closeModalContainer(this)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="{1.5}" stroke="currentColor" class="size-6 inline-block mr-2 cursor-pointer">
+ <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+ </svg>
+ </div>
+ <ul class="bg-sky-600 hasColor p-3 mb-7 rounded-lg text-white">
+ <li class="inline-block ml-5 cursor-pointer" onclick="scrollModalContainerItem(this,'flight__info')">اطلاعات پرواز</li>
+ <li class="inline-block ml-5 cursor-pointer" onclick="scrollModalContainerItem(this,'flight__price')">اطلاعات قیمت</li>
+ <li class="inline-block ml-5 cursor-pointer" onclick="scrollModalContainerItem(this,'flight__rule')">قوانین استرداد</li>
+ <li class="inline-block ml-5 cursor-pointer" onclick="scrollModalContainerItem(this,'flight__baggage')">قوانین بار</li>
+ </ul>
+ <div class="modal__card__content max-h-96 overflow-y-auto pl-2">
+ <div class="flight__info">
+ {{ return await renderRoutesInfo($data)}}
+ </div>
+ <div class="flight__price api__container mb-5 border border-gray-200 rounded-lg p-5">
+ <div class="mb-3 cursor-pointer" onclick="{{return `toggleContentApi(this,'','flight__price','')`}}" data-run="1">
+ <span>اطلاعات قیمت</span>
+ <svg class="api__container__arrow size-6 inline float-left" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="{1.5}" stroke="currentColor">
+ <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+ </svg>
+ </div>
+ <div class="api__container__content hidden">
+ {{ return await renderPassengerFare($data)}}
+ </div>
+ </div>
+ <div class="flight__rule api__container mb-5 border border-gray-200 rounded-lg p-5">
+ <div class="mb-3 cursor-pointer" onclick="{{return `toggleContentApi(this,'AirRules','flight__rule','${$data.FlightId}')`}}" data-run="0">
+ <span>قوانین استرداد</span>
+ <svg class="api__container__arrow size-6 inline float-left" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="{1.5}" stroke="currentColor">
+ <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+ </svg>
+ 
+ </div>
+ <div class="api__container__content hidden">
+ <span class="api__container__loader bg-white relative block w-3 h-3 rounded-full mx-auto my-3"></span>
+ </div>
+ </div>
+ <div class="flight__baggage api__container mb-5 border border-gray-200 rounded-lg p-5">
+ <div class="mb-3 cursor-pointer" onclick="{{return `toggleContentApi(this,'AirBaggage','flight__baggage','${$data.FlightId}')`}}" data-run="0">
+ <span>قوانین بار</span>
+ <svg class="api__container__arrow size-6 inline float-left" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="{1.5}" stroke="currentColor">
+ <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+ </svg>
+ </div>
+ <div class="api__container__content hidden">
+ {{
+ if($data.Baggages.length > 0){
+ return `<ul class="grid grid-cols-4 gap-4 text-center">
+ <li class="text-gray-500 bg-slate-200 rounded p-1 ml-3">مبدا</li>
+ <li class="text-gray-500 bg-slate-200 rounded p-1 ml-3">مقصد</li>
+ <li class="text-gray-500 bg-slate-200 rounded p-1 ml-3">شماره پرواز</li>
+ <li class="text-gray-500 bg-slate-200 rounded p-1 ml-3">بار</li>
+ ${await renderBaggages($data)}
+ </ul>`
+ }else{
+ return `<span class="api__container__loader bg-white relative block w-3 h-3 rounded-full mx-auto my-3"></span> `
+ }
+ }}
+ </div>
+ 
+ </div>
+ </div>
+
+ <div class="my-10">
+ {{
+ if($data.PriceInfo.Commission !== '0'){
+ return `<div class="my-2"><span class="text-base ml-1">کمیسیون : </span><span class="text-lg font-bold">${new Intl.NumberFormat().format($data.PriceInfo.Commission)}</span>${await renderCurrency($data.PriceInfo.Currency)}</div> `
+ }
+ }}
+ <div class="flex justify-between">
+ <div>
+ {{
+ return `<div class="my-2"><span class="text-base ml-1">مجموع : </span><span class="text-2xl font-bold">${new Intl.NumberFormat().format($data.PriceInfo.Total)}</span>${await renderCurrency($data.PriceInfo.Currency)}</div>`
+ }}
+ </div>
+ <button type="button" onclick="{{return `selectCard(this,'${$data.FlightId}')`}}" class="bg-sky-600 hasColor rounded px-2 py-1 cursor-pointer text-white">انتخاب بلیط و ادامه</button>
+ </div>
+ 
+ </div>
+ 
+ 
+ 
+ 
+ 
+ </div>
+ </div>
+ </div>
+ </script>
+                    </face>
+                </basis>
+            </section>
+        </div>
+    </main>
+    <!-- footer -->
+    <footer></footer>
+
+
+    <script>
+
+        async function postData(url = '', data = {}) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            postData('https://basisfly.com/demoapi/flight/CreateSession', { "dmnid": "4483" })
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        });
+        const json = {
+            "TripGroup": [
+                {
+                    "Origin": "1198711",
+                    "Destination": "1177676",
+                    "DepartureDate": "2024-09-21"
+                }
+            ],
+            "CabinClass": "Economy",
+            "Adults": "1",
+            "Children": "0",
+            "Infants": "0",
+            "dmnid": "4483",
+            "SessionId": "66d30dc71d706fe36e8dc4da"
+        }
+        var host = {
+            dbLibPath: "../alasql.min.js",
+            settings: {
+                "connection.chunkBased.simple": {
+                    "Connection": "http://185.44.36.58:1566/demoapi/Flight/ChunkSearch",
+                    "method": "POST",
+                    "body": json
+                },
+                "default.dmnid": 4483,
+                "default.binding.regex": "\\{##([^#]*)##\\}"
+            }
+        };
+
+        let airlineList = [];
+        let airportList = [];
+        let stopList = [];
+        let FlightProposals = [];
+        let dictionaries = [];
+        const manipulation = async (args) => {
+
+            try {
+                const result = args.source?.rows;
+                let source = args.source
+                if (result) {
+                    if (!Array.isArray(result)) {
+                        result = [];
+                    }
+                    dictionaries.push(result[result.length - 1].dictionaries)
+                    const updatedResult = result
+                        .flatMap(el => {
+                            if (Array.isArray(el.FlightProposals)) {
+                                return el.FlightProposals;
+                            }
+                            return [];
+                        });
+
+                    // airline filter
+                    let mergedCarriers = {};
+
+                    dictionaries.forEach(item => {
+                        Object.keys(item.carriers).forEach(key => {
+                            mergedCarriers[key] = item.carriers[key];
+                        });
+                    });
+                    let mergedCurrency = {};
+
+                    dictionaries.forEach(item => {
+                        Object.keys(item.currency).forEach(key => {
+                            mergedCurrency[key] = item.currency[key];
+                        });
+                    });
+                    let uniqueAirline = [...new Set(
+                        updatedResult.map(item => {
+                            return item.FlightGroup[0]['RoutesInfo'].map(value => {
+                                let airline = {
+                                    Name: mergedCarriers[value.AirlineCode].name,
+                                    Logo: mergedCarriers[value.AirlineCode].image,
+                                    Price: item.PriceInfo.Total,
+                                    Unit: mergedCurrency[item.PriceInfo.Currency],
+                                };
+                                return airline;
+                            });
+                        }).flat()
+                    )];
+                    let nameToMinPrice = {};
+                    let namesToMinPrices = {};
+                    uniqueAirline.forEach(item => {
+                        if (!nameToMinPrice[item.Name] || nameToMinPrice[item.Name].Price > item.Price) {
+                            nameToMinPrice[item.Name] = item;
+                        }
+                    });
+                    let airlinesResult = Object.values(nameToMinPrice);
+                    airlineList = [...airlinesResult, ...airlineList];
+                    airlineList.forEach(item => {
+                        if (!namesToMinPrices[item.Name] || namesToMinPrices[item.Name].Price > item.Price) {
+                            namesToMinPrices[item.Name] = item;
+                        }
+                    });
+                    let airlineListResult = Object.values(namesToMinPrices);
+                    $bc.setSource("db.airlines", airlineListResult);
+                    // airport filter
+                    let mergedLocation = {};
+
+                    dictionaries.forEach(item => {
+                        Object.keys(item.location).forEach(key => {
+                            mergedLocation[key] = item.location[key];
+                        });
+                    });
+                    let uniqueAirport = [...new Set(
+                        updatedResult.map(item => {
+                            return item.FlightGroup[0]['RoutesInfo'].map(value => {
+                                let airport = {
+                                    Name: mergedLocation[value.DestinationAirport].airport,
+                                };
+                                return airport;
+                            });
+                        }).flat()
+                    )];
+
+                    airportList = [...uniqueAirport, ...airportList];
+                    let airportListResult = airportList.filter((item, index, self) =>
+                        index === self.findIndex((t) => t.Name === item.Name)
+                    );
+                    $bc.setSource("db.airports", airportListResult);
+                    // stop filter
+                    let uniqueStop = [...new Set(
+                        updatedResult.map(item => {
+                            let stop = {
+                                Name: item.FlightGroup[0].NumberOfStops,
+                            };
+                            return stop;
+                        }).flat()
+                    )];
+                    stopList = [...uniqueStop, ...stopList];
+                    let stopListResult = stopList.filter((item, index, self) =>
+                        index === self.findIndex((t) => t.Name === item.Name)
+                    );
+                    $bc.setSource("db.stops", stopListResult);
+                    $bc.setSource("qam.list", updatedResult);
+
+                }
+            } catch (err) {
+                console.error('manipulation=' + err.lineNumber + ',' + err.message);
+            }
+        };
+        const renderAirlineCode = async (element) => {
+            try {
+                let mergedCarriers = {};
+
+                dictionaries.forEach(item => {
+                    Object.keys(item.carriers).forEach(key => {
+                        mergedCarriers[key] = item.carriers[key];
+                    });
+                });
+                return `<img class="mx-auto route__airline" src="http://basisflydemo.ir/${mergedCarriers[element].image}" width="70" height="28" alt="${mergedCarriers[element].name}"/><div class="text-xs capitalize my-2">${mergedCarriers[element].name}</div>`
+            } catch (err) {
+                console.error('renderAirlineCode=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderNumberOfStops = async (element) => {
+            try {
+                if (element.NumberOfStops > 0) {
+                    let output = `<div class="absolute inset-x-0">`;
+                    let i = 0;
+                    for (; i < element.NumberOfStops;) {
+                        output += `<span class="relative text-center inline-block min-w-8"><span class="h-2 w-2 rounded-full border-solid border border-gray-500 bg-white inline-block cursor-pointer group">
+ <span class="absolute inset-x-0 text-[11px] mt-3">${element.RoutesInfo[i + 1].OriginAirport}</span>
+ <span class="text-[11px] absolute min-w-52 bg-slate-800 rounded p-1 text-white inset-x-0 mt-3 hidden group-hover:block z-10"><span class="ml-1">توقف در</span>${await renderAirport(element.RoutesInfo[i + 1].OriginAirport)}</span>
+ </span></span>`
+                        i++;
+                    }
+
+                    return `${output}</div>`
+                }
+
+            } catch (err) {
+                console.error('renderNumberOfStops=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderCity = async (element) => {
+            try {
+                let mergedLocation = {};
+
+                dictionaries.forEach(item => {
+                    Object.keys(item.location).forEach(key => {
+                        mergedLocation[key] = item.location[key];
+                    });
+                });
+                return `<span class="text-sm text-gray-600 inline-block ml-1">${mergedLocation[element].city}</span>`
+
+            } catch (err) {
+                console.error('renderCity=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderAirport = async (element) => {
+            try {
+                let mergedLocation = {};
+
+                dictionaries.forEach(item => {
+                    Object.keys(item.location).forEach(key => {
+                        mergedLocation[key] = item.location[key];
+                    });
+                });
+                return mergedLocation[element].airport
+
+            } catch (err) {
+                console.error('renderAirport=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderCurrency = async (element) => {
+            try {
+                let mergedCurrency = {};
+
+                dictionaries.forEach(item => {
+                    Object.keys(item.currency).forEach(key => {
+                        mergedCurrency[key] = item.currency[key];
+                    });
+                });
+                return `<span class="text-xs m-2">${mergedCurrency[element]}</span>`
+
+            } catch (err) {
+                console.error('renderCurrency=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderRoutesInfo = async (element) => {
+            try {
+                let output = "";
+                for (const item of element.FlightGroup[0].RoutesInfo) {
+                    output += `<div class="flight__info__item mb-10">
+ <div class="text-gray-500 mb-3">
+ ${await renderCity(item.OriginAirport)}
+ <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="{1.5}" stroke="currentColor" class="size-6 inline-block mx-2">
+ <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+ </svg>${await renderCity(item.DestinationAirport)}</div>
+ <div>
+ <div class="flex mb-3">
+ <div>
+ ${await renderAirlineCode(item.AirlineCode)}
+ </div>
+ <div class="text-xs capitalize mr-1">(${item.AirCraft})</div>
+ </div>
+ 
+ <div class="flex justify-between mb-3">
+ <div><span class="ml-3 route__point route__point__departure relative inline-block">${item.DepartureTime}</span><span class="text-sm">${await renderAirport(item.OriginAirport)}</span><span class="text-sm mx-2 text-slate-700">(${item.OriginAirport})</span></div>
+ <div class="text-gray-500">${item.DepartureDate}</div>
+ </div>
+ <div class="route__path border-r-2 border-dashed border-gray-500 h-11 mr-3.5"></div>
+ <div class="flex justify-between">
+ <div><span class="ml-3 route__point route__point__arrival relative inline-block">${item.ArrivalTime}</span><span class="text-sm">${await renderAirport(item.DestinationAirport)}</span><span class="text-sm mx-2 text-slate-700">(${item.DestinationAirport})</span></div>
+ <div class="text-gray-500">${item.ArrivalDate}</div>
+ </div>
+ </div>
+ <div class="text-xs text-gray-500 mt-4">
+ <span class="ml-3">شماره پرواز <span class="mr-2">${item.FlightNumber}</span></span>
+ <span class="ml-3">کلاس نرخی <span class="mr-2">${item.ClassCode}</span></span>
+ <span class="ml-3">کلاس پروازی <span class="mr-2">${item.Class}</span></span>
+ ${await renderConnectionTime(item.ConnectionTime)}
+ </div>
+
+ </div>`
+
+                }
+                return output;
+            } catch (err) {
+                console.error('renderRoutesInfo=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderPassengerFare = async (element) => {
+            try {
+                let output = "";
+                for (const item of element.PriceInfo.PassengerFare) {
+                    switch (item.passengerType) {
+
+                        case "Adult":
+                            passengerType = "بزرگسال"
+                            break;
+
+                        case "Child":
+                            passengerType = "کودک"
+                            break;
+
+                        case "Infant":
+                            passengerType = "نوزاد"
+                            break;
+                    }
+                    if (item.Count > 0) {
+                        output += `<ul class="mb-4">
+ <li class="flex justify-between mb-2">
+ <div class="text-gray-500">${passengerType}</div>
+ <div>${new Intl.NumberFormat().format(item.Unit)}${await
+                                renderCurrency(element.PriceInfo.Currency)}</div>
+ </li>
+ <li class="flex justify-between mb-2">
+ <div class="text-gray-500">قیمت پایه</div>
+ <div>${new Intl.NumberFormat().format(item.BaseFare)}${await
+                                renderCurrency(element.PriceInfo.Currency)}</div>
+ </li>
+ <li class="flex justify-between mb-2">
+ <div class="text-gray-500">مالیات</div>
+ <div>${new Intl.NumberFormat().format(item.Tax)}${await
+                                renderCurrency(element.PriceInfo.Currency)}</div>
+ </li>
+ <li class="flex justify-between mb-2">
+ <div class="text-gray-500">قیمت کل</div>
+ <div>${new Intl.NumberFormat().format(item.Total)}${await
+                                renderCurrency(element.PriceInfo.Currency)}</div>
+ </li>
+</ul>`
+                    }
+
+
+                }
+                return output;
+            } catch (err) {
+                console.error('renderPassengerFare=' + err.lineNumber + ',' + err.message);
+            }
+        }
+
+        const renderBaggages = async (element) => {
+            try {
+                let output = "";
+                let index = 0;
+                for (const item of element.Baggages) {
+                    output += `<li>${item.Origin}</li><li>${item.Destination}</li>
+ <li>${element.FlightGroup[0].RoutesInfo[index].FlightNumber}</li><li>${item.Baggage}${item.Unit}</li>`
+                    index++;
+                }
+                return output
+
+            } catch (err) {
+                console.error('renderBaggages=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderConnectionTime = async (element) => {
+            try {
+                if (element > 0) {
+                    const hours = Math.floor(element / 60);
+                    const minutes = element % 60;
+                    return `<span class="ml-3">مدت توقف <span class="mr-2">${hours}:${minutes}</span></span>`
+                } else {
+                    return ``
+                }
+
+            } catch (err) {
+                console.error('renderConnectionTime=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const renderProvider = async (element) => {
+            try {
+                switch (parseInt(element)) {
+
+                    case 0:
+                        provider = "Static Data"
+                        break;
+
+                    case 1:
+                        provider = "Amadeus"
+                        break;
+
+                    case 2:
+                        provider = "Mahan"
+                        break;
+
+                    case 3:
+                        provider = "Partocrs"
+                        break;
+
+                    case 4:
+                        provider = "Sepehr"
+                        break;
+
+                    case 6:
+                        provider = "Moghim"
+                        break;
+
+                    case 10:
+                        provider = "Vanila"
+                        break;
+
+                    case 9:
+                        provider = "DMHoliday"
+                        break;
+
+                    case 23:
+                        provider = "Paximum"
+                        break;
+
+                    case 8:
+                        provider = "Mahan_point"
+                        break;
+
+                    case 11:
+                        provider = "Parsian"
+                        break;
+
+                    case 24:
+                        provider = "Galileo"
+                        break;
+
+                    case 40:
+                        provider = "AtlasGlobal"
+                        break;
+
+                    case 42:
+                        provider = "TravelFusion"
+                        break;
+
+                    case 15:
+                        provider = "Iati"
+                        break;
+
+                    case 12:
+                        provider = "HotelBeds"
+                        break;
+
+                    case 13:
+                        provider = "Armenia"
+                        break;
+
+                    case 7:
+                        provider = "Multireisen"
+                        break;
+
+                    case 18:
+                        provider = "Ravis"
+                        break;
+
+                    case 16:
+                        provider = "HotelsPro"
+                        break;
+
+                    case 26:
+                        provider = "FaranegarExternal"
+                        break;
+
+                    case 36:
+                        provider = "FaranegarIranAir"
+                        break;
+
+                    case 27:
+                        provider = "FaranegarInternal"
+                        break;
+
+                    case 29:
+                        provider = "Lamasoo"
+                        break;
+
+                    case 17:
+                        provider = "Restel"
+                        break;
+
+                    case 30:
+                        provider = "IranAirTour"
+                        break;
+
+                    case 37:
+                        provider = "Nira"
+                        break;
+
+                    case 41:
+                        provider = "Adotel"
+                        break;
+
+                    case 49:
+                        provider = "TRP"
+                        break;
+
+                    case 44:
+                        provider = "SepehrSystem"
+                        break;
+
+                    case 56:
+                        provider = "MRC"
+                        break;
+
+                    case 46:
+                        provider = "eghamat24"
+                        break;
+
+                    case 58:
+                        provider = "Sejour"
+                        break;
+
+                    case 61:
+                        provider = "TTG"
+                        break;
+
+                    case 70:
+                        provider = "Hotel Moghim"
+                        break;
+
+                    case 63:
+                        provider = "AirArabia"
+                        break;
+
+                    case 47:
+                        provider = "Pegasus"
+                        break;
+
+                    case 64:
+                        provider = "Amadeus AQC"
+                        break;
+
+                    case 68:
+                        provider = "FlyOne"
+                        break;
+
+                    case 5:
+                        provider = "Iran Air"
+                        break;
+
+                    case 67:
+                        provider = "PartoHotel"
+                        break;
+
+                    case 76:
+                        provider = "Xconnect"
+                        break;
+
+                    case 75:
+                        provider = "Hotel Sepehr"
+                        break;
+
+                    case 79:
+                        provider = "Fly Arna"
+                        break;
+
+                    case 88:
+                        provider = "DarinaHoliday"
+                        break;
+
+                    case 84:
+                        provider = "Hotelian"
+                        break;
+
+                    case 45:
+                        provider = "Sepehran"
+                        break;
+
+                    case 89:
+                        provider = "Svoy"
+                        break;
+
+                    case 78:
+                        provider = "Mixvel"
+                        break;
+
+                    case 91:
+                        provider = "TBO"
+                        break;
+
+                    case 94:
+                        provider = "Charter724"
+                        break;
+
+                    case 83:
+                        provider = "TravelLine"
+                        break;
+
+                    case 93:
+                        provider = "HotelMultireisen"
+                        break;
+
+                    case 99:
+                        provider = "CockPit"
+                        break;
+
+                    case 82:
+                        provider = "Georgia Holiday"
+                        break;
+
+                    case 101:
+                        provider = "XmlAgency"
+                        break;
+
+                    case 106:
+                        provider = "AtticaPortal"
+                        break;
+
+                    case 102:
+                        provider = "Rexan"
+                        break;
+
+                    case 107:
+                        provider = "SalamAir"
+                        break;
+
+                    case 109:
+                        provider = "SnappTrip"
+                }
+
+                return `<div class="text-teal-600 text-xs mt-2">${provider}</div>`
+
+            } catch (err) {
+                console.error('renderProvider=' + err.lineNumber + ',' + err.message);
+            }
+        }
+
+        const selectModalContainer = (element) => {
+            try {
+                element.closest(".card__container").classList.add("selected__card__container")
+                element.closest(".card__container").querySelector(".modal__container").classList.remove("left--full");
+                element.closest(".card__container").querySelector(".modal__container").classList.add("left-0")
+            } catch (err) {
+                console.error('selectModalContainer=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const closeModalContainer = (element) => {
+            try {
+                element.closest(".card__container").classList.remove("selected__card__container")
+                element.closest(".card__container").querySelector(".modal__container").classList.add("left--full");
+                element.closest(".card__container").querySelector(".modal__container").classList.remove("left-0");
+            } catch (err) {
+                console.error('closeModalContainer=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.modal__content,.card__btn')) {
+                document.querySelectorAll(".card__container").forEach(e => {
+                    e.classList.remove("selected__card__container")
+                    e.querySelector(".modal__container").classList.add("left--full")
+                    e.querySelector(".modal__container").classList.remove("left-0")
+                })
+            }
+        })
+        const scrollModalContainerItem = (element, type) => {
+            try {
+                element.closest(".card__container").querySelector(".modal__card__content").scroll({
+                    top: element.closest(".card__container").querySelector(`.${type}`).offsetTop,
+                    behavior: 'smooth'
+                });
+            } catch (err) {
+                console.error('scrollModalContainerItem=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const toggleContentApi = (element, type, parent, idToFind) => {
+            try {
+                if (document.querySelector(".api__container__rendering")) {
+                    document.querySelector(".api__container__rendering").classList.remove('api__container__rendering')
+                };
+                element.closest(".api__container").querySelector(".api__container__arrow").classList.toggle('rotate-180');
+                element.closest(".api__container").querySelector(".api__container__content").classList.toggle('hidden');
+                if (element.dataset.run == 0) {
+                    if (element.closest(".api__container").querySelector(".api__container__loader")) {
+                        element.closest(".api__container").querySelector(".api__container__content").classList.add('api__container__rendering');
+                        let foundObject = FlightProposals.find(item => item.FlightId === idToFind);
+                        $bc.setSource("db.api", {
+                            type: type,
+                            FlightId: idToFind,
+                            FlightGroup: JSON.stringify(foundObject.FlightGroup),
+                            run: true
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('toggleContentApi=' + err.lineNumber + ',' + err.message);
+            }
+        }
+        const onProcessedFlightApi = async (args) => {
+            const response = args.response;
+            if (response.status == 200) {
+                const responseJson = await response.json();
+                if (responseJson) {
+                }
+            }
+        }
+        const selectCard = (element, idToFind) => {
+            try {
+                let foundObject = FlightProposals.find(item => item.FlightId === idToFind);
+                if (foundObject.FlightGroup[0].FareFamily) {
+                    element.closest(".api__container").querySelector(".api__container__content").classList.add('api__container__rendering');
+                    $bc.setSource("db.api", {
+                        type: "upselling",
+                        FlightId: idToFind,
+                        FlightGroup: JSON.stringify(foundObject.FlightGroup),
+                        run: true
+                    });
+                } else {
+
+                }
+            } catch (err) {
+                console.error('selectCard=' + err.lineNumber + ',' + err.message);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
