@@ -10,7 +10,6 @@ import Question from "../../question/Question";
 import layout from "./assets/auto-fill-simple-type.html";
 import "./assets/style";
 import AutoFillType from "./AutoFillType";
-import SearchPopup from "./SearchPopup";
 
 export default class AutoFillSimpleType extends AutoFillType {
   constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
@@ -57,7 +56,7 @@ export default class AutoFillSimpleType extends AutoFillType {
           parts: x.values.filter((y) => y).flatMap((y) => y.parts),
         };
       });
-      this.part.dependency.forEach((item) => {
+      this.part.dependency.forEach(async (item) => { 
         let relatedParts: QuestionPart[] = null;
 
         if (item.prpId == this.owner.question.prpId) {
@@ -78,16 +77,8 @@ export default class AutoFillSimpleType extends AutoFillType {
             relatedParts?.forEach((x) => x.updateUIAboutError(null));
             retVal[item.name] = value;
           } else if (item.required) {
-            const requiredError: IValidationError = {
-              part: item.part,
-              title: "required",
-              errors: [
-                {
-                  type: "required",
-                  description: "پر کردن این فیلد الزامیست",
-                },
-              ],
-            };
+            const requiredError: IValidationError =
+              await this.owner.owner.validationHandler.getError(item.part, "required",{});
             relatedParts.forEach((x) => x.updateUIAboutError(requiredError));
             hasError = true;
             retVal[item.name] = value;
@@ -115,16 +106,8 @@ export default class AutoFillSimpleType extends AutoFillType {
               );
               relatedParts?.forEach((x) => x.updateUIAboutError(null));
             } else if (item.required) {
-              const requiredError: IValidationError = {
-                part: item.part,
-                title: "required",
-                errors: [
-                  {
-                    type: "required",
-                    description: "پر کردن این فیلد الزامیست",
-                  },
-                ],
-              };
+              const requiredError: IValidationError =
+                await this.owner.owner.validationHandler.getError(item.part, "required",{});
               relatedParts.forEach((x) => x.updateUIAboutError(requiredError));
               hasError = true;
             }

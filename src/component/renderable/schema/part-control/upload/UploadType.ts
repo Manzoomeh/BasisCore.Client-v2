@@ -116,14 +116,14 @@ export default class UploadType extends EditableQuestionPart {
     }
   }
 
-  public getValidationErrorsAsync(): Promise<IValidationError> {
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
     const filesItems = Object.getOwnPropertyNames(this.files)
       .map((x) => this.files[x])
       .filter((x) => !x.mustDelete)
       .map((x) => {
         return { name: x.name, size: x.size, type: x.type };
       });
-    return Promise.resolve(this.ValidateValue(filesItems));
+    return Promise.resolve(await this.ValidateValue(filesItems));
   }
 
   protected CreateFileValueAsync(file: IFileInfo): Promise<IFileValue> {

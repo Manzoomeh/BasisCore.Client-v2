@@ -16,6 +16,7 @@ import IUserActionResult from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
 import QuestionCellManager from "./QuestionCellManager";
 import Section from "./section/Section";
+import ValidationHandler from "../../ValidationHandler";
 
 @injectable()
 export default class SchemaComponent extends SourceBaseComponent {
@@ -205,8 +206,10 @@ export default class SchemaComponent extends SourceBaseComponent {
       getQueryStringParamsAsync: queryStringsMakerAsync,
       filesPath: filesPath,
     };
-
     this._schema = await schemaCallback(this.context, options.paramUrl);
+    const optionName = await this.getAttributeValueAsync("options");
+    let option = optionName ? eval(optionName) : null;
+    const validationHandler = new ValidationHandler(this._schema.lid, option);
     const sections = new Map<number, Section>();
     if (this._schema && this._schema.questions?.length > 0) {
       this._schema.questions.forEach((question) => {
@@ -243,7 +246,8 @@ export default class SchemaComponent extends SourceBaseComponent {
                 question,
                 options,
                 cellManager,
-                partAnswer
+                partAnswer,
+                validationHandler
               )
             );
           }
@@ -254,7 +258,8 @@ export default class SchemaComponent extends SourceBaseComponent {
               question,
               options,
               cellManager,
-              partAnswer
+              partAnswer,
+validationHandler
             )
           );
         }

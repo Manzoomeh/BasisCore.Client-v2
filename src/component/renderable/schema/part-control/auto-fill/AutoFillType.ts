@@ -70,7 +70,7 @@ export default abstract class AutoFillType extends EditableQuestionPart {
           parts: x.values.filter((y) => y).flatMap((y) => y.parts),
         };
       });
-      this.part.dependency.forEach((item) => {
+      this.part.dependency.forEach(async(item) => {
         const relatedProperties = allValues.find((x) => x.propId == item.prpId);
         let relatedParts: QuestionPart[] = null;
         if (relatedProperties) {
@@ -92,16 +92,8 @@ export default abstract class AutoFillType extends EditableQuestionPart {
             );
             relatedParts?.forEach((x) => x.updateUIAboutError(null));
           } else if (item.required) {
-            const requiredError: IValidationError = {
-              part: item.part,
-              title: "required",
-              errors: [
-                {
-                  type: "required",
-                  description: "پر کردن این فیلد الزامیست"
-                },
-              ],
-            };
+            const requiredError: IValidationError =
+              await this.owner.owner.validationHandler.getError(item.part, "required",{});
             relatedParts.forEach((x) => x.updateUIAboutError(requiredError));
             hasError = true;
           }
@@ -115,8 +107,8 @@ export default abstract class AutoFillType extends EditableQuestionPart {
     return retVal;
   }
 
-  public getValidationErrorsAsync(): Promise<IValidationError> {
-    return Promise.resolve(this.ValidateValue(this.selectedId));
+  public async getValidationErrorsAsync(): Promise<IValidationError> {
+    return Promise.resolve(await this.ValidateValue(this.selectedId));
   }
 
   public getAddedAsync(): Promise<IUserActionPart> {

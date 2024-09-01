@@ -42,7 +42,7 @@ export default class ComponentContainer extends EditableQuestionPart {
           retVal = await manager.validateAsync(this.part.validations);
         } else if (typeof manager.getValuesForValidateAsync == "function") {
           const values = await manager.getValuesForValidateAsync();
-          retVal = this.ValidateValue(values);
+          retVal = await this.ValidateValue(values);
         } else {
           console.warn(
             `No validation process detect. Add one of validateAsync() or getValuesForValidateAsync() method to '${this.part.viewType}'.`
