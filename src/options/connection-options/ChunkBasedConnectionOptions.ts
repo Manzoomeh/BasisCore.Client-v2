@@ -45,21 +45,23 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
     const method = this.method;
     const body = this.body;
     const activeFetch = this.activeFetch;
-    const extractNextJSON = (str, start, validMinPosition) => {
-      let firstOpen, lastClose, candidate;
-      firstOpen = str.indexOf("{", start);
-      lastClose = str.lastIndexOf("}");
-      if (lastClose <= firstOpen + validMinPosition) {
-        return null;
-      }
-      do {
-        candidate = str.substring(firstOpen, lastClose + 1);
+    const extractNextJSON = (source: string, validMinPosition: number) => {
+      let firstOpen = source.indexOf("{");
+      let lastClose = source.lastIndexOf("}");
+      while (lastClose > firstOpen && lastClose >= validMinPosition) {
+        let candidate = source.substring(firstOpen, lastClose + 1);
         try {
-          var res = JSON.parse(candidate);
-          return [res, lastClose + 1];
-        } catch (e) {}
-        lastClose = str.substr(validMinPosition, lastClose).lastIndexOf("}");
-      } while (lastClose > firstOpen);
+          var jsonObj = JSON.parse(candidate);
+          return [jsonObj, lastClose + 1];
+        } catch (e) {
+          if (e instanceof SyntaxError) {
+          } else {
+            console.error(e);
+          }
+        }
+        lastClose = source.substring(0, lastClose).lastIndexOf("}");
+      }
+      return null;
     };
     return new StreamPromise<void>(
       this.Name,
@@ -90,54 +92,63 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
           let remain = "";
           while (!done) {
             const { value, done: doneReading } = await reader.read();
-            done = doneReading;
-            if (value) {
-              const minValidPosition = remain.length;
-              remain += decoder.decode(value, { stream: true });
-              let lastEndFrom = 0;
-              let startFrom = 0;
-              let extractResult = null;
-              do {
-                startFrom = lastEndFrom;
-                extractResult = extractNextJSON(
-                  remain,
-                  startFrom,
-                  minValidPosition
-                );
-                if (extractResult) {
-                  var json = extractResult[0];
-                  lastEndFrom = extractResult[1];
-                  if (
-                    json &&
-                    json.setting &&
-                    json.setting.keepalive !== undefined &&
-                    !json.setting.keepalive
-                  ) {
-                    context.logger.logInformation(
-                      "Disconnect from %s by server request",
-                      url
-                    );
-                    done = true;
-                  }
-                  if (json && json.sources) {
-                    const dataList = json?.sources.map(
-                      (x) => new Data(x.options.tableName, x.data, x.options)
-                    );
-                    if (dataList.length > 0) {
-                      const receiverIsOk = onDataReceived(dataList);
-                      if (!receiverIsOk) {
-                        context.logger.logInformation(
-                          "Disconnect from %s by receiver request. maybe disposed!",
-                          url
-                        );
-                        done = true;
+            try {
+              done = doneReading;
+              if (value || done) {
+                let minValidPosition = value
+                  ? remain.length
+                  : remain.length - 50;
+                remain += value ? decoder.decode(value, { stream: true }) : "";
+                let startFrom = 0;
+                let extractResult = null;
+                do {
+                  extractResult = extractNextJSON(remain, minValidPosition);
+                  if (extractResult) {
+                    var json = extractResult[0];
+                    startFrom = extractResult[1];
+                    minValidPosition -= startFrom;
+                    if (minValidPosition < 0) {
+                      minValidPosition = 0;
+                    }
+                    remain = remain.substring(startFrom);
+                    if (
+                      json &&
+                      json.setting &&
+                      json.setting.keepalive !== undefined &&
+                      !json.setting.keepalive
+                    ) {
+                      context.logger.logInformation(
+                        "Disconnect from %s by server request",
+                        url
+                      );
+                      done = true;
+                    }
+                    if (json && json.sources) {
+                      const dataList: Data[] = json?.sources.map(
+                        (x) => new Data(x.options.tableName, x.data, x.options)
+                      );
+                      if (dataList.length > 0) {
+                        const receiverIsOk = onDataReceived(dataList);
+                        if (!receiverIsOk) {
+                          context.logger.logInformation(
+                            "Disconnect from %s by receiver request. maybe disposed!",
+                            url
+                          );
+                          done = true;
+                        }
                       }
                     }
                   }
-                }
-              } while (extractResult);
-              remain = remain.substring(startFrom);
+                } while (extractResult);
+              }
+            } catch (ex) {
+              console.log(ex);
             }
+          }
+          if (remain.length > 0 && remain != ",null]") {
+            console.error("Invalid remain part of json", remain);
+          } else {
+            console.log("End of chunked data...");
           }
           activeFetch.delete(sourceId);
           resolve();
