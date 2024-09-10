@@ -16,25 +16,27 @@
         <basis core='dbsource' name='flight' run='AtClient' source='simple'>
             <member name='list'></member>
         </basis>
-        <basis core="callback" run="AtClient" triggers="flight.list" method="manipulation"></basis>
-        <basis core='api' name='api.rule' if='{##db.api.run|(false)##}' run='AtClient' url='http://185.44.36.58:1566/demoapi/Flight/{##db.api.type##}' method='post' content-type='application/json' triggers='db.api' body='{
+        <basis core="callback" run="AtClient" triggers="flight.list" method="manipulation">
+        </basis>
+        <basis1 core='api' name='api.rule' if='{##db.api.run|(false)##}' run='AtClient' url='http://185.44.36.58:1566/demoapi/Flight/{##db.api.type##}' method='post' content-type='application/json' triggers='db.api' body='{
  "dmnid": "4483",
  "SessionId": "66d30dc71d706fe36e8dc4da",
  "FlightId": "{##db.api.FlightId##}",
  "FlightGroup": "{##db.api.FlightGroup##}"
- }' onprocessed='onProcessedFlightApi'></basis>
-        <div class="layout__main max-w-7xl mx-auto flex">
-            <!-- aside -->
-            <aside class="w-1/3">
-                <basis core='print' run='AtClient' datamembername='db.airlines'>
-                    <layout>
-                        <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
-                            <div class="filter__title__container text-gray-500 mb-3">شرکت های هواپیمایی</div>
-                            @child
-                        </div>
-                    </layout>
-                    <face>
-                        <script type="text/template">
+ }' onprocessed='onProcessedFlightApi'>
+            </basis>
+            <div class="layout__main max-w-7xl mx-auto flex">
+                <!-- aside -->
+                <aside class="w-1/3">
+                    <basis core='print' run='AtClient' datamembername='db.airlines'>
+                        <layout>
+                            <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
+                                <div class="filter__title__container text-gray-500 mb-3">شرکت های هواپیمایی</div>
+                                @child
+                            </div>
+                        </layout>
+                        <face>
+                            <script type="text/template">
  <div class="my-1">
  <input type="checkbox" class="ml-2" />
  <label class="inline-block w-11/12">
@@ -48,17 +50,17 @@
  </label>
  </div>
  </script>
-                    </face>
-                </basis>
-                <basis core='print' run='AtClient' datamembername='db.airports'>
-                    <layout>
-                        <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
-                            <div class="filter__title__container text-gray-500 mb-3">فرودگاه های مقصد</div>
-                            @child
-                        </div>
-                    </layout>
-                    <face>
-                        <script type="text/template">
+                        </face>
+                    </basis>
+                    <basis core='print' run='AtClient' datamembername='db.airports'>
+                        <layout>
+                            <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
+                                <div class="filter__title__container text-gray-500 mb-3">فرودگاه های مقصد</div>
+                                @child
+                            </div>
+                        </layout>
+                        <face>
+                            <script type="text/template">
  <div class="my-1">
  <input type="checkbox" class="ml-2" />
  <label class="inline-block w-11/12">
@@ -69,17 +71,17 @@
  
  </div>
  </script>
-                    </face>
-                </basis>
-                <basis core='print' run='AtClient' datamembername='db.stops'>
-                    <layout>
-                        <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
-                            <div class="filter__title__container text-gray-500 mb-3">تعداد توقف</div>
-                            @child
-                        </div>
-                    </layout>
-                    <face>
-                        <script type="text/template">
+                        </face>
+                    </basis>
+                    <basis core='print' run='AtClient' datamembername='db.stops'>
+                        <layout>
+                            <div class="filter__container bg-white shadow-md rounded-2xl mb-10 p-5 w-11/12">
+                                <div class="filter__title__container text-gray-500 mb-3">تعداد توقف</div>
+                                @child
+                            </div>
+                        </layout>
+                        <face>
+                            <script type="text/template">
  <div class="my-1">
  <input type="checkbox" class="ml-2" />
  <label class="inline-block w-11/12">
@@ -90,24 +92,24 @@
  
  </div>
  </script>
-                    </face>
-                </basis>
-            </aside>
-            <!--content -->
-            <section class="w-3/4">
-                <!--card selection -->
-                <div class="card__selection__container"></div>
-                <!--sort cards -->
-                <div class="sort__cards__container"></div>
+                        </face>
+                    </basis>
+                </aside>
+                <!--content -->
+                <section class="w-3/4">
+                    <!--card selection -->
+                    <div class="card__selection__container"></div>
+                    <!--sort cards -->
+                    <div class="sort__cards__container"></div>
 
-                <basis core='print' run='AtClient' datamembername='qam.list' onprocessing1='manipulation'>
-                    <layout>
-                        <script type="text/template">
+                    <basis core='print' run='AtClient' datamembername='qam.list' onprocessing1='manipulation'>
+                        <layout>
+                            <script type="text/template">
  <div class="list__cards__container">@child</div>
  </script>
-                    </layout>
-                    <face>
-                        <script type="text/template">
+                        </layout>
+                        <face>
+                            <script type="text/template">
  <div class="card__container border-b-6 border-gray-400 bg-white shadow-md rounded-2xl flex mb-10 relative transition" data-id="@FlightId@">
  <div class="lg:w-8/12 p-5 border-l-2 border-dashed border-gray-400 relative">
  {{
@@ -294,10 +296,10 @@
  </div>
  </div>
  </script>
-                    </face>
-                </basis>
-            </section>
-        </div>
+                        </face>
+                    </basis>
+                </section>
+            </div>
     </main>
     <!-- footer -->
     <footer></footer>
@@ -320,7 +322,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            postData('http://185.44.36.58:1566/demoapi/Flight/ChunkSearch', { "dmnid": "4483" })
+            postData('http://185.44.36.58:1566/demoapi/Flight/ChunkSearch2', { "dmnid": "4483" })
                 .then(data => {
                     console.log('Success:', data);
                 })
@@ -328,7 +330,7 @@
                     console.error('Error:', error);
                 });
         });
-        const json = {
+        const json1 = {
             "TripGroup": [
                 {
                     "Origin": "1198711",
@@ -344,11 +346,26 @@
             "SessionId": "66d47075beb89086b71fde8d",
             "userid": "126773"
         }
+        const json = {
+            "TripGroup": [
+                {
+                    "Origin": "THR",
+                    "Destination": "SYZ",
+                    "DepartureDate": "2024-10-10"
+                }
+            ],
+            "CabinClass": "Economy",
+            "Adults": "1",
+            "Children": "0",
+            "Infants": "0",
+            "dmnid": "4483",
+            "SessionId": ""
+        }
         var host = {
             dbLibPath: "../alasql.min.js",
             settings: {
                 "connection.chunkBased.simple": {
-                    "Connection": "http://185.44.36.58:1566/demoapi/Flight/ChunkSearch",
+                    "Connection": "http://185.44.36.58:1566/demoapi/Flight/ChunkSearch2?chunk_size=10",
                     "method": "POST",
                     "body": json
                 },
@@ -913,6 +930,9 @@
 
                     case 109:
                         provider = "SnappTrip"
+
+                    default:
+                        provider = "000"
                 }
 
                 return `<div class="text-teal-600 text-xs mt-2">${provider}</div>`
