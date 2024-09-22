@@ -4,10 +4,20 @@
 
 [data-bc-part-container],
 [data-bc-btn-container] {
-  float: right;
+  /* float: right; */
   /* display: inline-block; */
   /* margin-bottom: 5px; */
   width: calc(100% - 75px);
+}
+
+[data-bc-schema-direction="rtl"] [data-bc-part-container],
+[data-bc-schema-direction="rtl"] [data-bc-btn-container] {
+  float: right;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-part-container],
+[data-bc-schema-direction="ltr"] [data-bc-btn-container] {
+  float: left;
 }
 
 [data-part-btn-container] {
@@ -29,8 +39,8 @@
   /* background-color: #f5f8f9; */
   cursor: pointer;
   padding: 0;
-  margin-left: 5px;
-  float: right;
+  /* margin-left: 5px; */
+  /* float: right; */
   /* border: 1px solid #c7d6db; */
   border-radius: 5px;
   text-align: center;
@@ -46,6 +56,20 @@
   justify-content: center;
 }
 
+[data-bc-schema-direction="rtl"] [data-bc-question] [data-bc-btn],
+[data-bc-schema-direction="rtl"] [data-bc-question] [data-bc-btn-remove],
+[data-bc-schema-direction="rtl"] [data-bc-question] [data-bc-btn-add] {
+  margin-left: 5px;
+  float: right;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-question] [data-bc-btn],
+[data-bc-schema-direction="ltr"] [data-bc-question] [data-bc-btn-remove],
+[data-bc-schema-direction="ltr"] [data-bc-question] [data-bc-btn-add] {
+  margin-right: 5px;
+  float: left;
+}
+
 [data-part-btn-container] [data-bc-btn],
 [data-part-btn-container] [data-bc-btn-remove],
 [data-part-btn-container] [data-bc-btn-add] {
@@ -53,7 +77,15 @@
 }
 
 [data-bc-question] [data-bc-btns]:last-child {
+  /* margin-left: 0; */
+}
+
+[data-bc-schema-direction="rtl"] [data-bc-question] [data-bc-btns]:last-child {
   margin-left: 0;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-question] [data-bc-btns]:last-child {
+  margin-right: 0;
 }
 
 [data-bc-question] [data-bc-btn="add"] svg {
@@ -92,9 +124,17 @@
 
 [data-bc-part-related-cell] {
   /* width: 300px; */
-  margin-left: 10px;
+  /* margin-left: 10px; */
   /* margin-bottom: 5px; */
   position: relative;
+}
+
+[data-bc-schema-direction="rtl"] [data-bc-part-related-cell] {
+  margin-left: 10px;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-part-related-cell] {
+  margin-right: 10px;
 }
 
 [data-bc-schema-info-part="1"] [data-bc-part-related-cell] {

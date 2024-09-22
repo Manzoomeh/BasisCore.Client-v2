@@ -13,6 +13,7 @@ export default interface IFormMakerOptions {
   maxWidth?: string;
   minHeight?: string;
   maxHeight?: string;
+  direction?: HtmlDirection;
   callback: (params: IEditParams) => void;
   subSchemaOptions: SubSchemaOptions;
   dc: DependencyContainer;
@@ -41,3 +42,5 @@ export type SubSchemaOptions = {
 };
 
 export type DisplayMode = "edit" | "new" | "view";
+
+export type HtmlDirection = "ltr" | "rtl";

@@ -9,6 +9,7 @@ import IAnswerSchema from "./IAnswerSchema";
 import IFormMakerOptions, {
   DisplayMode,
   GetSchemaCallbackAsync,
+  HtmlDirection,
 } from "./IFormMakerOptions";
 import IQuestionCellManager from "./IQuestionCellManager";
 import IQuestionSchema from "./IQuestionSchema";
@@ -41,6 +42,7 @@ export default class SchemaComponent extends SourceBaseComponent {
   //private lidToken: IToken<string>;
   private cellToken: IToken<string>;
   private filesPathToken: IToken<string>;
+  private directionToken: IToken<string>;
   private _currentCellManager: IQuestionCellManager;
   private getAnswersAndSetAsSource: () => void;
   private _schema: IQuestionSchema;
@@ -75,6 +77,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     //this.lidToken = this.getAttributeToken("lid");
     this.cellToken = this.getAttributeToken("cell");
     this.filesPathToken = this.getAttributeToken("filesPath");
+    this.directionToken = this.getAttributeToken("direction");
     this.minWidthToken = this.getAttributeToken("min_width");
     this.maxWidthToken = this.getAttributeToken("max_width");
     this.minHeightToken = this.getAttributeToken("min_height");
@@ -130,6 +133,7 @@ export default class SchemaComponent extends SourceBaseComponent {
       schemaCallbackStr,
       cellStr,
       filesPath,
+      direction,
     ] = await Promise.all([
       this.resultSourceIdToken?.getValueAsync(),
       this.minWidthToken?.getValueAsync(),
@@ -143,6 +147,7 @@ export default class SchemaComponent extends SourceBaseComponent {
       this.schemaCallbackToken?.getValueAsync(),
       this.cellToken?.getValueAsync(),
       this.filesPathToken?.getValueAsync(),
+      (this.directionToken?.getValueAsync() ?? "rtl") as HtmlDirection,
     ]);
     //const viewModeStr = await this.viewModeToken?.getValueAsync();
     //const version = await this.versionToken?.getValueAsync();
@@ -210,6 +215,9 @@ export default class SchemaComponent extends SourceBaseComponent {
     const optionName = await this.getAttributeValueAsync("options");
     let option = optionName ? eval(optionName) : null;
     const validationHandler = new ValidationHandler(this._schema.lid, option);
+    const schemaDirection = this._schema.direction ?? direction;
+    options["direction"] = schemaDirection;
+    container.setAttribute("data-bc-schema-direction", schemaDirection);
     const sections = new Map<number, Section>();
     if (this._schema && this._schema.questions?.length > 0) {
       this._schema.questions.forEach((question) => {

@@ -33,8 +33,16 @@
 [data-bc-upload-file-list] [data-bc-item-btn-delete] {
     cursor: pointer;
     position: absolute;
-    right: 0px;
+    /* right: 0px; */
     top: -7px;
+}
+
+[data-bc-schema-direction="rtl"] [data-bc-upload-file-list] [data-bc-item-btn-delete] {
+    right: 0px;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-upload-file-list] [data-bc-item-btn-delete] {
+    left: 0px;
 }
 
 [data-bc-upload-file-list] [data-bc-item-download] {

@@ -1,6 +1,14 @@
 [data-bc-fm-lookup] input[type="text"] {
     width: calc((100% - 10px) / 2) !important;
+    /* margin-left: 10px; */
+}
+
+[data-bc-schema-direction="rtl"] [data-bc-fm-lookup] input[type="text"] {
     margin-left: 10px;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-fm-lookup] input[type="text"] {
+    margin-right: 10px;
 }
 
 [data-bc-fm-lookup] [data-bc-select-value] {
@@ -30,7 +38,7 @@
     background-color: #FFF;
     /* position: absolute; */
     top: 35px;
-    left: 0px;
+    /* left: 0px; */
     max-height: 200px;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -39,14 +47,32 @@
     list-style: none;
 }
 
+[data-bc-schema-direction="rtl"] [data-bc-fm-lookup] [data-bc-result] {
+    left: 0px;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-fm-lookup] [data-bc-result] {
+    right: 0px;
+}
+
 [data-bc-fm-lookup] [data-bc-result] li {
     /* border-bottom: 1px solid #CBD3DD; */
     border: 1px solid #CBD3DD;
     border-top: none;
-    direction: rtl;
-    text-align: right;
+    /* direction: rtl; */
+    /* text-align: right; */
     padding: 5px 5px;
     cursor: pointer;
+}
+
+[data-bc-schema-direction="rtl"] [data-bc-fm-lookup] [data-bc-result] li {
+    direction: rtl;
+    text-align: right;
+}
+
+[data-bc-schema-direction="ltr"] [data-bc-fm-lookup] [data-bc-result] li {
+    direction: ltr;
+    text-align: left;
 }
 
 [data-bc-fm-lookup] [data-bc-result] li:first-child {
