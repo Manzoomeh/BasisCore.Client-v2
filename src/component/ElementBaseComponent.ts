@@ -5,6 +5,7 @@ import {
 } from "../CallbackArgument";
 import IContext from "../context/IContext";
 import ISource from "../data/ISource";
+import Source from "../data/Source";
 import IToken from "../token/IToken";
 import Component from "./Component";
 
@@ -62,8 +63,63 @@ export default abstract class ElementBaseComponent<
       ) as any;
     }
     const value = await this.getAttributeValueAsync("triggers");
-    this._triggers = value?.split(" ");
-    this.addTrigger(this._triggers);
+    if (value) {
+      this._triggers = value?.split(" ");
+      this.addTrigger(this._triggers);
+    }
+    const events = await this.getAttributeValueAsync("events");
+    console.log(events);
+    if (events) {
+      const preventDefault = await this.getAttributeBooleanValueAsync(
+        "preventDefault",
+        false
+      );
+      const stopPropagation = await this.getAttributeBooleanValueAsync(
+        "stopPropagation",
+        false
+      );
+      events.split(" ").forEach((item) => {
+        const [type, event] = item.split(".", 2);
+        const callback = (x: Event) => {
+          if (preventDefault) {
+            x.preventDefault();
+          }
+          if (stopPropagation) {
+            x.stopPropagation();
+          }
+          const source = new Source(item, x);
+          this.renderAsync(source);
+        };
+        const timerCallback = (obj) => {
+          const source = new Source(item, obj.id);
+          this.renderAsync(source);
+        };
+        console.log(type.toLowerCase());
+        switch (type.toLowerCase()) {
+          case "document": {
+            document.addEventListener(event, callback);
+            break;
+          }
+          case "window": {
+            window.addEventListener(event, callback);
+            break;
+          }
+          case "timer": {
+            console.log(type.toLowerCase());
+            const timerId = setInterval(() => {
+              const source = new Source(item, timerId);
+              this.renderAsync(source);
+            }, parseInt(event));
+            break;
+          }
+          default:
+            document
+              .querySelectorAll(type)
+              .forEach((element) => element.addEventListener(event, callback));
+            break;
+        }
+      });
+    }
   }
 
   protected async getIfValueAsync(): Promise<boolean> {
@@ -155,5 +211,9 @@ export default abstract class ElementBaseComponent<
   protected abstract runAsync(source?: ISource): Promise<any>;
   protected async hideAsync(): Promise<void> {
     return Promise.resolve();
+  }
+
+  public disposeAsync(): Promise<void> {
+    return super.disposeAsync();
   }
 }

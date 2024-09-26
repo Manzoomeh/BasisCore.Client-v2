@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/basiscore.js"></script>
+    <title>Callback Command - Timer</title>
+</head>
+
+<body style="height: 1000px;">
+
+    <basis core="callback" run="AtClient" events="timer.1000" method="timerCallback"></basis>
+    <script>
+
+        let count = 5;
+        function timerCallback(arg) {
+            const timerHandler = arg.source.rows[0].value;
+            console.log(`from callback for timer handler ${arg.source.id}. kill this timer in next ${--count} turn`);
+            if (count <= 0) {
+                clearInterval(timerHandler);
+            }
+        }
+    </script>
+</body>
+
+</html>

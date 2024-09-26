@@ -80,7 +80,9 @@ export default class Repository implements IContextRepository {
     }
     this.eventManager.get(resultSource.id)?.Trigger(resultSource);
     this.logger.logInformation(
-      `${resultSource.id} ${source === resultSource ? "Added" : "Updated"}...`
+      `${resultSource.id} ${source === resultSource ? "Added" : "Updated"}... ${
+        resultSource?.rows?.length ?? 0
+      } Row(s)`
     );
     return resultSource;
   }
