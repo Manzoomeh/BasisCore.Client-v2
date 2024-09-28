@@ -660,6 +660,29 @@
               ]
             },
             {
+              "prpId": 44444,
+              "typeId": 128,
+              "ord": 100,
+              "vocab": "/ولتاژ",
+              "title": " simple reference no multi",
+              "wordId": 50678,
+              "multi": false,
+              "cssClass": "css_13060",
+              "help": "help data",
+              "parts": [
+                {
+                  "part": 2,
+                  "viewType": "simplereference",
+                  "cssClass": "css_13060_1",
+                  "validations": {
+                    "required": true
+                  },
+                  "caption": "",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
               "prpId": 55555,
               "typeId": 128,
               "ord": 100,
