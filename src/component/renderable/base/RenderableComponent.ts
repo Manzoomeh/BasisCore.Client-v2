@@ -112,16 +112,15 @@ export default abstract class RenderableComponent<
     );
     const newRenderResultList = new FaceRenderResultRepository<TRenderResult>();
     const renderResult = new Array<TRenderResult>();
-    for (const row of dataSource.rows) {
-      const rowRenderResult = await faces.renderAsync<TRenderResult>(
-        param,
-        row
-      );
-      if (rowRenderResult) {
-        newRenderResultList.set(rowRenderResult.key, rowRenderResult);
-        renderResult.push(rowRenderResult);
+    const results = await Promise.all(
+      dataSource.rows.map((row) => faces.renderAsync<TRenderResult>(param, row))
+    );
+    results.forEach((item) => {
+      if (item) {
+        newRenderResultList.set(item.key, item);
+        renderResult.push(item);
       }
-    }
+    });
     return new RenderDataPartResult<TRenderResult>(
       renderResult,
       newRenderResultList

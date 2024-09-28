@@ -21,15 +21,13 @@ export default class FaceCollection extends Array<Face> {
     if (this.length == 0) {
       param.setRendered();
     } else {
-      var rowType = param.rowType;
-      var firstMatchFace = this.filter((x) => {
-        var con1 = x.RelatedRows.some((x) => Util.Equal(x, data));
-        var con2 = x.RowType == FaceRowType.NotSet || x.RowType == rowType;
-        var con3 =
-          x.Levels == null ||
-          x.Levels.some((y) => param.Levels.some((x) => x == y));
-        return con1 && con2 && con3;
-      })[0];
+      var firstMatchFace = this.find(
+        (x) =>
+          x.RelatedRows.some((x) => Util.Equal(x, data)) &&
+          (x.RowType == FaceRowType.NotSet || x.RowType == param.rowType) &&
+          (x.Levels == null ||
+            x.Levels.some((y) => param.Levels.some((x) => x == y)))
+      );
       if (firstMatchFace) {
         const [dataKey, version, preRenderResult] =
           await param.getRenderedResultAsync(data);
