@@ -68,7 +68,6 @@ export default abstract class ElementBaseComponent<
       this.addTrigger(this._triggers);
     }
     const events = await this.getAttributeValueAsync("events");
-    console.log(events);
     if (events) {
       const preventDefault = await this.getAttributeBooleanValueAsync(
         "preventDefault",
@@ -88,10 +87,6 @@ export default abstract class ElementBaseComponent<
             x.stopPropagation();
           }
           const source = new Source(item, x);
-          this.renderAsync(source);
-        };
-        const timerCallback = (obj) => {
-          const source = new Source(item, obj.id);
           this.renderAsync(source);
         };
         console.log(type.toLowerCase());
