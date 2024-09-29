@@ -28,6 +28,7 @@ import ReadonlyColorType from "./readonly-text/ReadonlyColorType";
 import ComponentContainer from "./component-container/ComponentContainer";
 import HTMLFieldType from "./html/HTMLFieldType";
 import AutoCompleteSimpleType from "./auto-fill/auto-complete/AutoCompleteSimpleType";
+import ReferenceSimpleType from "./auto-fill/reference/ReferenceSimpleType";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -77,6 +78,10 @@ export default class QuestionPartFactory {
         }
         case "simpleautocomplete": {
           retVal = new AutoCompleteSimpleType(part, owner, answer);
+          break;
+        }
+        case "simplereference": {
+          retVal =  new ReferenceSimpleType(part, owner, answer)
           break;
         }
         case "reference": {
@@ -152,6 +157,10 @@ export default class QuestionPartFactory {
         }
         case "simpleautocomplete": {
           retVal = new AutoCompleteSimpleType(part, owner, answer);
+          break;
+        }
+        case "simplereference": {
+          retVal =  new ReferenceSimpleType(part, owner, answer)
           break;
         }
         case "reference": {
