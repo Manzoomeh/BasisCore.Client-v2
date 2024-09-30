@@ -34,7 +34,10 @@ export default class LocalDataBase implements IDatabase {
       cols = [];
     }
     var rows = [];
-    data.forEach((row) => rows.push(cols.map((col) => row[col])));
+    
+    if(data.length > 0){
+      data.forEach((row) => rows.push(cols.map((col) => row[col])));
+    }
     var retVal = [cols, ...rows];
     return retVal;
   }
