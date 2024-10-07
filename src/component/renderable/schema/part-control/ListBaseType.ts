@@ -121,8 +121,7 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     if (!this._subSchemaCollections) {
       this._subSchemaCollections = {};
     }
-    const taskList = new Array<Promise<void>>();
-    taskList.push(this.unloadSchemaAsync(id));
+    let processTask: Promise<void>;
     const options = this.owner.options.subSchemaOptions;
     const displayMode: DisplayMode = answer ? options.displayMode : "new";
 
@@ -154,10 +153,9 @@ export default abstract class ListBaseType extends EditableQuestionPart {
         component: newCollection,
         element: container,
       };
-      const processTask = newCollection.processNodesAsync(
+      processTask = newCollection.processNodesAsync(
         Array.from(container.childNodes)
       );
-      taskList.push(processTask);
       if (answer) {
         processTask.then(async () => {
           const array = newCollection.GetCommandListByCore("schema");
@@ -173,6 +171,6 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     } else {
       container.innerHTML = "";
     }
-    await Promise.all(taskList);
+    await processTask;
   }
 }

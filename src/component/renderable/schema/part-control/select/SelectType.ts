@@ -36,6 +36,9 @@ export default class SelectType extends ListBaseType {
       const lid = item.getAttribute("data-lid");
       const schemaVersion = item.getAttribute("data-schema-version");
       const paramUrl = item.getAttribute("data-param-url");
+      if (this.preSelectedValue) {
+        this.unloadSchemaAsync(this.preSelectedValue);
+      }
       if (schemaId) {
         this.preSelectedValue = item.value;
         this.loadSubSchemaAsync(
@@ -47,8 +50,6 @@ export default class SelectType extends ListBaseType {
           item.parentElement.nextElementSibling,
           answer
         );
-      } else if (this.preSelectedValue) {
-        this.unloadSchemaAsync(this.preSelectedValue);
       }
     }
   }
