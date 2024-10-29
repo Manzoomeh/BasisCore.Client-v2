@@ -8,7 +8,6 @@ import SourceBaseComponent from "../../SourceBaseComponent";
 import FaceCollection from "./FaceCollection";
 import FaceRenderResult from "./FaceRenderResult";
 import FaceRenderResultRepository from "./FaceRenderResultRepository";
-import RenderDataPartResult from "./IRenderDataPartResult";
 import RawFaceCollection from "./RawFaceCollection";
 import RenderParam from "./RenderParam";
 
@@ -20,7 +19,9 @@ export default abstract class RenderableComponent<
   private _preCollection: ComponentCollection = null;
   readonly container: DependencyContainer;
   readonly reservedKeys: Array<string>;
-  protected renderResultRepository: FaceRenderResultRepository<TRenderResult>;
+  protected renderResultRepository: FaceRenderResultRepository<TRenderResult> =
+    new FaceRenderResultRepository<TRenderResult>();
+  protected processRenderedContent: boolean;
 
   constructor(
     element: Element,
@@ -33,22 +34,28 @@ export default abstract class RenderableComponent<
     this.reservedKeys = reservedKeys;
   }
 
+  public async processAsync(): Promise<void> {
+    this.processRenderedContent = await this.getAttributeBooleanValueAsync(
+      "processRenderedContent",
+      true
+    );
+    await super.processAsync();
+  }
+
   async renderSourceAsync(source: ISource): Promise<Node[]> {
     let renderResult: Array<TRenderResult>;
     if (source.rows) {
-      var rawFaces = RawFaceCollection.Create(
+      const rawFaces = RawFaceCollection.Create(
         this.node,
         this.context,
         this.reservedKeys ? this.reservedKeys[0] : null
       );
-      var faces = await rawFaces.processAsync(
+      const faces = await rawFaces.processAsync(
         source,
         this.context,
         this.reservedKeys
       );
-      const newRenderResultList = await this.renderDataPartAsync(source, faces);
-      this.renderResultRepository = newRenderResultList.repository;
-      renderResult = newRenderResultList.result;
+      renderResult = await this.renderDataPartAsync(source, faces);
     }
     return await this.createContentAsync(renderResult);
   }
@@ -90,10 +97,10 @@ export default abstract class RenderableComponent<
         renderResult.forEach((element) => element.AppendTo(doc));
       }
     } else {
-      var rawElseLayout = this.node
+      const result = await this.node
         .querySelector("else-layout")
-        ?.GetXMLTemplateToken(this.context);
-      const result = await rawElseLayout?.getValueAsync();
+        ?.GetXMLTemplateToken(this.context)
+        ?.getValueAsync();
       if (result) {
         this.appendTemplateToDoc(result, doc);
       }
@@ -104,27 +111,32 @@ export default abstract class RenderableComponent<
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection
-  ): Promise<RenderDataPartResult<TRenderResult>> {
+  ): Promise<TRenderResult[]> {
     const param = new RenderParam<TRenderResult>(
       dataSource,
       this.renderResultRepository,
       (key, ver, doc) => new FaceRenderResult(key, ver, doc)
     );
-    const newRenderResultList = new FaceRenderResultRepository<TRenderResult>();
-    const renderResult = new Array<TRenderResult>();
-    const results = await Promise.all(
-      dataSource.rows.map((row) => faces.renderAsync<TRenderResult>(param, row))
-    );
-    results.forEach((item) => {
-      if (item) {
-        newRenderResultList.set(item.key, item);
-        renderResult.push(item);
+    let result: TRenderResult[];
+    if (faces.hasRowTypeFilter) {
+      result = [];
+      for (const row of dataSource.rows) {
+        const rowRenderResult = await faces.renderAsync<TRenderResult>(
+          param,
+          row
+        );
+        if (rowRenderResult) {
+          result.push(rowRenderResult);
+        }
       }
-    });
-    return new RenderDataPartResult<TRenderResult>(
-      renderResult,
-      newRenderResultList
-    );
+    } else {
+      result = await Promise.all(
+        dataSource.rows.map((row) =>
+          faces.renderAsync<TRenderResult>(param, row)
+        )
+      );
+    }
+    return result;
   }
 
   protected appendTemplateToDoc(template: string, doc: DocumentFragment): void {
@@ -141,11 +153,13 @@ export default abstract class RenderableComponent<
   ): Promise<Array<ChildNode>> {
     const generatedNodes = Array.from(doc.childNodes);
     this.setContent(doc, false);
-    if (this._preCollection) {
-      await this._preCollection.disposeAsync();
+    if (this.processRenderedContent) {
+      if (this._preCollection) {
+        await this._preCollection.disposeAsync();
+      }
+      this._preCollection = this.container.resolve(ComponentCollection);
+      await this._preCollection.processNodesAsync(generatedNodes);
     }
-    this._preCollection = this.container.resolve(ComponentCollection);
-    await this._preCollection.processNodesAsync(generatedNodes);
     return generatedNodes;
   }
 }

@@ -5,7 +5,6 @@ import ISource from "../../data/ISource";
 import IBCUtil from "../../wrapper/IBCUtil";
 import FaceCollection from "./base/FaceCollection";
 import FaceRenderResultRepository from "./base/FaceRenderResultRepository";
-import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
 import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
@@ -33,17 +32,15 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection
-  ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
-    const tempGeneratedNodeList =
-      new FaceRenderResultRepository<TreeFaceRenderResult>();
+  ): Promise<TreeFaceRenderResult[]> {
     if (dataSource.rows.length != 0) {
-      var foreignKey = await this.getAttributeValueAsync(
+      const foreignKey = await this.getAttributeValueAsync(
         "parentidcol",
         "parentid"
       );
-      var principalKey = await this.getAttributeValueAsync("idcol", "id");
-      var nullValue = await this.getAttributeValueAsync("nullvalue", "0");
-      var rootRecords = DataUtil.ApplySimpleFilter(
+      const principalKey = await this.getAttributeValueAsync("idcol", "id");
+      const nullValue = await this.getAttributeValueAsync("nullvalue", "0");
+      const rootRecords = DataUtil.ApplySimpleFilter(
         dataSource.rows,
         foreignKey,
         nullValue
@@ -53,12 +50,12 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
           `Tree command has no root record in data member '${dataSource.id}' with '${nullValue}' value in '${foreignKey}' column that set in NullValue attribute.`
         );
       }
-      var rootRenderParam = new RenderParam<TreeFaceRenderResult>(
+      const rootRenderParam = new RenderParam<TreeFaceRenderResult>(
         dataSource,
         this.renderResultRepository,
         (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc)
       );
-      var renderResultList = new Array<TreeFaceRenderResult>();
+      const renderResultList = new Array<TreeFaceRenderResult>();
       for (const row of rootRecords) {
         const renderResult = await this.renderLevelAsync(
           dataSource,
@@ -67,15 +64,12 @@ export default class TreeComponent extends RenderableComponent<TreeFaceRenderRes
           faces,
           principalKey,
           foreignKey,
-          tempGeneratedNodeList,
+          this.renderResultRepository,
           row
         );
         renderResultList.push(renderResult);
       }
-      return new RenderDataPartResult<TreeFaceRenderResult>(
-        renderResultList,
-        tempGeneratedNodeList
-      );
+      return renderResultList;
     }
   }
 

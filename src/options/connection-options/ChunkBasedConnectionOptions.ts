@@ -2,6 +2,7 @@ import IContext from "../../context/IContext";
 import Data from "../../data/Data";
 import { EventHandlerWithReturn } from "../../event/EventHandlerWithReturn";
 import IDictionary from "../../IDictionary";
+import { IServerResponse } from "../../type-alias";
 import ConnectionOptions from "./ConnectionOptions";
 import StreamPromise from "./StreamPromise";
 
@@ -51,7 +52,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
       while (lastClose > firstOpen && lastClose >= validMinPosition) {
         let candidate = source.substring(firstOpen, lastClose + 1);
         try {
-          var jsonObj = JSON.parse(candidate);
+          var jsonObj = JSON.parse("[" + candidate + "]");
           return [jsonObj, lastClose + 1];
         } catch (e) {
           if (e instanceof SyntaxError) {
@@ -101,16 +102,16 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                 remain += value ? decoder.decode(value, { stream: true }) : "";
                 let startFrom = 0;
                 let extractResult = null;
-                do {
-                  extractResult = extractNextJSON(remain, minValidPosition);
-                  if (extractResult) {
-                    var json = extractResult[0];
-                    startFrom = extractResult[1];
-                    minValidPosition -= startFrom;
-                    if (minValidPosition < 0) {
-                      minValidPosition = 0;
-                    }
-                    remain = remain.substring(startFrom);
+                extractResult = extractNextJSON(remain, minValidPosition);
+                if (extractResult) {
+                  const jsonItems: IServerResponse<any>[] = extractResult[0];
+                  startFrom = extractResult[1];
+                  minValidPosition -= startFrom;
+                  if (minValidPosition < 0) {
+                    minValidPosition = 0;
+                  }
+                  remain = remain.substring(startFrom);
+                  jsonItems.forEach((json) => {
                     if (
                       json &&
                       json.setting &&
@@ -138,11 +139,11 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
                         }
                       }
                     }
-                  }
-                } while (extractResult);
+                  });
+                }
               }
             } catch (ex) {
-              console.log(ex);
+              console.error(ex);
             }
           }
           if (remain.length > 0 && remain != ",null]") {

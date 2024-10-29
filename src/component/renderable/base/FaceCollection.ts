@@ -13,6 +13,10 @@ export default class FaceCollection extends Array<Face> {
     (<any>Object).setPrototypeOf(this, FaceCollection.prototype);
   }
 
+  public get hasRowTypeFilter(): boolean {
+    return this.some((x) => x.RowType != FaceRowType.Odd);
+  }
+
   public async renderAsync<TRenderResult extends FaceRenderResult>(
     param: RenderParam<TRenderResult>,
     data: object
@@ -21,7 +25,7 @@ export default class FaceCollection extends Array<Face> {
     if (this.length == 0) {
       param.setRendered();
     } else {
-      var firstMatchFace = this.find(
+      const firstMatchFace = this.find(
         (x) =>
           x.RelatedRows.some((x) => Util.Equal(x, data)) &&
           (x.RowType == FaceRowType.NotSet || x.RowType == param.rowType) &&
@@ -37,6 +41,7 @@ export default class FaceCollection extends Array<Face> {
           const rawHtml = await firstMatchFace.template.getValueAsync(data);
           const renderResult = $bc.util.toElement(rawHtml);
           retVal = param.factory(dataKey, version, renderResult);
+          param.setRenderedResult(retVal);
         }
         param.setRendered();
       } else {
