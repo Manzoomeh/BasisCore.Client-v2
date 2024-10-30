@@ -14,7 +14,7 @@ export default class Util {
     var retVal: boolean = true;
     if (!Util.HasValue(a) || !Util.HasValue(b)) {
       retVal = false;
-    } else {
+    } else if (a !== b) {
       var aProps = Object.getOwnPropertyNames(a);
       var bProps = Object.getOwnPropertyNames(b);
       if (aProps.length != bProps.length) {

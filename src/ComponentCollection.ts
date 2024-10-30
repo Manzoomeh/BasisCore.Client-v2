@@ -15,7 +15,7 @@ export default class ComponentCollection implements IComponentCollection {
   readonly blockRegex: RegExp;
   readonly container: DependencyContainer;
   private _initializeTask: Promise<void>;
-  private components: Array<IComponent>;
+  private readonly components: Array<IComponent> = [];
   private _disposed: boolean = false;
   public get disposed(): boolean {
     return this._disposed;
@@ -38,55 +38,58 @@ export default class ComponentCollection implements IComponentCollection {
   }
 
   public async processNodesAsync(nodes: Array<Node>): Promise<void> {
-    if (this.components) {
+    if (this._initializeTask) {
       throw new Error("Run ComponentCollection for more than one");
     }
-    this.components = this.extractComponent(nodes);
-    this._initializeTask = this.initializeAsync(this.components);
+    this._initializeTask = this.extractComponentAsync(nodes);
     await this._initializeTask;
-    await this.runAsync(this.components);
+    await this.runAsync();
   }
 
-  private async initializeAsync(components: Array<IComponent>): Promise<void> {
-    const tasks = components.map((x) => x.initializeAsync());
-    await Promise.all(tasks);
+  private async runAsync(): Promise<void> {
+    await Promise.all(
+      this.components
+        .filter((x) => x.priority == Priority.high)
+        .map((x) => x.processAsync())
+    );
+    await Promise.all(
+      this.components
+        .filter((x) => x.priority == Priority.normal)
+        .map((x) => x.processAsync())
+    );
+    await Promise.all(
+      this.components
+        .filter((x) => x.priority == Priority.low)
+        .map((x) => x.processAsync())
+    );
   }
 
-  private async runAsync(components: Array<IComponent>): Promise<void> {
-    const priorityMap = components.reduce((map, component) => {
-      if (component.priority != Priority.none) {
-        let list = map.get(component.priority);
-        if (!list) {
-          list = new Array<IComponent>();
-          map.set(component.priority, list);
-        }
-        list.push(component);
-      }
-      return map;
-    }, new Map<Priority, Array<IComponent>>());
-    for (const priority of [Priority.high, Priority.normal, Priority.low]) {
-      const relatedComponent = priorityMap.get(priority);
-      if (relatedComponent) {
-        const taskList = relatedComponent.map((x) => x.processAsync());
-        await Promise.all(taskList);
-      }
-    }
-  }
-
-  private extractComponent(nodes: Array<Node>): Array<IComponent> {
-    const components = new Array<IComponent>();
+  private async extractComponentAsync(nodes: Array<Node>): Promise<void> {
+    const taskList: Array<Promise<void>> = [];
     nodes.forEach((node) => {
-      this.extractTextBaseComponents(node, components);
-      this.extractBasisCommands(node, components);
+      taskList.push(
+        new Promise((resolve) => {
+          this.extractTextBaseComponents(node, taskList);
+          resolve();
+        })
+      );
+      taskList.push(
+        new Promise((resolve) => {
+          this.extractBasisCommands(node, taskList);
+          resolve();
+        })
+      );
     });
-    return components;
+    await Promise.all(taskList);
   }
 
-  private extractBasisCommands(node: Node, components: Array<IComponent>) {
+  private extractBasisCommands(node: Node, initTaskList: Array<Promise<void>>) {
     const pair = this.findRootLevelComponentNode(node);
     for (const item of pair.coreList) {
       const core = item.getAttribute("core").split(".", 1)[0].toLowerCase();
-      components.push(this.createCommandComponent(item, core));
+      const component = this.createCommandComponent(item, core);
+      this.components.push(component);
+      initTaskList.push(component.initializeAsync());
     }
     for (const item of pair.tagList) {
       const tagName = item.tagName.toLowerCase();
@@ -94,11 +97,13 @@ export default class ComponentCollection implements IComponentCollection {
         ComponentCollection.knowHtmlElement.indexOf(tagName) != -1
           ? tagName
           : "unknown-html";
-      components.push(this.createCommandComponent(item, key));
+      const component = this.createCommandComponent(item, key);
+      this.components.push(component);
+      initTaskList.push(component.initializeAsync());
     }
   }
 
-  private extractTextComponent(node: Text, components: Array<IComponent>) {
+  private extractTextComponent(node: Text, initTaskList: Array<Promise<void>>) {
     if (node.textContent.trim().length != 0) {
       do {
         let match = node.textContent.match(this.regex);
@@ -106,13 +111,14 @@ export default class ComponentCollection implements IComponentCollection {
           match = node.textContent.match(this.blockRegex);
         }
         if (match) {
-          var com = new TextComponent(
+          const component = new TextComponent(
             node,
             this.context,
             match.index,
             match.index + match[0].length
           );
-          components.push(com);
+          this.components.push(component);
+          initTaskList.push(component.initializeAsync());
         } else {
           break;
         }
@@ -122,7 +128,7 @@ export default class ComponentCollection implements IComponentCollection {
 
   private async extractAttributeComponent(
     element: Element,
-    components: Array<IComponent>
+    initTaskList: Array<Promise<void>>
   ) {
     for (const pair of element.attributes) {
       if (pair.value.trim().length != 0) {
@@ -131,8 +137,9 @@ export default class ComponentCollection implements IComponentCollection {
           match = pair.value.match(this.blockRegex);
         }
         if (match) {
-          const com = new AttributeComponent(element, this.context, pair);
-          components.push(com);
+          const component = new AttributeComponent(element, this.context, pair);
+          this.components.push(component);
+          initTaskList.push(component.initializeAsync());
         }
       }
     }
@@ -140,18 +147,18 @@ export default class ComponentCollection implements IComponentCollection {
 
   private extractTextBaseComponents(
     element: Node,
-    components: Array<IComponent>
+    initTaskList: Array<Promise<void>>
   ) {
     if (element.nodeType == Node.TEXT_NODE) {
-      this.extractTextComponent(element as Text, components);
+      this.extractTextComponent(element as Text, initTaskList);
     } else if (element.nodeType != Node.COMMENT_NODE) {
       if (element instanceof Element) {
         if (!element.isIgnoreTag()) {
           if (!element.isBasisCore()) {
-            this.extractAttributeComponent(element, components);
+            this.extractAttributeComponent(element, initTaskList);
             if (element.hasChildNodes()) {
               for (const child of element.childNodes) {
-                this.extractTextBaseComponents(child, components);
+                this.extractTextBaseComponents(child, initTaskList);
               }
             }
           }
@@ -159,7 +166,7 @@ export default class ComponentCollection implements IComponentCollection {
       } else {
         if (element.hasChildNodes()) {
           for (const child of element.childNodes) {
-            this.extractTextBaseComponents(child, components);
+            this.extractTextBaseComponents(child, initTaskList);
           }
         }
       }
@@ -184,7 +191,7 @@ export default class ComponentCollection implements IComponentCollection {
   } {
     const coreList = new Array<Element>();
     const tagList = new Array<Element>();
-    var process = (child: Node) => {
+    const process = (child: Node) => {
       if (child instanceof Element) {
         if (!child.isIgnoreTag()) {
           if (child.isBasisCore()) {
@@ -207,11 +214,13 @@ export default class ComponentCollection implements IComponentCollection {
   public async disposeAsync(): Promise<void> {
     if (!this._disposed) {
       this._disposed = true;
-      const tasks = this.components?.map((component) =>
-        component.disposeAsync()
-      );
-      await Promise.all(tasks);
-      this.components?.splice(0, this.components.length);
+      if (this.components.length > 0) {
+        const tasks = this.components.map((component) =>
+          component.disposeAsync()
+        );
+        await Promise.all(tasks);
+        this.components.splice(0, this.components.length);
+      }
     }
   }
 
@@ -220,9 +229,7 @@ export default class ComponentCollection implements IComponentCollection {
   }
 
   public GetCommandList(): Array<CommandComponent> {
-    return this.components
-      .filter((x) => x instanceof CommandComponent)
-      .map((x) => x as CommandComponent);
+    return <any>this.components.filter((x) => x instanceof CommandComponent);
   }
 
   public GetComponentList(): Array<IComponent> {

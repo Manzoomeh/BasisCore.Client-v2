@@ -184,7 +184,7 @@ export default abstract class ElementBaseComponent<
   public async getAttributeBooleanValueAsync(
     attributeName: string,
     defaultValue: boolean = false
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     const token = this.node.GetBooleanToken(attributeName, this.context);
     return (await token?.getValueAsync()) ?? defaultValue;
   }

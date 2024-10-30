@@ -28,12 +28,16 @@ export default class RenderParam<TRenderResult extends FaceRenderResult> {
     this._renderedCount = 0;
   }
 
+  public setRenderedResult(data: TRenderResult) {
+    this.renderResultRepository.set(data.key, data);
+  }
+
   public async getRenderedResultAsync(
     data: any
   ): Promise<[any, number, TRenderResult]> {
     const dataKey = this.getKeyValue(data);
     const newVersion = this.source.getVersion(data);
-    let savedResult = this.renderResultRepository?.get(dataKey, this.groupName);
+    let savedResult = this.renderResultRepository.get(dataKey, this.groupName);
     if (savedResult) {
       if (newVersion !== savedResult.version) {
         savedResult = null;

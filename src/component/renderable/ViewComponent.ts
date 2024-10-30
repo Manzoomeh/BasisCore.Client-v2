@@ -5,8 +5,6 @@ import ISource from "../../data/ISource";
 import TokenUtil from "../../token/TokenUtil";
 import IBCUtil from "../../wrapper/IBCUtil";
 import FaceCollection from "./base/FaceCollection";
-import FaceRenderResultRepository from "./base/FaceRenderResultRepository";
-import RenderDataPartResult from "./base/IRenderDataPartResult";
 import RenderableComponent from "./base/RenderableComponent";
 import RenderParam from "./base/RenderParam";
 import TreeFaceRenderResult from "./base/TreeFaceRenderResult";
@@ -26,9 +24,8 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
   protected async renderDataPartAsync(
     dataSource: ISource,
     faces: FaceCollection
-  ): Promise<RenderDataPartResult<TreeFaceRenderResult>> {
-    const newRenderResultList =
-      new FaceRenderResultRepository<TreeFaceRenderResult>();
+  ): Promise<TreeFaceRenderResult[]> {
+    const renderResultList = new Array<TreeFaceRenderResult>();
     if (dataSource.rows.length != 0) {
       const token = this.getAttributeToken("groupcol");
       const groupColumn = await TokenUtil.GetValueOrSystemDefaultAsync(
@@ -46,8 +43,6 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
         "root"
       );
       rootRenderParam.setLevel(["1"]);
-      var renderResultList = new Array<TreeFaceRenderResult>();
-
       for (const group of groupList) {
         const childItems = DataUtil.ApplySimpleFilter(
           dataSource.rows,
@@ -60,7 +55,11 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
           data
         );
         if (level1Result) {
-          newRenderResultList.set(level1Result.key, level1Result, "root");
+          this.renderResultRepository.set(
+            level1Result.key,
+            level1Result,
+            "root"
+          );
           level1Result.setContent(null);
 
           const childRenderParam = new RenderParam<TreeFaceRenderResult>(
@@ -69,14 +68,14 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
             (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc)
           );
           childRenderParam.setLevel(["2"]);
-          var childRenderResult = $bc.util.toNode(" ");
+          const childRenderResult = $bc.util.toNode(" ");
 
           for (const row of childItems) {
             const renderResult = await faces.renderAsync<TreeFaceRenderResult>(
               childRenderParam,
               row
             );
-            newRenderResultList.set(renderResult.key, renderResult);
+            this.renderResultRepository.set(renderResult.key, renderResult);
             renderResult.AppendTo(childRenderResult);
           }
           level1Result.setContent(childRenderResult);
@@ -84,9 +83,6 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
         }
       }
     }
-    return new RenderDataPartResult<TreeFaceRenderResult>(
-      renderResultList,
-      newRenderResultList
-    );
+    return renderResultList;
   }
 }
