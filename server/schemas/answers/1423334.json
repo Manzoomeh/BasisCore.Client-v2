@@ -1,0 +1,268 @@
+{
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "answer.data",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
+      "data": [
+        {
+          "usedForId": 1423334,
+          "schemaId": 1167,
+          "paramUrl": "/1167",
+          "schemaVersion": 1.1,
+          "lastUpdate": "",
+          "lid": 1,
+          "properties": [
+            {
+              "prpId": 10,
+              "answers": [
+                {
+                  "id": 100,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1000,
+                          "value": "name"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 11,
+              "answers": [
+                {
+                  "id": 101,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1001,
+                          "value": "family"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 15,
+              "answers": [
+                {
+                  "id": 102,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1002,
+                          "value": "test2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 103,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1003,
+                          "value": "test3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 104,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1004,
+                          "value": "test4"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 12,
+              "answers": [
+                {
+                  "id": 106,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1007,
+                          "value": 1
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 39,
+              "answers": [
+                {
+                  "id": 107,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1008,
+                          "value": 2
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 108,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1009,
+                          "value": 1
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 40,
+              "answers": [
+                {
+                  "id": 108,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1009,
+                          "value": 3
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 41,
+              "answers": [
+                {
+                  "id": 109,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1010,
+                          "value": 2
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 110,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1011,
+                          "value": 4
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 26,
+              "answers": [
+                {
+                  "id": 111,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1012,
+                          "value": 20
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 27,
+              "answers": [
+                {
+                  "id": 1112,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1013,
+                          "value": 25
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 113,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1014,
+                          "value": 30
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

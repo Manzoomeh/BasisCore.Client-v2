@@ -34,7 +34,8 @@ export default class AutoFillSingleType extends AutoFillType {
             this.setValue.bind(this),
             false,
             x,
-            this.owner.options.direction
+            this.owner.options.direction,
+            this.owner.options.skin
           );
         } else {
           this.selectedId = null;

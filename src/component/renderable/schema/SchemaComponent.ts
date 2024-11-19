@@ -10,14 +10,18 @@ import IFormMakerOptions, {
   DisplayMode,
   GetSchemaCallbackAsync,
   HtmlDirection,
+  Skin,
 } from "./IFormMakerOptions";
-import IQuestionCellManager from "./IQuestionCellManager";
+import IQuestionContainerManager from "./IQuestionContainerManager";
 import IQuestionSchema from "./IQuestionSchema";
 import IUserActionResult from "./IUserActionResult";
 import QuestionCollection from "./question-container/QuestionContainer";
 import QuestionCellManager from "./QuestionCellManager";
 import Section from "./section/Section";
+import SectionDefault from "./section/SectionDefault";
+import SectionTemplate2 from "./section/SectionTemplate2";
 import ValidationHandler from "../../ValidationHandler";
+import QuestionGridManager from "./QuestionGridManager";
 
 @injectable()
 export default class SchemaComponent extends SourceBaseComponent {
@@ -43,7 +47,8 @@ export default class SchemaComponent extends SourceBaseComponent {
   private cellToken: IToken<string>;
   private filesPathToken: IToken<string>;
   private directionToken: IToken<string>;
-  private _currentCellManager: IQuestionCellManager;
+  private skinToken: IToken<string>;
+  private _currentContainerManager: IQuestionContainerManager;
   private getAnswersAndSetAsSource: () => void;
   private _schema: IQuestionSchema;
   private _answer: IAnswerSchema;
@@ -69,15 +74,14 @@ export default class SchemaComponent extends SourceBaseComponent {
     this.buttonSelector = await this.getAttributeValueAsync("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
 
-    this.errorResultSourceIdToken = this.getAttributeToken(
-      "errorResultSourceId"
-    );
+    this.errorResultSourceIdToken = this.getAttributeToken("errorResultSourceId");
     this.callbackToken = this.getAttributeToken("callback");
     this.schemaCallbackToken = this.getAttributeToken("schemaCallback");
     //this.lidToken = this.getAttributeToken("lid");
     this.cellToken = this.getAttributeToken("cell");
     this.filesPathToken = this.getAttributeToken("filesPath");
     this.directionToken = this.getAttributeToken("direction");
+    this.skinToken = this.getAttributeToken("skin");
     this.minWidthToken = this.getAttributeToken("min_width");
     this.maxWidthToken = this.getAttributeToken("max_width");
     this.minHeightToken = this.getAttributeToken("min_height");
@@ -111,7 +115,7 @@ export default class SchemaComponent extends SourceBaseComponent {
 
   public async initUIAsync(answer?: IAnswerSchema): Promise<void> {
     this._answer = answer;
-    this._currentCellManager = null;
+    this._currentContainerManager = null;
     //schemaId = this._answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
     this.getAnswersAndSetAsSource = null;
@@ -134,6 +138,7 @@ export default class SchemaComponent extends SourceBaseComponent {
       cellStr,
       filesPath,
       direction,
+      skin,
     ] = await Promise.all([
       this.resultSourceIdToken?.getValueAsync(),
       this.minWidthToken?.getValueAsync(),
@@ -148,6 +153,7 @@ export default class SchemaComponent extends SourceBaseComponent {
       this.cellToken?.getValueAsync(),
       this.filesPathToken?.getValueAsync(),
       (this.directionToken?.getValueAsync() ?? "rtl") as HtmlDirection,
+      (this.skinToken?.getValueAsync() ?? "default") as Skin,
     ]);
     //const viewModeStr = await this.viewModeToken?.getValueAsync();
     //const version = await this.versionToken?.getValueAsync();
@@ -201,10 +207,12 @@ export default class SchemaComponent extends SourceBaseComponent {
       maxWidth,
       minHeight,
       maxHeight,
+      skin: skin,
       subSchemaOptions: {
         schemaUrl: schemaUrlStr,
         callback: callback,
         cell: cellStr,
+        skin: skin,
         schemaCallback: schemaCallbackStr,
         displayMode: displayMode,
       },
@@ -218,33 +226,43 @@ export default class SchemaComponent extends SourceBaseComponent {
     const schemaDirection = this._schema.direction ?? direction;
     options["direction"] = schemaDirection;
     container.setAttribute("data-bc-schema-direction", schemaDirection);
+    container.setAttribute("data-bc-schema-skin", skin);
     const sections = new Map<number, Section>();
     if (this._schema && this._schema.questions?.length > 0) {
       this._schema.questions.forEach((question) => {
         const partAnswer = this._answer?.properties.find(
           (x) => x.prpId == question.prpId
         );
-        let cellManager: IQuestionCellManager = null;
+        let containerManager: IQuestionContainerManager = null;
         if (question.sectionId && this._schema.sections?.length > 0) {
           if (sections.has(question.sectionId)) {
-            cellManager = sections.get(question.sectionId).cellManager;
+            containerManager = sections.get(question.sectionId).containerManager;
           } else {
             const sectionSchema = this._schema.sections.find(
               (x) => x.id == question.sectionId
             );
             if (sectionSchema) {
-              const section = new Section(sectionSchema, container, cell);
+              let section;
+              if (skin == "template2") {
+                section = new SectionTemplate2(sectionSchema, container, skin, cell);
+              } else {
+                section = new SectionDefault(sectionSchema, container, skin, cell);
+              }
               sections.set(sectionSchema.id, section);
-              cellManager = section.cellManager;
-              this._currentCellManager = null;
+              containerManager = section.containerManager;
+              this._currentContainerManager = null;
             }
           }
         }
-        if (!cellManager) {
-          if (!this._currentCellManager) {
-            this._currentCellManager = new QuestionCellManager(container, cell);
+        if (!containerManager) {
+          if (!this._currentContainerManager) {
+            if (skin == "template2") {
+              this._currentContainerManager = new QuestionGridManager(container);
+            } else {
+              this._currentContainerManager = new QuestionCellManager(container, cell);
+            }
           }
-          cellManager = this._currentCellManager;
+          containerManager = this._currentContainerManager;
         }
         if (options.displayMode == "view") {
           if (partAnswer && partAnswer != undefined) {
@@ -253,7 +271,7 @@ export default class SchemaComponent extends SourceBaseComponent {
                 this._questions,
                 question,
                 options,
-                cellManager,
+                containerManager,
                 partAnswer,
                 validationHandler
               )
@@ -265,7 +283,7 @@ export default class SchemaComponent extends SourceBaseComponent {
               this._questions,
               question,
               options,
-              cellManager,
+              containerManager,
               partAnswer,
 validationHandler
             )

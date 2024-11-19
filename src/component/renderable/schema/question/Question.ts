@@ -83,7 +83,7 @@ export default class Question {
     container.appendChild(this._ui);
     this._parts = question.parts.map((part) => {
       const value = this.answer?.parts.find((x) => x.part === part.part);
-      return QuestionPartFactory.generate(question, part, this, value);
+      return QuestionPartFactory.generate(question, part, this, this.options.skin, value);
     });
   }
 

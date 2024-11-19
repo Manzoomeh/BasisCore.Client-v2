@@ -1,7 +1,7 @@
 import ListBaseType from "../ListBaseType";
 import Question from "../../question/Question";
 import Util from "../../../../../Util";
-import IAnswerSchema, { IPartCollection } from "../../IAnswerSchema";
+import IAnswerSchema, { IPartCollection, IPartValue } from "../../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../../IQuestionSchema";
 import { IUserActionPartValue, IUserActionPart } from "../../IUserActionResult";
 import IValidationError from "../../IValidationError";
@@ -134,21 +134,25 @@ export default abstract class SelectListType extends ListBaseType {
 
       const template = Util.parse(newTemplate).querySelector("div");
       this.element.querySelector("[data-bc-items]").appendChild(template);
-      if (this.hasSubSchema) {
-        const element = template.querySelector("input");
-        if (checked) {
-          this.onValueItemClick(item, element, answerItem?.answer);
-        }
-        element.addEventListener("change", (e) => {
-          e.preventDefault();
-          this.onValueItemClick(
-            item,
-            e.target as HTMLInputElement,
-            answerItem?.answer
-          );
-        });
-      }
+      this.manageHasSubSchema(template, checked, item, answerItem);
     });
+  }
+
+  protected manageHasSubSchema(template: HTMLDivElement, checked: boolean|IPartValue, item: IFixValue, answerItem: IPartValue) {
+    if (this.hasSubSchema) {
+      const element = template.querySelector("input");
+      if (checked) {
+        this.onValueItemClick(item, element, answerItem?.answer);
+      }
+      element.addEventListener("change", (e) => {
+        e.preventDefault();
+        this.onValueItemClick(
+          item,
+          e.target as HTMLInputElement,
+          answerItem?.answer
+        );
+      });
+    }
   }
 
   public async getValidationErrorsAsync(): Promise<IValidationError> {

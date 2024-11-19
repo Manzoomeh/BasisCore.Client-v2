@@ -1,0 +1,654 @@
+{
+  "setting": {
+    "keepalive": true
+  },
+  "sources": [
+    {
+      "options": {
+        "tableName": "answer.data",
+        "keyFieldName": null,
+        "statusFieldName": null,
+        "mergeType": 0
+      },
+      "data": [
+        {
+          "schemaId": 1161,
+          "paramUrl": "/1161",
+          "schemaVersion": 1.1,
+          "lid": 1,
+          "baseVocab": "http://schema.site/FA/vo",
+          "sections": [
+            {
+              "id": 1,
+              "title": "اطلاعات هویتی",
+              "gridColumns": 3
+            },
+            {
+              "id": 2,
+              "title": "اطلاعات تماس",
+              "description": "Simple description",
+              "gridColumns": 4
+            },
+            {
+              "id": 3,
+              "title": "سکشن بدون gridColumns"
+            },
+            {
+              "id": 4,
+              "title": "سکشن با gridColumns = 1",
+              "gridColumns": 1
+            },
+            {
+              "id": 5,
+              "title": "سمپل های اتوکامپلیت",
+              "gridColumns": 2
+            },
+            {
+              "id": 6,
+              "title": "سمپل های فایل",
+              "gridColumns": 2
+            },
+            {
+              "id": 7,
+              "title": "سمپل های radio",
+              "gridColumns": 2
+            }
+          ],
+          "questions": [
+            {
+              "prpId": 10,
+              "title": "نام",
+              "sectionId": 1,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 11,
+              "title": "نام خانوادگی",
+              "sectionId": 1,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 12,
+              "title": "جنسیت",
+              "sectionId": 1,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 1,
+                      "value": "خانم",
+                      "selected": false
+                    },
+                    {
+                      "id": 2,
+                      "value": "آقا"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 13,
+              "title": "تست 1",
+              "sectionId": 1,
+              "colSpan": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 14,
+              "title": "تست 2",
+              "sectionId": 1,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 15,
+              "title": "تست 3",
+              "sectionId": 1,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 16,
+              "title": "تست 4",
+              "sectionId": 1,
+              "colSpan": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 1,
+              "title": "شماره تماس ثابت",
+              "sectionId": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text",
+                  "caption": "کد شهر",
+                  "placeHolder": "مثال 021"
+                },
+                {
+                  "part": 2,
+                  "viewType": "text",
+                  "caption": "شماره",
+                  "placeHolder": "مثال 8917447"
+                }
+              ]
+            },
+            {
+              "prpId": 2,
+              "title": "شماره موبایل",
+              "sectionId": 2,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 3,
+              "title": "ایمیل",
+              "sectionId": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 4,
+              "title": "وب سایت",
+              "sectionId": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 5,
+              "title": "عنوان آدرس",
+              "sectionId": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 6,
+              "title": "کشور",
+              "sectionId": 2,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "reference",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 7,
+              "title": "استان",
+              "sectionId": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 8,
+              "title": "شهر",
+              "sectionId": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 9,
+              "title": "آدرس",
+              "sectionId": 2,
+              "colSpan": 4,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 17,
+              "title": "تست 5",
+              "sectionId": 3,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 18,
+              "title": "تست 6",
+              "sectionId": 3,
+              "colSpan": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 19,
+              "title": "تست 7",
+              "sectionId": 3,
+              "colSpan": 5,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 20,
+              "title": "تست 8",
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 21,
+              "title": "تست 9",
+              "colSpan": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 22,
+              "title": "تست 10",
+              "colSpan": 5,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 23,
+              "title": "تست 11",
+              "sectionId": 4,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 24,
+              "title": "تست 12",
+              "sectionId": 4,
+              "colSpan": 2,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 25,
+              "title": "تست 13",
+              "sectionId": 4,
+              "colSpan": 5,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "text"
+                }
+              ]
+            },
+            {
+              "prpId": 26,
+              "title": "autocomplete",
+              "sectionId": 5,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "autocomplete",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 27,
+              "title": "autocomplete multi",
+              "sectionId": 5,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "autocomplete",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 28,
+              "title": "reference",
+              "sectionId": 5,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "reference",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 29,
+              "title": "reference multi",
+              "sectionId": 5,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "reference",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 30,
+              "title": "simpleautocomplete",
+              "sectionId": 5,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "simpleautocomplete",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 31,
+              "title": "simpleautocomplete multi",
+              "sectionId": 5,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "simpleautocomplete",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 32,
+              "title": "simplereference",
+              "sectionId": 5,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "simplereference",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 33,
+              "title": "simplereference multi",
+              "sectionId": 5,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "simplereference",
+                  "link": "/schema/autocomplete?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 34,
+              "title": "lookup",
+              "sectionId": 5,
+              "multi": false,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "lookup",
+                  "link": "/schema/lookup?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 35,
+              "title": "lookup multi",
+              "sectionId": 5,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "lookup",
+                  "link": "/schema/lookup?term=${term}"
+                }
+              ]
+            },
+            {
+              "prpId": 36,
+              "title": "upload",
+              "sectionId": 6,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload"
+                }
+              ]
+            },
+            {
+              "prpId": 37,
+              "title": "upload multiple",
+              "sectionId": 6,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "upload",
+                  "multiple": true
+                }
+              ]
+            },
+            {
+              "prpId": 38,
+              "title": "radio two item",
+              "sectionId": 7,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 1,
+                      "value": "خانم",
+                      "selected": false
+                    },
+                    {
+                      "id": 2,
+                      "value": "آقا"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 39,
+              "title": "radio two item multi",
+              "sectionId": 7,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 1,
+                      "value": "خانم",
+                      "selected": false
+                    },
+                    {
+                      "id": 2,
+                      "value": "آقا"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 40,
+              "title": "radio more than two item",
+              "sectionId": 7,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 1,
+                      "value": "آیتم 1",
+                      "selected": false
+                    },
+                    {
+                      "id": 2,
+                      "value": "آیتم 2"
+                    },
+                    {
+                      "id": 3,
+                      "value": "آیتم 3"
+                    },
+                    {
+                      "id": 4,
+                      "value": "آیتم 4"
+                    },
+                    {
+                      "id": 5,
+                      "value": "آیتم 5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 41,
+              "title": "radio more than two item multi",
+              "sectionId": 7,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 1,
+                      "value": "آیتم 1",
+                      "selected": false
+                    },
+                    {
+                      "id": 2,
+                      "value": "آیتم 2"
+                    },
+                    {
+                      "id": 3,
+                      "value": "آیتم 3"
+                    },
+                    {
+                      "id": 4,
+                      "value": "آیتم 4"
+                    },
+                    {
+                      "id": 5,
+                      "value": "آیتم 5"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

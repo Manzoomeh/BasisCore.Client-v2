@@ -1,6 +1,6 @@
 import IDictionary from "../../../../../IDictionary";
 import Util from "../../../../../Util";
-import { HtmlDirection } from "../../IFormMakerOptions";
+import { HtmlDirection, Skin } from "../../IFormMakerOptions";
 import { IFixValue } from "../../IQuestionSchema";
 import layout from "./assets/popup-layout.html";
 
@@ -15,7 +15,8 @@ export default class SearchPopup {
     valueSelectCallback: OnValueSelectCallback,
     multi: boolean,
     queryStrings: IDictionary<string>,
-    direction: HtmlDirection
+    direction: HtmlDirection,
+    skin: Skin
   ) {
     this._url = url;
     this._multi = multi;
@@ -25,6 +26,7 @@ export default class SearchPopup {
       "[data-bc-autocomplete-popup-container]"
     );
     this._element.setAttribute("data-bc-schema-direction", direction);
+    this._element.setAttribute("data-bc-schema-skin", skin);
     const btn = this._element.querySelector("[data-bc-btn-close");
     btn.addEventListener("click", this.onCloseClick.bind(this));
     const input = this._element.querySelector("[data-bc-search]");

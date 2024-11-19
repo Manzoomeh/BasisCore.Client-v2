@@ -6,7 +6,7 @@ import Util from "../../../../Util";
 import { IUserActionProperty, IAnswerValues } from "../IUserActionResult";
 import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
-import IQuestionCellManager from "../IQuestionCellManager";
+import IQuestionContainerManager from "../IQuestionContainerManager";
 import QuestionPart from "../question-part/QuestionPart";
 import ValidationHandler from "../../../ValidationHandler";
 
@@ -24,7 +24,7 @@ export default class QuestionContainer {
     all: Array<QuestionContainer>,
     questionSchema: IQuestion,
     options: IFormMakerOptions,
-    cellManager: IQuestionCellManager,
+    containerManager: IQuestionContainerManager,
     answer: IAnswerProperty,
     validationHandler : ValidationHandler
   ) {
@@ -40,6 +40,7 @@ export default class QuestionContainer {
       Util.parse(copyTemplate).querySelector<HTMLDivElement>(
         "[data-bc-question]"
       );
+    uiElement.setAttribute("data-colSpan", `${questionSchema.colSpan ?? 1}`);
     this.element = uiElement.querySelector("[data-bc-answer-collection]");
     if (!questionSchema.help) {
       uiElement.querySelector("[data-bc-help-btn]").remove();
@@ -59,14 +60,16 @@ export default class QuestionContainer {
       template.setAttribute("data-sys-text", "");
       questionSchema.parts.forEach((part) => {
         const cpy = template.cloneNode();
-        cpy.appendChild(document.createTextNode(part.caption ?? ""));
+        const span = document.createElement("span");
+        span.appendChild(document.createTextNode(part.caption ?? ""));
+        cpy.appendChild(span);
         headerContainer.appendChild(cpy);
       });
     } else {
       headerContainer.remove();
     }
 
-    cellManager.add(uiElement);
+    containerManager.add(uiElement);
     if (answer) {
       this.answer.answers.forEach((answer) => this.addQuestion(answer));
     } else {

@@ -1,6 +1,6 @@
-import IQuestionCellManager from "./IQuestionCellManager";
+import IQuestionContainerManager from "./IQuestionContainerManager";
 
-export default class QuestionCellManager implements IQuestionCellManager {
+export default class QuestionCellManager implements IQuestionContainerManager {
   private readonly _container: Element;
   private readonly _cellCount: number;
   private readonly _cells: Array<Element>;
