@@ -53,21 +53,8 @@ export default class QuestionContainer {
     if (questionSchema.cssClass) {
       uiElement.classList.add(questionSchema.cssClass);
     }
-    if (questionSchema.parts.length > 1) {
-      const template = document.createElement("div");
-      template.setAttribute("data-bc-answer-title", "");
-      template.setAttribute("data-bc-part-related-cell", "");
-      template.setAttribute("data-sys-text", "");
-      questionSchema.parts.forEach((part) => {
-        const cpy = template.cloneNode();
-        const span = document.createElement("span");
-        span.appendChild(document.createTextNode(part.caption ?? ""));
-        cpy.appendChild(span);
-        headerContainer.appendChild(cpy);
-      });
-    } else {
-      headerContainer.remove();
-    }
+    
+    this.manageCaptions(headerContainer, questionSchema);
 
     containerManager.add(uiElement);
     if (answer) {
@@ -222,5 +209,27 @@ export default class QuestionContainer {
     return this._questions
       .flatMap((x) => x._parts)
       .filter((x) => x.part.part === part);
+  }
+
+  public manageCaptions(container: Element, questionSchema: IQuestion, caption?: string) {
+    if (questionSchema.parts.length > 1) {
+      if (this.options.skin == "template2") {
+        container.textContent = caption;
+      } else {
+        const template = document.createElement("div");
+        template.setAttribute("data-bc-answer-title", "");
+        template.setAttribute("data-bc-part-related-cell", "");
+        template.setAttribute("data-sys-text", "");
+        questionSchema.parts.forEach((part) => {
+          const cpy = template.cloneNode();
+          const span = document.createElement("span");
+          span.appendChild(document.createTextNode(part.caption ?? ""));
+          cpy.appendChild(span);
+          container.appendChild(cpy);
+        });
+      }
+    } else {
+      container.remove();
+    }
   }
 }

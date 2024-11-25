@@ -12,6 +12,10 @@
   display: flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
 }
 
+[data-bc-schema-skin="template2"] [data-bc-answer-collection] [data-bc-answer]:not(:first-child) [data-bc-caption-title] {
+  display: none;
+}
+
 [data-bc-part-container],
 [data-bc-btn-container] {
   /* float: right; */
@@ -189,6 +193,31 @@
 
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-part-related-cell] {
   margin-left: 5px;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-part-related-cell] [data-bc-caption-title] {
+  position: absolute;
+  top: -3px;
+  /* right: 0; */
+  transform: translateY(-50%);
+  z-index: 1;
+  padding: 0 2.5px;
+  width: 100%;
+}
+
+[data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-part-related-cell] [data-bc-caption-title] {
+  right: 0;
+}
+
+[data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-part-related-cell] [data-bc-caption-title] {
+  left: 0;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-part-related-cell] [data-bc-caption-title] span {
+  background-color: #fff;
+  padding: 0 5px;
+  color: #004b85;
+  font-size: 14px;
 }
 
 [data-bc-schema-direction="ltr"] [data-bc-part-related-cell] {

@@ -6,6 +6,8 @@
 [data-bc-schema-skin="template2"] [data-bc-section] {
     border-right: 0;
     border-left: 0;
+    border-top: 0;
+    margin-bottom: 0;
 }
 
 [data-bc-schema-skin="template2"] [data-bc-section] [data-bc-section-title] {

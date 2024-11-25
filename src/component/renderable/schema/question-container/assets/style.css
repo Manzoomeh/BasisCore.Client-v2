@@ -361,44 +361,10 @@
   width: calc(100% - 75px);
 }
 
-[data-bc-schema-skin="template2"] [data-bc-answer-title-container] {
-  position: absolute;
-  line-height: inherit;
-  top: -3px;
-  transform: translateY(-50%);
-  z-index: 1;
-  /* right: 0; */
-}
-
-[data-bc-schema-skin="template2"] [data-bc-schema-info-multi="0"] [data-bc-answer-title-container] {
-  width: 100%;
-}
-
-[data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-answer-title-container] {
-  right: 0;
-}
-
-[data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-answer-title-container] {
-  left: 0;
-}
-
 [data-bc-answer-title-container] [data-bc-answer-title] {
   /* float: right; */
   display: inline-block;
   line-height: 35px;
-}
-
-[data-bc-schema-skin="template2"] [data-bc-answer-title-container] [data-bc-answer-title] {
-  /* float: right; */
-  line-height: 40px;
-  margin: 0 2.5px;
-}
-
-[data-bc-schema-skin="template2"] [data-bc-answer-title-container] [data-bc-answer-title] span {
-  background-color: #fff;
-  padding: 0 5px;
-  color: #004b85;
-  font-size: 14px;
 }
 
 @media only screen and (max-width:800px) {
