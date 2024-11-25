@@ -26,6 +26,7 @@ export default class RadioListTypeTemplate2 extends RadioListType {
     const filteredValues = values.filter(function(el) { return el.id > 0; });
     const lengthItems = filteredValues.length;
     const activeButton = this.element.querySelector("[data-bc-part-radio-tab-active]") as HTMLElement;
+    const emptyButton = this.element.querySelector("[data-bc-btn-cross]") as HTMLElement;
 
     filteredValues.forEach((item, i) => {
       const answerItem = this.answer?.values.find((x) => x.value == item.id);
@@ -78,6 +79,19 @@ export default class RadioListTypeTemplate2 extends RadioListType {
         }
       });
     });
+
+    if (!this.part.validations?.required) {
+      emptyButton.addEventListener("click", (e) => {
+        const selectedRadio = this.element.querySelector(`input[name="${this.rndName}"]:checked`);
+        if (selectedRadio) {
+          (selectedRadio as HTMLInputElement).checked = false;
+          this.element.querySelector('[tab-button-status="active"]').setAttribute("tab-button-status", "");
+          activeButton.style.transform = `translateX(-10000%)`;
+        }
+      });
+    } else {
+      emptyButton.closest("[data-part-btn-container]").remove();
+    }
 
     if (!hasChecked) {
       activeButton.style.transform = `translateX(-10000%)`;

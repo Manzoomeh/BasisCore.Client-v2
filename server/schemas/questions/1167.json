@@ -645,6 +645,89 @@
                   ]
                 }
               ]
+            },
+            {
+              "prpId": 43,
+              "title": "radio required more than two item",
+              "sectionId": 7,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 1,
+                      "value": "آیتم 1",
+                      "selected": false
+                    },
+                    {
+                      "id": 2,
+                      "value": "آیتم 2"
+                    },
+                    {
+                      "id": 3,
+                      "value": "آیتم 3"
+                    },
+                    {
+                      "id": 4,
+                      "value": "آیتم 4"
+                    },
+                    {
+                      "id": 5,
+                      "value": "آیتم 5"
+                    }
+                  ],
+                  "validations": {
+                    "required": true
+                  }
+                }
+              ]
+            },
+            {
+              "prpId": 44,
+              "title": "radio required more than two item multi",
+              "sectionId": 7,
+              "multi": true,
+              "parts": [
+                {
+                  "part": 1,
+                  "viewType": "radio",
+                  "fixValues": [
+                    {
+                      "id": 0,
+                      "value": "لطفا یکی از موارد را انتخاب کنید"
+                    },
+                    {
+                      "id": 1,
+                      "value": "آیتم 1",
+                      "selected": false
+                    },
+                    {
+                      "id": 2,
+                      "value": "آیتم 2"
+                    },
+                    {
+                      "id": 3,
+                      "value": "آیتم 3"
+                    },
+                    {
+                      "id": 4,
+                      "value": "آیتم 4"
+                    },
+                    {
+                      "id": 5,
+                      "value": "آیتم 5"
+                    }
+                  ],
+                  "validations": {
+                    "required": true
+                  }
+                }
+              ]
             }
           ]
         }
