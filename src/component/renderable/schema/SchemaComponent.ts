@@ -68,10 +68,6 @@ export default class SchemaComponent extends SourceBaseComponent {
 
     this.buttonSelector = await this.getAttributeValueAsync("button");
     this.resultSourceIdToken = this.getAttributeToken("resultSourceId");
-    console.log(
-      // await this.schemaUrlToken.getValueAsync(),
-    // await this.paramUrlToken.getValueAsync()
-  )
 
     this.errorResultSourceIdToken = this.getAttributeToken(
       "errorResultSourceId"
@@ -93,7 +89,6 @@ export default class SchemaComponent extends SourceBaseComponent {
 
   private onClick(e: MouseEvent) {
     e.preventDefault();
-    console.log("ssssss");
     if (this.getAnswersAndSetAsSource) {
       this.getAnswersAndSetAsSource();
     }
@@ -120,7 +115,6 @@ export default class SchemaComponent extends SourceBaseComponent {
     //schemaId = this._answer?.schemaId ?? schemaId;
     this._questions = new Array<QuestionCollection>();
     this.getAnswersAndSetAsSource = null;
-    console.log("dddd");
     const container = document.createElement("div") as Element;
     container.setAttribute("data-bc-schema-main-container", "");
 
@@ -164,7 +158,6 @@ export default class SchemaComponent extends SourceBaseComponent {
     var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
       ? eval(schemaCallbackStr)
       : null;
-    console.log(schemaCallback, schemaCallbackStr);
     if (!schemaCallback) {
       schemaCallback = async (context, schemaUrl) => {
         // const url = Util.formatUrl(schemaUrlStr, null, {
@@ -176,7 +169,6 @@ export default class SchemaComponent extends SourceBaseComponent {
           (schemaUrl?.length ?? 0) > 0
             ? `${schemaUrlStr}${schemaUrl}`
             : schemaUrlStr;
-        console.log(url);
         const response = await Util.getDataAsync<
           IServerResponse<IQuestionSchema>
         >(url);
@@ -218,15 +210,6 @@ export default class SchemaComponent extends SourceBaseComponent {
       getQueryStringParamsAsync: queryStringsMakerAsync,
       filesPath: filesPath,
     };
-    // if (!this.getAnswersAndSetAsSource) {
-    //   this.getAnswersAndSetAsSource = async () => {
-    //     const answer = await this.getAnswersAsync(false);
-    //     console.log("answerteterr", answer);
-    //       this.context.setAsSource(resultSourceId, answer);
-    //       console.log("ttt");
-    //   };
-    //   console.log("important", await this.getAnswersAndSetAsSource());
-    // }
     this._schema = await schemaCallback(this.context, options.paramUrl);
     const optionName = await this.getAttributeValueAsync("options");
     let option = optionName ? eval(optionName) : null;
@@ -295,10 +278,8 @@ export default class SchemaComponent extends SourceBaseComponent {
       ) {
         this.getAnswersAndSetAsSource = async () => {
           const answer = await this.getAnswersAsync(false);
-          console.log("answer", answer);
           if (answer) {
             this.context.setAsSource(resultSourceId, answer);
-            console.log("ttt");
           }
         };
       }
@@ -312,8 +293,7 @@ export default class SchemaComponent extends SourceBaseComponent {
     let hasValidationError = false;
     let retVal: IUserActionResult = null;
     const errorResultSourceId =
-      await this.errorResultSourceIdToken?.getValueAsync();
-    console.log("errorResultSourceId",errorResultSourceId,this)  
+      await this.errorResultSourceIdToken?.getValueAsync(); 
     for (const question of this._questions) {
       try {
         var actions = await question.getUserActionAsync();
@@ -339,7 +319,6 @@ export default class SchemaComponent extends SourceBaseComponent {
       throw Error("invalid");
     } else if (hasValidationError && errorResultSourceId) {
       this.context.setAsSource(errorResultSourceId, hasValidationError);
-      console.log("llll");
     }
     if (!hasValidationError && userActionList.length > 0) {
       retVal = {
