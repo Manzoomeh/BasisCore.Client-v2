@@ -164,7 +164,6 @@ export default class SchemaComponent extends SourceBaseComponent {
     var schemaCallback: GetSchemaCallbackAsync = schemaCallbackStr
       ? eval(schemaCallbackStr)
       : null;
-
     if (!schemaCallback) {
       schemaCallback = async (context, schemaUrl) => {
         // const url = Util.formatUrl(schemaUrlStr, null, {
@@ -222,8 +221,8 @@ export default class SchemaComponent extends SourceBaseComponent {
     this._schema = await schemaCallback(this.context, options.paramUrl);
     const optionName = await this.getAttributeValueAsync("options");
     let option = optionName ? eval(optionName) : null;
-    const validationHandler = new ValidationHandler(this._schema.lid, option);
-    const schemaDirection = this._schema.direction ?? direction;
+    const validationHandler = new ValidationHandler(this._schema?.lid, option);
+    const schemaDirection = this._schema?.direction ?? direction;
     options["direction"] = schemaDirection;
     container.setAttribute("data-bc-schema-direction", schemaDirection);
     container.setAttribute("data-bc-schema-skin", skin);
@@ -285,7 +284,7 @@ export default class SchemaComponent extends SourceBaseComponent {
               options,
               containerManager,
               partAnswer,
-validationHandler
+              validationHandler
             )
           );
         }
@@ -312,7 +311,7 @@ validationHandler
     let hasValidationError = false;
     let retVal: IUserActionResult = null;
     const errorResultSourceId =
-      await this.errorResultSourceIdToken?.getValueAsync();
+      await this.errorResultSourceIdToken?.getValueAsync(); 
     for (const question of this._questions) {
       try {
         var actions = await question.getUserActionAsync();
