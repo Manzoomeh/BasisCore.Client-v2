@@ -1,5 +1,6 @@
 import Question from "../question/Question";
 import layout from "./assets/layout.html";
+import layout_template2 from "./assets/layout_template2.html";
 import Util from "../../../../Util";
 import { IPartCollection } from "../IAnswerSchema";
 import { IQuestionPart } from "../IQuestionSchema";
@@ -32,7 +33,15 @@ export default abstract class QuestionPart {
     this.owner = owner;
     this.answer = answer;
     this.part = part;
-    this.element = Util.parse(layout).querySelector("[data-bc-part]");
+
+    if (this.owner.options.skin == "template2") {
+      this.element = Util.parse(layout_template2).querySelector("[data-bc-part]");
+      const captionContainer = this.element.querySelector("[data-bc-caption-title] span");
+      this.owner.owner.manageCaptions(captionContainer, this.owner.question, this.part.caption);
+    } else {
+      this.element = Util.parse(layout).querySelector("[data-bc-part]");
+    }
+
     this._validationElement = this.element.querySelector(
       "[data-bc-validation-part]"
     );

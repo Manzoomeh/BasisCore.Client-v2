@@ -1,17 +1,18 @@
-[data-bc-fm-lookup] input[type="text"] {
+[data-bc-fm-lookup] [data-bc-lookup-select-value] {
+    display: inline-block;
     width: calc((100% - 10px) / 2) !important;
     /* margin-left: 10px; */
 }
 
-[data-bc-schema-direction="rtl"] [data-bc-fm-lookup] input[type="text"] {
+[data-bc-schema-direction="rtl"] [data-bc-fm-lookup] [data-bc-lookup-select-value] {
     margin-left: 10px;
 }
 
-[data-bc-schema-direction="ltr"] [data-bc-fm-lookup] input[type="text"] {
+[data-bc-schema-direction="ltr"] [data-bc-fm-lookup] [data-bc-lookup-select-value] {
     margin-right: 10px;
 }
 
-[data-bc-fm-lookup] [data-bc-select-value] {
+[data-bc-fm-lookup] [data-bc-lookup-set-value] {
     width: calc((100% - 10px) / 2) !important;
     padding: 0.1em 0.4em;
     display: inline-block;
@@ -27,7 +28,13 @@
     vertical-align: top;
 }
 
-[data-bc-invalid] [data-bc-fm-lookup] [data-bc-select-value] {
+[data-bc-schema-skin="template2"] [data-bc-fm-lookup] [data-bc-lookup-set-value] {
+    border-radius: 4px;
+    height: 40px;
+    line-height: 40px;
+}
+
+[data-bc-invalid] [data-bc-fm-lookup] [data-bc-lookup-set-value] {
     border: 1px solid #B40020;
     box-shadow: 0px 0px 4px rgba(180, 0, 32, 0.25);
 }
@@ -45,6 +52,10 @@
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-fm-lookup] [data-bc-result] {
+    top: 40px;
 }
 
 [data-bc-schema-direction="rtl"] [data-bc-fm-lookup] [data-bc-result] {

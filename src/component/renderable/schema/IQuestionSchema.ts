@@ -22,6 +22,7 @@ export interface IQuestion {
   disabled?: boolean;
   useInList?: boolean;
   parts: Array<IQuestionPart>;
+  colSpan?: number;
 }
 
 export interface IQuestionPart {
@@ -68,6 +69,7 @@ export interface ISection {
   title: string | HTMLValueType;
   titleData: HTMLValueType;
   description: string;
+  gridColumns?: number;
 }
 export interface IValidationOptions {
   minLength?: number;

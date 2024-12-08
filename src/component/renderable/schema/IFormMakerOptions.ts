@@ -14,6 +14,7 @@ export default interface IFormMakerOptions {
   minHeight?: string;
   maxHeight?: string;
   direction?: HtmlDirection;
+  skin?: Skin;
   callback: (params: IEditParams) => void;
   subSchemaOptions: SubSchemaOptions;
   dc: DependencyContainer;
@@ -39,8 +40,11 @@ export type SubSchemaOptions = {
   callback: string;
   schemaCallback: string;
   cell: string;
+  skin?: Skin;
 };
 
 export type DisplayMode = "edit" | "new" | "view";
 
 export type HtmlDirection = "ltr" | "rtl";
+
+export type Skin = "default" | "template2";

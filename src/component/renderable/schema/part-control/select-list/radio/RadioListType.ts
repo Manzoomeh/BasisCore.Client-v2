@@ -1,4 +1,3 @@
-import layout from "./assets/layout.html";
 import itemLayout from "./assets/item-layout.html";
 import Question from "../../../question/Question";
 import { IPartCollection } from "../../../IAnswerSchema";
@@ -13,7 +12,7 @@ export default class RadioListType extends SelectListType {
     return itemLayout;
   }
 
-  constructor(part: IQuestionPart, owner: Question, answer: IPartCollection) {
+  constructor(part: IQuestionPart, layout: string, owner: Question, answer: IPartCollection) {
     super(part, layout, owner, answer);
   }
 
@@ -26,5 +25,9 @@ export default class RadioListType extends SelectListType {
       value.schema?.lid,
       element.parentElement.parentElement.nextElementSibling
     );
+  }
+
+  protected fillUI(values: Array<IFixValue>) {
+    super.fillUI(values);
   }
 }

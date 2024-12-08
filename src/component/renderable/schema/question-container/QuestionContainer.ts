@@ -6,7 +6,7 @@ import Util from "../../../../Util";
 import { IUserActionProperty, IAnswerValues } from "../IUserActionResult";
 import { IAnswerProperty, IAnswerPart } from "../IAnswerSchema";
 import { IQuestion } from "../IQuestionSchema";
-import IQuestionCellManager from "../IQuestionCellManager";
+import IQuestionContainerManager from "../IQuestionContainerManager";
 import QuestionPart from "../question-part/QuestionPart";
 import ValidationHandler from "../../../ValidationHandler";
 
@@ -24,7 +24,7 @@ export default class QuestionContainer {
     all: Array<QuestionContainer>,
     questionSchema: IQuestion,
     options: IFormMakerOptions,
-    cellManager: IQuestionCellManager,
+    containerManager: IQuestionContainerManager,
     answer: IAnswerProperty,
     validationHandler : ValidationHandler
   ) {
@@ -40,6 +40,7 @@ export default class QuestionContainer {
       Util.parse(copyTemplate).querySelector<HTMLDivElement>(
         "[data-bc-question]"
       );
+    uiElement.setAttribute("data-colSpan", `${questionSchema.colSpan ?? 1}`);
     this.element = uiElement.querySelector("[data-bc-answer-collection]");
     if (!questionSchema.help) {
       uiElement.querySelector("[data-bc-help-btn]").remove();
@@ -52,21 +53,10 @@ export default class QuestionContainer {
     if (questionSchema.cssClass) {
       uiElement.classList.add(questionSchema.cssClass);
     }
-    if (questionSchema.parts.length > 1) {
-      const template = document.createElement("div");
-      template.setAttribute("data-bc-answer-title", "");
-      template.setAttribute("data-bc-part-related-cell", "");
-      template.setAttribute("data-sys-text", "");
-      questionSchema.parts.forEach((part) => {
-        const cpy = template.cloneNode();
-        cpy.appendChild(document.createTextNode(part.caption ?? ""));
-        headerContainer.appendChild(cpy);
-      });
-    } else {
-      headerContainer.remove();
-    }
+    
+    this.manageCaptions(headerContainer, questionSchema);
 
-    cellManager.add(uiElement);
+    containerManager.add(uiElement);
     if (answer) {
       this.answer.answers.forEach((answer) => this.addQuestion(answer));
     } else {
@@ -219,5 +209,27 @@ export default class QuestionContainer {
     return this._questions
       .flatMap((x) => x._parts)
       .filter((x) => x.part.part === part);
+  }
+
+  public manageCaptions(container: Element, questionSchema: IQuestion, caption?: string) {
+    if (questionSchema.parts.length > 1) {
+      if (this.options.skin == "template2") {
+        container.textContent = caption;
+      } else {
+        const template = document.createElement("div");
+        template.setAttribute("data-bc-answer-title", "");
+        template.setAttribute("data-bc-part-related-cell", "");
+        template.setAttribute("data-sys-text", "");
+        questionSchema.parts.forEach((part) => {
+          const cpy = template.cloneNode();
+          const span = document.createElement("span");
+          span.appendChild(document.createTextNode(part.caption ?? ""));
+          cpy.appendChild(span);
+          container.appendChild(cpy);
+        });
+      }
+    } else {
+      container.remove();
+    }
   }
 }

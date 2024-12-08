@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/basiscore.js"></script>
+  <title>Schema Command - New</title>
+</head>
+
+<body dir="rtl">
+  <button data-btn-add>Add</button>
+  <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1167" displayMode="new" button="[data-btn-add]" resultSourceId="demo.data" errorResultSourceId="demo.error" options="optionsConfig" qs_rKey="www" qs_name="haha" direction="rtl" skin="template2" cell="2">
+  </Basis>
+  <button data-btn-add>Add</button>
+  <div id="errorResultSourceId"></div>
+  <basis core="callback" run="atclient" triggers="demo.data"></basis>
+  <basis core="callback" run="atclient" triggers="demo.error" method="onSource"></basis>
+
+  <script>
+    function onSource(args) {
+      console.table(args.source.rows);
+      console.log(args.source.rows[0]);
+      console.log("errorResultSourceId: ", args.source.rows[0].value);
+      const errorResultContainer = document.getElementById(
+        "errorResultSourceId"
+      );
+      errorResultContainer.textContent = "error in validation";
+      setTimeout(() => {
+        errorResultContainer.textContent = "";
+      }, 3000);
+    }
+    var optionsConfig = {
+      "validationErrors": {
+        "required": 111,
+        "type": 222,
+        "regex": 333,
+        "length": 444,
+        "range": 555,
+        "size": 666,
+        "mime": 777,
+        "mime-size": 888
+      },
+      "messagesApi": "/validation"
+    }
+  </script>
+</body>
+
+</html>

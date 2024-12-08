@@ -1,21 +1,57 @@
+[data-bc-upload-file-select] {
+    width: 100%;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-upload-file-select] {
+    position: relative;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-upload-file-select]::after {
+    position: absolute;
+    content: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 20.5C3.45 20.5 2.975 20.3083 2.575 19.925C2.19167 19.525 2 19.05 2 18.5V6.5C2 5.95 2.19167 5.48333 2.575 5.1C2.975 4.7 3.45 4.5 4 4.5H10L12 6.5H20C20.55 6.5 21.0167 6.7 21.4 7.1C21.8 7.48333 22 7.95 22 8.5H11.175L9.175 6.5H4V18.5L6.4 10.5H23.5L20.925 19.075C20.7917 19.5083 20.5417 19.8583 20.175 20.125C19.825 20.375 19.4333 20.5 19 20.5H4ZM6.1 18.5H19L20.8 12.5H7.9L6.1 18.5ZM6.1 18.5L7.9 12.5L6.1 18.5ZM4 8.5V6.5V8.5Z' fill='%2368737C'/%3E%3C/svg%3E");
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    /* left: 6px; */
+}
+
+[data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-upload-file-select]::after {
+    left: 6px;
+}
+
+[data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-upload-file-select]::after {
+    right: 6px;
+}
+
 [data-bc-answer-container] input[type="file"] {
     padding: 7px 0.4em !important;
 }
 
-/* [data-bc-file-input]::-ms-browse {
+[data-bc-schema-skin="template2"] [data-bc-answer-container] input[type="file"] {
+    color: transparent !important;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-file-input]::-ms-browse {
     visibility: hidden;
     display: none;
 }
 
-[data-bc-file-input]::-webkit-file-upload-button {
+[data-bc-schema-skin="template2"] [data-bc-file-input]::-webkit-file-upload-button {
     visibility: hidden;
     display: none;
 }
 
-[data-bc-file-input]::file-selector-button {
+[data-bc-schema-skin="template2"] [data-bc-file-input]::file-selector-button {
     visibility: hidden;
     display: none;
-} */
+}
+
+[data-bc-schema-skin="template2"] [data-bc-file-input]::placeholder {
+    visibility: hidden;
+    display: none;
+}
 
 [data-bc-upload-file-list] {
     padding: 5px 0 0px;
@@ -58,6 +94,10 @@
     /* border: 1px solid rgba(121, 121, 121, 0.25); */
     border-radius: 5px;
     /* padding: 3px; */
+}
+
+[data-bc-schema-skin="template2"] [data-bc-upload-file-list] [data-bc-item-icon-frame] {
+    border-radius: 4px;
 }
 
 [data-bc-upload-file-list] [data-bc-item-icon] {

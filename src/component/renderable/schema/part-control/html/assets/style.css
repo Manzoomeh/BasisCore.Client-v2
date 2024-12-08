@@ -29,6 +29,10 @@
   padding-bottom: 10px;
 }
 
+[data-bc-schema-skin="template2"] [data-bc-html-container] [data-bc-html] {
+  border-radius: 4px;
+}
+
 [data-bc-schema-direction="rtl"] [data-bc-html-container] [data-bc-html] {
   left: 50%;
   transform: translateX(-50%) translateY(-50%);

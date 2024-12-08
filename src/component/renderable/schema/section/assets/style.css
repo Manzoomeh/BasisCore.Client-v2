@@ -2,3 +2,38 @@
     margin-bottom: 10px;
     padding: 10px 10px;
 }
+
+[data-bc-schema-skin="template2"] [data-bc-section] {
+    border-right: 0;
+    border-left: 0;
+    border-top: 0;
+    margin-bottom: 0;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-section] [data-bc-section-title] {
+    width: 300px;
+    line-height: 45px;
+}
+
+[data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-section] [data-bc-section-title] {
+    float: right;
+    margin-left: 10px;
+}
+
+[data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-section] [data-bc-section-title] {
+    float: left;
+    margin-right: 10px;
+}
+
+[data-bc-schema-skin="template2"] [data-bc-section] [data-bc-schema-grid-container] {
+    /* display: inline-block; */
+    display: -webkit-inline-box; /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-inline-box; /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-inline-flexbox; /* TWEENER - IE 10 */
+    display: -moz-inline-flex;
+    display: -webkit-inline-flex; /* NEW - Chrome */
+    display: inline-flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    width: calc(100% - 310px);
+}

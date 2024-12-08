@@ -32,7 +32,8 @@ export default class AutoFillMultiType extends AutoFillType {
           this.setValue.bind(this),
           true,
           x,
-          this.owner.options.direction
+          this.owner.options.direction,
+          this.owner.options.skin
         );
       })
       .catch((error) => {

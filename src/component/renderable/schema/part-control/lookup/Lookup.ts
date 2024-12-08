@@ -32,7 +32,7 @@ export default class Lookup extends EditableQuestionPart {
     super(part, layout, owner, answer);
 
     this._input = this.element.querySelector("[data-bc-text-input]");
-    this._valueInput = this.element.querySelector("[data-bc-select-value]");
+    this._valueInput = this.element.querySelector("[data-bc-lookup-set-value]");
     if (this.isDisabled) {
       this._input.setAttribute("disabled", "");
     } else if (this.isReadonly) {

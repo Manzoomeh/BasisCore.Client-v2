@@ -4,7 +4,8 @@ import AutoCompleteSingleType from "./auto-fill/auto-complete/AutoCompleteSingle
 import ReferenceMultiType from "./auto-fill/reference/ReferenceMultiType";
 import ReferenceSingleType from "./auto-fill/reference/ReferenceSingleType";
 import CheckListType from "./select-list/check-list/CheckListType";
-import RadioListType from "./select-list/radio/RadioListType";
+import RadioListTypeDefault from "./select-list/radio/RadioListTypeDefault";
+import RadioListTypeTemplate2 from "./select-list/radio/RadioListTypeTemplate2";
 import SelectType from "./select/SelectType";
 import TextAriaType from "./text-area/TextAriaType";
 import TextType from "./text/TextType";
@@ -29,12 +30,14 @@ import ComponentContainer from "./component-container/ComponentContainer";
 import HTMLFieldType from "./html/HTMLFieldType";
 import AutoCompleteSimpleType from "./auto-fill/auto-complete/AutoCompleteSimpleType";
 import ReferenceSimpleType from "./auto-fill/reference/ReferenceSimpleType";
+import { Skin } from "../IFormMakerOptions";
 
 export default class QuestionPartFactory {
   public static generate(
     question: IQuestion,
     part: IQuestionPart,
     owner: Question,
+    skin: Skin,
     answer?: IPartCollection
   ): QuestionPart {
     var retVal: QuestionPart = null;
@@ -54,7 +57,11 @@ export default class QuestionPartFactory {
           break;
         }
         case "radio": {
-          retVal = new RadioListType(part, owner, answer);
+          if (skin == "template2") {
+            retVal = new RadioListTypeTemplate2(part, owner, answer);
+          } else {
+            retVal = new RadioListTypeDefault(part, owner, answer);
+          }
           break;
         }
         case "html": {
