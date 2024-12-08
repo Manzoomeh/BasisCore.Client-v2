@@ -214,12 +214,12 @@ export default class SchemaComponent extends SourceBaseComponent {
     this._schema = await schemaCallback(this.context, options.paramUrl);
     const optionName = await this.getAttributeValueAsync("options");
     let option = optionName ? eval(optionName) : null;
-    const validationHandler = new ValidationHandler(this._schema.lid, option);
-    const schemaDirection = this._schema.direction ?? direction;
-    options["direction"] = schemaDirection;
-    container.setAttribute("data-bc-schema-direction", schemaDirection);
-    const sections = new Map<number, Section>();
     if (this._schema && this._schema.questions?.length > 0) {
+      const validationHandler = new ValidationHandler(this._schema.lid, option);
+      const schemaDirection = this._schema.direction ?? direction;
+      options["direction"] = schemaDirection;
+      container.setAttribute("data-bc-schema-direction", schemaDirection);
+      const sections = new Map<number, Section>();
       this._schema.questions.forEach((question) => {
         const partAnswer = this._answer?.properties.find(
           (x) => x.prpId == question.prpId
@@ -267,7 +267,7 @@ export default class SchemaComponent extends SourceBaseComponent {
               options,
               cellManager,
               partAnswer,
-validationHandler
+              validationHandler
             )
           );
         }
