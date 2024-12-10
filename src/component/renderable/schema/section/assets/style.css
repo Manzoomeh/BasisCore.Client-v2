@@ -12,7 +12,7 @@
 
 [data-bc-schema-skin="template2"] [data-bc-section] [data-bc-section-title] {
     width: 300px;
-    line-height: 45px;
+    line-height: 20px;
 }
 
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-section] [data-bc-section-title] {
