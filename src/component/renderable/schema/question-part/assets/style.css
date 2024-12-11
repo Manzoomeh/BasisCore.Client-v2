@@ -5,6 +5,10 @@
   margin-bottom: 5px;
 }
 
+[data-bc-schema-skin="template2"] [data-bc-part] {
+  margin-bottom: 12px;
+}
+
 [data-bc-part][data-bc-invalid],
 [data-bc-part][data-bc-invalid] * {
   /* background-color: #fefe !important; */

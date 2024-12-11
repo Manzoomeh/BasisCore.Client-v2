@@ -20,6 +20,10 @@
   margin-bottom: 5px;
 }
 
+[data-bc-schema-skin="template2"] [data-bc-question] {
+  margin-bottom: 0;
+}
+
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-question] {
   padding-left: 10px;
 }
@@ -40,7 +44,7 @@
 [data-bc-schema-skin="template2"] [data-bc-title-container] {
   line-height: 20px;
   width: 100%;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 [data-bc-schema-direction="rtl"] [data-bc-title-container] {
