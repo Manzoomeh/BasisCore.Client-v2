@@ -28,7 +28,7 @@ export default abstract class TextBaseType<
       (this.input as any as Element).setAttribute("readonly", "");
     }
     if (answer) {
-      this.input.value = answer.values[0].value;
+      this.input.value = answer.values[0].value.time ?? answer.values[0].value;
     }
     if (part.placeHolder) {
       this.input.placeholder = part.placeHolder

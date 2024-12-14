@@ -31,6 +31,8 @@ import HTMLFieldType from "./html/HTMLFieldType";
 import AutoCompleteSimpleType from "./auto-fill/auto-complete/AutoCompleteSimpleType";
 import ReferenceSimpleType from "./auto-fill/reference/ReferenceSimpleType";
 import { Skin } from "../IFormMakerOptions";
+import ReadOnlyTime from "./readonly-text/ReadOnlyTime";
+import ReadOnlyDate from "./readonly-text/ReadOnlyDate";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -203,7 +205,9 @@ export default class QuestionPartFactory {
           break;
         }
         default: {
-          retVal = new ReadOnlyText(part, owner, answer);
+          console.log(viewType)
+          retVal = viewType=="component.bc.timepicker" ?  new ReadOnlyTime(part, owner, answer) :viewType=="component.calendar.datepicker" ? new ReadOnlyDate(part, owner, answer) :
+          new ReadOnlyText(part, owner, answer);
           break;
         }
       }

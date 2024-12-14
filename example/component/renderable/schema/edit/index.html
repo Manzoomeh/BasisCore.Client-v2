@@ -38,10 +38,11 @@
     <basis core="callback" run="atclient" triggers="demo.data"></basis>
   </body>
   <script>
-    const host = {
-      sources: {
-        "inline.object": [{ id: 1423330 }],
-      },
-    };
+  const host = {
+    sources: {
+      "inline.object": [{ id: 1423330 }],
+    },
+    repositories: { "bc.timepicker": "http://localhost:3002/basiscore.timepicker.js" },
+  };
   </script>
 </html>
