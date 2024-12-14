@@ -204,10 +204,16 @@ export default class QuestionPartFactory {
           retVal = new ReadonlyUploadType(part, owner, answer);
           break;
         }
+        case "component.bc.timepicker" : {
+          retVal =  new ReadOnlyTime(part, owner, answer)
+          break;
+        }
+        case "component.calendar.datepicker" : {
+          retVal =  new ReadOnlyDate(part, owner, answer)
+          break;
+        }
         default: {
-          console.log(viewType)
-          retVal = viewType=="component.bc.timepicker" ?  new ReadOnlyTime(part, owner, answer) :viewType=="component.calendar.datepicker" ? new ReadOnlyDate(part, owner, answer) :
-          new ReadOnlyText(part, owner, answer);
+          retVal = new ReadOnlyText(part, owner, answer);
           break;
         }
       }
