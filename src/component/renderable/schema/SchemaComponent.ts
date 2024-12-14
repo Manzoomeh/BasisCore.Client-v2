@@ -266,6 +266,7 @@ export default class SchemaComponent extends SourceBaseComponent {
         }
         if (options.displayMode == "view") {
           if (partAnswer && partAnswer != undefined) {
+
             this._questions.push(
               new QuestionCollection(
                 this._questions,

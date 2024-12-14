@@ -31,6 +31,8 @@ import HTMLFieldType from "./html/HTMLFieldType";
 import AutoCompleteSimpleType from "./auto-fill/auto-complete/AutoCompleteSimpleType";
 import ReferenceSimpleType from "./auto-fill/reference/ReferenceSimpleType";
 import { Skin } from "../IFormMakerOptions";
+import ReadOnlyTime from "./readonly-text/ReadOnlyTime";
+import ReadOnlyDate from "./readonly-text/ReadOnlyDate";
 
 export default class QuestionPartFactory {
   public static generate(
@@ -200,6 +202,14 @@ export default class QuestionPartFactory {
         case "upload":
         case "blob": {
           retVal = new ReadonlyUploadType(part, owner, answer);
+          break;
+        }
+        case "component.bc.timepicker" : {
+          retVal =  new ReadOnlyTime(part, owner, answer)
+          break;
+        }
+        case "component.calendar.datepicker" : {
+          retVal =  new ReadOnlyDate(part, owner, answer)
           break;
         }
         default: {

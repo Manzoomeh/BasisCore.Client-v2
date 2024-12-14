@@ -128,7 +128,10 @@
                       "values": [
                         {
                           "id": 33,
-                          "value": "23:45"
+                          "value": {
+                            "time": "02:00",
+                            "timeid": 120
+                          }
                         }
                       ]
                     }
@@ -551,6 +554,28 @@
                       "values": [
                         {
                           "value": 7
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prpId": 3546,
+              "answers": [
+                {
+                  "id": 1,
+                  "parts": [
+                    {
+                      "part": 1,
+                      "values": [
+                        {
+                          "id": 1,
+                          "value": {
+                            "time": "02:00",
+                            "timeid": 120
+                          }
                         }
                       ]
                     }

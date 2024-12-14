@@ -1,6 +1,6 @@
 {
   "name": "basiscore",
-  "version": "2.38.1",
+  "version": "2.38.2",
   "description": "Client side and light version of BasisCore web programming language",
   "main": "dist/basiscore.js",
   "types": "dist/basiscore.d.ts",
