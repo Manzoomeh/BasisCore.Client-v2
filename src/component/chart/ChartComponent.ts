@@ -62,6 +62,7 @@ export default class ChartComponent extends SourceBaseComponent {
       chartContentVar,
       chartStyle,
       onLabelClick,
+      isStringLineChart
     ] = await Promise.all([
       this.getAttributeValueAsync("chartType"),
       this.getAttributeValueAsync("group"),
@@ -76,6 +77,7 @@ export default class ChartComponent extends SourceBaseComponent {
       this.getAttributeValueAsync("chartContent"),
       this.getAttributeValueAsync("chartStyle"),
       this.getAttributeValueAsync("onLabelClick"),
+      this.getAttributeValueAsync("isStringLineChart"),
     ]);
     let returnStyleFunc = `if(${chartStyle}) return ${chartStyle};`;
     let styleFunc = new Function(returnStyleFunc);
@@ -105,6 +107,7 @@ export default class ChartComponent extends SourceBaseComponent {
       axisLabel: axisLabel == "true",
       chartContent: contentVar,
       onLabelClick: eval(onLabelClick),
+      isStringLineChart :isStringLineChart == "true" ? true : false
     };
     (this.chartSetting as IBarChartSetting).horizontal = horizontal == "true";
     (this.chartSetting as IDonutChartSetting).chartContent =
@@ -161,7 +164,7 @@ export default class ChartComponent extends SourceBaseComponent {
         );
         break;
       case "line":
-        this.chartManager = new LineChart(data, this.chartSetting, this.chart);
+        this.chartManager = new LineChart(data, this.chartSetting, this.chart, this.chartSetting.isStringLineChart);
         break;
       case "funnel":
         this.chartManager = new FunnelChart(
