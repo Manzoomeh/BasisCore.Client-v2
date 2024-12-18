@@ -5,23 +5,31 @@ export default class LineChart {
   data: any[];
   chartSetting: ILineChartSetting;
   chart: any;
-
+  isStringLineChart?: boolean;
   xScale: any;
   yScale: any;
-  constructor(data, chartSetting, chart) {
+  constructor(data, chartSetting, chart, isStringLineChart) {
     this.data = data;
     this.chart = chart;
     this.chartSetting = chartSetting;
+    this.isStringLineChart = isStringLineChart;
   }
   renderChart() {
     const { x, y, group } = this.chartSetting;
     const { width, height, thickness, curveTension, color } =
       this.chartSetting.style;
-    this.xScale = d3
-      .scaleLinear()
-      .domain(d3.extent(this.data, (d) => d[x]))
-      .range([0, width]);
-
+   if(!this.isStringLineChart) {
+      this.xScale = d3
+        .scaleLinear()
+        .domain(d3.extent(this.data, (d) => d[x]))
+        .range([0, width]);
+    }else{
+      this.xScale = d3
+      .scalePoint()
+      .domain(this.data.map((d) => d[x]))
+      .range([0, width])
+      .padding(0.5);
+    }
     this.yScale = d3
       .scaleLinear()
       .domain(d3.extent(this.data, (d) => d[y]))
@@ -90,11 +98,9 @@ export default class LineChart {
       this.chart.append("g").call(d3.axisLeft(this.yScale));
     }
     if (grid) {
-      const xGridLines = d3
-        .axisBottom(this.xScale)
-        .tickSize(-height)
+      const xGridLines = d3.axisBottom(this.xScale).tickSize(-height);
       // Y-axis grid lines
-      const yGridLines = d3.axisLeft(this.yScale).tickSize(-width)
+      const yGridLines = d3.axisLeft(this.yScale).tickSize(-width);
       this.chart
         .append("g")
         .attr("class", "grid")
@@ -111,8 +117,7 @@ export default class LineChart {
         .selectAll("line")
         .attr("stroke-dasharray", "3, 3")
         .attr("opacity", 0.5);
-      this.chart.selectAll('.grid').selectAll('text').remove()
-
+      this.chart.selectAll(".grid").selectAll("text").remove();
     }
     if (legend && group) {
       const aggregatedData = d3.group(this.data, (d) => d[group]);
@@ -184,11 +189,11 @@ export default class LineChart {
         tooltip.setAttribute(
           "style",
           "top:" +
-          (event.pageY - 10) +
-          "px;left:" +
-          (event.pageX + 80) +
-          "px" +
-          ";opacity:0.8"
+            (event.pageY - 10) +
+            "px;left:" +
+            (event.pageX + 80) +
+            "px" +
+            ";opacity:0.8"
         );
       };
       const mouseleave = function (d) {

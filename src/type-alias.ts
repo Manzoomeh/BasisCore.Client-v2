@@ -33,6 +33,7 @@ export declare type IChartSetting = {
   chartContent?: string
   grid?: boolean;
   onLabelClick?: Function
+  isStringLineChart ?: boolean
 };
 export declare interface IBarChartSetting extends IChartSetting {
   horizontal: boolean;
