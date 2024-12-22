@@ -25,11 +25,11 @@
 }
 
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-question] {
-  padding-left: 10px;
+  /* padding-left: 10px; */
 }
 
 [data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-question] {
-  padding-right: 10px;
+  /* padding-right: 10px; */
 }
 
 [data-bc-title-container] {

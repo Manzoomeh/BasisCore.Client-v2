@@ -8,6 +8,8 @@
     border-left: 0;
     border-top: 0;
     margin-bottom: 0;
+    padding-right: 0;
+    padding-left: 0;
 }
 
 [data-bc-schema-skin="template2"] [data-bc-section] [data-bc-section-title] {
@@ -35,5 +37,7 @@
     display: inline-flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
     width: calc(100% - 310px);
 }

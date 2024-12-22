@@ -14,6 +14,7 @@ export default class AutoFillSingleType extends AutoFillType {
     if (owner.options.displayMode != "view" && !owner.question.disabled) {
       this._btn.addEventListener("click", this.onShowPopUpBtnClick.bind(this));
     } else {
+      (this.element.querySelector("[data-bc-auto-complete-single-type]") as HTMLElement).style.width = "100%";
       this._btn.remove();
     }
     const value = answer?.values[0];
