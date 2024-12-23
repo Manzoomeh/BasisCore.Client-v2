@@ -16,8 +16,10 @@ export default class QuestionGridManager implements IQuestionContainerManager {
 
   public add(questionUI: HTMLDivElement): void {
     const colSpan = questionUI.getAttribute("data-colSpan");
+    const diff = (this._gridColumns ?? 1) - parseInt(colSpan);
     if (this._gridColumns && this._gridColumns > 1) {
-      questionUI.style.width = `calc((100% / ${this._gridColumns ?? 1}) * (${colSpan}))`;
+      questionUI.style.width = `calc(((100% - (${diff} * 10px)) / ${this._gridColumns ?? 1}) * (${colSpan}))`;
+      // questionUI.style.width = `calc((100% / ${this._gridColumns ?? 1}) * (${colSpan}))`;
     } else {
       questionUI.style.width = "100%";
     }

@@ -49,7 +49,7 @@
 }
 
 [data-bc-schema-skin="template2"] [data-bc-question] [data-bc-pair-btn-container] {
-  width: 85px;
+  width: 90px;
 }
 
 [data-bc-question] [data-bc-btn],
@@ -102,7 +102,7 @@
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-question] [data-bc-btn-remove],
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-question] [data-bc-btn-add],
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-question] [data-bc-btn-cross] {
-  margin-left: 0;
+  /* margin-left: 0; */
   margin-right: 5px;
   float: left;
 }
@@ -119,7 +119,7 @@
 [data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-question] [data-bc-btn-remove],
 [data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-question] [data-bc-btn-add],
 [data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-question] [data-bc-btn-cross] {
-  margin-right: 0;
+  /* margin-right: 0; */
   margin-left: 5px;
   float: right;
 }

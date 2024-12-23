@@ -333,6 +333,7 @@
 [data-bc-schema-direction="rtl"][data-bc-schema-skin="template2"] [data-bc-auto-complete-single-type-btn] {
     /* left: -55px; */
     margin-right: 5px !important;
+    margin-left: 0 !important;
 }
 
 [data-bc-schema-direction="ltr"] [data-bc-auto-complete-single-type-btn] {
@@ -342,4 +343,5 @@
 [data-bc-schema-direction="ltr"][data-bc-schema-skin="template2"] [data-bc-auto-complete-single-type-btn] {
     /* right: -55px; */
     margin-left: 5px !important;
+    margin-right: 0 !important;
 }
