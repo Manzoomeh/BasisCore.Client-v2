@@ -5,7 +5,6 @@ export default class BarChart {
   data: any[];
   chartSetting: IBarChartSetting;
   chart: any;
-
   xScale: any;
   groupScale: any;
   yScale: any;
@@ -16,6 +15,7 @@ export default class BarChart {
   }
 
   renderChart() {
+    
     const { group, x, y, horizontal } = this.chartSetting;
     const { width, height, opacity, color } = this.chartSetting.style;
     if (x && y && group) {
@@ -35,7 +35,7 @@ export default class BarChart {
           .scaleLinear()
           .domain([0, d3.max(this.data, (d) => d[y])])
           .nice()
-          .range([0, width]);
+          .range([0, width]); 
         this.groupScale = d3
           .scaleBand()
           .domain(new Set(this.data.map((d) => d[group])))
@@ -163,9 +163,10 @@ export default class BarChart {
       }
     } else {
       if (horizontal) {
+        let max = d3.max(this.data, (d) => d[y])
         this.xScale = d3
           .scaleLinear()
-          .domain([0, d3.max(this.data, (d) => d[y])])
+          .domain([0, max == 0 ? 1: max ])
           .range([0, width]);
 
         this.yScale = d3
@@ -212,15 +213,15 @@ export default class BarChart {
             return color[i % color.length];
           });
       } else {
+        let max =d3.max(this.data, (d) => d[y])
         this.xScale = d3
           .scaleBand()
           .domain(this.data.map((d) => d[group]))
           .range([0, width])
           .padding(0.1);
-
         this.yScale = d3
           .scaleLinear()
-          .domain([0, d3.max(this.data, (d) => d[y])])
+          .domain([0, max==0 ? 1 : max])
           .range([height, 0]);
         this.chart
           .selectAll("path")
