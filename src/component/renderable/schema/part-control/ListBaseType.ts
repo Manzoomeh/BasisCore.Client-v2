@@ -3,7 +3,8 @@ import Source from "../../../../data/Source";
 import IDictionary from "../../../../IDictionary";
 import Util from "../../../../Util";
 import IBCUtil from "../../../../wrapper/IBCUtil";
-
+import QuestionPart from "../question-part/QuestionPart";
+import IValidationError from "../IValidationError";
 import IAnswerSchema, { IPartCollection } from "../IAnswerSchema";
 import { IQuestionPart, IFixValue } from "../IQuestionSchema";
 import IUserActionResult from "../IUserActionResult";
@@ -39,7 +40,7 @@ export default abstract class ListBaseType extends EditableQuestionPart {
   }
   protected async loadFromServerAsync(): Promise<void> {
     const queryStringParams =
-      await this.owner.options.getQueryStringParamsAsync();
+      await this.getQueryStringParamsAsync();
     const data = {
       prpId: this.owner.question.prpId,
       part: this.part.part,
@@ -49,7 +50,57 @@ export default abstract class ListBaseType extends EditableQuestionPart {
     const result = await Util.getDataAsync<Array<IFixValue>>(url);
     this.fillUI(result);
   }
+  protected async getQueryStringParamsAsync(): Promise<IDictionary<string>> {
+    let retVal = await this.owner.options.getQueryStringParamsAsync();
+    let hasError = false;
+    if (this.part.dependency) {
+      retVal = retVal || {};
+      const tasks = this.owner.owner.AllQuestions.map((x) =>
+        x.getAllValuesAsync()
+      );
+      const taskResult = await Promise.all(tasks);
+      const allValues = taskResult.map((x) => {
+        return {
+          propId: x.propId,
+          parts: x.values.filter((y) => y).flatMap((y) => y.parts),
+        };
+      });
+      this.part.dependency.forEach(async(item) => {
+        const relatedProperties = allValues.find((x) => x.propId == item.prpId);
+        let relatedParts: QuestionPart[] = null;
+        if (relatedProperties) {
+          const valuesPart = relatedProperties.parts
+            .filter((x) => x.part == item.part)
+            .flatMap((x) => x.values);
+          if (item.required) {
+            relatedParts = this.owner.owner.AllQuestions.filter(
+              (x) => x.QuestionSchema.prpId == item.prpId
+            )[0].getParts(item.part);
+          }
 
+          let value = "";
+          if (valuesPart.length > 0) {
+            value = JSON.stringify(
+              valuesPart.length > 1
+                ? valuesPart.map((x) => x.value)
+                : valuesPart[0].value
+            );
+            relatedParts?.forEach((x) => x.updateUIAboutError(null));
+          } else if (item.required) {
+            const requiredError: IValidationError =
+              await this.owner.owner.validationHandler.getError(item.part, "required",{});
+            relatedParts.forEach((x) => x.updateUIAboutError(requiredError));
+            hasError = true;
+          }
+          retVal[item.name] = value;
+        }
+      });
+    }
+    if (hasError) {
+      throw Error("Has empty required part!");
+    }
+    return retVal;
+  }
   protected async getSubSchemaValueAsync(
     id: string
   ): Promise<IUserActionResult> {
