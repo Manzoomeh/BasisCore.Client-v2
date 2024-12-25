@@ -85,11 +85,10 @@ export default abstract class AutoFillType extends EditableQuestionPart {
 
           let value = "";
           if (valuesPart.length > 0) {
-            value = JSON.stringify(
+            value 
               valuesPart.length > 1
                 ? valuesPart.map((x) => x.value)
                 : valuesPart[0].value
-            );
             relatedParts?.forEach((x) => x.updateUIAboutError(null));
           } else if (item.required) {
             const requiredError: IValidationError =
