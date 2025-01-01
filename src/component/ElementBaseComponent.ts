@@ -7,7 +7,6 @@ import IContext from "../context/IContext";
 import ISource from "../data/ISource";
 import Source from "../data/Source";
 import IToken from "../token/IToken";
-import { SourceId } from "../type-alias";
 import Component from "./Component";
 
 export default abstract class ElementBaseComponent<
@@ -22,8 +21,8 @@ export default abstract class ElementBaseComponent<
   protected ifToken: IToken<string>;
   protected isHide: boolean = false;
 
-  private _triggers: SourceId[];
-  public get triggers(): SourceId[] {
+  private _triggers: string[];
+  public get triggers(): string[] {
     return this._triggers;
   }
   constructor(element: TElement, context: IContext) {

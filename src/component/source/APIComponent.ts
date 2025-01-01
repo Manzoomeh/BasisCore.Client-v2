@@ -9,7 +9,6 @@ import Source from "../../data/Source";
 import IToken from "../../token/IToken";
 import { HttpMethod, IServerResponse } from "../../type-alias";
 import SourceComponent from "./SourceComponent";
-import ISource from "../../data/ISource";
 
 @injectable()
 export default class APIComponent extends SourceComponent {
@@ -33,10 +32,7 @@ export default class APIComponent extends SourceComponent {
     this.noCacheToken = this.getAttributeToken("noCache");
   }
 
-  protected async runAsync(source?: ISource): Promise<void> {
-    if (source === null && this.triggers && this.triggers.length > 0) {
-      return;
-    }
+  protected async runAsync(): Promise<void> {
     const method = (
       await this.methodToken?.getValueAsync()
     )?.toUpperCase() as HttpMethod;

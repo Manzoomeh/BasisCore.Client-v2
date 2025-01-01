@@ -30,7 +30,7 @@ export default abstract class Component<TNode extends Node>
   }
 
   public processAsync(): Promise<void> {
-    return this.onTrigger(null);
+    return this.onTrigger();
   }
 
   protected async onTrigger(source?: ISource): Promise<void> {
