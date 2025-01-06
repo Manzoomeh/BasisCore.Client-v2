@@ -20,6 +20,7 @@ export default abstract class ElementBaseComponent<
   protected onProcessedAsync: (args: CallbackArgument) => Promise<void>;
   protected ifToken: IToken<string>;
   protected isHide: boolean = false;
+  protected ignoreNullSource: boolean;
 
   private _triggers: string[];
   public get triggers(): string[] {
@@ -31,6 +32,10 @@ export default abstract class ElementBaseComponent<
 
   public async initializeAsync(): Promise<void> {
     this.ifToken = this.getAttributeToken("if");
+    this.ignoreNullSource = await this.getAttributeBooleanValueAsync(
+      "ignoreNullSource",
+      false
+    );
     const onRendering = await this.getAttributeValueAsync("OnRendering");
     if (onRendering) {
       this.onRenderingAsync = new Function(
@@ -137,6 +142,9 @@ export default abstract class ElementBaseComponent<
   }
 
   public async renderAsync(source?: ISource): Promise<void> {
+    if (source == null && this.ignoreNullSource) {
+      return;
+    }
     let canRender = await this.getIfValueAsync();
     if (canRender && this.onRenderingAsync) {
       const renderingArgs =
