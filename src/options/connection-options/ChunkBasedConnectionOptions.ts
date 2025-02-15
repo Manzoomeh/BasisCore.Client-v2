@@ -15,24 +15,33 @@ enum HttpMethod {
   OPTIONS = "OPTIONS",
   HEAD = "HEAD",
 }
+
+type IBasedConnectionOptions = {
+  Connection: string;
+  method?: HttpMethod;
+  body?: NodeJS.Dict<any>;
+  onClose?: (param: { withError: boolean; context: IContext }) => void;
+};
 export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
   readonly body: NodeJS.Dict<any>;
+  readonly onClose?: (param: { withError: boolean; context: IContext }) => void;
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
     string,
     ReadableStreamDefaultReader
   >();
-  constructor(name: string, setting: any) {
+  constructor(name: string, setting: IBasedConnectionOptions | string) {
     super(name);
     if (typeof setting === "string") {
       this.url = setting;
       this.method = HttpMethod.GET;
     } else {
       this.url = setting.Connection;
-      this.method = setting.method;
+      this.method = setting.method ?? HttpMethod.GET;
       this.body = setting.body;
+      this.onClose = setting.onClose;
     }
   }
 
@@ -68,6 +77,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
       this.Name,
       (resolve, reject) => {
         let retry = 0;
+        const onClose = this.onClose;
         async function initAndConnect(reconnect: boolean) {
           retry++;
           const init: RequestInit = {
@@ -146,14 +156,22 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
               console.error(ex);
             }
           }
+          let hasError = false;
           if (remain.length > 0 && remain != ",null]") {
             console.error("Invalid remain part of json", remain);
+            hasError = true;
           } else {
             console.log("End of chunked data...");
           }
           activeFetch.delete(sourceId);
           resolve();
           context.logger.logInformation(`${url} Disconnected`);
+          if (onClose) {
+            onClose({
+              withError: hasError,
+              context: context,
+            });
+          }
         }
         initAndConnect(false);
       },
