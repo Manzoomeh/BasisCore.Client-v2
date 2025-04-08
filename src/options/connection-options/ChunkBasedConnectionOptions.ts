@@ -20,6 +20,7 @@ type IBasedConnectionOptions = {
   Connection: string;
   method?: HttpMethod;
   body?: NodeJS.Dict<any>;
+  bodyFactory?: string;
   onClose?: (param: { withError: boolean; context: IContext }) => void;
 };
 export default class ChunkBasedConnectionOptions extends ConnectionOptions {
@@ -27,6 +28,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
   readonly body: NodeJS.Dict<any>;
+  readonly bodyFactory?: string;
   readonly onClose?: (param: { withError: boolean; context: IContext }) => void;
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
     string,
@@ -41,6 +43,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
       this.url = setting.Connection;
       this.method = setting.method ?? HttpMethod.GET;
       this.body = setting.body;
+      this.bodyFactory = setting.bodyFactory;
       this.onClose = setting.onClose;
     }
   }
@@ -53,7 +56,8 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   ): Promise<void> {
     const url = this.url;
     const method = this.method;
-    const body = this.body;
+    const thisBody = this.body;
+    const thisBodyFactory = this.bodyFactory;
     const activeFetch = this.activeFetch;
     const extractNextJSON = (source: string, validMinPosition: number) => {
       let firstOpen = source.indexOf("{");
@@ -84,6 +88,15 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
             method: method,
           };
           if (method != "GET") {
+            let body = thisBody;
+            if (thisBodyFactory) {
+              const bodyFactory: (
+                context: IContext,
+                sourceId: string,
+                parameters: IDictionary<string>
+              ) => NodeJS.Dict<any> = eval(thisBodyFactory);
+              body = bodyFactory(context, sourceId, parameters);
+            }
             init.body = body
               ? JSON.stringify(body)
               : parameters
