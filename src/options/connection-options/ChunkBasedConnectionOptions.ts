@@ -20,16 +20,32 @@ type IBasedConnectionOptions = {
   Connection: string;
   method?: HttpMethod;
   body?: NodeJS.Dict<any>;
-  bodyFactory?: string;
-  onClose?: (param: { withError: boolean; context: IContext }) => void;
+  bodyFactory?:
+    | string
+    | ((
+        context: IContext,
+        sourceId: string,
+        parameters: IDictionary<string>
+      ) => NodeJS.Dict<any>);
+  onClose?:
+    | string
+    | ((param: { withError: boolean; context: IContext }) => void);
 };
 export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
   readonly body: NodeJS.Dict<any>;
-  readonly bodyFactory?: string;
-  readonly onClose?: (param: { withError: boolean; context: IContext }) => void;
+  readonly bodyFactory?:
+    | string
+    | ((
+        context: IContext,
+        sourceId: string,
+        parameters: IDictionary<string>
+      ) => NodeJS.Dict<any>);
+  readonly onClose?:
+    | string
+    | ((param: { withError: boolean; context: IContext }) => void);
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
     string,
     ReadableStreamDefaultReader
@@ -81,7 +97,7 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
       this.Name,
       (resolve, reject) => {
         let retry = 0;
-        const onClose = this.onClose;
+        const thisOnClose = this.onClose;
         async function initAndConnect(reconnect: boolean) {
           retry++;
           const init: RequestInit = {
@@ -90,12 +106,15 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
           if (method != "GET") {
             let body = thisBody;
             if (thisBodyFactory) {
-              const bodyFactory: (
+              const bodyFactoryFn: (
                 context: IContext,
                 sourceId: string,
                 parameters: IDictionary<string>
-              ) => NodeJS.Dict<any> = eval(thisBodyFactory);
-              body = bodyFactory(context, sourceId, parameters);
+              ) => NodeJS.Dict<any> =
+                typeof thisBodyFactory === "string"
+                  ? eval(thisBodyFactory)
+                  : thisBodyFactory;
+              body = bodyFactoryFn(context, sourceId, parameters);
             }
             init.body = body
               ? JSON.stringify(body)
@@ -179,8 +198,13 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
           activeFetch.delete(sourceId);
           resolve();
           context.logger.logInformation(`${url} Disconnected`);
-          if (onClose) {
-            onClose({
+          if (thisOnClose) {
+            const onCloseFn: (param: {
+              withError: boolean;
+              context: IContext;
+            }) => void =
+              typeof thisOnClose === "string" ? eval(thisOnClose) : thisOnClose;
+            onCloseFn({
               withError: hasError,
               context: context,
             });
