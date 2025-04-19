@@ -15,24 +15,52 @@ enum HttpMethod {
   OPTIONS = "OPTIONS",
   HEAD = "HEAD",
 }
+
+type IBasedConnectionOptions = {
+  Connection: string;
+  method?: HttpMethod;
+  body?: NodeJS.Dict<any>;
+  bodyFactory?:
+    | string
+    | ((
+        context: IContext,
+        sourceId: string,
+        parameters: IDictionary<string>
+      ) => NodeJS.Dict<any>);
+  onClose?:
+    | string
+    | ((param: { withError: boolean; context: IContext }) => void);
+};
 export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   readonly url: string;
   readonly maxRetry: number = 5;
   readonly method: HttpMethod;
   readonly body: NodeJS.Dict<any>;
+  readonly bodyFactory?:
+    | string
+    | ((
+        context: IContext,
+        sourceId: string,
+        parameters: IDictionary<string>
+      ) => NodeJS.Dict<any>);
+  readonly onClose?:
+    | string
+    | ((param: { withError: boolean; context: IContext }) => void);
   readonly activeFetch: Map<string, ReadableStreamDefaultReader> = new Map<
     string,
     ReadableStreamDefaultReader
   >();
-  constructor(name: string, setting: any) {
+  constructor(name: string, setting: IBasedConnectionOptions | string) {
     super(name);
     if (typeof setting === "string") {
       this.url = setting;
       this.method = HttpMethod.GET;
     } else {
       this.url = setting.Connection;
-      this.method = setting.method;
+      this.method = setting.method ?? HttpMethod.GET;
       this.body = setting.body;
+      this.bodyFactory = setting.bodyFactory;
+      this.onClose = setting.onClose;
     }
   }
 
@@ -44,7 +72,8 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
   ): Promise<void> {
     const url = this.url;
     const method = this.method;
-    const body = this.body;
+    const thisBody = this.body;
+    const thisBodyFactory = this.bodyFactory;
     const activeFetch = this.activeFetch;
     const extractNextJSON = (source: string, validMinPosition: number) => {
       let firstOpen = source.indexOf("{");
@@ -68,12 +97,25 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
       this.Name,
       (resolve, reject) => {
         let retry = 0;
+        const thisOnClose = this.onClose;
         async function initAndConnect(reconnect: boolean) {
           retry++;
           const init: RequestInit = {
             method: method,
           };
           if (method != "GET") {
+            let body = thisBody;
+            if (thisBodyFactory) {
+              const bodyFactoryFn: (
+                context: IContext,
+                sourceId: string,
+                parameters: IDictionary<string>
+              ) => NodeJS.Dict<any> =
+                typeof thisBodyFactory === "string"
+                  ? eval(thisBodyFactory)
+                  : thisBodyFactory;
+              body = bodyFactoryFn(context, sourceId, parameters);
+            }
             init.body = body
               ? JSON.stringify(body)
               : parameters
@@ -146,14 +188,27 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
               console.error(ex);
             }
           }
+          let hasError = false;
           if (remain.length > 0 && remain != ",null]") {
             console.error("Invalid remain part of json", remain);
+            hasError = true;
           } else {
             console.log("End of chunked data...");
           }
           activeFetch.delete(sourceId);
           resolve();
           context.logger.logInformation(`${url} Disconnected`);
+          if (thisOnClose) {
+            const onCloseFn: (param: {
+              withError: boolean;
+              context: IContext;
+            }) => void =
+              typeof thisOnClose === "string" ? eval(thisOnClose) : thisOnClose;
+            onCloseFn({
+              withError: hasError,
+              context: context,
+            });
+          }
         }
         initAndConnect(false);
       },

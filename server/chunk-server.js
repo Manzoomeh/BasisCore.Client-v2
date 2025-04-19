@@ -6914,11 +6914,46 @@ router.get("/chunk-stream", async function (req, res) {
     const chunk = JSON.stringify(generateRandomData()) + ",";
     res.write(chunk);
   }, 1000);
-
   req.on("close", () => {
     clearInterval(interval);
     res.write("null]");
     res.end();
+    console.log("Connection closed, stopped sending chunks.");
+  });
+});
+router.post("/chunk-stream-post", async function (req, res) {
+  res.writeHead(200, {
+    "Content-Type": "application/json",
+  });
+  res.write("[");
+  const interval = setInterval(() => {
+    const chunk = JSON.stringify(generateRandomData()) + ",";
+    res.write(chunk);
+  }, 1000);
+  req.on("close", () => {
+    clearInterval(interval);
+    res.write("null]");
+    res.end();
+    console.log("Connection closed, stopped sending chunks.");
+  });
+});
+router.get("/chunk-stream-for-callback", async function (req, res) {
+  res.writeHead(200, {
+    "Content-Type": "application/json",
+  });
+  res.write("[");
+  let count = 0;
+  const interval = setInterval(() => {
+    const chunk = JSON.stringify(generateRandomData()) + ",";
+    res.write(chunk);
+    count++;
+    if (count > 4) {
+      clearInterval(interval);
+      res.write("null]");
+      res.end();
+    }
+  }, 1000);
+  req.on("end", () => {
     console.log("Connection closed, stopped sending chunks.");
   });
 });
