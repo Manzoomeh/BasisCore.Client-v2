@@ -73,6 +73,13 @@ export default class UserDefineComponent
   }
 
   public async disposeAsync(): Promise<void> {
+    try {
+      if (typeof this.manager.disposeAsync === "function") {
+        await this.manager.disposeAsync();
+      }
+    } catch (ex) {
+      console.error("error in dispose component", ex);
+    }
     const tasks = this.collections?.map((collection) =>
       collection.disposeAsync()
     );
