@@ -418,3 +418,7 @@
     width: calc(100% - 40px);
   }
 }
+
+[data-bc-section]:not(:has([data-bc-question])) {
+	display: none;
+}

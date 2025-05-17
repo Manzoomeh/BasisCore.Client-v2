@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/basiscore.js"></script>
+  <title>Schema Command - New</title>
+</head>
+
+<body dir="rtl">
+  <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient">
+  </Basis>
+  <Basis core="schema" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" displayMode="view" triggers="cms.form" qs_rkey="123">
+  </Basis>
+</body>
+<script>
+  const host = {
+    sources: {
+      "inline.object": [{ id: 1423335 }],
+    },
+    repositories: { "bc.timepicker": "http://localhost:3002/basiscore.timepicker.js" },
+  };
+</script>
+
+</html>

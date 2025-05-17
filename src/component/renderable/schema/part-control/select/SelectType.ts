@@ -166,7 +166,7 @@ export default class SelectType extends ListBaseType {
 
   public async getValuesAsync(): Promise<IUserActionPart> {
     let retVal = null;
-    const newValue = this._select.options[this._select.selectedIndex].value;
+    const newValue = this._select.options[this._select.selectedIndex]?.value;
     if (newValue !== "0") {
       const subSchemaValue = await this.getSubSchemaValueAsync(newValue);
       retVal = {
