@@ -44,7 +44,7 @@ ______           _                               _ _            _
 follow us on https://BasisCore.com/
 
 
-version:2.39.3`,
+version:2.39.4`,
 
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
