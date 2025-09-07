@@ -11,7 +11,7 @@ declare const $bc: IBCUtil;
 
 @injectable()
 export default class CallComponent extends CommandComponent {
-  private defaultAttributeNames = ["core", "run", "file", "method"];
+  private defaultAttributeNames = ["core", "run", "file", "method", "pagesize"];
   private readonly container: DependencyContainer;
   readonly priority: Priority = Priority.high;
   private collection: ComponentCollection;
@@ -41,8 +41,6 @@ export default class CallComponent extends CommandComponent {
 
   protected async runAsync(): Promise<void> {
     const filename = await this.fileToken?.getValueAsync();
-    const pageSize = await this.pageSizeToken?.getValueAsync();
-    const command = await this.contentToken?.getValueAsync();
     const methodValue = await this.methodeToken?.getValueAsync();
     const url = await this.urlToken?.getValueAsync();
     const method = (
@@ -59,10 +57,12 @@ export default class CallComponent extends CommandComponent {
         }
       }
     } else {
+      const pageSize = await this.pageSizeToken?.getValueAsync();
+      const command = await this.contentToken?.getValueAsync();
       parameters = {
         fileNames: filename,
         dmnid: this.context.options.getDefault("dmnid"),
-        siteSize: pageSize,
+        siteSize: pageSize ?? "0",
         command: command,
       };
     }
