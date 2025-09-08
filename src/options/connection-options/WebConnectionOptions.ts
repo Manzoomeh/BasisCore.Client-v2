@@ -120,7 +120,8 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
       );
 
       if (method === "GET") {
-        requestUrl += `?${params.toString()}`;
+        const separator = requestUrl.includes("?") ? "&" : "?";
+        requestUrl += `${separator}${params.toString()}`;
       } else {
         body = params;
         headers.set("Content-Type", "application/x-www-form-urlencoded");
