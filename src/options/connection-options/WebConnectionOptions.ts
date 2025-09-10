@@ -132,7 +132,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
       method,
       headers,
       body,
-      credentials: "omit",
+      credentials: "include",
     });
 
     if (!response.ok) {
