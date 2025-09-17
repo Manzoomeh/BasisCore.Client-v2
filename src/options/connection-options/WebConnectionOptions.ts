@@ -20,7 +20,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     var isOk: boolean;
     if (Util.HasValue(this.Heartbeat)) {
       try {
-        await WebConnectionOptions.ajax(
+        await WebConnectionOptions.xmlAjax(
           this.Heartbeat,
           this.HeartbeatVerb ??
             context.options.getDefault<HttpMethod>("source.heartbeatverb")
@@ -41,7 +41,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     parameters: IDictionary<string>,
     onDataReceived: EventHandler<Array<Data>>
   ): Promise<void> {
-    var rawJson = await WebConnectionOptions.ajax(
+    var rawJson = await WebConnectionOptions.fetchAjax(
       this.Url,
       this.Verb ?? context.options.getDefault<HttpMethod>("source.verb"),
       parameters
@@ -58,14 +58,14 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     parameters: IDictionary<string>,
     method?: HttpMethod
   ): Promise<string> {
-    return await WebConnectionOptions.ajax(
+    return await WebConnectionOptions.fetchAjax(
       `${this.Url}${pageName ?? ""}`,
       method ?? this.Verb ?? context.options.getDefault("call.verb"),
       parameters
     );
   }
 
-  private static ajax(
+  private static xmlAjax(
     url: string,
     method: HttpMethod,
     parameters: IDictionary<string> = null
@@ -102,5 +102,43 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
       }
       xhr.send(encodedDataPairs);
     });
+  }
+
+  private static async fetchAjax(
+    url: string,
+    method: HttpMethod,
+    parameters: IDictionary<string> = null
+  ): Promise<string> {
+    let requestUrl = url;
+    const headers = new Headers();
+    let body: URLSearchParams | null = null;
+
+    if (Util.HasValue(parameters)) {
+      const params = new URLSearchParams();
+      Object.entries(parameters).forEach(([key, value]) =>
+        params.append(key, value)
+      );
+
+      if (method === "GET") {
+        const separator = requestUrl.includes("?") ? "&" : "?";
+        requestUrl += `${separator}${params.toString()}`;
+      } else {
+        body = params;
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+      }
+    }
+
+    const response = await fetch(requestUrl, {
+      method,
+      headers,
+      body,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.text();
   }
 }
