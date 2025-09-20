@@ -58,7 +58,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     parameters: IDictionary<string>,
     method?: HttpMethod
   ): Promise<string> {
-    return await WebConnectionOptions.fetchAjax(
+    return await WebConnectionOptions.xmlAjax(
       `${this.Url}${pageName ?? ""}`,
       method ?? this.Verb ?? context.options.getDefault("call.verb"),
       parameters
@@ -71,36 +71,48 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     parameters: IDictionary<string> = null
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      var xhr = new XMLHttpRequest();
-      xhr.withCredentials = false;
-      xhr.open(method, url, true);
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr.onload = function (e) {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
+      let requestUrl = url;
+      let body: string | null = null;
+
+      if (Util.HasValue(parameters)) {
+        const params = new URLSearchParams();
+        Object.entries(parameters).forEach(([key, value]) => {
+          params.append(key, value);
+        });
+
+        if (method === "GET") {
+          const separator = requestUrl.includes("?") ? "&" : "?";
+          requestUrl += `${separator}${params.toString()}`;
+        } else {
+          body = params.toString();
+        }
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, requestUrl, true);
+
+      if (method !== "GET") {
+        xhr.setRequestHeader(
+          "Content-Type",
+          "application/x-www-form-urlencoded"
+        );
+      }
+
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status >= 200 && xhr.status < 300) {
             resolve(xhr.responseText);
           } else {
-            reject(xhr.statusText);
+            reject(new Error(`HTTP error! status: ${xhr.status}`));
           }
         }
       };
-      xhr.onerror = function (e) {
-        reject(xhr.statusText);
+
+      xhr.onerror = () => {
+        reject(new Error("Network error"));
       };
-      var encodedDataPairs;
-      if (Util.HasValue(parameters)) {
-        encodedDataPairs = [];
-        ///https://developer.mozilla.org/en-US/docs/Web/Guide/AJAX/Getting_Started
-        Object.getOwnPropertyNames(parameters).forEach((name, _i, _) =>
-          encodedDataPairs.push(
-            encodeURIComponent(name) +
-              "=" +
-              encodeURIComponent(parameters[name])
-          )
-        );
-        encodedDataPairs = encodedDataPairs.join("&").replace(/%20/g, "+");
-      }
-      xhr.send(encodedDataPairs);
+
+      xhr.send(body);
     });
   }
 
@@ -132,7 +144,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
       method,
       headers,
       body,
-      credentials: "include",
+      credentials: "omit",
     });
 
     if (!response.ok) {
