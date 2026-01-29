@@ -1,4 +1,4 @@
-import { inject, DependencyContainer, injectable } from "tsyringe";
+import { DependencyContainer, inject, injectable } from "tsyringe";
 import ComponentCollection from "../../ComponentCollection";
 import IContext from "../../context/IContext";
 import ISource from "../../data/ISource";
@@ -83,7 +83,9 @@ export default class UserDefineComponent
     const tasks = this.collections?.map((collection) =>
       collection.disposeAsync()
     );
-    await Promise.all(tasks);
+    if (tasks != null && tasks.length > 0) {
+      await Promise.all(tasks);
+    }
     return super.disposeAsync();
   }
 }

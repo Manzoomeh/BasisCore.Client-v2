@@ -73,25 +73,35 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     return new Promise((resolve, reject) => {
       let requestUrl = url;
       let body: string | null = null;
+      const httpMethod = method.toUpperCase();
 
       if (Util.HasValue(parameters)) {
         const params = new URLSearchParams();
+
         Object.entries(parameters).forEach(([key, value]) => {
-          params.append(key, value);
+          if (value !== null && value !== undefined) {
+            params.append(key, String(value));
+          }
         });
 
-        if (method === "GET") {
-          const separator = requestUrl.includes("?") ? "&" : "?";
-          requestUrl += `${separator}${params.toString()}`;
-        } else {
-          body = params.toString();
+        const query = params.toString();
+
+        if (httpMethod === "GET") {
+          //TODO:not work on send command send as query string. must edit
+          // if (query) {
+          //   const separator = requestUrl.includes("?") ? "&" : "?";
+          //   requestUrl += `${separator}${query}`;
+          // }
+        } else if (["POST", "PUT", "PATCH"].includes(httpMethod)) {
+          body = query;
         }
       }
 
       const xhr = new XMLHttpRequest();
-      xhr.open(method, requestUrl, true);
+      xhr.open(httpMethod, requestUrl, true);
+      xhr.timeout = 15000;
 
-      if (method !== "GET") {
+      if (httpMethod !== "GET") {
         xhr.setRequestHeader(
           "Content-Type",
           "application/x-www-form-urlencoded"
@@ -103,14 +113,15 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve(xhr.responseText);
           } else {
-            reject(new Error(`HTTP error! status: ${xhr.status}`));
+            reject(
+              new Error(`HTTP ${xhr.status}: ${xhr.responseText || "Error"}`)
+            );
           }
         }
       };
 
-      xhr.onerror = () => {
-        reject(new Error("Network error"));
-      };
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.ontimeout = () => reject(new Error("Request timeout"));
 
       xhr.send(body);
     });
