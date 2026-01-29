@@ -1,12 +1,8 @@
 import "./tsyringe.config";
 import "./extension/StringExtensions";
 import "./extension/ElementExtensions";
-import { HostOptions } from "./options/HostOptions";
-import LocalDataBase from "./repository/LocalDataBase";
-import { MergeType } from "./enum";
-import BCWrapperFactory from "./wrapper/BCWrapperFactory";
-import ExposerComponent from "./component/user-define-component/component/ExposerComponent";
 import BasisCore from "./BasisCore";
+import ChartComponent from "./component/chart/ChartComponent";
 import CallComponent from "./component/collection/CallComponent";
 import GroupComponent from "./component/collection/GroupComponent";
 import RepeaterComponent from "./component/collection/RepeaterComponent";
@@ -20,16 +16,20 @@ import PrintComponent from "./component/renderable/PrintComponent";
 import IQuestionSchema from "./component/renderable/schema/IQuestionSchema";
 import IUserActionResult from "./component/renderable/schema/IUserActionResult";
 import SchemaComponent from "./component/renderable/schema/SchemaComponent";
-import ChartComponent from "./component/chart/ChartComponent";
 import TreeComponent from "./component/renderable/TreeComponent";
 import ViewComponent from "./component/renderable/ViewComponent";
 import APIComponent from "./component/source/APIComponent";
 import CallbackComponent from "./component/source/CallbackComponent";
 import DbSourceComponent from "./component/source/DbSourceComponent";
+import ExposerComponent from "./component/user-define-component/component/ExposerComponent";
 import UserDefineComponent from "./component/user-define-component/UserDefineComponent";
 import LocalContext from "./context/LocalContext";
+import { MergeType } from "./enum";
 import EventManager from "./event/EventManager";
 import IDependencyContainer from "./IDependencyContainer";
+import { HostOptions } from "./options/HostOptions";
+import LocalDataBase from "./repository/LocalDataBase";
+import BCWrapperFactory from "./wrapper/BCWrapperFactory";
 
 console.log(
   `
@@ -44,7 +44,7 @@ ______           _                               _ _            _
 follow us on https://BasisCore.com/
 
 
-version:2.39.5`,
+version:2.39.7`,
 
   " background: yellow;color: #0078C1; font-size: 2rem; font-family: Arial; font-weight: bolder",
   "color: #0078C1; font-size: 1rem; font-family: Arial;"
@@ -62,34 +62,34 @@ const loadListener = (_) => {
 window.addEventListener("load", loadListener);
 
 export {
+  $bc,
+  APIComponent,
   BasisCore,
+  BCWrapperFactory,
+  CallbackComponent,
   CallComponent,
+  ChartComponent,
+  CookieComponent,
+  DbSourceComponent,
+  EventManager,
+  ExposerComponent as exposer,
   GroupComponent,
-  RepeaterComponent,
+  HostOptions,
   HTMLFormComponent,
   HTMLInputComponent,
   HTMLIUnknownComponent,
   HTMLSelectComponent,
-  CookieComponent,
-  ListComponent,
-  PrintComponent,
-  TreeComponent,
-  ViewComponent,
-  SchemaComponent,
-  ChartComponent,
-  APIComponent,
-  CallbackComponent,
-  DbSourceComponent,
-  UserDefineComponent,
-  LocalContext,
-  BCWrapperFactory,
-  MergeType,
-  LocalDataBase,
-  HostOptions,
   IDependencyContainer,
   IQuestionSchema,
   IUserActionResult,
-  EventManager,
-  $bc,
-  ExposerComponent as exposer,
+  ListComponent,
+  LocalContext,
+  LocalDataBase,
+  MergeType,
+  PrintComponent,
+  RepeaterComponent,
+  SchemaComponent,
+  TreeComponent,
+  UserDefineComponent,
+  ViewComponent,
 };
