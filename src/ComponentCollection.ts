@@ -1,10 +1,10 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
-import IContext from "./context/IContext";
-import { Priority } from "./enum";
 import CommandComponent from "./component/CommandComponent";
 import IComponent from "./component/IComponent";
 import { AttributeComponent } from "./component/text-base/AttributeComponent";
 import TextComponent from "./component/text-base/TextComponent";
+import IContext from "./context/IContext";
+import { Priority } from "./enum";
 import IComponentCollection from "./IComponentCollection";
 
 @injectable()
