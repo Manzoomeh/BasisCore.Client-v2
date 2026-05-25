@@ -1,11 +1,11 @@
 import { DependencyContainer, inject, injectable } from "tsyringe";
+import ComponentCollection from "../../ComponentCollection";
 import IContext from "../../context/IContext";
 import { Priority } from "../../enum";
-import ComponentCollection from "../../ComponentCollection";
-import CommandComponent from "../CommandComponent";
+import IToken from "../../token/IToken";
 import { HttpMethod } from "../../type-alias";
 import IBCUtil from "../../wrapper/IBCUtil";
-import IToken from "../../token/IToken";
+import CommandComponent from "../CommandComponent";
 
 declare const $bc: IBCUtil;
 
@@ -24,7 +24,7 @@ export default class CallComponent extends CommandComponent {
   constructor(
     @inject("element") element: Element,
     @inject("context") context: IContext,
-    @inject("dc") container: DependencyContainer
+    @inject("dc") container: DependencyContainer,
   ) {
     super(element, context);
     this.container = container;
@@ -46,7 +46,7 @@ export default class CallComponent extends CommandComponent {
     const method = (
       methodValue ?? this.context.options.getDefault<string>("call.verb")
     ).toUpperCase() as HttpMethod;
-    let parameters = null;
+    let parameters: Record<string, any> = null;
     if (method === "POST") {
       parameters = {};
       for (let i = 0; i < this.node.attributes.length; i++) {
@@ -58,12 +58,12 @@ export default class CallComponent extends CommandComponent {
       }
     } else {
       const pageSize = await this.pageSizeToken?.getValueAsync();
-      const command = await this.contentToken?.getValueAsync();
+      // const command = await this.contentToken?.getValueAsync();
       parameters = {
         fileNames: filename,
-        dmnid: this.context.options.getDefault("dmnid"),
+        // dmnid: this.context.options.getDefault("dmnid"),
         siteSize: pageSize ?? "0",
-        command: command,
+        // command: command,
       };
     }
 
@@ -71,7 +71,7 @@ export default class CallComponent extends CommandComponent {
       filename,
       parameters,
       method,
-      url
+      url,
     );
     const content = $bc.util.toNode(result);
     const childNodes = [...content.childNodes];
