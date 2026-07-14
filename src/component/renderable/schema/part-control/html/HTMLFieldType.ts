@@ -77,10 +77,7 @@ export default class HTMLFieldType extends QuestionPart {
         }
         if (Object.keys(data).find((i) => i == "isSubmited")) {
           delete data["isSubmited"];
-          if (Object.keys(data).length > 0) {
-            this.value = data;
-            this.owner.owner.updateButtonsState();
-          }
+          this.value = data;
           this.onClose();
           window.removeEventListener("message", onEventReceived);
         }
@@ -131,7 +128,7 @@ export default class HTMLFieldType extends QuestionPart {
   public getEditedAsync(): Promise<IUserActionPart> {
     let retVal = null;
     if (this.answer) {
-      const changed = this.value != this.answer.values[0].value;
+      const changed = (this.value != this.answer.values[0].value) && Object.keys(this.value).length > 0;
       if (changed) {
         retVal = {
           part: this.part.part,

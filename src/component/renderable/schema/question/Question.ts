@@ -75,9 +75,12 @@ export default class Question {
       if (this.question.parts[0]?.viewType == "html") {
         this._pairBtnContainer.querySelector("[data-bc-btn-add]").remove();
         this.button.remove();
+        this._removeButton.remove()
       } else {
         this._pairBtnContainer.remove();
         this.button.remove();
+        this._removeButton.remove()
+
       }
     }
     container.appendChild(this._ui);
