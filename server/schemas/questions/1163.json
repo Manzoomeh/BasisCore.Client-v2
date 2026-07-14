@@ -173,7 +173,36 @@
                   "link": ""
                 }
               ]
-            }
+            },                        {
+              "prpId": 6522,
+              "wordId": 3496,
+              "title": "تاریخ",
+              "ord": 0,
+              "multi": false,
+              "parts": [
+                  {
+                      "viewType": "component.calendar.datepicker",
+                      "part": 1,
+                      "options": {
+                          "dateProvider": "basisCalendar"
+                      }
+                  }
+              ]
+          },
+          {
+            "prpId": 6523,
+            "wordId": 4233,
+            "title": "ساعت",
+            "ord": 0,
+            "multi": false,
+            "parts": [
+                {
+                    "viewType": "component.bc.timepicker",
+                    "part": 1,
+                    "options": {}
+                }
+            ]
+        }
           ]
         }
       ]
