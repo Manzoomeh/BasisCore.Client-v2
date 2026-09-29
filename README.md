@@ -427,7 +427,7 @@ with the next release:
 | `cms.cms` date values use a zero-based month and the day of the week (`getMonth()`, `getDay()`) | `[##cms.cms.date##]` shows e.g. `2026/08/02` on 29 September 2026 | Format dates in JavaScript until fixed |
 | The web connection compares the verb case-sensitively | `"default.source.verb": "get"` sends a GET with a body, which the browser rejects | Write verbs in upper case: `"GET"` |
 | An unset `default.dmnid` is sent as the text `null` | The server receives `dmnid=null` | Set `default.dmnid`, or treat `null` as empty on the server |
-| `view` renders the level-1 face of each group but not the level-2 rows | Grouped details are missing | Use `tree` or nested `print` |
+| `view` renders the level-1 face of each group but not the level-2 rows (fix proposed in [#97](https://github.com/Manzoomeh/BasisCore.Client-v2/pull/97)) | Grouped details are missing | Use `tree` or nested `print` |
 | The console banner says `2.39.7` | Cosmetic; the package version is 2.39.6 | — |
 
 ---

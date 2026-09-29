@@ -250,8 +250,8 @@ HTML lower-cases attribute names before the library reads them.
 ## A `view` shows only the group headers
 
 In 2.39.6 `view` renders each group's level-1 face, but its level-2 rows are not inserted into
-`@child`. This is a defect in the library, not in your markup. Use `tree` with a parent row per
-group, or nested `print` commands, until it is fixed. See
+`@child`. This is a defect in the library, not in your markup; a fix is proposed in pull request
+#97. Use `tree` with a parent row per group, or nested `print` commands, until it is released. See
 [commands-rendering.md](commands-rendering.md).
 
 ## A chart shows nothing

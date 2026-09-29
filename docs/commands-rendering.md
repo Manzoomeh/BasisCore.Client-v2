@@ -157,8 +157,8 @@ Renders rows in two levels: one level-1 face per group, with the group's rows re
 through level-2 faces inside it.
 
 > **Known issue in 2.39.6:** `view` renders the level-1 face of each group, but the level-2
-> rows do not appear in `@child`. Until this is fixed, render grouped data with `tree` (give
-> each group a parent row) or with nested `print` commands.
+> rows do not appear in `@child`. A fix is proposed in pull request #97. Until it is released,
+> render grouped data with `tree` (give each group a parent row) or with nested `print` commands.
 
 | Attribute | Default | Meaning |
 |---|---|---|
