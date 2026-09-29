@@ -29,7 +29,7 @@ export default class RenderParam<TRenderResult extends FaceRenderResult> {
   }
 
   public setRenderedResult(data: TRenderResult) {
-    this.renderResultRepository.set(data.key, data);
+    this.renderResultRepository.set(data.key, data, this.groupName);
   }
 
   public async getRenderedResultAsync(

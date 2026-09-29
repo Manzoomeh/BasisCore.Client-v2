@@ -62,10 +62,13 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
           );
           level1Result.setContent(null);
 
+          // Level-2 results are kept apart from level-1 ones: the first row of a group is
+          // rendered at both levels, and sharing a cache entry nested the header into itself.
           const childRenderParam = new RenderParam<TreeFaceRenderResult>(
             dataSource,
             this.renderResultRepository,
-            (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc)
+            (key, ver, doc) => new TreeFaceRenderResult(key, ver, doc),
+            "child"
           );
           childRenderParam.setLevel(["2"]);
           const childRenderResult = $bc.util.toNode(" ");
@@ -75,7 +78,11 @@ export default class ViewComponent extends RenderableComponent<TreeFaceRenderRes
               childRenderParam,
               row
             );
-            this.renderResultRepository.set(renderResult.key, renderResult);
+            this.renderResultRepository.set(
+              renderResult.key,
+              renderResult,
+              "child"
+            );
             renderResult.AppendTo(childRenderResult);
           }
           level1Result.setContent(childRenderResult);
