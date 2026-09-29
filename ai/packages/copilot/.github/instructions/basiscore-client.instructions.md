@@ -125,7 +125,7 @@ Fixed in https://github.com/Manzoomeh/BasisCore.Client-v2/pull/93 (not yet relea
   which the browser rejects. Write verbs in upper case.
 - An unset `default.dmnid` is sent to the server as the text `null`.
 
-Not fixed yet:
+Fix proposed in https://github.com/Manzoomeh/BasisCore.Client-v2/pull/97 (not yet released):
 
 - `view` renders the level-1 face of each group, but the level-2 rows never appear in `@child`.
   Use `tree` (a parent row per group) or nested `print` instead.
