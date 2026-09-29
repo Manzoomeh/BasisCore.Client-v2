@@ -24,6 +24,8 @@ TypeScript and bundled with webpack.
 
 ## Contents
 
+For in-depth reference, see the **[developer guide](docs/README.md)**.
+
 1. [Install](#install)
 2. [Quick start](#quick-start)
 3. [Core concepts](#core-concepts)
@@ -207,7 +209,7 @@ Use every command as `<basis core="…" run="atclient" …>`.
 |---|---|---|
 | Render | `print` | Render rows through a layout and faces |
 | | `list` | Render rows as a list |
-| | `view` | Render grouped data (grouped by `default.viewcommand.groupcolumn`, `prpid` by default) |
+| | `view` | Render grouped data (grouped by `default.viewcommand.groupcolumn`, `prpid` by default); see known issues |
 | | `tree` | Render parent/child rows as a tree |
 | | `chart` | Bar, line, pie, donut, funnel and stacked charts (D3) |
 | | `schemalist` | Render a list of schema-driven records |
@@ -235,7 +237,8 @@ Attributes available on most commands:
 | `events` | DOM events that re-run the command |
 | `OnProcessing` · `OnProcessed` · `OnRendering` · `OnRendered` | Names of global functions called around processing |
 
-The runnable pages in [`example/`](example/) show each command in use.
+The runnable pages in [`example/`](example/) show each command in use, and the
+[developer guide](docs/README.md) documents every command in detail.
 
 ---
 
@@ -424,6 +427,7 @@ with the next release:
 | `cms.cms` date values use a zero-based month and the day of the week (`getMonth()`, `getDay()`) | `[##cms.cms.date##]` shows e.g. `2026/08/02` on 29 September 2026 | Format dates in JavaScript until fixed |
 | The web connection compares the verb case-sensitively | `"default.source.verb": "get"` sends a GET with a body, which the browser rejects | Write verbs in upper case: `"GET"` |
 | An unset `default.dmnid` is sent as the text `null` | The server receives `dmnid=null` | Set `default.dmnid`, or treat `null` as empty on the server |
+| `view` renders the level-1 face of each group but not the level-2 rows | Grouped details are missing | Use `tree` or nested `print` |
 | The console banner says `2.39.7` | Cosmetic; the package version is 2.39.6 | — |
 
 ---
