@@ -369,10 +369,12 @@ into the page.
 | `$bc.new()` | A separate runtime instance with its own sources |
 | `$bc.global` · `$bc.all` | The default instance and every instance created |
 | `$bc.util` | Helpers: `getLibAsync`, `toNode`, `toElement`, `format`, `cloneDeep`, `getRandomName` and others |
-| `.GetCommandList()` · `.GetCommandListByCore(core)` | Inspect the commands an instance built |
+| `$bc.global.GetCommandList()` · `.GetCommandListByCore(core)` | Inspect the commands an instance built (instance methods, not on `$bc` itself) |
 
-`$bc.setSource` also starts the default instance if it has not run yet, so call it from a script
-placed after the markup it feeds (for example at the end of `<body>`).
+Automatic rendering happens on `window` `load` only when no instance has been created yet.
+`$bc.setSource` starts the default instance immediately, so call it from a script placed after the
+markup it feeds (for example at the end of `<body>`). `addFragment` and `setOptions` must be called
+before that instance runs; afterwards they throw.
 
 `window.basiscore` exposes the classes (`BasisCore`, `HostOptions`, `MergeType`, the command
 components, `LocalDataBase` and more) for advanced use and for writing components.
