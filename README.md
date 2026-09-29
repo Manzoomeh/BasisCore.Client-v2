@@ -194,8 +194,8 @@ loaders and renderers stay in sync without event code.
 ### Merging
 
 When a source is set again, the new rows **replace** the old ones by default. Use the `append`
-merge type (`bc-merge="append"` on elements, or `{ mergeType }` in source options) to add rows
-instead; when both sides have a key field, a row with an existing key replaces the old row (and a status field can mark rows for removal).
+merge type (`bc-merge="append"` on elements, or `{ mergeType: basiscore.MergeType.append }` in
+source options — the numeric value `1` in server responses) to add rows instead; when both sides have a key field, a row with an existing key replaces the old row (and a status field can mark rows for removal).
 
 ---
 
@@ -347,8 +347,11 @@ element's HTML, with tokens already resolved) and `dmnid`. With `POST` they are 
 }
 ```
 
-Return one entry in `sources` per `<member>`; `tableName` is the source id (`name.member`) the
-rows are published under.
+Return one entry in `sources` per `<member>`, **in the same order**: `dbsource` maps the results to
+its members by position and publishes them as `name.member` (for example `shop.products`). A
+different number of results than members is an error. `tableName` is not used by `dbsource`; it is
+the source id for the `api` command, which publishes every entry of a `sources` envelope under its
+`tableName` (or the whole JSON under its `name` when there is no envelope).
 
 `call` fetches `connection.web.callcommand` + the `file` attribute and inserts the returned HTML
 into the page.
@@ -381,9 +384,12 @@ components, `LocalDataBase` and more) for advanced use and for writing component
 Requirements: Node.js and npm.
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 npm run dev        # webpack dev server on http://localhost:3000
 ```
+
+`--legacy-peer-deps` is needed because `uglifyjs-webpack-plugin` still declares a webpack 4 peer
+dependency.
 
 The dev server serves the library and the pages in [`example/`](example/), plus mock back ends
 under `/api`, `/schema`, `/blob`, `/assets`, `/chunk` and `/validation` (see [`server/`](server/)).
@@ -407,7 +413,9 @@ Source layout: `src/component` (commands), `src/context` (sources and contexts),
 
 ## Known issues in 2.39.6
 
-Found while verifying this README against the source and the published bundle:
+Found while verifying this README against the source and the published bundle. The first three
+are fixed in [#93](https://github.com/Manzoomeh/BasisCore.Client-v2/pull/93) and will disappear
+with the next release:
 
 | Issue | Effect | Work-around |
 |---|---|---|
