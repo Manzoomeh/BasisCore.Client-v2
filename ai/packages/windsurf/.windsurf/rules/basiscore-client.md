@@ -65,6 +65,8 @@ not something you author. Inventory and host configuration keys: `docs/ai/basisc
   response matches neither branch of `Repository.setSourceEx`, and the source is **not stored**.
   Use `basiscore.MergeType.append` or `1`. `push` and `join` are not merge types (`join` is an
   `inlinesource` member format). `bc-merge="append"` on elements is parsed and is fine.
+- **`MergeType` members are lower case:** `basiscore.MergeType.append`;
+  `basiscore.MergeType.Append` is `undefined` and silently means replace.
 - **Row status values are numbers too:** `added = 0`, `edited = 1`, `deleted = 2`. `DataStatus`
   is not exported on `window.basiscore`; use the numbers.
 - **`dbsource` maps results by position.** Results are assigned to `<member>` elements in order
@@ -74,6 +76,10 @@ not something you author. Inventory and host configuration keys: `docs/ai/basisc
   The `api` command is different: it publishes each `sources[i]` under its `options.tableName`,
   or the whole JSON under `name` (default `cms.api`) when there is no `sources` envelope.
 - **`host.sources` accepts an array of rows, or `{ data, options }`** — not `{ rows: [...] }`.
+- **Write `<member>` with an explicit closing tag.** HTML does not self-close
+  `<member … />`; the following members end up nested inside it.
+- **`bc-triggers` calls `preventDefault()`** on its events: `click` on a checkbox stops it
+  toggling; use `change`.
 - **`bc-triggers` takes DOM event names** (`keyup change`, `submit`), never source ids.
 - **`$bc.addFragment(...)` after the page has run throws** "Can't add fragment for already builded
   bc object".
@@ -103,6 +109,11 @@ not something you author. Inventory and host configuration keys: `docs/ai/basisc
 - **Auto-render runs on `load` only if no instance exists yet;** calling `$bc.new()`,
   `$bc.setSource()` or `$bc.run()` earlier replaces it.
 - **`schemalist` is minimal in 2.39.6:** it renders question titles and ignores faces.
+- **`web` connections send no cookies** (`credentials: "omit"`); pass what the server needs in
+  the command's attributes or the URL.
+- **An unknown provider in a `connection.<provider>.<name>` key stops the whole page** from
+  being processed. Valid providers: `web`, `rest`, `websocket`, `chunkbased`, `local`, `push`.
+- **Token values written into text are inserted as HTML,** not as plain text.
 - **AlaSQL** is loaded on demand from `host.dbLibPath` (default `/alasql.min.js`) for face
   `filter`, member `sort`/`postsql`, `inlinesource` joins and `$bc.util.source` SQL helpers.
 
@@ -114,6 +125,11 @@ Fixed in https://github.com/Manzoomeh/BasisCore.Client-v2/pull/93 (not yet relea
 - A lower-case verb (`"default.source.verb": "get"`) on a `web` connection sends a GET with a body,
   which the browser rejects. Write verbs in upper case.
 - An unset `default.dmnid` is sent to the server as the text `null`.
+
+Not fixed yet:
+
+- `view` renders the level-1 face of each group, but the level-2 rows never appear in `@child`.
+  Use `tree` (a parent row per group) or nested `print` instead.
 
 ## Working rules
 
