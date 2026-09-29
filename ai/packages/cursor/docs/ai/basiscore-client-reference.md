@@ -661,6 +661,7 @@ Grouped master/detail renderer that groups flat rows by a column, renders one le
 **Children**: `<face>` · `<else-layout>`
 
 **Caveats**
+- error: In 2.39.6 the level-2 rows are not inserted into `@child`; only the level-1 faces render. Use `tree` or nested `print`.
 - warning: The short label "single-record display" is incomplete: view is really a grouped renderer over multiple rows.
 - error: A level-1 face without @child renders parent markup but the child rows have nowhere to go.
 
@@ -883,7 +884,7 @@ Client-side derived-source factory that executes each child <member> in memory a
   <member name="star" format="join"
           lefttblcol="db.data1.id"
           righttblcol="db.data2.studentid"
-          jointype="leftjoin" />
+          jointype="leftjoin"></member>
 </basis>
 ```
 
