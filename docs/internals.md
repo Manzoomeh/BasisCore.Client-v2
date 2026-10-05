@@ -139,7 +139,7 @@ export enum Priority { high, normal, low, none }
 | `low` | everything else that extends `Component` without overriding: `print`, `list`, `tree`, `view`, `chart`, `schema`, `schemalist`, `schemauploader`, `cookie`, `group`, `repeater`, `component` |
 | `none` | `callback`, the `bc-triggers` HTML components, `TextComponent`, `AttributeComponent` |
 
-`ComponentCollection.runAsync` awaits `Promise.all` of `processAsync()` for every `high` component, then for every `normal` one, then for every `low` one. `none` components are never processed by a wave; they run only when one of their trigger sources is set (text and attribute tokens render their initial value in `initializeAsync`, HTML components attach their DOM listeners there). A renderer whose source is not yet available simply waits on it (`waitToGetSourceAsync`), which is why the `low` wave does not block on data.
+`ComponentCollection.runAsync` awaits `Promise.all` of `processAsync()` for every `high` component, then for every `normal` one, then for every `low` one. `none` components are never processed by a wave; they run only when one of their trigger sources is set (text and attribute tokens render their initial value in `initializeAsync`, HTML components attach their DOM listeners there). A renderer whose source is not yet available does not wait on it: `SourceBaseComponent.processAsync` registers `datamembername` as a trigger and `runAsync` looks the source up with `tryToGetSource`, rendering nothing when it is absent and again when the trigger fires. That is why the `low` wave does not block on data, while a `normal`-wave `inlinesource` member that calls `waitToGetSourceAsync` does block the `low` wave until its input exists.
 
 Each nested `ComponentCollection` (inside `group`, `repeater`, or the rendered output of a `RenderableComponent` when `processRenderedContent` is on, and anything a user component passes to `processNodesAsync`) repeats the same three waves for its own nodes.
 
@@ -212,7 +212,7 @@ Lines you will see, and where they come from:
 | `error in dispose component` | `UserDefineComponent.disposeAsync` | a user component's `disposeAsync` threw |
 | `Error in parse 'if' attribute expression in command: '<expr>'` | `ElementBaseComponent.getIfValueAsync` | `if` is not valid JavaScript |
 
-A healthy page start therefore reads: banner, `cms.request Added...`, `cms.cms Added...` (and `cms.query`, `cms.cookie` when present), a series of `handler Added for ...` and `wait for ...` lines while renderers subscribe, then `<id> Added... N Row(s)` lines as loaders complete. A `wait for x.y` with no later `x.y Added` is the signature of a misspelled source name. `preview="true"` on a `<member>` and a `callback` command without `method` dump a source through `logSource`.
+A healthy page start therefore reads: banner, `cms.request Added...`, `cms.cms Added...` (and `cms.query`, `cms.cookie` when present), a series of `handler Added for ...` lines while renderers subscribe to their `datamembername`, `wait for ...` lines from `inlinesource` members and tokens that await an input, then `<id> Added... N Row(s)` lines as loaders complete. Renderers themselves never print `wait for` (they render when their trigger fires). A `wait for x.y` with no later `x.y Added` is the signature of a misspelled source name. `preview="true"` on a `<member>` and a `callback` command without `method` dump a source through `logSource`.
 
 The `debug` host option is stored but not read anywhere in the library; it does not change logging.
 
@@ -306,28 +306,33 @@ Pages load the library as `<script src="/basiscore.js">`, which the dev server r
   <member name="rows" format="sql">select 1 as id, 'a' as title</member>
 </basis>
 <basis core="print" datamembername="demo.rows" run="atclient">
-  <face><p>@title</p></face>
+  <face><p>@title@</p></face>
 </basis>
 <script>
   var host = { autoRender: false };
   window.addEventListener("load", () => {
-    const wrapper = $bc.run();
-    wrapper.manager.Add((bc) => {
+    const wrapper = $bc.global;              // the wrapper exists before run()
+    wrapper.manager.Add((bc) => {            // handlers added after run() never fire
       bc.content.initializeTask.then(() => {
         console.log(wrapper.GetCommandList().map((c) => c.core));      // ["inlinesource", "print"]
         console.log(wrapper.GetCommandListByCore("print")[0].priority); // 2 (Priority.low)
-        console.log(bc.context.tryToGetSource("demo.rows")?.rows);
+        console.log(bc.context.tryToGetSource("demo.rows")?.rows);      // undefined: not rendered yet
       });
     });
+    wrapper.run();
   });
 </script>
 ```
 
+`initializeTask` resolves when every component has been extracted and initialised, before the
+waves run, so `demo.rows` is still undefined at that point; read it later from a `callback` or an
+`OnRendered` hook.
+
 ### Two isolated runtimes on one page
 
 ```html
-<div id="left"><basis core="print" datamembername="a.b" run="atclient"><face>@x</face></basis></div>
-<div id="right"><basis core="print" datamembername="a.b" run="atclient"><face>@x</face></basis></div>
+<div id="left"><basis core="print" datamembername="a.b" run="atclient"><face>@x@</face></basis></div>
+<div id="right"><basis core="print" datamembername="a.b" run="atclient"><face>@x@</face></basis></div>
 <script>
   var host = { autoRender: false };
   window.addEventListener("load", () => {

@@ -129,6 +129,36 @@
       "file": "commands/group.html",
       "doc": "docs/commands/group.md",
       "title": "group"
+    },
+    {
+      "file": "commands/inlinesource.html",
+      "doc": "docs/commands/inlinesource.md",
+      "title": "inlinesource"
+    },
+    {
+      "file": "commands/callback.html",
+      "doc": "docs/commands/callback.md",
+      "title": "callback"
+    },
+    {
+      "file": "commands/cookie.html",
+      "doc": "docs/commands/cookie.md",
+      "title": "cookie"
+    },
+    {
+      "file": "foundations/javascript-api.html",
+      "doc": "docs/javascript-api.md",
+      "title": "JavaScript API"
+    },
+    {
+      "file": "foundations/javascript-api-autorun.html",
+      "doc": "docs/javascript-api.md",
+      "title": "JavaScript API - auto-run"
+    },
+    {
+      "file": "foundations/internals.html",
+      "doc": "docs/internals.md",
+      "title": "internals"
     }
   ]
 }

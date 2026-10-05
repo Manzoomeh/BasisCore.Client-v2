@@ -321,6 +321,9 @@ function printResult(r) {
     } else if (opts.verbose) {
       console.log("   " + (t.status === "passed" ? "+" : t.status === "defect" ? "!" : "-") + " " + t.name + (t.reason ? " (" + t.reason + ")" : ""));
     }
+    if (opts.verbose && t.notes && t.notes.length) {
+      console.log("     note: " + t.notes.join("\n     note: "));
+    }
   }
   if (r.uncaughtErrors && r.uncaughtErrors.length) {
     console.log("   uncaught: " + r.uncaughtErrors.join(" | "));

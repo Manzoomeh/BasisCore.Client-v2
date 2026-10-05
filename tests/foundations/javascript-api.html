@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JavaScript API</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "inlinesource.print1": [
+          { id: 1, name: "data#1" },
+          { id: 2, name: "data#2" },
+          { id: 5, name: "data#5" }
+        ]
+      },
+      repositories: {
+        "demo.widget": "/tests/fixtures/javascript-api/demo.widget.js",
+        "acme": "/tests/fixtures/javascript-api/acme.js"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/javascript-api.md">
+  <main>
+    <h1>JavaScript API</h1>
+    <p class="intro">
+      Checks <code>docs/javascript-api.md</code>: the <code>$bc</code> factory, <code>BCWrapper</code>
+      instances (fragments, options, <code>run</code>, <code>setSource</code>, <code>manager</code>,
+      <code>GetCommandList*</code>), <code>$bc.util</code> and <code>$bc.util.source</code>, the
+      <code>basiscore</code> global, the <code>IContext</code> surface, code blocks, callback argument
+      shapes, <code>EventManager</code>, <code>LocalDataBase</code> and the known
+      <code>wrapper.setSource()</code> defect.
+    </p>
+
+    <section class="case" id="case-ticking">
+      <h2>Publish a source and react in a callback</h2>
+      <div id="time">Time is [##data.time.hh|(00)##]:[##data.time.mm|(00)##]:[##data.time.ss|(00)##]</div>
+      <basis core="callback" run="atclient" triggers="data.time" method="onTime"></basis>
+    </section>
+
+    <section class="case" id="case-lazy">
+      <h2>Lazy-load a library and derive a source in <code>OnProcessing</code></h2>
+      <ul id="filtered">
+        <basis core="print" datamembername="inlinesource.print1" run="atclient" OnProcessing="filter"
+               OnRendering="printRendering" OnRendered="printRendered">
+          <face><li>@id@ - @name@</li></face>
+        </basis>
+      </ul>
+    </section>
+
+    <section class="case" id="case-timer">
+      <h2>Timer-driven callback</h2>
+      <basis core="callback" run="atclient" events="timer.100" method="timerCallback"></basis>
+    </section>
+
+    <section class="case" id="case-commands">
+      <h2>Commands seen by <code>GetCommandList</code></h2>
+      <basis core="Print" datamembername="cmd.caps" run="atclient"><face><span class="caps">@v@</span></face></basis>
+      <input id="cmd-input" name="cmd.input" bc-triggers="keyup" OnProcessing="inputProcessing" />
+      <basis core="group" run="atclient">
+        <basis core="print" datamembername="cmd.inner" run="atclient"><face><span class="inner">@v@</span></face></basis>
+      </basis>
+    </section>
+
+    <section class="case" id="case-code">
+      <h2>Code blocks: <code>$bc</code> is the context</h2>
+      <span id="code">{{ const s = $bc.tryToGetSource('cb.x'); return s ? s.rows[0].v * 2 : 'waiting'; }}</span>
+      <span id="code-null">[{{ return null; }}]</span>
+      <span id="code-ctx">{{ return typeof $bc.setAsSource + '/' + typeof $bc.setSource + '/' + typeof $bc.run; }}</span>
+    </section>
+
+    <section class="case" id="case-engines">
+      <h2>Several engines on one page</h2>
+      <!-- bc-ignore keeps the global engine away from these fragments; the tests run them with $bc.new() -->
+      <div bc-ignore>
+        <div id="section-1">Local: [##data.time.hh|(00)##]:[##data.time.mm|(00)##]</div>
+        <div class="section-2">UTC: {data.time.hh|(00)}:{data.time.mm|(00)}</div>
+        <div id="defect-mount"><span class="d">[##a.b.x|(empty)##]</span></div>
+        <div id="manager-mount"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const timeCalls = [];
+    function onTime(args) {
+      timeCalls.push({ id: args.source.id, row: args.source.rows[0] });
+    }
+
+    async function filter(args) {
+      const rows = await $bc.util.source.filterAsync(args.source, "id > 1", args.context);
+      args.source = $bc.util.source.new("inlinesource.print1", rows);
+    }
+    const hookArgs = { rendering: [], rendered: [], input: [] };
+    function printRendering(args) { hookArgs.rendering.push(args); }
+    function printRendered(args) { hookArgs.rendered.push(args); }
+    function inputProcessing(args) {
+      hookArgs.input.push(Object.assign({}, args));
+      args.value = String(args.value).toUpperCase();
+    }
+
+    let count = 5;
+    const ticks = [];
+    function timerCallback(arg) {
+      ticks.push(arg.source.rows[0].value);
+      if (--count <= 0) {
+        clearInterval(arg.source.rows[0].value);
+      }
+    }
+  </script>
+
+  <script>
+    const ctx = () => $bc.global.basiscore.context;
+
+    bcTest.test("$bc: global, all, new, run, addFragment, setOptions, setSource, util; basiscore.$bc is $bc", async (t) => {
+      t.equal(typeof $bc, "object");
+      t.ok(basiscore.$bc === $bc);
+      ["new", "run", "addFragment", "setOptions", "setSource"].forEach((m) => t.equal(typeof $bc[m], "function", m));
+      t.ok($bc.global === $bc.all[0], "the auto-run created the global wrapper first");
+      t.ok($bc.global.basiscore, "the global wrapper has run (auto-run on load)");
+      const before = $bc.all.length;
+      const w = $bc.new();
+      t.equal($bc.all.length, before + 1);
+      t.ok($bc.all[$bc.all.length - 1] === w, "new() appends to all");
+      t.equal(w.basiscore, null, "basiscore is null before run()");
+      t.equal(w.elementList, null, "elementList is null until addFragment");
+      t.equal(typeof $bc.util.getLibAsync, "function");
+      t.equal(typeof $bc.util.source.runSqlAsync, "function");
+    });
+
+    bcTest.test("$bc.setSource publishes to the global wrapper and the text tokens and callback follow", async (t) => {
+      await t.waitForText("#time", "Time is 00:00:00");
+      $bc.setSource("data.time", { hh: 10, mm: 5, ss: 7 });
+      await t.waitForText("#time", "Time is 10:5:7");
+      await t.waitFor(() => timeCalls, (c) => c.length === 1);
+      t.equal(timeCalls[0].id, "data.time");
+      t.deepEqual(timeCalls[0].row, { hh: 10, mm: 5, ss: 7 });
+    });
+
+    bcTest.test("OnProcessing with filterAsync + source.new derives the rendered source; alasql is loaded from dbLibPath", async (t) => {
+      const items = await t.waitFor(() => t.$$("#filtered li"), (l) => l.length === 2, { timeout: 10000 });
+      t.deepEqual(items.map((li) => t.text(li)), ["2 - data#2", "5 - data#5"]);
+      t.equal(typeof alasql, "function", "the alasql global exists after the load");
+      const line = t.consoleMessages(/loaded from/).find((m) => /alasql/.test(m));
+      t.ok(line && /\/node_modules\/alasql\/dist\/alasql\.min\.js/.test(line), "getLibAsync logs '<objectName> loaded from <url>'");
+      t.ok(t.$('script[src="/node_modules/alasql/dist/alasql.min.js"]'), "the script element was appended to <head>");
+      t.equal(t.rows("inlinesource.print1").length, 3, "the stored source is untouched; only the rendered one was replaced");
+    });
+
+    bcTest.test("callback argument shapes: OnRendering { context, node, source, prevent }, OnRendered { ..., result }, input OnProcessing { context, node, id, value }", async (t) => {
+      await t.waitFor(() => hookArgs.rendered, (l) => l.length >= 1, { timeout: 10000 });
+      t.deepEqual(Object.keys(hookArgs.rendering[0]).sort(), ["context", "node", "prevent", "source"]);
+      t.equal(hookArgs.rendering[0].prevent, false);
+      t.deepEqual(Object.keys(hookArgs.rendered[0]).sort(), ["context", "node", "result", "source"]);
+      t.ok(hookArgs.rendered[0].context === ctx());
+
+      t.setValue("#cmd-input", "abc", ["keyup"]);
+      await t.waitForSource("cmd.input");
+      t.deepEqual(Object.keys(hookArgs.input[0]).sort(), ["context", "id", "node", "value"]);
+      t.equal(hookArgs.input[0].id, "cmd.input");
+      t.equal(hookArgs.input[0].value, "abc");
+      t.deepEqual(t.rows("cmd.input"), [{ value: "ABC" }], "reassigning args.value changes what is published");
+    });
+
+    bcTest.test("timer-driven callback: rows[0].value is the interval id and clearInterval stops it", async (t) => {
+      await t.waitFor(() => ticks, (l) => l.length === 5);
+      t.equal(typeof ticks[0], "number");
+      await t.sleep(350);
+      t.equal(ticks.length, 5);
+    });
+
+    bcTest.test("GetCommandList lists root <basis> commands only; GetCommandListByCore compares the raw core text; GetComponentList adds bc-triggers elements and text tokens", async (t) => {
+      const w = $bc.global;
+      const commands = w.GetCommandList();
+      t.equal(commands.length, 5, "callback, print, callback, Print, group");
+      t.ok(commands.every((c) => typeof c.core === "string"), "every entry is a <basis> command with a core");
+      t.ok(!commands.some((c) => c instanceof basiscore.HTMLInputComponent), "the <input bc-triggers> is not a CommandComponent, so it is not listed");
+      t.ok(commands.some((c) => c instanceof basiscore.GroupComponent), "the group is a command");
+      const prints = commands.filter((c) => c instanceof basiscore.PrintComponent);
+      t.equal(prints.length, 2, "the print inside the group is not in the root collection");
+      t.equal(w.GetCommandListByCore("Print").length, 1, "core='Print' is found by its exact text");
+      t.equal(w.GetCommandListByCore("print").length, 1, "and not by 'print'");
+      t.ok(w.GetCommandListByCore("print")[0] !== w.GetCommandListByCore("Print")[0], "two different commands");
+      t.equal(w.GetCommandListByCore("callback").length, 2);
+      const components = w.GetComponentList();
+      t.ok(components.length > commands.length, "text/attribute components are included");
+      t.ok(components.some((c) => c instanceof basiscore.HTMLInputComponent), "the <input bc-triggers> component is in GetComponentList");
+      t.ok(components.some((c) => c.node && c.node.nodeType === Node.TEXT_NODE), "text tokens are components");
+      t.ok(w.basiscore === $bc.global.basiscore && typeof w.basiscore.setSource === "function", "wrapper.basiscore is the engine");
+      $bc.setSource("cmd.caps", { v: "capital" });
+      await t.waitForText("#case-commands .caps", "capital", { message: "core='Print' is resolved as the print command" });
+    });
+
+    bcTest.test("BCWrapper: addFragment warnings and ClientException messages, run() once, manager before/after run", async (t) => {
+      const w = $bc.new();
+      w.addFragment("#does-not-exist");
+      t.ok(t.consoleMessages(/^Selector '#does-not-exist' don't refer to any element\(s\)\.$/).length === 1);
+      t.deepEqual(w.elementList, [], "elementList exists but is empty");
+      t.throws(() => w.run(), /^No element\(s\) selected for start rendering!$/);
+      t.throws(() => w.addFragment(123), /^Invalid selector$/);
+
+      const mount = t.$("#manager-mount");
+      mount.innerHTML = '<p class="m">[##m.x.v|(none)##]</p>';
+      const w2 = $bc.new().addFragment(mount).setOptions({ settings: { "default.dmnid": 42 } });
+      const seen = [];
+      w2.manager.Add((bc) => seen.push(bc));
+      t.ok(w2.run() === w2, "run() returns the wrapper");
+      t.equal(seen.length, 1, "a handler added before run() is called once with the engine");
+      t.ok(seen[0] === w2.basiscore);
+      t.equal(w2.basiscore.context.options.getDefault("dmnid"), 42, "setOptions is merged over the defaults");
+      t.ok(w2.run() === w2 && seen.length === 1, "a second run() is a no-op");
+      w2.manager.Add((bc) => seen.push(bc));
+      await t.sleep(50);
+      t.equal(seen.length, 1, "a handler added after run() never fires");
+      t.throws(() => w2.addFragment("#manager-mount"), /^Can't add fragment for already builded bc object\.$/);
+      t.throws(() => w2.setOptions({}), /^Can't set option for already builded bc object\.$/);
+      t.throws(() => w.GetCommandList(), /Cannot read properties of null/, "Get* dereference basiscore before run");
+      await t.waitForText("#manager-mount .m", "none");
+      w2.setSource("m.x", { v: "set" });
+      await t.waitForText("#manager-mount .m", "set");
+    });
+
+    bcTest.test("several engines on one page keep separate repositories and can use different token syntaxes", async (t) => {
+      const bc = $bc.new().addFragment("#section-1").run();
+      const bc2 = $bc.new().addFragment(".section-2").setOptions({ settings: { "default.binding.regex": /\{([^\}]*)\}/ } }).run();
+      await t.waitForText("#section-1", "Local: 00:00");
+      await t.waitForText(".section-2", "UTC: 00:00");
+      bc.setSource("data.time", { hh: 10, mm: 20 });
+      bc2.setSource("data.time", { hh: 7, mm: 5 });
+      await t.waitForText("#section-1", "Local: 10:20");
+      await t.waitForText(".section-2", "UTC: 7:5");
+      t.deepEqual(bc.basiscore.context.tryToGetSource("data.time").rows[0], { hh: 10, mm: 20 });
+      t.deepEqual(bc2.basiscore.context.tryToGetSource("data.time").rows[0], { hh: 7, mm: 5 });
+      t.deepEqual(ctx().tryToGetSource("data.time").rows[0], { hh: 10, mm: 5, ss: 7 }, "the global data.time is a third, unrelated source");
+    });
+
+    bcTest.test("BCWrapper.setSource publishes after initializeTask: tryToGetSource right after the call does not see it yet", async (t) => {
+      const w = $bc.global;
+      w.setSource("late.x", { v: 1 });
+      t.equal(ctx().tryToGetSource("late.x"), undefined, "not yet published synchronously");
+      const src = await ctx().waitToGetSourceAsync("late.x");
+      t.deepEqual(src.rows, [{ v: 1 }]);
+    });
+
+    bcTest.defect("known defect: wrapper.setSource() on a $bc.new() wrapper that has not run only runs it and discards the data", async (t) => {
+      const w = $bc.new().addFragment("#defect-mount");
+      w.setSource("a.b", [{ x: "lost" }]);
+      t.ok(w.basiscore, "setSource ran the wrapper");
+      await t.waitForText("#defect-mount .d", "empty");
+      await t.sleep(200);
+      t.equal(w.basiscore.context.tryToGetSource("a.b"), undefined, "a.b was never published");
+      t.equal(t.text("#defect-mount .d"), "empty");
+    });
+
+    bcTest.test("$bc.util: format, getRandomName, storeAsGlobal, cloneDeep, defaultsDeep", (t) => {
+      t.equal($bc.util.format("{0} of {1} ({2})", 3, 10), "3 of 10 ({2})");
+      t.match($bc.util.getRandomName("pre", "post"), /^pre_\d{13}_[a-z0-9]+_post$/);
+      t.match($bc.util.getRandomName(), /^_\d{13}_[a-z0-9]+_$/);
+      const data = { k: 1 };
+      const name = $bc.util.storeAsGlobal(data, "myStoredGlobal");
+      t.equal(name, "myStoredGlobal");
+      t.ok(window.myStoredGlobal === data);
+      const generated = $bc.util.storeAsGlobal(data, undefined, "g", "x");
+      t.match(generated, /^g_\d+_[a-z0-9]+_x$/);
+      t.ok(window[generated] === data);
+      const src = { a: { b: [1, 2] } };
+      const copy = $bc.util.cloneDeep(src);
+      t.deepEqual(copy, src);
+      t.ok(copy !== src && copy.a !== src.a && copy.a.b !== src.a.b, "deep copy");
+      const user = { size: 2, nested: { x: undefined } };
+      const defaults = { size: 1, color: "red", nested: { x: 9, y: 8 } };
+      const merged = $bc.util.defaultsDeep(user, defaults);
+      t.deepEqual(merged, { size: 2, color: "red", nested: { x: 9, y: 8 } }, "missing (undefined) properties are filled recursively");
+      t.deepEqual(user, { size: 2, nested: { x: undefined } }, "data is not mutated");
+      t.deepEqual(defaults, { size: 1, color: "red", nested: { x: 9, y: 8 } }, "defaults are not mutated");
+    });
+
+    bcTest.test("$bc.util.toNode, toHTMLElement and toElement differ in parser, root count, namespaces and whitespace", (t) => {
+      const frag = $bc.util.toNode("<b>one</b> two <i>three</i>");
+      t.ok(frag instanceof DocumentFragment);
+      t.equal(frag.childNodes.length, 3, "several roots, text kept");
+      t.equal(frag.childNodes[1].textContent, " two ");
+
+      const html = $bc.util.toHTMLElement("<div class='c'>\n  <svg><circle r='1'/></svg>\n  <textarea> raw </textarea>\n</div>");
+      t.equal(html.tagName, "DIV");
+      t.equal(html.getAttribute("class"), "c");
+      t.equal(html.childNodes.length, 2, "whitespace-only text is dropped");
+      t.equal(html.querySelector("svg").namespaceURI, "http://www.w3.org/1999/xhtml", "always the HTML namespace");
+      t.equal(html.querySelector("textarea").innerHTML, " raw ", "textarea content is copied verbatim");
+      t.equal($bc.util.toHTMLElement("<div> text </div>").textContent, "text", "text nodes are trimmed");
+
+      const el = $bc.util.toElement("<div><svg><circle r='1'/></svg><span>x</span></div>");
+      t.equal(el.namespaceURI, "http://www.w3.org/1999/xhtml");
+      t.equal(el.querySelector("svg").namespaceURI, "http://www.w3.org/2000/svg", "SVG namespace under <svg>");
+      t.equal(el.querySelector("circle").namespaceURI, "http://www.w3.org/2000/svg");
+      t.equal(el.querySelector("span").namespaceURI, "http://www.w3.org/1999/xhtml");
+
+      const bad = $bc.util.toHTMLElement("<div><br></div>");
+      t.ok(bad.tagName === "parsererror" || bad.querySelector("parsererror"), "malformed XML yields the parser's <parsererror> element (as root or inside the partial tree)");
+      t.note("toHTMLElement('<div><br></div>') in this browser: root=" + bad.tagName + ", parsererror inside=" + !!bad.querySelector("parsererror"));
+      const bad2 = $bc.util.toElement("<a><b></a>");
+      t.ok(bad2.tagName === "parsererror" || bad2.querySelector("parsererror"), "toElement does the same instead of throwing");
+      t.equal($bc.util.toNode("<div><br></div>").firstChild.tagName, "DIV", "the HTML parser is forgiving");
+    });
+
+    bcTest.test("$bc.util.getLibAsync resolves at once when the global exists, loads a script once otherwise, rejects on error", async (t) => {
+      const scriptsBefore = document.scripts.length;
+      const lib = await $bc.util.getLibAsync("alasql", "/not-used-because-alasql-exists.js");
+      t.ok(lib === alasql);
+      t.equal(document.scripts.length, scriptsBefore, "no script element added");
+
+      t.equal(typeof window.myLib, "undefined");
+      const [a, b] = await Promise.all([
+        $bc.util.getLibAsync("myLib", "/tests/fixtures/javascript-api/mylib.js"),
+        $bc.util.getLibAsync("myLib", "/tests/fixtures/javascript-api/mylib.js")
+      ]);
+      t.ok(a === window.myLib && b === window.myLib);
+      t.equal(a.answer, 42);
+      t.equal(t.$$('script[src="/tests/fixtures/javascript-api/mylib.js"]').length, 1, "concurrent callers share one script element");
+      t.ok(t.consoleMessages(/loaded from/).some((m) => /myLib/.test(m) && /mylib\.js/.test(m)));
+      t.equal(await $bc.util.getLibAsync("myLib.answer", "/x.js"), 42, "a dotted name is evaluated");
+
+      await t.rejects($bc.util.getLibAsync("neverDefined", "/tests/fixtures/javascript-api/missing.js"));
+    });
+
+    bcTest.test("$bc.util.getComponentAsync: local.<expr>, basiscore.<name>, repositories with prefix fallback, and the not-found exception", async (t) => {
+      window.LocalManager = class LocalManager {};
+      t.ok((await $bc.util.getComponentAsync(ctx(), "local.LocalManager")) === window.LocalManager);
+      t.ok(t.consoleMessages(/loaded from local/).some((m) => /LocalManager/.test(m)));
+      t.ok((await $bc.util.getComponentAsync(ctx(), "basiscore.exposer")) === basiscore.exposer);
+      t.ok(t.consoleMessages(/loaded from basiscore/).some((m) => /exposer/.test(m)));
+      const widget = await $bc.util.getComponentAsync(ctx(), "demo.widget");
+      t.ok(widget === window.demo.widget, "the repository url was loaded and the key evaluated");
+      const box = await $bc.util.getComponentAsync(ctx(), "acme.tools.box");
+      t.ok(box === window.acme.tools.box, "'acme.tools.box' fell back to the 'acme' repository entry and evaluated the full key");
+      await t.rejects($bc.util.getComponentAsync(ctx(), "nobody.home"), /^'nobody\.home' related repository setting not found$/);
+      await t.rejects($bc.util.getComponentAsync(ctx(), ""), /^'' related repository setting not found$/);
+    });
+
+    bcTest.test("$bc.util.addMessageHandler returns true where service workers exist and dispatches event.data.message by event.data.type", async (t) => {
+      t.ok("serviceWorker" in navigator, "http://127.0.0.1 is a secure context");
+      const received = [];
+      const handler = (m) => received.push(m);
+      t.equal($bc.util.addMessageHandler("demo-type", handler), true);
+      t.equal($bc.util.addMessageHandler("demo-type", handler), true, "registering the same function again still returns true");
+      navigator.serviceWorker.dispatchEvent(new MessageEvent("message", { data: { type: "demo-type", message: { hello: "world" } } }));
+      navigator.serviceWorker.dispatchEvent(new MessageEvent("message", { data: { type: "other", message: 1 } }));
+      await t.sleep(50);
+      t.deepEqual(received, [{ hello: "world" }], "called once (Set-backed), only for its type");
+    });
+
+    bcTest.test("$bc.util.source: new, data, sortAsync, filterAsync, runSqlAsync, isNullOrEmpty", async (t) => {
+      const s = $bc.util.source.new("Demo.Rows", [{ id: 2, n: "b" }, { id: 1, n: "a" }, { id: 3, n: "c" }], { keyFieldName: "id" });
+      t.equal(s.id, "demo.rows", "ids are lower-cased");
+      t.equal(s.keyFieldName, "id");
+      t.equal(s.mergeType, basiscore.MergeType.replace);
+      t.deepEqual($bc.util.source.new("x.y", 5).rows, [{ value: 5 }], "a scalar becomes { value }");
+      const d = $bc.util.source.data("x.y", { a: 1 }, { keyFieldName: "a" });
+      t.equal(d.id, "x.y");
+      t.deepEqual(d.rows, [{ a: 1 }]);
+      t.equal(d.options.keyFieldName, "a");
+
+      const sorted = await $bc.util.source.sortAsync(s, "id", ctx());
+      t.equal(sorted.id, "demo.rows");
+      t.equal(sorted.keyFieldName, "id", "options are cloned");
+      t.deepEqual(sorted.rows.map((r) => r.id), [1, 2, 3]);
+      t.ok(sorted !== s && s.rows[0].id === 2, "a new Source; the input is untouched");
+
+      const filtered = await $bc.util.source.filterAsync(s, "id > 1", ctx());
+      t.ok(Array.isArray(filtered) && !(filtered instanceof basiscore.$bc.util.source.new("a.b", []).constructor), "filterAsync returns rows, not a Source");
+      t.deepEqual(filtered.map((r) => r.id), [2, 3]);
+      t.ok((await $bc.util.source.filterAsync(s, "", ctx())) === s.rows, "an empty filter returns source.rows itself");
+
+      const ran = await $bc.util.source.runSqlAsync(s, "SELECT n FROM [DEMO.rows] WHERE id <> 2 ORDER BY n DESC", ctx());
+      t.deepEqual(ran.rows, [{ n: "c" }, { n: "a" }], "[source.id] is replaced case-insensitively");
+      t.equal(ran.id, "demo.rows");
+      await t.rejects($bc.util.source.runSqlAsync(s, "SELECT * FROM [other.table]", ctx()), /other\.table|Parse error|Table/i, "another table name is passed to AlaSQL unchanged and fails");
+
+      t.equal($bc.util.source.isNullOrEmpty(""), true);
+      t.equal($bc.util.source.isNullOrEmpty(null), true);
+      t.equal($bc.util.source.isNullOrEmpty(undefined), true);
+      t.equal($bc.util.source.isNullOrEmpty(" "), false);
+      t.equal($bc.util.source.isNullOrEmpty(0), false);
+    });
+
+    bcTest.test("the basiscore global exports the documented classes and enums; type-only names are undefined", (t) => {
+      const classes = ["BCWrapperFactory", "BasisCore", "HostOptions", "LocalContext", "LocalDataBase", "EventManager", "exposer",
+        "UserDefineComponent", "APIComponent", "CallbackComponent", "CallComponent", "ChartComponent", "CookieComponent",
+        "DbSourceComponent", "GroupComponent", "HTMLFormComponent", "HTMLInputComponent", "HTMLIUnknownComponent",
+        "HTMLSelectComponent", "ListComponent", "PrintComponent", "RepeaterComponent", "SchemaComponent", "TreeComponent", "ViewComponent"];
+      classes.forEach((name) => t.equal(typeof basiscore[name], "function", "basiscore." + name));
+      t.equal(typeof basiscore.MergeType, "object");
+      t.equal(basiscore.MergeType.replace, 0);
+      t.equal(basiscore.MergeType.append, 1);
+      t.equal(basiscore.MergeType[0], "replace", "a numeric enum has reverse mappings");
+      ["IDependencyContainer", "IQuestionSchema", "IUserActionResult"].forEach((name) => t.equal(basiscore[name], undefined, name + " is a type only"));
+      t.equal(basiscore.Priority, undefined, "Priority is not exported");
+      t.equal(basiscore.DataStatus, undefined, "DataStatus is not exported");
+      t.ok($bc instanceof basiscore.BCWrapperFactory);
+      t.ok($bc.global.basiscore instanceof basiscore.BasisCore);
+      t.ok(ctx().options instanceof basiscore.HostOptions);
+    });
+
+    bcTest.test("IContext: options (getDefault, getSetting, originalOptions), logger, sources, handlers, getOrLoadDbLibAsync, checkSourceHeartbeatAsync", async (t) => {
+      const c = ctx();
+      t.equal(c.options.getDefault("source.verb"), "POST");
+      t.equal(c.options.getDefault("SOURCE.VERB"), "POST", "keys are compared case-insensitively");
+      t.equal(c.options.getDefault("dmnid"), null, "the empty default.dmnid counts as missing");
+      t.equal(c.options.getDefault("nothing", "fallback"), "fallback");
+      t.equal(c.options.getSetting("nope", 5), 5);
+      t.throws(() => c.options.getSetting("nope"), /^In 'host\.settings' object, property 'nope' not configured!$/);
+      t.equal(c.options.dbLibPath, "/node_modules/alasql/dist/alasql.min.js");
+      t.deepEqual(c.options.originalOptions, {}, "the global wrapper got no setOptions; host is merged in as defaults");
+      t.equal(c.options.repositories["demo.widget"], "/tests/fixtures/javascript-api/demo.widget.js");
+      ["logSource", "logError", "logInformation", "logWarning"].forEach((m) => t.equal(typeof c.logger[m], "function"));
+
+      t.equal(c.tryToGetSource("ctx.unknown"), undefined);
+      const waiter = c.waitToGetSourceAsync("ctx.later");
+      const seen = [];
+      const handler = (s) => seen.push(s.rows[0].v);
+      c.addOnSourceSetHandler("ctx.later", handler);
+      c.setAsSource("ctx.later", { v: 1 });
+      t.deepEqual((await waiter).rows, [{ v: 1 }], "waitToGetSourceAsync resolves on publication");
+      t.ok((await c.waitToGetSourceAsync("ctx.later")) === c.tryToGetSource("ctx.later"), "an existing source is returned directly");
+      t.deepEqual(seen, [1]);
+      c.removeOnSourceSetHandler("ctx.later", handler);
+      c.setSource($bc.util.source.new("ctx.later", { v: 2 }));
+      t.deepEqual(seen, [1], "removed handlers are not called");
+      t.deepEqual(c.tryToGetSource("ctx.later").rows, [{ v: 2 }]);
+      t.ok((await c.getOrLoadDbLibAsync()) === alasql);
+      t.throws(() => c.checkSourceHeartbeatAsync("x"), /^Method not implemented\.$/);
+    });
+
+    bcTest.test("code blocks: $bc is the context, a tracked tryToGetSource('id') re-renders the block, null renders as ''", async (t) => {
+      await t.waitForText("#code", "waiting");
+      t.equal(t.text("#code-null"), "[]");
+      t.equal(t.text("#code-ctx"), "function/function/undefined", "setAsSource and setSource exist on the context, run does not");
+      $bc.setSource("cb.x", { v: 21 });
+      await t.waitForText("#code", "42");
+    });
+
+    bcTest.test("EventManager: Add validates and dedupes, Remove, Trigger isolates handler exceptions", (t) => {
+      const em = new basiscore.EventManager();
+      t.throws(() => em.Add(null), /^handler null or is not function!$/);
+      t.throws(() => em.Add("x"), /^handler null or is not function!$/);
+      const order = [];
+      const a = () => order.push("a");
+      const boom = () => { throw new Error("handler failed"); };
+      const b = (v) => order.push("b" + v);
+      t.ok(em.Add(a) === a);
+      t.equal(em.Add(a), null, "adding the same function again returns null");
+      em.Add(boom);
+      em.Add(b);
+      const errorsBefore = t.consoleMessages(/handler failed/).length;
+      em.Trigger(1);
+      t.deepEqual(order, ["a", "b1"], "handlers run in insertion order; the throwing one does not stop the rest");
+      t.equal(t.consoleMessages(/handler failed/).length, errorsBefore + 1, "the exception is written with console.error");
+      t.ok(em.Remove(b) === b);
+      t.equal(em.Remove(b), null);
+      em.Trigger(2);
+      t.deepEqual(order, ["a", "b1", "a"]);
+    });
+
+    bcTest.test("LocalDataBase wraps an AlaSQL localStorage database created from the schema map", async (t) => {
+      await ctx().getOrLoadDbLibAsync();
+      try { localStorage.clear(); } catch (e) { /* ignore */ }
+      const db = new basiscore.LocalDataBase("bctestdb", () => new Map([["items", { id: "INT", name: "STRING" }]]));
+      await db.executeAsync("INSERT INTO items VALUES (1, 'one'), (2, 'two')");
+      const rows = await db.executeAsync("SELECT * FROM items ORDER BY id");
+      t.deepEqual(rows, [{ id: 1, name: "one" }, { id: 2, name: "two" }]);
+      const table = await db.executeAsTableAsync("SELECT id, name FROM items WHERE id = ?", [2]);
+      t.deepEqual(table, [["id", "name"], [2, "two"]], "[columnNames, ...rowArrays]");
+      t.deepEqual(await db.executeAsTableAsync("SELECT * FROM items WHERE id = 99"), [[]], "no rows: only an empty column list");
+      t.equal(await db.dropAsync(), true);
+    });
+  </script>
+</body>
+</html>

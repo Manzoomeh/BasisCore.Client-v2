@@ -37,9 +37,9 @@ bc.setSource("data.time", { hh: 10, mm: 5, ss: 0 });
 | `basiscore` | The `IBasisCore` instance (`null` before `run()`), with `context` (the `BasisCoreRootContext`), `setSource`, `GetCommandList`, `GetCommandListByCore`, `GetComponentList`. |
 | `manager` | `EventManager<IBasisCore>`. Handlers added before `run()` are called once with the built engine. Handlers added after `run()` never fire. |
 | `elementList` | The root elements collected by `addFragment` (`null` until the first call). |
-| `GetCommandList()` | All root-level `CommandComponent` instances: `<basis>` commands and HTML elements with `bc-triggers`. Only components of the root collection are listed; components created inside `group`, `repeater`, `call` or rendered content are not. |
+| `GetCommandList()` | All root-level `CommandComponent` instances, that is the `<basis>` commands. HTML elements with `bc-triggers` are `HTMLComponent`s (not `CommandComponent`s) and are only returned by `GetComponentList()`. Only components of the root collection are listed; components created inside `group`, `repeater`, `call` or rendered content are not. |
 | `GetCommandListByCore(core)` | `GetCommandList()` filtered by the raw `core` attribute value with `==` (case-sensitive, full value such as `"component.bc.watermark"`). |
-| `GetComponentList()` | All root-level components, including `[##...##]` text and attribute components. |
+| `GetComponentList()` | All root-level components, including the `bc-triggers` HTML components and the `[##...##]` text and attribute components. |
 
 The three `Get*` methods dereference `basiscore` and throw if the wrapper has not run.
 
@@ -93,7 +93,7 @@ const alasql = await $bc.util.getLibAsync("alasql", "/alasql.min.js");
 
 ### `toHTMLElement(rawXml): HTMLElement`
 
-Parses the string with `DOMParser` as `application/xml` and rebuilds it with `document.createElement(tagName)` (HTML namespace), copying attributes. Text nodes are trimmed and dropped when empty; a `<textarea>` gets its `innerHTML` copied verbatim. Requires well-formed XML with a single root. On a parse error the returned element is the parser's `<parsererror>` element (check `result.tagName === "parsererror"`).
+Parses the string with `DOMParser` as `application/xml` and rebuilds it with `document.createElement(tagName)` (HTML namespace), copying attributes. Text nodes are trimmed and dropped when empty; a `<textarea>` gets its `innerHTML` copied verbatim. Requires well-formed XML with a single root. On a parse error nothing is thrown: the result contains the parser's `<parsererror>` element. Some browsers return it as the root (`result.tagName === "parsererror"`); Chromium-based browsers keep the partially parsed root (or `<html>` when no root could be read) and insert `<parsererror>` into it, so check `result.tagName === "parsererror" || result.querySelector("parsererror")`.
 
 ### `toElement(rawXml): Element`
 
@@ -285,7 +285,7 @@ The `$bc` and `basiscore` globals themselves are not declared; declare them in y
 
 ```html
 <basis core="print" datamembername="inlinesource.print1" run="atclient" OnProcessing="filter">
-  <face><li>@id - @name</li></face>
+  <face><li>@id@ - @name@</li></face>
 </basis>
 
 <script>
@@ -346,7 +346,7 @@ The `$bc` and `basiscore` globals themselves are not declared; declare them in y
 - `GetCommandListByCore` compares the attribute text exactly: `core="Print"` is not found by `GetCommandListByCore("print")`.
 - Inside `{{ }}` code blocks `$bc` is the context, so `$bc.setSource(...)` does not exist there; use `$bc.setAsSource(...)`.
 - `getLibAsync` and `getComponentAsync` resolve names with `eval`; the `objectName` must be a valid JavaScript expression (a dotted global path), and the loaded script must define exactly that path.
-- `toHTMLElement` and `toElement` return a `<parsererror>` element instead of throwing on malformed XML.
+- `toHTMLElement` and `toElement` do not throw on malformed XML; the result is, or contains, a `<parsererror>` element (where it sits depends on the browser).
 - `$bc.util.source.filterAsync` returns a row array, while `sortAsync` and `runSqlAsync` return a `Source`.
 - `runSqlAsync` expects the table to be referenced as `[source.id]` in the SQL; any other table name is passed to AlaSQL unchanged and fails.
 - `IDependencyContainer`, `IQuestionSchema` and `IUserActionResult` are listed in the exports but are types only; `basiscore.IQuestionSchema` is `undefined`.

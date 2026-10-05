@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Internals</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // autoRender: false, as in the examples of docs/internals.md: the tests start the engine.
+    const host = {
+      autoRender: false,
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      settings: {
+        "connection.web.callcommand": "/tests/fixtures/internals/",
+        "default.call.verb": "GET"
+      },
+      sources: {
+        "rp.list": [{ title: "first" }, { title: "second" }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/internals.md">
+  <main>
+    <h1>Internals</h1>
+    <p class="intro">
+      Checks <code>docs/internals.md</code>: the bootstrap sequence and <code>HostOptions.defaultSettings</code>,
+      the 21 registered command tokens and the unknown-core failure, the exported class hierarchy, the three
+      priority waves, contexts and repositories (<code>group</code>, <code>repeater</code>, isolated runtimes),
+      the <code>RangeObject</code> markers, the console lines and the exception messages.
+    </p>
+
+    <section class="case" id="case-inspect">
+      <h2>Inspecting a running page</h2>
+      <div id="demo">
+        <basis core="inlinesource" name="demo" run="atclient">
+          <member name="rows" format="sql">select 1 as id, 'a' as title</member>
+        </basis>
+        <div id="demo-print"><basis core="print" datamembername="demo.rows" run="atclient" OnRendering="hookPrint">
+          <face><p>@title@</p></face>
+        </basis></div>
+      </div>
+    </section>
+
+    <section class="case" id="case-waves">
+      <h2>Priority waves: <code>call</code> (high), sources (normal), renderers (low), <code>callback</code> (none)</h2>
+      <basis core="cookie" name="bc_internals" value="1" run="atclient" OnRendering="hookCookie"></basis>
+      <basis core="callback" run="atclient" triggers="never.set" method="noop" OnRendering="hookCallback"></basis>
+      <div id="called-area">
+        <basis core="call" file="fragment.html" method="GET" run="atclient" OnRendering="hookCall"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-contexts">
+      <h2>Contexts: <code>group</code> gets a <code>LocalRootContext</code>, <code>repeater</code> rows a <code>LocalContext</code></h2>
+      <basis core="group" run="atclient">
+        <basis core="callback" run="atclient" triggers="g.kick" method="inGroup"></basis>
+        <span id="group-out"><basis core="print" datamembername="g.inner" run="atclient"><face><b>@v@</b></face></basis></span>
+      </basis>
+      <div id="repeater-out"><basis core="repeater" datamembername="rp.list" name="row" run="atclient"><div><span class="rp">[##row.current.title##]</span><basis core="callback" run="atclient" triggers="rp.kick" method="inRepeater"></basis></div></basis></div>
+    </section>
+
+    <section class="case" id="case-logging">
+      <h2>Console lines</h2>
+      <div id="log-out">
+        <basis core="print" datamembername="log.later" run="atclient">
+          <layout><div>this layout has no child placeholder</div></layout>
+          <face><i>@n@</i></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-isolated">
+      <h2>Isolated runtimes created by the tests</h2>
+      <!-- bc-ignore: the global engine skips this subtree; each mount is run with $bc.new() -->
+      <div bc-ignore>
+        <div id="nolib-mount"></div>
+        <div id="registry-mount"></div>
+        <div id="unknown-mount"></div>
+        <div id="badif-mount"></div>
+        <div id="wait-mount"></div>
+        <div id="left"><basis core="print" datamembername="a.b" run="atclient"><face>@x@</face></basis></div>
+        <div id="right"><basis core="print" datamembername="a.b" run="atclient"><face>@x@</face></basis></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const waveOrder = [];
+    function hookPrint() { waveOrder.push("print"); }
+    function hookCookie() { waveOrder.push("cookie"); }
+    function hookCallback() { waveOrder.push("callback"); }
+    function hookCall() { waveOrder.push("call"); }
+    function noop() {}
+
+    const groupCalls = [];
+    function inGroup(args) {
+      groupCalls.push(args);
+      args.context.setAsSource("g.inner", [{ v: "inside" }]);
+    }
+    const repeaterCalls = [];
+    function inRepeater(args) {
+      repeaterCalls.push(args);
+    }
+    window.Dummy = class Dummy {};
+
+    const chain = (cls) => {
+      const names = [];
+      let p = cls.prototype;
+      while (p && p !== Object.prototype) {
+        names.push(p.constructor.name);
+        p = Object.getPrototypeOf(p);
+      }
+      return names;
+    };
+    const root = () => $bc.global.basiscore.context;
+  </script>
+
+  <script>
+    bcTest.allowError(/unregistered dependency token/);
+    bcTest.allowError(/Unexpected token/);
+
+    bcTest.test("HostOptions.defaultSettings merges host over the built-in defaults once; an empty dbLibPath throws the ClientException", async (t) => {
+      const d = basiscore.HostOptions.defaultSettings;
+      t.ok(d === basiscore.HostOptions.defaultSettings, "computed once and cached");
+      t.equal(d.autoRender, false);
+      t.equal(d.debug, false);
+      t.equal(d.serviceWorker, false);
+      t.equal(d.dbLibPath, "/node_modules/alasql/dist/alasql.min.js");
+      t.equal(d.settings["default.source.verb"], "POST");
+      t.equal(d.settings["default.dmnid"], "");
+      t.equal(d.settings["connection.web.callcommand"], "/tests/fixtures/internals/");
+      t.ok(d.settings["default.binding.regex"] instanceof RegExp);
+      t.equal($bc.all.length, 0, "autoRender: false, nothing ran on load");
+
+      t.equal(typeof alasql, "undefined", "AlaSQL is not loaded yet");
+      const w = $bc.new().addFragment("#nolib-mount").setOptions({ dbLibPath: "" }).run();
+      await t.rejects(w.basiscore.context.getOrLoadDbLibAsync(), /^Error in load 'alasql'\. 'DbLibPath' not configure properly in host object\.$/);
+      t.equal(w.basiscore.context.options.getDefault("call.verb"), "GET", "the host settings are still merged in");
+    });
+
+    bcTest.test("inspecting a running page: run() returns before anything ran; manager and initializeTask expose the engine", async (t) => {
+      const wrapper = $bc.global;
+      const seen = [];
+      wrapper.manager.Add((bc) => seen.push(bc));
+      wrapper.run();
+      t.ok(seen[0] === wrapper.basiscore, "manager handlers added before run() receive the engine");
+      const cores = wrapper.GetCommandList().map((c) => c.core);
+      t.deepEqual(cores.slice(0, 2), ["inlinesource", "print"], "commands are extracted synchronously, in document order");
+      t.equal(wrapper.basiscore.context.tryToGetSource("demo.rows"), undefined, "but nothing has run yet");
+      t.equal(wrapper.GetCommandListByCore("print")[0].priority, 2, "Priority.low");
+      await wrapper.basiscore.content.initializeTask;
+      t.equal(t.$$("#demo-print p").length, 0, "initializeTask resolves after extraction, before rendering");
+      await t.waitForText("#demo-print", "a", { timeout: 10000 });
+      t.deepEqual(wrapper.basiscore.context.tryToGetSource("demo.rows").rows, [{ id: 1, title: "a", rownumber: 1 }]);
+      t.ok(basiscore.$bc.global.basiscore instanceof basiscore.BasisCore);
+    });
+
+    bcTest.test("priorities: call 0, sources 1, renderers and cookie 2, callback 3; waves run high, normal, low and never none", async (t) => {
+      const w = $bc.global;
+      t.equal(w.GetCommandListByCore("call")[0].priority, 0);
+      t.equal(w.GetCommandListByCore("inlinesource")[0].priority, 1);
+      t.equal(w.GetCommandListByCore("print")[0].priority, 2);
+      t.equal(w.GetCommandListByCore("cookie")[0].priority, 2);
+      t.equal(w.GetCommandListByCore("group")[0].priority, 2);
+      t.equal(w.GetCommandListByCore("repeater")[0].priority, 2);
+      t.equal(w.GetCommandListByCore("callback")[0].priority, 3);
+      await t.waitForText("#called-area", "called: default", { timeout: 10000 });
+      await t.waitFor(() => waveOrder, (o) => o.includes("print") && o.includes("cookie"));
+      t.equal(waveOrder[0], "call", "the high wave runs first although the call is last in the document");
+      t.ok(waveOrder.indexOf("print") > 0 && waveOrder.indexOf("cookie") > 0, "low commands run after the high wave");
+      t.ok(!waveOrder.includes("callback"), "Priority.none is never processed by a wave");
+      t.ok(t.consoleMessages(/^inlinesource\b|demo\.rows Added\.\.\. 1 Row\(s\)/).length >= 1);
+      const demoLog = t.consoleMessages(/demo\.rows Added/);
+      t.ok(demoLog.length === 1, "the normal wave published demo.rows once");
+      t.ok(document.cookie.split("; ").includes("bc_internals=1"), "the cookie command ran in the low wave");
+    });
+
+    bcTest.test("21 registered tokens: 17 <basis> cores (case-insensitive, cut at the first dot) and 4 bc-triggers tags", async (t) => {
+      const mount = t.$("#registry-mount");
+      const cores = ["print", "list", "view", "tree", "chart", "schema", "schemalist", "schemauploader", "cookie", "call",
+        "group", "repeater", "callback", "dbsource", "inlinesource", "api"];
+      mount.innerHTML =
+        cores.map((c) => '<basis core="' + c + '" run="atclient" if="false"></basis>').join("") +
+        '<basis core="component.local.Dummy" run="atclient" if="false"></basis>' +
+        '<basis core="PRINT" datamembername="reg.caps" run="atclient"><face><em>@v@</em></face></basis>' +
+        '<input name="reg.i" bc-triggers="keyup" /><select name="reg.s" bc-triggers="change"></select>' +
+        '<form name="reg.f" bc-triggers="submit"></form><div name="reg.d" bc-triggers="click"></div>';
+      const w = $bc.new().addFragment(mount).run();
+      await w.basiscore.content.initializeTask;
+      const commands = w.GetCommandList();
+      t.deepEqual(commands.map((c) => c.core), cores.concat(["component.local.Dummy", "PRINT"]), "every core resolved to a command");
+      const expectClass = {
+        print: basiscore.PrintComponent, list: basiscore.ListComponent, view: basiscore.ViewComponent, tree: basiscore.TreeComponent,
+        chart: basiscore.ChartComponent, schema: basiscore.SchemaComponent, cookie: basiscore.CookieComponent, call: basiscore.CallComponent,
+        group: basiscore.GroupComponent, repeater: basiscore.RepeaterComponent, callback: basiscore.CallbackComponent,
+        dbsource: basiscore.DbSourceComponent, api: basiscore.APIComponent, "component.local.Dummy": basiscore.UserDefineComponent,
+        PRINT: basiscore.PrintComponent
+      };
+      const expectName = { schemalist: "SchemaListComponent", schemauploader: "SchemaUploader", inlinesource: "InlineSourceComponent" };
+      commands.forEach((c) => {
+        if (expectClass[c.core]) t.ok(c instanceof expectClass[c.core], c.core + " is a " + expectClass[c.core].name);
+        else t.equal(c.constructor.name, expectName[c.core], c.core);
+      });
+      const components = w.GetComponentList();
+      [basiscore.HTMLInputComponent, basiscore.HTMLSelectComponent, basiscore.HTMLFormComponent, basiscore.HTMLIUnknownComponent].forEach((cls) =>
+        t.equal(components.filter((c) => c instanceof cls).length, 1, cls.name + " created for its bc-triggers element")
+      );
+      t.equal(components.filter((c) => c instanceof basiscore.HTMLIUnknownComponent)[0].node.tagName, "DIV", "any other tag is unknown-html");
+      t.equal(w.GetCommandListByCore("print").length, 1, "GetCommandListByCore keeps the raw core text");
+      w.setSource("reg.caps", { v: "upper" });
+      await t.waitForText("#registry-mount em", "upper", { message: "core='PRINT' resolves the print token" });
+      t.equal(t.$$("#registry-mount basis").length, 0, "every <basis> was replaced by its range markers");
+    });
+
+    bcTest.test("an unknown core fails inside the container during extraction and initializeTask rejects", async (t) => {
+      const mount = t.$("#unknown-mount");
+      mount.innerHTML =
+        '<span class="tok">[##unk.x.v|(token ok)##]</span>' +
+        '<basis core="nosuchcore" run="atclient"></basis>' +
+        '<basis core="print" datamembername="unk.rows" run="atclient"><face><u>@v@</u></face></basis>';
+      const w = $bc.new().addFragment(mount).run();
+      await t.rejects(w.basiscore.content.initializeTask, /unregistered dependency token.*nosuchcore/);
+      await t.waitForError(/unregistered dependency token.*nosuchcore/);
+      await t.sleep(200);
+      t.ok(t.$("#unknown-mount basis[core='nosuchcore']"), "the failing element stays in the DOM");
+      t.ok(t.$("#unknown-mount basis[core='print']"), "the commands after it were never built");
+      t.equal(t.text("#unknown-mount .tok"), "token ok", "text tokens of the same scan were still initialised");
+      w.setSource("unk.rows", { v: 1 });
+      await t.sleep(200);
+      t.equal(t.text("#unknown-mount basis[core='print'] u"), "@v@", "the face is still the raw template: no wave ran in this collection");
+    });
+
+    bcTest.test("class hierarchy: prototype chains of the exported classes", (t) => {
+      t.deepEqual(chain(basiscore.PrintComponent), ["PrintComponent", "RenderableComponent", "SourceBaseComponent", "CommandComponent", "ElementBaseComponent", "Component"]);
+      t.deepEqual(chain(basiscore.ListComponent).slice(1), chain(basiscore.PrintComponent).slice(1));
+      t.deepEqual(chain(basiscore.TreeComponent).slice(1), chain(basiscore.PrintComponent).slice(1));
+      t.deepEqual(chain(basiscore.ViewComponent).slice(1), chain(basiscore.PrintComponent).slice(1));
+      t.deepEqual(chain(basiscore.RepeaterComponent), ["RepeaterComponent", "SourceBaseComponent", "CommandComponent", "ElementBaseComponent", "Component"]);
+      t.deepEqual(chain(basiscore.ChartComponent).slice(1), chain(basiscore.RepeaterComponent).slice(1));
+      t.deepEqual(chain(basiscore.SchemaComponent).slice(1), chain(basiscore.RepeaterComponent).slice(1));
+      t.deepEqual(chain(basiscore.DbSourceComponent), ["DbSourceComponent", "MemberBaseSourceComponent", "SourceComponent", "CommandComponent", "ElementBaseComponent", "Component"]);
+      t.deepEqual(chain(basiscore.APIComponent), ["APIComponent", "SourceComponent", "CommandComponent", "ElementBaseComponent", "Component"]);
+      ["CallbackComponent", "CookieComponent", "CallComponent", "GroupComponent"].forEach((n) =>
+        t.deepEqual(chain(basiscore[n]), [n, "CommandComponent", "ElementBaseComponent", "Component"], n)
+      );
+      ["HTMLInputComponent", "HTMLSelectComponent", "HTMLFormComponent", "HTMLIUnknownComponent"].forEach((n) =>
+        t.deepEqual(chain(basiscore[n]), [n, "HTMLComponent", "ElementBaseComponent", "Component"], n)
+      );
+      t.deepEqual(chain(basiscore.UserDefineComponent), ["UserDefineComponent", "ComponentContainer", "CommandComponent", "ElementBaseComponent", "Component"]);
+      t.deepEqual(chain(basiscore.exposer), ["ExposerComponent"], "the exposer manager is not a Component");
+      t.deepEqual(chain(basiscore.LocalContext), ["LocalContext", "Context"]);
+      t.deepEqual(chain(root().constructor), ["BasisCoreRootContext", "RootContext", "Context"]);
+      t.deepEqual(chain(basiscore.BCWrapperFactory), ["BCWrapperFactory"]);
+      t.deepEqual(chain($bc.global.constructor), ["BCWrapper"]);
+      t.deepEqual(chain($bc.util.constructor), ["UtilWrapper"]);
+      t.deepEqual(chain($bc.util.source.constructor), ["SourceWrapper"]);
+      const inline = $bc.global.GetCommandListByCore("inlinesource")[0];
+      t.deepEqual(chain(inline.constructor), ["InlineSourceComponent", "MemberBaseSourceComponent", "SourceComponent", "CommandComponent", "ElementBaseComponent", "Component"]);
+    });
+
+    bcTest.test("group: a LocalRootContext that falls back to the owner and forwards owner publications; sources set inside stay inside", async (t) => {
+      $bc.setSource("g.kick", 1);
+      await t.waitFor(() => groupCalls, (c) => c.length === 1);
+      const ctx = groupCalls[0].context;
+      t.equal(ctx.constructor.name, "LocalRootContext");
+      t.ok(ctx.owner === root(), "owner is the page root context");
+      t.ok(ctx !== root());
+      t.ok(ctx.tryToGetSource("cms.cms") === root().tryToGetSource("cms.cms"), "lookups fall through to the owner");
+      t.ok(t.consoleMessages(/^g\.kick Added from owner context\.\.\.$/).length >= 1, "the owner publication was forwarded");
+      await t.waitForText("#group-out", "inside", { message: "the print inside the group sees g.inner" });
+      t.equal(root().tryToGetSource("g.inner"), undefined, "the root never saw g.inner");
+      t.deepEqual(ctx.tryToGetSource("g.inner").rows, [{ v: "inside" }]);
+      t.ok(ctx.repository !== root().repository, "each context has its own Repository");
+      t.ok(ctx.logger === root().logger, "ConsoleLogger is a singleton");
+    });
+
+    bcTest.test("repeater: one LocalContext per row holding <name>.current; the rows never reach the root", async (t) => {
+      const spans = await t.waitFor(() => t.$$("#repeater-out .rp"), (l) => l.length === 2);
+      t.deepEqual(spans.map((s) => t.text(s)), ["first", "second"]);
+      $bc.setSource("rp.kick", 1);
+      await t.waitFor(() => repeaterCalls, (c) => c.length === 2);
+      repeaterCalls.forEach((c) => t.equal(c.context.constructor.name, "LocalContext"));
+      t.ok(repeaterCalls[0].context !== repeaterCalls[1].context, "a context per row");
+      t.deepEqual(repeaterCalls.map((c) => c.context.tryToGetSource("row.current").rows[0].title), ["first", "second"]);
+      t.ok(repeaterCalls[0].context.owner === root());
+      t.equal(root().tryToGetSource("row.current"), undefined);
+      t.ok(repeaterCalls[0].context.tryToGetSource("rp.list") === root().tryToGetSource("rp.list"), "owner fallback");
+    });
+
+    bcTest.test("two isolated runtimes: separate containers, contexts and repositories; a shared logger", async (t) => {
+      const left = $bc.new().addFragment("#left").run();
+      const right = $bc.new().addFragment("#right").setOptions({ settings: { "default.dmnid": 7 } }).run();
+      left.setSource("a.b", [{ x: "left only" }]);
+      right.setSource("a.b", [{ x: "right only" }]);
+      await t.waitForText("#left", "left only");
+      await t.waitForText("#right", "right only");
+      t.ok(left.basiscore !== right.basiscore);
+      t.ok(left.basiscore.context !== right.basiscore.context);
+      t.ok(left.basiscore.context.repository !== right.basiscore.context.repository);
+      t.ok(left.basiscore.context.logger === right.basiscore.context.logger, "ILogger is the only singleton");
+      t.equal(right.basiscore.context.options.getDefault("dmnid"), 7);
+      t.equal(left.basiscore.context.options.getDefault("dmnid"), null, "the default '' reads as null");
+      t.equal(root().tryToGetSource("a.b"), undefined);
+    });
+
+    bcTest.test("RangeObject: no <basis run='atclient'> remains, the output sits between two empty text nodes, the children live in command.content", async (t) => {
+      await t.waitForText("#demo-print", "a", { timeout: 10000 });
+      t.equal(t.$$("#demo basis").length, 0);
+      const nodes = [...t.$("#demo-print").childNodes];
+      t.ok(nodes.length >= 3);
+      t.ok(nodes[0].nodeType === Node.TEXT_NODE && nodes[0].data === "", "start marker");
+      t.ok(nodes[nodes.length - 1].nodeType === Node.TEXT_NODE && nodes[nodes.length - 1].data === "", "end marker");
+      t.equal(nodes.filter((n) => n.nodeType === Node.ELEMENT_NODE).map((n) => n.outerHTML).join(""), "<p>a</p>");
+      const print = $bc.global.GetCommandListByCore("print")[0];
+      t.ok(print.content instanceof DocumentFragment);
+      t.ok(print.content.querySelector("face"), "the original <face> is kept in content");
+      t.equal(print.core, "print");
+      t.ok(!document.contains(print.node));
+    });
+
+    bcTest.test("console lines: Added, Updated, handler Added, @child warning; renderers subscribe instead of waiting", async (t) => {
+      t.ok(t.consoleMessages(/^cms\.request Added\.\.\. 1 Row\(s\)$/).length >= 1);
+      t.ok(t.consoleMessages(/^cms\.cms Added\.\.\. 1 Row\(s\)$/).length >= 1);
+      t.ok(t.consoleMessages(/^handler Added for demo\.rows\.\.\.$/).length >= 1);
+      t.ok(t.consoleMessages(/^handler Added for log\.later\.\.\.$/).length >= 1, "the print registered log.later as a trigger");
+      t.equal(t.consoleMessages(/^wait for log\.later$/).length, 0, "a renderer does not call waitToGetSourceAsync; it renders when the trigger fires");
+      t.equal(t.consoleMessages(/^log\.later Added/).length, 0);
+      $bc.setSource("log.later", [{ n: 1 }, { n: 2 }]);
+      await t.waitForConsole(/^log\.later Added\.\.\. 2 Row\(s\)$/);
+      await t.waitForConsole(/^@child place holder not found in layout template$/);
+      $bc.setSource("log.later", [{ n: 3 }]);
+      await t.waitForConsole(/^log\.later Updated\.\.\. 1 Row\(s\)$/);
+      t.deepEqual(t.rows("log.later"), [{ n: 3 }]);
+    });
+
+    bcTest.test("console lines: 'wait for <id>' comes from waitToGetSourceAsync callers such as inlinesource members and tokens", async (t) => {
+      const mount = t.$("#wait-mount");
+      mount.innerHTML =
+        '<basis core="inlinesource" name="logs" run="atclient"><member name="copy" format="sql">SELECT n FROM [logs.src]</member></basis>';
+      const w = $bc.new().addFragment(mount).run();
+      await t.waitForConsole(/^wait for logs\.src$/);
+      await t.sleep(100);
+      t.equal(t.consoleMessages(/^logs\.src Added/).length, 0, "'wait for x.y' with no later 'x.y Added' is the signature of an unpublished source");
+      w.setSource("logs.src", [{ n: 1 }]);
+      await t.waitForConsole(/^logs\.copy Added\.\.\. 1 Row\(s\)$/);
+      const lines = t.consoleMessages(/^(wait for logs\.src|logs\.src Added\.\.\. 1 Row\(s\)|logs\.copy Added\.\.\. 1 Row\(s\))$/);
+      t.deepEqual(lines, ["wait for logs.src", "logs.src Added... 1 Row(s)", "logs.copy Added... 1 Row(s)"], "in this order");
+    });
+
+    bcTest.test("an invalid if expression is logged as \"Error in parse 'if' attribute expression\" and rethrown", async (t) => {
+      const mount = t.$("#badif-mount");
+      mount.innerHTML = '<basis core="cookie" name="never" value="1" if="1 +" run="atclient"></basis>';
+      $bc.new().addFragment(mount).run();
+      await t.waitForConsole(/^Error in parse 'if' attribute expression in command: '1 \+'$/);
+      await t.waitForError(/Unexpected token/);
+      t.ok(!document.cookie.split("; ").some((c) => /^never=/.test(c)), "the command did not run");
+    });
+
+    bcTest.test("exceptions: ConfigNotFoundException, ClientException messages, plain Errors and the EventManager string", async (t) => {
+      const c = root();
+      t.throws(() => c.loadDataAsync("x", "bookapi", {}, () => true), /^In 'host\.settings' object, property 'bookapi' not configured!$/);
+      t.throws(() => c.options.getSetting("missing.key"), /^In 'host\.settings' object, property 'missing\.key' not configured!$/);
+      t.equal(c.options.getDefault("missing"), null, "getDefault never throws");
+      t.throws(() => c.checkSourceHeartbeatAsync("x"), /^Method not implemented\.$/);
+      await t.rejects($bc.global.basiscore.content.processNodesAsync([]), /^Run ComponentCollection for more than one$/);
+      const w = $bc.global;
+      t.throws(() => w.addFragment("#left"), /^Can't add fragment for already builded bc object\.$/);
+      t.throws(() => w.setOptions({}), /^Can't set option for already builded bc object\.$/);
+      t.throws(() => $bc.new().addFragment({}), /^Invalid selector$/);
+      t.throws(() => new basiscore.EventManager().Add(null), /^handler null or is not function!$/);
+      t.throws(() => "1 +".Evaluating(), /^Error In Evaluating '1 \+': SyntaxError/);
+      t.equal("1 == 1".Evaluating(), true);
+      t.equal("'TRUE'".Evaluating(), true, "compared case-insensitively with 'true'");
+      t.equal("0".Evaluating(), false);
+      const err = t.errors(/unregistered dependency token/)[0];
+      t.ok(err, "the tsyringe error from the unknown core was recorded");
+    });
+  </script>
+</body>
+</html>
