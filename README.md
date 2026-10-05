@@ -18,7 +18,7 @@ and re-renders only what depends on data that changed. No build step, no framewo
 - **Client-side SQL** over loaded data, powered by AlaSQL: filter, sort, join.
 
 This repository is version **2.39.6** of the client (`npm` package `basiscore`). It is written in
-TypeScript and bundled with webpack.
+TypeScript and bundled with webpack. The complete developer reference is in [`docs/`](docs/README.md).
 
 ## Features
 
@@ -83,8 +83,8 @@ the 2.39.6 source; details such as attribute names are documented in the later s
   HTML parser; templates are parsed as XML, with SVG namespaces handled.
 - **Configurable syntax.** The token, face and code-block regular expressions are host settings
   (`default.binding.*`), so the delimiters can be changed per page or per `group`.
-- **Expression `if`.** `if="…"` accepts literals, tokens, comparisons and code blocks; a false
-  value hides the command's output and disposes it, a true value re-renders it.
+- **Expression `if`.** `if="…"` accepts literals, tokens, comparisons and code blocks; while it
+  is false the command does not run, and a `group` also removes its content from the page.
 
 ### Rendering commands
 
@@ -97,7 +97,8 @@ the 2.39.6 source; details such as attribute names are documented in the later s
 - **`tree`.** Recursive parent/child rendering from flat rows (`idcol`, `parentidcol`,
   `nullvalue`), with per-level and leaf (`end`) faces.
 - **`view`.** Two-level grouped rendering by `groupcol` (default
-  `default.viewcommand.groupcolumn`), with level 1 and level 2 faces.
+  `default.viewcommand.groupcolumn`), with level 1 and level 2 faces (level 2 output is missing in
+  2.39.6, see Known issues).
 - **`repeater`.** Repeats a block of arbitrary commands once per row, publishing the row as
   `<name>.current`; `replace="false"` appends instead of re-rendering.
 - **`chart`.** SVG charts drawn with D3: `bar` (grouped, vertical or horizontal), `stacked`
@@ -147,8 +148,8 @@ the 2.39.6 source; details such as attribute names are documented in the later s
 
 - **Any element publishes a source** with `bc-triggers="event event…"`: inputs, selects, forms,
   buttons, and arbitrary elements (`unknown-html`).
-- **Input types.** Text, number, range, date, time, color, checkbox (`checked` or `bc-off-value`),
-  file (publishes the `FileList`), select, and arbitrary `bc-value`.
+- **Input types.** Text, number, range, date, time, color, checkbox (its `value` when checked,
+  `bc-off-value` when unchecked), file, select, and an arbitrary `bc-value`.
 - **Forms.** `bc-triggers="submit"` publishes all fields as one object (submit is prevented);
   field names starting with `_` build nested objects and arrays (`_order.items__0.qty`).
 - **Merge control per element.** `bc-merge`, `bc-keyField`, `bc-statusField`; `bc-name`
@@ -434,7 +435,7 @@ Use every command as `<basis core="…" run="atclient" …>`.
 |---|---|---|
 | Render | `print` | Render rows through a layout and faces |
 | | `list` | Render rows as a list |
-| | `view` | Render grouped data (grouped by `default.viewcommand.groupcolumn`, `prpid` by default) |
+| | `view` | Render grouped data (grouped by `default.viewcommand.groupcolumn`, `prpid` by default); level 2 output is missing in 2.39.6, see Known issues |
 | | `tree` | Render parent/child rows as a tree |
 | | `chart` | Bar, line, pie, donut, funnel and stacked charts (D3) |
 | | `schemalist` | Render a list of schema-driven records |
@@ -642,6 +643,8 @@ Found while verifying this README against the source and the published bundle:
 | The web connection compares the verb case-sensitively | `"default.source.verb": "get"` sends a GET with a body, which the browser rejects | Write verbs in upper case: `"GET"` |
 | An unset `default.dmnid` is sent as the text `null` | The server receives `dmnid=null` | Set `default.dmnid`, or treat `null` as empty on the server |
 | The console banner says `2.39.7` | Cosmetic; the package version is 2.39.6 | — |
+| `view` never renders its level 2 faces (render-cache collision) | Group headers appear with empty `@child` slots | Group rows with `print` + `OnProcessing`, or nested `print` inside a `repeater` |
+| A text token re-rendered to an empty value throws `TypeError` | `[##x.y.value##]` without a fallback breaks when the source is cleared | Always add a fallback: `[##x.y.value|( )##]` |
 
 ---
 

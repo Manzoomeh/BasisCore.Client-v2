@@ -148,6 +148,9 @@ Documented in `docs/troubleshooting.md`; do not "fix" a page around them silentl
 - An unset `default.dmnid` is sent to the server as the text `null`.
 - The console banner prints `2.39.7` although the package version is `2.39.6`.
 - The `rest` connection provider is declared but every method throws.
+- `view` never renders its level 2 faces (a render-cache collision); only the group headers appear.
+- A text token re-rendered to an empty value throws a `TypeError`; always give text tokens a fallback.
+- `wrapper.setSource()` on a `$bc.new()` wrapper that has not run yet discards the data; call `.run()` first.
 
 ## Scope and safety
 
