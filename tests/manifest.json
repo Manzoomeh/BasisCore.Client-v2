@@ -1,0 +1,7 @@
+{
+  "tests": [
+    { "file": "foundations/getting-started.html", "doc": "docs/getting-started.md", "title": "getting started" },
+    { "file": "foundations/getting-started-autorender.html", "doc": "docs/getting-started.md", "title": "getting started - autoRender false" },
+    { "file": "commands/print.html", "doc": "docs/commands/print.md", "title": "print" }
+  ]
+}

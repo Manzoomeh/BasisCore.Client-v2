@@ -6,6 +6,7 @@
   "types": "dist/basiscore.d.ts",
   "scripts": {
     "dev:no-serve": "webpack --mode=development",
+    "test": "node tests/run.js",
     "dev": "webpack serve --mode=development ",
     "ws": "node server/websocket.js",
     "cb": "node server/chunkBased.js",
@@ -41,6 +42,8 @@
     "ignore-loader": "^0.1.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.defaultsdeep": "^4.6.1",
+    "node-gzip": "^1.1.2",
+    "playwright-core": "^1.63.0",
     "reflect-metadata": "^0.1.13",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.2.6",
@@ -49,8 +52,7 @@
     "webpack": "^5.66.0",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.7.3",
-    "ws": "^7.5.5",
-    "node-gzip": "^1.1.2"
+    "ws": "^7.5.5"
   },
   "dependencies": {
     "@types/pako": "^2.0.3",

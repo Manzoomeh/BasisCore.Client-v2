@@ -1,0 +1,146 @@
+/* Styles for the bc-test report panel and for the test pages themselves. */
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  margin: 0;
+  padding: 0 16px 40px;
+  color: #172033;
+  background: #f6f7fb;
+  line-height: 1.5;
+}
+
+#bc-test-report {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  margin: 0 -16px 24px;
+  padding: 12px 16px;
+  border-bottom: 3px solid #94a3b8;
+  background: #fff;
+  font-size: 14px;
+  max-height: 45vh;
+  overflow: auto;
+}
+
+#bc-test-report.bc-test-ok {
+  border-bottom-color: #16a34a;
+}
+
+#bc-test-report.bc-test-ko {
+  border-bottom-color: #dc2626;
+}
+
+#bc-test-report header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+#bc-test-report .bc-test-counts {
+  color: #475569;
+}
+
+#bc-test-report ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+#bc-test-report li {
+  margin: 2px 0;
+}
+
+#bc-test-report small {
+  color: #94a3b8;
+}
+
+#bc-test-report pre {
+  margin: 4px 0 8px;
+  padding: 8px;
+  background: #fef2f2;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+
+#bc-test-report .bc-test-reason,
+#bc-test-report .bc-test-notes {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.bc-test-badge {
+  display: inline-block;
+  min-width: 42px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  background: #94a3b8;
+}
+
+.bc-test-passed .bc-test-badge {
+  background: #16a34a;
+}
+
+.bc-test-failed .bc-test-badge,
+.bc-test-fixed .bc-test-badge {
+  background: #dc2626;
+}
+
+.bc-test-defect .bc-test-badge {
+  background: #d97706;
+}
+
+.bc-test-skipped .bc-test-badge {
+  background: #64748b;
+}
+
+/* test page content */
+main {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 24px;
+  margin: 0 0 4px;
+}
+
+.intro {
+  color: #475569;
+  margin: 0 0 24px;
+}
+
+section.case {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 0 0 16px;
+}
+
+section.case > h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+  color: #1e3a8a;
+}
+
+section.case table {
+  border-collapse: collapse;
+}
+
+section.case td,
+section.case th {
+  border: 1px solid #e2e8f0;
+  padding: 2px 8px;
+}
+
+code {
+  background: #eef2f8;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 90%;
+}
