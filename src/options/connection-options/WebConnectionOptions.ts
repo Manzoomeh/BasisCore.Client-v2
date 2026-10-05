@@ -133,16 +133,19 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     parameters: IDictionary<string> = null
   ): Promise<string> {
     let requestUrl = url;
+    const httpMethod = method.toUpperCase();
     const headers = new Headers();
     let body: URLSearchParams | null = null;
 
     if (Util.HasValue(parameters)) {
       const params = new URLSearchParams();
-      Object.entries(parameters).forEach(([key, value]) =>
-        params.append(key, value)
-      );
+      Object.entries(parameters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          params.append(key, String(value));
+        }
+      });
 
-      if (method === "GET") {
+      if (httpMethod === "GET") {
         const separator = requestUrl.includes("?") ? "&" : "?";
         requestUrl += `${separator}${params.toString()}`;
       } else {
@@ -152,7 +155,7 @@ export default class WebConnectionOptions extends UrlBaseConnectionOptions {
     }
 
     const response = await fetch(requestUrl, {
-      method,
+      method: httpMethod,
       headers,
       body,
       credentials: "omit",

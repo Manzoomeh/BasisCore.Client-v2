@@ -52,8 +52,8 @@ export default class BasisCoreRootContext extends RootContext {
     const toTwoDigit = (x) => ("0" + x).slice(-2);
     const d = new Date();
     const ye = d.getFullYear();
-    const mo = toTwoDigit(d.getMonth());
-    const da = toTwoDigit(d.getDay());
+    const mo = toTwoDigit(d.getMonth() + 1);
+    const da = toTwoDigit(d.getDate());
     const ho = toTwoDigit(d.getHours());
     const mi = toTwoDigit(d.getMinutes());
     const se = toTwoDigit(d.getSeconds());

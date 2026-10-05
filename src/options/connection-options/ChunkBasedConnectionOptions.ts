@@ -57,7 +57,8 @@ export default class ChunkBasedConnectionOptions extends ConnectionOptions {
       this.method = HttpMethod.GET;
     } else {
       this.url = setting.Connection;
-      this.method = setting.method ?? HttpMethod.GET;
+      this.method =
+        (setting.method?.toUpperCase() as HttpMethod) ?? HttpMethod.GET;
       this.body = setting.body;
       this.bodyFactory = setting.bodyFactory;
       this.onClose = setting.onClose;
