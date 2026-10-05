@@ -283,6 +283,18 @@ group's own repository.
   under the group that contains a token is split into several nodes on the first run (the token
   gets its own range), and the extra nodes are deleted on hide and not re-inserted. Wrap such
   text in an element (`<span>[##x.y##]</span>`) when the group is shown and hidden with `if`.
+- Even a wrapped token is only preserved, not revived: the first run replaced its text with a
+  value node whose handler belongs to the local context that `hideAsync` disposed, so after the
+  group is shown again the token keeps its last value and ignores later publications. Rebuild
+  dynamic text with a `print` or `repeater` inside the group when it is toggled with `if`.
+- Every show creates a new `LocalRootContext`, which republishes `host.sources` into the group's
+  repository. An inner command re-created at that moment shows the `host` value until the page
+  publishes the same source id again.
+- A re-run through `triggers` while the group is visible processes the saved child nodes again
+  without re-inserting them: the inner `<basis>` elements still live in the previous run's
+  extracted fragment, so the new components render into that detached fragment and the visible
+  output freezes (later publications update only the invisible copy). Use `if` for show and hide
+  and avoid `triggers` on a group.
 
 ## Related
 

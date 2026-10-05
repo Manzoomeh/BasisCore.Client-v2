@@ -169,7 +169,7 @@ A complete response for a `dbsource` with two members:
 `Repository.setSourceEx` applies the options of the incoming source against the source already published under the same id:
 
 - `mergeType == 0` (replace): the existing rows are replaced in place and every row version is incremented. The new options (`mergeType`, `keyFieldName`, `statusFieldName`, `extra`) overwrite the old ones.
-- `mergeType == 1` (append), no `keyFieldName` on both old and new source: the new rows are added to the end.
+- `mergeType == 1` (append), no `keyFieldName` on both old and new source: the new rows are added to the end. An append keeps the options of the stored source (`keyFieldName`, `statusFieldName`, `extra`); only a replace overwrites them.
 - `mergeType == 1` with `keyFieldName` on both: each new row is inspected. Its status is `statusFieldName` if configured, otherwise `0` (added). Added rows are pushed; for edited (`1`) and deleted (`2`) rows the old row with the same key is replaced or removed. A row whose key is not found is ignored unless its status is added.
 - The first publication of an id stores the source as is, whatever the merge type.
 

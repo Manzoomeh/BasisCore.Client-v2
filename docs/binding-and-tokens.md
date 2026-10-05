@@ -391,6 +391,10 @@ The first block names `cms.text1` in a `$bc.tryToGetSource('...')` call, so it i
 - A multi-row source read with a column token yields an array; in text and attributes it is written as a comma-separated list.
 - A text token that is re-rendered to an empty or `null` value throws `TypeError: Cannot read properties of null (reading 'toString')` (only the first render guards against `null`); an attribute token writes the text `null`. Give every text token that can become empty a fallback such as `|( )`.
 - `Element.Get*Token` returns `undefined` for a missing or empty attribute; guard with `?.` before calling `getValueAsync`.
+- The open face form `@column` runs to the next whitespace or `@`, so `<li>@name</li>` compiles `name</li>…` as the expression and the face fails; close the placeholder (`@name@`) whenever markup or punctuation follows it. Faces have no `|(default)` syntax: a fallback is a JavaScript expression without spaces, for example `@(mark??'none')@`.
+- The text of `<script>` elements is scanned for tokens and code blocks like any other text. An inline script that quotes the token syntax in a string throws at load; mark it with `bc-ignore`.
+- A `{{ }}` block in page text that awaits a source nobody has published yet (`await $bc.waitToGetSourceAsync('a.b')`) holds the whole collection in its initialisation phase: no command of that runtime runs until the source exists, and `$bc.setSource` from a page script is deferred too. Prefer `$bc.tryToGetSource('a.b')` with a `null` check, or publish the source first.
+- A column whose name contains `-` is evaluated as a subtraction first (`rows[0].min-id`), and the bracket fallback is used only when that throws; with a global named like the suffix the token yields `NaN` silently.
 - `ToObjectToken` returns the raw string when the attribute contains no token; only literal defaults inside `(...)` and mixed strings are passed through `eval`.
 
 ## Related

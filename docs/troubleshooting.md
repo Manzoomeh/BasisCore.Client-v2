@@ -130,6 +130,8 @@ When a `<layout>` exists but contains no `@child`, `RenderableComponent` logs th
 
 ## Known defects in 2.39.6
 
+Every defect that can be reproduced in a headless browser is also a `bcTest.defect` case in [`tests/`](../tests/README.md) (`tests/foundations/troubleshooting.html` and the page of the command concerned). When one of those cases reports "FIXED?", the defect has been repaired and this section, `README.md` and `AGENTS.md` must be updated.
+
 ### `cms.cms` dates are wrong
 
 `BasisCoreRootContext.addRequestRelatedSources` builds `cms.cms.date`, `date2`, `date3` from `d.getMonth()` (0-based, so January is `00`) and `d.getDay()` (day of week 0-6, not day of month). Only `time` and `time2` are correct. Compute dates in JavaScript and publish them with `$bc.setSource` if you need them.
@@ -190,6 +192,22 @@ With `host.push` set and notification permission still `"default"`, `BCWrapper.t
 
 `FaceCollection.renderAsync` dereferences the current level set, which only `tree` and `view` provide. A `<face level="1">` under `print` or `list` fails with `TypeError: Cannot read properties of undefined (reading 'some')`.
 
+### A code block that awaits a missing source stalls the whole page
+
+`TextComponent.initializeAsync` awaits the value of a `{{ }}` block, and `CodeBlockToken.getValueAsync` ignores the `wait = false` flag that `[##...##]` tokens honour. A block such as `{{ return (await $bc.waitToGetSourceAsync('cms.form')).rows[0]; }}` written in page text before `cms.form` exists therefore keeps the collection's initialisation open: no command of that runtime runs (a `print` next to it renders nothing) and `$bc.setSource` from a page script is deferred until the source appears. Read the source with `$bc.tryToGetSource('cms.form')` and handle `null`, or publish the source before the page runs. Reproduced in `tests/commands/form-codeblock.html`.
+
+### A column name with a hyphen is evaluated as a subtraction
+
+`SourceTokenElement` evaluates `[##a.b.min-id##]` as the JavaScript expression `rows[0].min-id` and falls back to `row["min-id"]` only when that throws. When a global named like the suffix exists (a top-level `let id`, or any element with `id="id"` through named window access) the expression yields `NaN` silently, so a request built from the token carries `NaN`. Avoid hyphens in column names that are read by tokens, or rename the global. Reproduced in `tests/commands/form.html`.
+
+### `inlinesource` join member without `jointype` throws
+
+`JoinMember` reads the `jointype` attribute with `GetStringToken(...).getValueAsync()`; a missing attribute returns `undefined` and the call throws `TypeError: Cannot read properties of undefined (reading 'getValueAsync')`. Because `inlinesource` runs in the normal wave, the rejection blocks the low wave and no renderer of the page runs. Always write `jointype` on a `join` member. Reproduced in `tests/commands/inlinesource.html`.
+
+### A group shown again after `if` hid it keeps dead tokens
+
+`group` saves its original child nodes when `if` becomes false and re-inserts them when it becomes true. A `[##...##]` token wrapped in an element (the documented work-around for bare text) comes back showing its last value, but the first run had already replaced the token text with a value node whose handler lives in the disposed local context, so later publications no longer update it. The re-shown group also republishes `host.sources` into its new local repository, so an inner command briefly shows the `host` value until the page publishes the source again. Rebuild such content with a `print` or `repeater` inside the group instead of bare tokens, and never re-run a visible group through `triggers`: its nested commands are processed again inside the previous run's detached fragment and the visible output freezes. Reproduced in `tests/commands/group.html` and `tests/foundations/command-attributes-and-lifecycle.html`.
+
 ### Chart rendering issues
 
 All in `src/component/chart/`:
@@ -220,6 +238,11 @@ All in `src/component/chart/`:
 - `serviceWorker: true` targets `basiscore-serviceWorker.js`, which the build never produces; `$bc.util.addMessageHandler` attaches its listener only on the window `load` event.
 - `schemauploader` with `noCache="true"` throws before posting; the `sub-schema` validation type has no message text, so a failing nested form rejects the submission without marking the parent part; `select` lists need an item with `id: 0` to allow "no selection"; an unknown `viewType` makes a form impossible to submit.
 - The shipped `example/component/source/dbsource/web-socket/demo` page puts `datamembername` on a `callback`, which ignores it.
+- `StreamPromise` extends `Promise` with a three-argument constructor; `then`, `catch` and `await` on the object a `dbsource` keeps in `connection` create the derived promise through `Symbol.species` and throw `TypeError: Promise resolver undefined is not a function`. The library never awaits it, so only page code is affected, and the rejection after five failed WebSocket attempts is always an unhandled rejection.
+- A `chunkbased` stream closed by the server with `keepalive: false` always ends with `Invalid remain part of json ,` and `withError: true` in the close callback, because the separator written after the last envelope is still in the buffer (the check expects exactly `,null]`); a stream that carried no envelope (`[null]`) fails the same check.
+- An invalid connection setting (`connection.local.x` without a function, a misspelled provider) is thrown from the `BasisCore` constructor and surfaces wrapped by the dependency container: `Cannot inject the dependency "context" at position #0 of "BasisCore" constructor. Reason: ...` followed by the inner message.
+- The text of `<script>` elements is scanned for tokens like any other text node, so an inline script that quotes token syntax in a string (`"[##a.b.c##]"`) is parsed and may throw; put `bc-ignore` on such scripts.
+- Schema forms: a `time` part pre-filled from a `{ time, timeid }` object is always reported as `edited` because `TextBaseType.getEditedAsync` compares the input string with the stored object; in `view` mode a question whose first part is `html` keeps a visible remove button; `ReadOnlyDate` throws `TypeError: Cannot read properties of undefined (reading 'values')` when the datepicker part has no saved value, and the following questions are not rendered; the `html` field's dialog leaves its message listener registered after closing, so the next open throws `TypeError: Cannot read properties of null (reading 'document')` from the stale listener; `simpleautocomplete`, `simplereference` and the list controls throw `ReferenceError: <name> is not defined` instead of a `required` error when a required dependency is empty (see [lookup-and-autocomplete.md](schema/lookup-and-autocomplete.md)).
 
 ### Repository and build scripts
 
