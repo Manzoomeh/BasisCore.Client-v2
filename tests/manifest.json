@@ -104,6 +104,31 @@
       "file": "schema/answers-and-submission.html",
       "doc": "docs/schema/answers-and-submission.md",
       "title": "schema answers and submission"
+    },
+    {
+      "file": "commands/list.html",
+      "doc": "docs/commands/list.md",
+      "title": "list"
+    },
+    {
+      "file": "commands/tree.html",
+      "doc": "docs/commands/tree.md",
+      "title": "tree"
+    },
+    {
+      "file": "commands/view.html",
+      "doc": "docs/commands/view.md",
+      "title": "view"
+    },
+    {
+      "file": "commands/repeater.html",
+      "doc": "docs/commands/repeater.md",
+      "title": "repeater"
+    },
+    {
+      "file": "commands/group.html",
+      "doc": "docs/commands/group.md",
+      "title": "group"
     }
   ]
 }

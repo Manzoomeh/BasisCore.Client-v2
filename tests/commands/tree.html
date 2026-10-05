@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>tree</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "local.tree": [
+          { id: 1, name: "ali1",   pid: null },
+          { id: 2, name: "amir",   pid: 1 },
+          { id: 3, name: "hassan", pid: 1 },
+          { id: 4, name: "javad",  pid: 2 },
+          { id: 5, name: "reza",   pid: 4 }
+        ],
+        "live.tree": {
+          data: [
+            { id: 1, name: "ali-0",    pid: null, status: 0 },
+            { id: 2, name: "amir-0",   pid: 1,    status: 0 },
+            { id: 3, name: "hassan-0", pid: 1,    status: 0 },
+            { id: 4, name: "javad-0",  pid: 2,    status: 0 },
+            { id: 5, name: "reza-0",   pid: 4,    status: 0 }
+          ],
+          options: { keyFieldName: "id", statusFieldName: "status", mergeType: 1 /* basiscore.MergeType.append */ }
+        },
+        "loose.tree": [
+          { id: 1, parentid: "0", title: "a" },
+          { id: 2, parentid: "1", title: "b" },
+          { id: 3, parentid: 0,   title: "c" },
+          { id: 9, parentid: 7,   title: "orphan" }
+        ],
+        "filter.tree": [
+          { id: 1, parentid: 0, name: "root" },
+          { id: 2, parentid: 1, name: "reza" },
+          { id: 3, parentid: 1, name: "sara" },
+          { id: 4, parentid: 1, name: "ali" },
+          { id: 5, parentid: 4, name: "rahim" }
+        ],
+        "rowtype.tree": [
+          { id: 1, parentid: 0, name: "r1" },
+          { id: 2, parentid: 0, name: "r2" },
+          { id: 3, parentid: 0, name: "r3" },
+          { id: 4, parentid: 1, name: "c1" },
+          { id: 5, parentid: 1, name: "c2" },
+          { id: 6, parentid: 2, name: "c3" }
+        ],
+        "tree.empty": []
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/tree.md">
+  <main>
+    <h1>tree</h1>
+    <p class="intro">
+      Checks the examples of <code>docs/commands/tree.md</code>: <code>idcol</code>, <code>parentidcol</code> and
+      <code>nullvalue</code>, level faces with <code>@child</code>, a forest of roots marked with <code>0</code>,
+      incremental edit/delete/replace, the "no root record" error, loose id comparison, orphans, per-level
+      face filters, row type counting and the pitfall of a node without a matching face.
+    </p>
+
+    <section class="case" id="case-static">
+      <h2>Static tree with leaf, depth 2 and fallback faces</h2>
+      <div id="static">
+        <basis core="tree" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
+          <layout>
+            <script type="text/template">
+              <ul data-hi="">
+                @child
+              </ul>
+            </script>
+          </layout>
+          <face level="end" replace="true">
+            <li data-end-like><a href="/@name@">@id@ - @name@</a></li>
+          </face>
+          <face level="2">
+            <li>
+              <a href="/@name@">@id - @name Level2</a>
+              <ul>@child</ul>
+            </li>
+          </face>
+          <face>
+            <li data-else>
+              @id@ - @name@
+              <ul>@child</ul>
+            </li>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-zero">
+      <h2>Roots marked with <code>0</code> (all defaults)</h2>
+      <div id="menu">
+        <basis core="tree" datamembername="menu.items" run="atclient">
+          <layout><ul class="menu">@child</ul></layout>
+          <face level="end"><li><a href="@url@">@title@</a></li></face>
+          <face><li>@title@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-live">
+      <h2>Replace, edit and delete with live updates</h2>
+      <input type="button" id="btn-set" value="Set Source" onclick="setSourceHandler()" />
+      <input type="button" id="btn-edit" value="Edit node 4" onclick="editSourceHandler()" />
+      <input type="button" id="btn-remove" value="Remove node 5" onclick="removeSourceHandler()" />
+      <basis core="callback" triggers="live.tree" run="atclient"></basis>
+      <div id="live">
+        <basis core="tree" datamembername="live.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
+          <layout>
+            <ul data-hi>@child</ul>
+          </layout>
+          <face level="end">
+            <li id="@id@" data-end>@id@ - @name@
+              <button onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change color</button>
+            </li>
+          </face>
+          <face>
+            <li id="@id@" data-else>@id@ - @name@
+              <button onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change color</button>
+              <ul>@child</ul>
+            </li>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-noroot">
+      <h2>No root record: the render throws and the previous output stays</h2>
+      <div id="noroot">
+        <basis core="tree" datamembername="local.noroot" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face level="end"><li>@name@</li></face>
+          <face><li>@name@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-loose">
+      <h2>Loose comparison of ids, orphans, case-insensitive <code>core</code></h2>
+      <div id="loose">
+        <basis core="tRee" datamembername="loose.tree" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face level="end"><li class="leaf">@title@</li></face>
+          <face><li class="branch">@title@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-filter">
+      <h2>Face filters per level</h2>
+      <div id="filtered">
+        <basis core="tree" datamembername="filter.tree" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face level="end" filter="name like 'r%'"><li class="r">@name@</li></face>
+          <face level="end"><li class="leaf">@name@</li></face>
+          <face><li class="branch">@name@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-rowtype">
+      <h2>Row type counting: one counter for the roots, a fresh one per parent</h2>
+      <div id="rowtype">
+        <basis core="tree" datamembername="rowtype.tree" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face rowtype="even"><li class="even">@name@<ul>@child</ul></li></face>
+          <face><li class="odd">@name@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-tokens">
+      <h2><code>idcol</code>, <code>parentidcol</code> and <code>nullvalue</code> accept tokens</h2>
+      <div id="tokens">
+        <basis core="tree" datamembername="cfg.tree" idcol="[##cfg.columns.id##]" parentidcol="[##cfg.columns.parent##]"
+               nullvalue="[##cfg.columns.root##]" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face level="end"><li class="leaf">@label@</li></face>
+          <face><li class="branch">@label@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls: a node without a matching face, an empty source</h2>
+      <div id="noface">
+        <basis core="tree" datamembername="pitfall.noface" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face level="1"><li>@name@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+      <div id="empty">
+        <basis core="tree" datamembername="tree.empty" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face><li>@name@<ul>@child</ul></li></face>
+          <else-layout><p class="none">no nodes</p></else-layout>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Script of the "Replace, edit and delete with live updates" example.
+    var i = 1;
+    const options = { keyFieldName: "id", statusFieldName: "status" };
+    function setSourceHandler() {
+      $bc.setSource("live.tree", [
+        { id: 1, name: `ali-${i}`,    pid: null, status: 0 },
+        { id: 2, name: `amir-${i}`,   pid: 1,    status: 0 },
+        { id: 3, name: `hassan-${i}`, pid: 1,    status: 0 },
+        { id: 4, name: `javad-${i}`,  pid: 2,    status: 0 },
+        { id: 5, name: `reza-${i}`,   pid: 4,    status: 0 }
+      ], { ...options, mergeType: basiscore.MergeType.replace });
+      i += 1;
+    }
+    function editSourceHandler() {
+      $bc.setSource("live.tree", [{ id: 4, name: `javad-${i}`, pid: 2, status: 1 }],
+        { ...options, mergeType: basiscore.MergeType.append });
+      i += 1;
+    }
+    function removeSourceHandler() {
+      $bc.setSource("live.tree", [{ id: 5, status: 2 }],
+        { ...options, mergeType: basiscore.MergeType.append });
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Tree command has no root record/);
+    bcTest.allowError(/reading 'AppendTo'/);
+
+    const liText = (li) => Array.from(li.childNodes)
+      .filter((n) => n.nodeType === Node.TEXT_NODE || (n.nodeType === Node.ELEMENT_NODE && n.tagName !== "UL" && n.tagName !== "BUTTON"))
+      .map((n) => n.textContent).join("").replace(/\s+/g, " ").trim();
+
+    bcTest.test("the root uses the fallback face, depth 2 nodes the level 2 face, leaves the end face (first match wins)", async (t) => {
+      const root = await t.waitFor(() => t.$("#static > ul[data-hi] > li"));
+      t.ok(root.hasAttribute("data-else"), "row 1 (pid null) is the root and uses the face without level");
+      t.equal(liText(root), "1 - ali1");
+      t.equal(t.$$("#static > ul[data-hi] > li").length, 1, "one root only");
+
+      const depth2 = t.$$(":scope > ul > li", root);
+      t.equal(depth2.length, 2, "rows 2 and 3 are the children of row 1");
+      t.equal(depth2[0].hasAttribute("data-end-like"), false, "row 2 has children, so it is depth 2 and not a leaf");
+      t.equal(t.text(t.$("a", depth2[0])), "2 - amir Level2", "@id - @name expressions and the level 2 template");
+      t.equal(t.$("a", depth2[0]).getAttribute("href"), "/amir", "@name@ inside an attribute");
+      t.ok(depth2[1].hasAttribute("data-end-like"), "row 3 is a leaf at depth 2: the end face wins because it comes first");
+      t.equal(t.text(depth2[1]), "3 - hassan");
+      t.equal(t.$$("ul", depth2[1]).length, 0, "the end face has no @child, so no descendants are rendered");
+
+      const depth3 = t.$$(":scope > ul > li", depth2[0]);
+      t.equal(depth3.length, 1);
+      t.ok(depth3[0].hasAttribute("data-else"), "row 4 (depth 3, has a child) falls back to the face without level");
+      t.equal(liText(depth3[0]), "4 - javad");
+      const depth4 = t.$$(":scope > ul > li", depth3[0]);
+      t.equal(depth4.length, 1);
+      t.ok(depth4[0].hasAttribute("data-end-like"), "row 5 is a leaf");
+      t.equal(t.$("a", depth4[0]).getAttribute("href"), "/reza");
+      t.equal(t.$$("#static basis-core-template-tag").length, 0, "the temporary @child placeholder is removed");
+    });
+
+    bcTest.test("with the defaults (idcol id, parentidcol parentid, nullvalue 0) a forest of two roots is rendered", async (t) => {
+      $bc.setSource("menu.items", [
+        { id: 1, parentid: 0, title: "Products", url: "/products" },
+        { id: 2, parentid: 1, title: "Software", url: "/products/software" },
+        { id: 3, parentid: 1, title: "Hardware", url: "/products/hardware" },
+        { id: 4, parentid: 0, title: "About", url: "/about" }
+      ]);
+      const roots = await t.waitFor(() => t.$$("#menu > ul.menu > li"), (l) => l.length === 2);
+      t.equal(liText(roots[0]), "Products");
+      const children = t.$$(":scope > ul > li > a", roots[0]);
+      t.deepEqual(children.map((a) => t.text(a)), ["Software", "Hardware"]);
+      t.deepEqual(children.map((a) => a.getAttribute("href")), ["/products/software", "/products/hardware"]);
+      t.equal(roots[1].innerHTML.trim(), '<a href="/about">About</a>', "the second root has no children and uses the end face");
+    });
+
+    bcTest.test("the initial render of the live tree: nodes with children use the fallback face, leaves the end face", async (t) => {
+      const items = await t.waitFor(() => t.$$("#live li"), (l) => l.length === 5);
+      t.deepEqual(items.map((li) => li.id), ["1", "2", "4", "5", "3"], "document order: depth first");
+      t.ok(t.$("#live li[id='4']").hasAttribute("data-else"), "node 4 has a child");
+      t.ok(t.$("#live li[id='5']").hasAttribute("data-end"), "node 5 is a leaf");
+      t.ok(t.$("#live li[id='4'] > ul > li[id='5']"), "node 5 is inside node 4");
+      t.equal(t.consoleMessages(/reza-0/).length, 0, "the callback command has nothing to log before the first change");
+    });
+
+    bcTest.test("an append that edits node 4 rebuilds only node 4; every other node (including its child 5) is re-used with its state", async (t) => {
+      const before = Object.fromEntries(t.$$("#live li").map((li) => [li.id, li]));
+      for (const id of ["1", "2", "5"]) t.click(before[id].querySelector("button"));
+      const colours = Object.fromEntries(["1", "2", "5"].map((id) => [id, before[id].querySelector("button").style.color]));
+      t.ok(colours["1"] && colours["2"] && colours["5"], "the buttons got a colour");
+
+      t.click("#btn-edit");
+      await t.waitFor(() => t.$("#live li[id='4']"), (li) => li && liText(li) === "4 - javad-1");
+      const after = Object.fromEntries(t.$$("#live li").map((li) => [li.id, li]));
+      t.equal(Object.keys(after).length, 5);
+      t.ok(after["4"] !== before["4"], "node 4 is a new DOM node");
+      for (const id of ["1", "2", "3", "5"]) t.ok(after[id] === before[id], "node " + id + " is the same DOM node");
+      for (const id of ["1", "2", "5"]) t.equal(after[id].querySelector("button").style.color, colours[id], "colour of node " + id + " kept");
+      t.ok(t.$("#live li[id='4'] > ul > li[id='5']"), "node 5 moved back under the new node 4");
+      await t.waitForConsole(/javad-1/);
+      t.ok(t.consoleMessages(/javad-1/).length > 0, "the callback command logs the source on every change");
+    });
+
+    bcTest.test("deleting node 5 removes the leaf; node 4 keeps its cached fallback markup with an empty <ul> until it is edited or replaced", async (t) => {
+      const node4 = t.$("#live li[id='4']");
+      t.click("#btn-remove");
+      await t.waitFor(() => t.$$("#live li"), (l) => l.length === 4);
+      t.equal(t.$("#live li[id='5']"), null);
+      t.ok(t.$("#live li[id='4']") === node4, "node 4 is re-used because its own version did not change");
+      t.ok(node4.hasAttribute("data-else"), "it still carries the fallback face markup although it is now a leaf");
+      t.equal(t.$("ul", node4).children.length, 0, "with an empty <ul>");
+      t.equal(t.rows("live.tree").length, 4);
+    });
+
+    bcTest.test("pitfall (positional versions): a replace that re-adds the deleted key 5 gives it version 0 again, so its stale cached node is re-used", async (t) => {
+      const oldNode5 = t.$("#live li[id='5']");
+      t.equal(oldNode5, null);
+      const before = t.$$("#live li");
+      t.click("#btn-set"); // i is 2: every name becomes *-2
+      await t.waitFor(() => t.$("#live li[id='1']"), (li) => li && liText(li) === "1 - ali-2");
+      const after = Object.fromEntries(t.$$("#live li").map((li) => [li.id, li]));
+      t.deepEqual(["1", "2", "3", "4"].map((id) => liText(after[id])), ["1 - ali-2", "2 - amir-2", "3 - hassan-2", "4 - javad-2"], "rows that kept a position are re-rendered");
+      t.ok(before.every((li) => !Object.values(after).includes(li)), "none of the four previous nodes survived");
+      t.equal(liText(after["5"]), "5 - reza-0", "the re-added row 5 shows the text cached at version 0, not reza-2");
+      t.deepEqual(t.rows("live.tree").map((r) => r.name), ["ali-2", "amir-2", "hassan-2", "javad-2", "reza-2"], "the source itself is correct");
+      t.deepEqual(t.source("live.tree").versions, [1, 1, 1, 2, 0], "versions are positional: the new fifth position starts at 0");
+      t.note("documented in docs/sources-and-reactivity.md (replace with keyFieldName: versions are positional)");
+    });
+
+    bcTest.test("a replace merge whose rows all have a bumped version re-renders every node", async (t) => {
+      const before = t.$$("#live li");
+      t.click("#btn-set"); // i is 3
+      await t.waitFor(() => t.$("#live li[id='5']"), (li) => li && liText(li) === "5 - reza-3");
+      const after = t.$$("#live li");
+      t.equal(after.length, 5);
+      t.deepEqual(after.map((li) => liText(li)), ["1 - ali-3", "2 - amir-3", "4 - javad-3", "5 - reza-3", "3 - hassan-3"]);
+      t.ok(after.every((li) => !before.includes(li)), "no DOM node survived the replace");
+      t.ok(t.$("#live li[id='5']").hasAttribute("data-end"));
+      t.ok(t.$("#live li[id='4']").hasAttribute("data-else"), "node 4 has its child again");
+      t.equal(t.$$("#live > ul[data-hi]").length, 1, "the layout is rendered once");
+    });
+
+    bcTest.test("without a root row the render throws the documented error and the previous output stays", async (t) => {
+      $bc.setSource("local.noroot", [{ id: 1, parentid: 0, name: "root" }]);
+      await t.waitForText("#noroot", "root");
+
+      $bc.setSource("local.noroot", [{ id: 1, parentid: null, name: "orphan" }]);
+      const errors = await t.waitForError(/Tree command has no root record/);
+      t.equal(
+        errors[0].message,
+        "Tree command has no root record in data member 'local.noroot' with '0' value in 'parentid' column that set in NullValue attribute."
+      );
+      t.equal(t.text("#noroot"), "root", "the old output is still there");
+    });
+
+    bcTest.test("ids are compared loosely (\"1\" links to 1, \"0\" and 0 both mark roots), orphans are dropped and core is case-insensitive", async (t) => {
+      const roots = await t.waitFor(() => t.$$("#loose > ul > li"), (l) => l.length === 2);
+      t.deepEqual(roots.map((li) => liText(li)), ["a", "c"]);
+      t.ok(roots[0].classList.contains("branch") && roots[1].classList.contains("leaf"));
+      t.deepEqual(t.$$("ul > li", roots[0]).map((li) => t.text(li)), ["b"]);
+      t.equal(t.$$("#loose li").length, 3, "the orphan (parent 7) is not rendered and nothing reports it");
+    });
+
+    bcTest.test("a face filter restricts a level face to its rows; the next face without filter is the fallback", async (t) => {
+      const root = await t.waitFor(() => t.$("#filtered > ul > li"), null, { timeout: 10000 });
+      t.ok(root.classList.contains("branch"));
+      const leaves = t.$$("li.r", root).map((li) => t.text(li));
+      t.deepEqual(leaves, ["reza", "rahim"], "leaves whose name starts with r use the filtered end face");
+      t.deepEqual(t.$$("li.leaf", root).map((li) => t.text(li)), ["sara"], "the other leaf uses the plain end face");
+      t.deepEqual(t.$$("li.branch", root).map((li) => liText(li)), ["ali"], "ali has a child and uses the fallback face");
+    });
+
+    bcTest.test("rowtype: the first row of every counter is even; roots share one counter, the children of each parent get a fresh one", async (t) => {
+      const roots = await t.waitFor(() => t.$$("#rowtype > ul > li"), (l) => l.length === 3);
+      t.deepEqual(roots.map((li) => li.className), ["even", "odd", "even"]);
+      t.deepEqual(t.$$(":scope > ul > li", roots[0]).map((li) => li.className), ["even", "odd"]);
+      t.deepEqual(t.$$(":scope > ul > li", roots[1]).map((li) => li.className), ["even"], "c3 is the first child of r2, so it is even again");
+    });
+
+    bcTest.test("idcol, parentidcol and nullvalue can be tokens", async (t) => {
+      $bc.setSource("cfg.columns", { id: "key", parent: "up", root: "-1" });
+      $bc.setSource("cfg.tree", [
+        { key: "a", up: -1, label: "Alpha" },
+        { key: "b", up: "a", label: "Beta" },
+        { key: "c", up: -1, label: "Gamma" }
+      ]);
+      const roots = await t.waitFor(() => t.$$("#tokens > ul > li"), (l) => l.length === 2);
+      t.deepEqual(roots.map((li) => liText(li)), ["Alpha", "Gamma"]);
+      t.deepEqual(t.$$("li", roots[0]).map((li) => t.text(li)), ["Beta"]);
+    });
+
+    bcTest.test("pitfall: a child row that matches no face breaks the render with a TypeError while appending null", async (t) => {
+      $bc.setSource("pitfall.noface", [
+        { id: 1, parentid: 0, name: "root" },
+        { id: 2, parentid: 1, name: "child" }
+      ]);
+      const errors = await t.waitForError(/reading 'AppendTo'/);
+      t.match(errors[0].message, /Cannot read properties of null \(reading 'AppendTo'\)/);
+      t.equal(t.$$("#noface li").length, 0, "nothing is rendered");
+    });
+
+    bcTest.test("an empty source renders the else-layout", async (t) => {
+      await t.waitForText("#empty", "no nodes");
+      t.equal(t.$$("#empty li").length, 0);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>list</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "grid.nine": [
+          { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 },
+          { id: 6 }, { id: 7 }, { id: 8 }, { id: 9 }
+        ],
+        "grid.eight": [
+          { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 },
+          { id: 5 }, { id: 6 }, { id: 7 }, { id: 8 }
+        ],
+        "grid.five": [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+        "inlineSource.empty": [],
+        "shop.products": [
+          { id: 1, name: "Notebook", price: 12 },
+          { id: 2, name: "Pen", price: 2 },
+          { id: 3, name: "Ink", price: 5 }
+        ]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/list.md">
+  <main>
+    <h1>list</h1>
+    <p class="intro">
+      Checks the examples of <code>docs/commands/list.md</code>: the <code>&lt;divider&gt;</code> and
+      <code>&lt;incomplete&gt;</code> algorithm (groups of <code>rowcount</code> cells, padding of the last
+      group, trailing divider), keyed append/edit/delete with a face <code>filter</code>, the plain list
+      that behaves like <code>print</code>, templates that need <code>&lt;script type="text/template"&gt;</code>,
+      and the documented pitfalls (script-wrapped layout with a divider, <code>level</code> on a face).
+    </p>
+
+    <section class="case" id="case-grid">
+      <h2>Grid of four cells per row</h2>
+      <div id="grid">
+        <basis core="list" datamembername="grid.nine" run="atclient">
+          <layout>
+            <div class="row">@child</div>
+          </layout>
+          <face>
+            <span class="cell">@id@</span>
+          </face>
+          <divider rowcount="4">
+            <script type="text/template"></div><div class="row"></script>
+          </divider>
+          <incomplete>
+            <span class="cell empty">x</span>
+          </incomplete>
+          <else-layout>empty</else-layout>
+        </basis>
+      </div>
+      <p>The same markup over eight rows (an exact multiple of <code>rowcount</code>):</p>
+      <div id="grid-eight">
+        <basis core="list" datamembername="grid.eight" run="atclient">
+          <layout>
+            <div class="row">@child</div>
+          </layout>
+          <face>
+            <span class="cell">@id@</span>
+          </face>
+          <divider rowcount="4">
+            <script type="text/template"></div><div class="row"></script>
+          </divider>
+          <incomplete>
+            <span class="cell empty">x</span>
+          </incomplete>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-keyed">
+      <h2>Appending, editing and deleting rows</h2>
+      <input type="button" id="set-source" value="Set Source" onclick="clickHandler()" />
+      <div id="keyed">
+        <Basis core="list" datamembername="local.print" run="atclient">
+          <layout>
+            <div>@child</div>
+          </layout>
+          <face filter="id < 12">
+            <span data-id="@id@" onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name ) </span>
+          </face>
+          <else-layout> empty </else-layout>
+          <divider rowcount="4">
+            <script type="text/template"></div><div></script>
+          </divider>
+          <incomplete>
+            <script type="text/template">
+              <img src="#" alt="" />
+              x
+            </script>
+          </incomplete>
+        </Basis>
+      </div>
+      <basis core="callback" triggers="local.print" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-plain">
+      <h2>A plain list without divider</h2>
+      <div id="plain">
+        <Basis core="list" datamembername="local.print" run="atclient">
+          <face filter="id < 12">
+            <span>@id ( @name )</span>
+          </face>
+          <else-layout>
+            <span>empty</span>
+          </else-layout>
+        </Basis>
+      </div>
+      <div id="plain-empty">
+        <Basis core="list" datamembername="inlineSource.empty" run="atclient">
+          <face><span>@id</span></face>
+          <else-layout>
+            <span>empty</span>
+          </else-layout>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-templates">
+      <h2>Options and table rows need a <code>&lt;script type="text/template"&gt;</code></h2>
+      <div id="options">
+        <basis core="list" datamembername="shop.products" run="atclient">
+          <layout>
+            <script type="text/template">
+              <select>@child</select>
+            </script>
+          </layout>
+          <face>
+            <script type="text/template">
+              <option value="@id@">@name@</option>
+            </script>
+          </face>
+        </basis>
+      </div>
+      <div id="rows">
+        <basis core="list" datamembername="shop.products" run="atclient">
+          <layout>
+            <script type="text/template">
+              <table><tbody>@child</tbody></table>
+            </script>
+          </layout>
+          <face>
+            <script type="text/template">
+              <tr><td>@name@</td><td>@price@</td></tr>
+            </script>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-edge">
+      <h2>Divider without <code>rowcount</code>, no <code>&lt;incomplete&gt;</code>, <code>&lt;incomplete&gt;</code> alone</h2>
+      <div id="no-rowcount">
+        <basis core="list" datamembername="grid.five" run="atclient">
+          <layout><div class="row">@child</div></layout>
+          <face><span class="cell">@id@</span></face>
+          <divider>
+            <script type="text/template"></div><div class="row"></script>
+          </divider>
+          <incomplete><span class="cell empty">x</span></incomplete>
+        </basis>
+      </div>
+      <div id="no-incomplete">
+        <basis core="list" datamembername="grid.five" run="atclient">
+          <layout><div class="row">@child</div></layout>
+          <face><span class="cell">@id@</span></face>
+          <divider rowcount="4">
+            <script type="text/template"></div><div class="row"></script>
+          </divider>
+        </basis>
+      </div>
+      <div id="incomplete-only">
+        <basis core="list" datamembername="grid.five" run="atclient">
+          <layout><div class="row">@child</div></layout>
+          <face><span class="cell">@id@</span></face>
+          <incomplete><span class="cell empty">x</span></incomplete>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls: script-wrapped layout with a divider, <code>level</code> on a face</h2>
+      <div id="script-layout">
+        <basis core="list" datamembername="pitfall.layout" run="atclient">
+          <layout>
+            <script type="text/template"><div class="row">@child</div></script>
+          </layout>
+          <face><span class="cell">@id@</span></face>
+          <divider rowcount="2">
+            <script type="text/template"></div><div class="row"></script>
+          </divider>
+        </basis>
+      </div>
+      <div id="level-face">
+        <basis core="list" datamembername="pitfall.level" run="atclient">
+          <face level="1"><span class="cell">@id@</span></face>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Script of the "Appending, editing and deleting rows" example. The tests drive `i`.
+    var i = 0;
+    function clickHandler() {
+      const rows = [];
+      if (i >= 15) {
+        rows.push({ id: i - 15, status: 2 });                 // delete
+      } else {
+        rows.push({ id: i, name: `btn-t=${i}`, status: 0 });  // add
+      }
+      $bc.setSource("local.print", rows, {
+        keyFieldName: "id",
+        statusFieldName: "status",
+        mergeType: basiscore.MergeType.append
+      });
+      i += 1;
+    }
+  </script>
+
+  <script>
+    // The two pitfalls below throw from the render; the rejections are expected.
+    bcTest.allowError(/selectNode/);
+    bcTest.allowError(/reading 'some'/);
+
+    const cellsOf = (row) => Array.from(row.querySelectorAll(".cell")).map((c) => c.textContent.trim());
+
+    bcTest.test("nine rows with rowcount 4 give three <div> rows: 4 cells, 4 cells, 1 cell plus 3 padding cells", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#grid .row"), (l) => l.length === 3);
+      t.deepEqual(cellsOf(rows[0]), ["1", "2", "3", "4"]);
+      t.deepEqual(cellsOf(rows[1]), ["5", "6", "7", "8"]);
+      t.deepEqual(cellsOf(rows[2]), ["9", "x", "x", "x"]);
+      t.equal(rows[2].querySelectorAll(".cell.empty").length, 3, "the padding cells come from <incomplete>");
+      t.equal(t.$$("#grid basis").length, 0, "the <basis> element is replaced by the output");
+      t.equal(t.$$("#grid div.row > div").length, 0, "the layout is not nested: the divider closes and reopens the wrapper");
+    });
+
+    bcTest.test("eight rows (an exact multiple) emit a trailing divider: two full rows and an empty third wrapper", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#grid-eight .row"), (l) => l.length === 3);
+      t.deepEqual(cellsOf(rows[0]), ["1", "2", "3", "4"]);
+      t.deepEqual(cellsOf(rows[1]), ["5", "6", "7", "8"]);
+      t.equal(rows[2].children.length, 0, "the trailing wrapper has no cells");
+      t.equal(t.text(rows[2]), "", "and no padding, because the last group was complete");
+    });
+
+    bcTest.test("each click appends one keyed row; the fifth row starts a second group padded with the <incomplete> template", async (t) => {
+      for (let n = 0; n < 5; n++) t.click("#set-source");
+      const spans = await t.waitFor(() => t.$$("#keyed span[data-id]"), (l) => l.length === 5, { timeout: 10000 });
+      t.deepEqual(spans.map((s) => t.text(s)), ["0 ( btn-t=0 )", "1 ( btn-t=1 )", "2 ( btn-t=2 )", "3 ( btn-t=3 )", "4 ( btn-t=4 )"]);
+      const wrappers = t.$$("#keyed div").filter((d) => d.querySelector("span[data-id]"));
+      t.equal(wrappers.length, 2, "two wrapper <div>s");
+      t.equal(wrappers[0].querySelectorAll("span[data-id]").length, 4);
+      t.equal(wrappers[1].querySelectorAll("span[data-id]").length, 1);
+      t.equal(wrappers[1].querySelectorAll("img").length, 3, "three padding cells, each with the <img> of the template");
+      t.match(t.text(wrappers[1]), /^4 \( btn-t=4 \)\s*x\s*x\s*x$/, "the real cell followed by three x cells");
+      t.equal(t.rows("local.print").length, 5);
+      await t.waitForConsole(/btn-t=4/);
+      t.ok(t.consoleMessages(/btn-t=4/).length > 0, "the callback command logs the source on every change");
+    });
+
+    bcTest.test("rows already on screen are re-used from the cache, so a colour chosen by a click survives the next append", async (t) => {
+      const second = t.$("#keyed span[data-id='2']");
+      t.click(second);
+      const colour = second.style.color;
+      t.ok(colour, "the inline onclick set a colour");
+
+      t.click("#set-source");
+      await t.waitFor(() => t.$$("#keyed span[data-id]"), (l) => l.length === 6, { timeout: 10000 });
+      const after = t.$("#keyed span[data-id='2']");
+      t.ok(after === second, "the same DOM node is reused for the row with id 2");
+      t.equal(after.style.color, colour, "its colour is kept");
+    });
+
+    bcTest.test("rows with id >= 12 are excluded by the face filter and rows with status 2 are deleted", async (t) => {
+      i = 12;
+      t.click("#set-source"); // appends id 12
+      await t.waitFor(() => t.rows("local.print"), (r) => r.length === 7);
+      await t.sleep(200);
+      t.equal(t.$$("#keyed span[data-id]").length, 6, "the row with id 12 is in the source but not rendered");
+      t.equal(t.$("#keyed span[data-id='12']"), null);
+
+      i = 15;
+      t.click("#set-source"); // deletes id 0
+      await t.waitFor(() => t.$$("#keyed span[data-id]"), (l) => l.length === 5, { timeout: 10000 });
+      t.equal(t.$("#keyed span[data-id='0']"), null, "row 0 is gone");
+      t.equal(t.text(t.$("#keyed span[data-id]")), "1 ( btn-t=1 )", "row 1 is now first");
+      t.equal(t.rows("local.print").length, 6);
+    });
+
+    bcTest.test("without a <divider> the list renders like print: one face per row, else-layout for an empty source", async (t) => {
+      const spans = await t.waitFor(() => t.$$("#plain span"), (l) => l.length === 5, { timeout: 10000 });
+      t.equal(t.text(spans[0]), "1 ( btn-t=1 )");
+      t.equal(t.text(spans[4]), "5 ( btn-t=5 )");
+      t.equal(t.$$("#plain div").length, 0, "no wrapper is generated without a layout");
+      await t.waitForText("#plain-empty", "empty");
+    });
+
+    bcTest.test("<option> and <tr> templates wrapped in <script type=\"text/template\"> survive the HTML parser", async (t) => {
+      const options = await t.waitFor(() => t.$$("#options select > option"), (l) => l.length === 3);
+      t.deepEqual(options.map((o) => o.value), ["1", "2", "3"]);
+      t.deepEqual(options.map((o) => t.text(o)), ["Notebook", "Pen", "Ink"]);
+      const rows = await t.waitFor(() => t.$$("#rows table > tbody > tr"), (l) => l.length === 3);
+      t.deepEqual(t.$$("td", rows[1]).map((td) => t.text(td)), ["Pen", "2"]);
+    });
+
+    bcTest.test("a <divider> without rowcount never divides or pads; the layout is still applied", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#no-rowcount .row"), (l) => l.length === 1);
+      t.deepEqual(cellsOf(rows[0]), ["1", "2", "3", "4", "5"]);
+      t.equal(t.$$("#no-rowcount .empty").length, 0);
+    });
+
+    bcTest.test("without <incomplete> the padding positions insert nothing visible", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#no-incomplete .row"), (l) => l.length === 2);
+      t.deepEqual(cellsOf(rows[0]), ["1", "2", "3", "4"]);
+      t.deepEqual(cellsOf(rows[1]), ["5"]);
+      t.equal(rows[1].children.length, 1, "no extra element for the three missing cells");
+    });
+
+    bcTest.test("<incomplete> without a <divider> has no effect", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#incomplete-only .row"), (l) => l.length === 1);
+      t.deepEqual(cellsOf(rows[0]), ["1", "2", "3", "4", "5"]);
+      t.equal(t.$$("#incomplete-only .empty").length, 0);
+    });
+
+    bcTest.test("pitfall: a layout wrapped in <script type=\"text/template\"> throws a TypeError on selectNode when a <divider> is present", async (t) => {
+      $bc.setSource("pitfall.layout", [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const errors = await t.waitForError(/selectNode/);
+      t.match(errors[0].message, /TypeError|not of type 'Node'/, "a TypeError about selectNode");
+      t.equal(t.$$("#script-layout .cell").length, 0, "nothing is rendered");
+    });
+
+    bcTest.defect("known defect: level on a list face throws TypeError: Cannot read properties of undefined (reading 'some')", async (t) => {
+      $bc.setSource("pitfall.level", [{ id: 1 }]);
+      const errors = await t.waitForError(/reading 'some'/);
+      t.match(errors[0].message, /Cannot read properties of undefined \(reading 'some'\)/);
+      t.equal(t.$$("#level-face .cell").length, 0, "nothing is rendered");
+    });
+  </script>
+</body>
+</html>

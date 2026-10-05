@@ -81,7 +81,7 @@ Row type counting (`rowtype`) uses one counter for all roots and a fresh counter
 
 ## Incremental re-render
 
-Each node's result is cached under the row's key (`row[keyFieldName]`, or the row object when the source has no key field) with the row's version. On the next render a node whose version is unchanged is re-used: its DOM nodes are moved back and its `@child` range is emptied and refilled with the (possibly re-used) children. An `append` merge that edits one row (status `1`) therefore rebuilds only that node; deleting a row (status `2`) removes it and its subtree; a `replace` merge re-renders every node. Details in [print.md](print.md#incremental-re-render-by-key-and-version).
+Each node's result is cached under the row's key (`row[keyFieldName]`, or the row object when the source has no key field) with the row's version. On the next render a node whose version is unchanged is re-used: its DOM nodes are moved back and its `@child` range is emptied and refilled with the (possibly re-used) children. An `append` merge that edits one row (status `1`) therefore rebuilds only that node; deleting a row (status `2`) removes it and its subtree; a `replace` merge re-renders every node whose version changed, which is every position that already existed. A position added by the replace starts at version `0`, so a key that was deleted earlier and comes back at such a position re-uses its stale cached node (versions are positional, see [../sources-and-reactivity.md](../sources-and-reactivity.md#replace-and-version-bumping)). Details in [print.md](print.md#incremental-re-render-by-key-and-version).
 
 ## Examples
 
@@ -222,7 +222,7 @@ All defaults apply: `idcol="id"`, `parentidcol="parentid"`, `nullvalue="0"`. Two
 </script>
 ```
 
-"Edit node 4" rebuilds only node 4 (its children are re-used), "Remove node 5" drops the leaf, and "Set Source" (a `replace`) re-renders every node. After node 5 is removed, node 4 is a leaf, but its cached node (rendered with the fallback face, with an empty `<ul>`) is re-used because its own version did not change; it switches to the `end` face only after it is edited or the source is replaced.
+"Edit node 4" rebuilds only node 4 (its children are re-used), "Remove node 5" drops the leaf, and "Set Source" (a `replace`) re-renders every node whose position already existed (press it before removing node 5 to see every node rebuilt; pressed right after the removal, the re-added node 5 gets version `0` again and keeps its cached markup). After node 5 is removed, node 4 is a leaf, but its cached node (rendered with the fallback face, with an empty `<ul>`) is re-used because its own version did not change; it switches to the `end` face only after it is edited or the source is replaced.
 
 ## Pitfalls
 

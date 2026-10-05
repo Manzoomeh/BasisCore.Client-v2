@@ -202,8 +202,9 @@ the consumer inside the repeated markup.
 
 ## Pitfalls
 
-- Without `name`, the per-row source id is `undefined.current`; tokens such as
-  `[##rep.current.x##]` never resolve and wait forever. Always set `name`.
+- Without `name`, the per-row source id is `null.current` (the missing attribute reads as
+  `null`); tokens such as `[##rep.current.x##]` never resolve: a text token stays empty and a
+  command attribute waits forever. Always set `name`.
 - Sources set from inside a row (HTML element bindings, `callback`, `api` inside the template)
   land in that row's `LocalContext` and are invisible outside the repeater.
 - `replace="false"` never disposes anything until the command is disposed, and it re-renders the

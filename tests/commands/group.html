@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>group</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "cfg.theme": [{ value: "light" }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/group.md">
+  <main>
+    <h1>group</h1>
+    <p class="intro">
+      Checks <code>docs/commands/group.md</code>: a block with its own <code>LocalRootContext</code> (sources set
+      inside stay inside, outer sources remain visible and propagate down), show/hide with <code>if</code>,
+      <code>options</code> evaluated with <code>eval</code> (a global name, a parenthesised literal, a repeater
+      row), per-group binding syntax and <code>sources</code>, <code>processNodesAsync</code>, and the
+      documented pitfalls.
+    </p>
+
+    <section class="case" id="case-plain">
+      <h2>Plain scope</h2>
+      <div id="plain">
+        <basis core="group" run="atclient" if="true">
+          <h3>Group start</h3>
+          <Basis core="print" datamembername="local.print" run="atclient">
+            <face>
+              <li><span>@id ( @name ) </span></li>
+            </face>
+          </Basis>
+          <h3>Group end</h3>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-scope">
+      <h2>Local sources do not leak upwards</h2>
+      <div id="scope">
+        <basis core="group" run="atclient">
+          <h3>Group 1 start</h3>
+          <div id="g1-print">
+            <Basis core="print" datamembername="local.name" run="atclient">
+              <face><li><span>@value </span></li></face>
+            </Basis>
+          </div>
+
+          <basis core="group" run="atclient">
+            <h3>Group 2 start</h3>
+            <span id="g2-token">[##local.name.value|(not set)##]</span>
+            <form id="g2-form" bc-triggers="submit" name="local.name">
+              <label>Name: <input id="g2-input" type="text" name="value" value="[##local.name.value##]" bc-triggers="change" /></label>
+              <input type="submit" />
+            </form>
+            <basis core="group" run="atclient">
+              <h3>Group 3 start</h3>
+              <span id="g3-token">[##local.name.value|(not set)##]</span>
+              <h3>Group 3 end</h3>
+            </basis>
+            <h3>Group 2 end</h3>
+          </basis>
+
+          <label>Name: <input id="g1-input" type="text" name="local.name" bc-triggers="keyup" /></label>
+          <h3>Group 1 end</h3>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-showhide">
+      <h2>Show and hide with <code>if</code></h2>
+      <p>current state is : <span id="state">[##local.group.value##]</span></p>
+      <input type="button" id="toggle" value="show/hide group" onclick="fn()" />
+      <div id="showhide">
+        <basis core="group" run="atclient" triggers="local.group" if="[##local.group.value##]">
+          <h3>Group start</h3>
+          <Basis core="print" datamembername="local.print" run="atclient">
+            <face><li><span>@id ( @name ) </span></li></face>
+          </Basis>
+          <h3>Group end</h3>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-host">
+      <h2>Host sources inside a group, before and after a hide/show cycle</h2>
+      <p>outside: <span id="theme-out">[##cfg.theme.value##]</span></p>
+      <div id="hostgroup">
+        <basis core="group" run="atclient" triggers="ui.visible" if="[##ui.visible.value|(true)##]">
+          <p class="wrapped">[##ui.label.value|(none)##]</p>
+          <basis core="print" datamembername="cfg.theme" run="atclient">
+            <face><li class="theme">@value@</li></face>
+          </basis>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-options">
+      <h2>Per-group binding syntax and sources</h2>
+      <div id="opts">
+        <span class="l0-time">use [## => [##cms.cms.time##]</span>
+        <br />
+        <span class="l0-user">user => [##app.user.name|(no user)##]</span>
+        <basis core="group" run="atclient" options="groupOptions">
+          <h3>Group#1 start</h3>
+          <span class="l1-time">use { => {cms.cms.time}</span>
+          <br />
+          <span class="l1-user">user => {app.user.name|(no user)}</span>
+          <basis core="group" run="atclient" options='groupOptions1'>
+            <h3>Group#1.1 start</h3>
+            <span class="l2-time">use {# => {#cms.cms.time#}</span>
+            <br />
+            <span class="l2-user">user => {#app.user.name|(no user)#}</span>
+            <h3>Group#1.1 end</h3>
+          </basis>
+          <h3>Group#1 end</h3>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-row-options">
+      <h2>Options coming from a repeater row</h2>
+      <div id="rows">
+        <basis core="repeater" name="rep" datamembername="page.data" run="atclient" replace="false">
+          <basis core="group" run="atclient" options="[##rep.current.options##]">
+            <fieldset>
+              <legend>[##rep.current.title##]</legend>
+              <basis core="print" datamembername="data.test" run="atclient">
+                <layout><ul>@child</ul></layout>
+                <face><script type="text/template"><li> @id - @name@</li></script></face>
+              </basis>
+            </fieldset>
+          </basis>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-literal">
+      <h2><code>options</code> as a parenthesised literal, <code>processNodesAsync</code></h2>
+      <div id="literal">
+        <basis core="group" id="literal-group" run="atclient" options="({ sources: { 'grp.data': [{ id: 7, name: 'seven' }] } })">
+          <basis core="print" datamembername="grp.data" run="atclient">
+            <face><li>@id@ - @name@</li></face>
+          </basis>
+        </basis>
+      </div>
+      <div id="late-target"></div>
+    </section>
+
+    <section class="case" id="case-json">
+      <h2>Pitfall: JSON text in <code>options</code> throws from <code>eval</code></h2>
+      <div id="json">
+        <basis core="group" run="atclient" options='{"debug":true}' triggers="bad.go" if="[##bad.go.value|(false)##]">
+          <span class="j">[##cfg.theme.value|(none)##]</span>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Scripts of the documented examples.
+    var show = true;
+    function fn() {
+      show = !show;
+      $bc.setSource("local.group", show);
+    }
+    const groupOptions = {
+      debug: true,
+      settings: { "default.binding.regex": /\{([^\{\}]*)\}/ },
+      sources: { "app.user": [{ id: 1, name: "user#1" }] }
+    };
+    const groupOptions1 = {
+      settings: { "default.binding.regex": "\\{#([^\\{#\\}]*)#\\}" }
+    };
+  </script>
+
+  <!-- bc-ignore: the test code below quotes token syntax that the library must not scan -->
+  <script bc-ignore>
+    bcTest.allowError(/Unexpected token/);
+
+    const rows = [
+      { id: 1, name: "btn-t=1" },
+      { id: 2, name: "btn-t=2" },
+      { id: 3, name: "btn-t=3" }
+    ];
+    const texts = (sel, root) => Array.from((root || document).querySelectorAll(sel)).map((el) => el.textContent.replace(/\s+/g, " ").trim());
+
+    bcTest.test("a group with if=\"true\" renders its block in place; the print inside reads the page source", async (t) => {
+      $bc.setSource("local.print", rows);
+      const items = await t.waitFor(() => t.$$("#plain li"), (l) => l.length === 3);
+      t.deepEqual(items.map((li) => t.text(li)), ["1 ( btn-t=1 )", "2 ( btn-t=2 )", "3 ( btn-t=3 )"]);
+      t.deepEqual(texts("#plain h3"), ["Group start", "Group end"], "the block's own markup stays at its place");
+      t.equal(t.$$("#plain basis").length, 0, "the <basis core=\"group\"> element itself is taken out of the document");
+      const h3 = t.$$("#plain h3");
+      t.ok(h3[0].compareDocumentPosition(items[0]) & Node.DOCUMENT_POSITION_FOLLOWING, "rows come after the first heading");
+      t.ok(items[2].compareDocumentPosition(h3[1]) & Node.DOCUMENT_POSITION_FOLLOWING, "and before the last one");
+    });
+
+    bcTest.test("outer sources are visible in every nested group", async (t) => {
+      $bc.setSource("local.name", "default");
+      await t.waitForText("#g1-print", "default");
+      await t.waitForText("#g2-token", "default");
+      await t.waitForText("#g3-token", "default");
+      t.equal(t.$("#g2-input").getAttribute("value"), "default", "attribute tokens too");
+    });
+
+    bcTest.test("a form submitted inside group 2 publishes local.name into group 2 only: group 2 and 3 update, group 1 and the page do not", async (t) => {
+      t.$("#g2-input").value = "inner";
+      t.fire("#g2-form", "submit");
+      await t.waitForText("#g2-token", "inner");
+      await t.waitForText("#g3-token", "inner");
+      await t.sleep(150);
+      t.equal(t.text("#g1-print"), "default", "the print in group 1 did not change");
+      t.deepEqual(t.rows("local.name"), [{ value: "default" }], "the page repository still holds the old value");
+    });
+
+    bcTest.test("typing in the group 1 input publishes into group 1, which propagates down and removes the local copies", async (t) => {
+      t.setValue("#g1-input", "outer", ["keyup"]);
+      await t.waitForText("#g1-print", "outer");
+      await t.waitForText("#g2-token", "outer");
+      await t.waitForText("#g3-token", "outer");
+      await t.waitForConsole(/local\.name Added from owner context/);
+      t.deepEqual(t.rows("local.name"), [{ value: "default" }], "group 1 is itself a scope: the page repository is untouched");
+    });
+
+    bcTest.test("if becoming false removes the content and disposes the local context; true again re-inserts and processes the saved nodes", async (t) => {
+      $bc.setSource("local.group", show);
+      await t.waitForText("#state", "true");
+      await t.waitFor(() => t.$$("#showhide li"), (l) => l.length === 3);
+      t.deepEqual(texts("#showhide h3"), ["Group start", "Group end"]);
+
+      t.click("#toggle");
+      await t.waitForText("#state", "false");
+      await t.waitFor(() => t.$$("#showhide h3"), (l) => l.length === 0);
+      t.equal(t.$$("#showhide li").length, 0, "the rendered rows are gone too");
+      t.equal(t.text("#showhide"), "", "nothing is left in the range");
+
+      $bc.setSource("local.print", rows.slice(0, 2));
+      await t.sleep(150);
+      t.equal(t.$$("#showhide li").length, 0, "a hidden group does not react to outer sources");
+
+      t.click("#toggle");
+      await t.waitForText("#state", "true");
+      const items = await t.waitFor(() => t.$$("#showhide li"), (l) => l.length === 2);
+      t.deepEqual(items.map((li) => t.text(li)), ["1 ( btn-t=1 )", "2 ( btn-t=2 )"], "the print is processed again and sees the current rows");
+      t.deepEqual(texts("#showhide h3"), ["Group start", "Group end"]);
+    });
+
+    bcTest.test("host.sources are published into the group's own repository; a source set on the page replaces that copy", async (t) => {
+      await t.waitForText("#theme-out", "light");
+      await t.waitForText("#hostgroup .theme", "light");
+      await t.waitForText("#hostgroup .wrapped", "none");
+      $bc.setSource("cfg.theme", "dark");
+      await t.waitForText("#theme-out", "dark");
+      await t.waitForText("#hostgroup .theme", "dark");
+      $bc.setSource("ui.label", "hello");
+      await t.waitForText("#hostgroup .wrapped", "hello");
+    });
+
+    bcTest.test("after a hide/show cycle the new local context publishes host.sources again, so the re-created print shows the host value until the page sets the source anew", async (t) => {
+      $bc.setSource("ui.visible", false);
+      await t.waitFor(() => t.$$("#hostgroup .theme"), (l) => l.length === 0);
+      t.equal(t.$$("#hostgroup .wrapped").length, 0);
+
+      $bc.setSource("ui.visible", true);
+      await t.waitForText("#hostgroup .theme", "light");
+      t.equal(t.text("#theme-out"), "dark", "the page still has dark");
+      t.deepEqual(t.rows("cfg.theme"), [{ value: "dark" }]);
+
+      $bc.setSource("cfg.theme", "blue");
+      await t.waitForText("#hostgroup .theme", "blue");
+      await t.waitForText("#theme-out", "blue");
+    });
+
+    bcTest.defect("undocumented defect: a token wrapped in an element comes back from a hide/show cycle with its last value but is no longer a live binding", async (t) => {
+      t.equal(t.text("#hostgroup .wrapped"), "hello", "the saved <p> comes back with the text rendered before the hide");
+      $bc.setSource("ui.label", "bye");
+      await t.sleep(300);
+      t.equal(t.text("#hostgroup .wrapped"), "hello", "the token text was consumed by the first run, so the re-inserted node has nothing left to bind");
+      t.note("group.md advises wrapping such text in an element; the wrapper is re-inserted, but the token text was replaced by its value on the first run and the old text component belongs to the disposed context");
+    });
+
+    bcTest.test("options replaces the binding regex and publishes sources for the block; a nested group inherits the sources and can override the regex again", async (t) => {
+      await t.waitFor(() => t.text("#opts .l2-user"), (s) => s === "user => user#1");
+      t.match(t.text("#opts .l0-time"), /^use \[## => \d/, "outside the groups [##...##] is resolved");
+      t.equal(t.text("#opts .l0-user"), "user => no user", "app.user is not published on the page");
+      t.match(t.text("#opts .l1-time"), /^use \{ => \d/, "inside group 1 {...} is a token");
+      t.equal(t.text("#opts .l1-user"), "user => user#1", "the group's sources option published app.user");
+      t.match(t.text("#opts .l2-time"), /^use \{# => \d/, "inside group 1.1 {#...#} is a token (regex given as a string)");
+      t.equal(t.text("#opts .l2-user"), "user => user#1", "app.user is inherited from group 1 through the owner chain");
+      t.ok(t.source("app.user") == null, "and never reaches the page repository");
+    });
+
+    bcTest.test("options=\"[##rep.current.options##]\" hands each row's object to its group, whose sources publish a different data.test", async (t) => {
+      $bc.setSource("page.data", [
+        { title: "Group#1", options: { sources: { "data.test": [{ id: 1, name: "Data#1" }, { id: 2, name: "Data#2" }] } } },
+        { title: "Group#2", options: { sources: { "data.test": [{ id: 3, name: "Data#3" }, { id: 4, name: "Data#4" }] } } }
+      ]);
+      const sets = await t.waitFor(() => t.$$("#rows fieldset"), (l) => l.length === 2 && l.every((f) => f.querySelectorAll("li").length === 2));
+      t.deepEqual(sets.map((f) => t.text(f.querySelector("legend"))), ["Group#1", "Group#2"]);
+      t.deepEqual(texts("li", sets[0]), ["1 - Data#1", "2 - Data#2"]);
+      t.deepEqual(texts("li", sets[1]), ["3 - Data#3", "4 - Data#4"]);
+      t.ok(t.source("data.test") == null);
+    });
+
+    bcTest.test("an object literal in parentheses works as options; processNodesAsync processes extra nodes in the group's context", async (t) => {
+      await t.waitForText("#literal li", "7 - seven");
+      t.ok(t.source("grp.data") == null, "grp.data is scoped to the group");
+
+      const group = $bc.global.GetCommandListByCore("group").find((c) => c.node.id === "literal-group");
+      t.ok(group, "the group instance is reachable through the command list");
+      const late = document.createElement("span");
+      late.id = "late";
+      late.textContent = "[##grp.data.name|(none)##]";
+      t.$("#late-target").appendChild(late);
+      const collection = await group.processNodesAsync([late]);
+      t.ok(collection && typeof collection.disposeAsync === "function", "it returns the new collection");
+      await t.waitForText("#late", "seven");
+    });
+
+    bcTest.test("pitfall: options='{\"debug\":true}' is a block statement to eval and the run throws a SyntaxError", async (t) => {
+      t.equal(t.$$("#json .j").length, 0, "hidden while if is false");
+      $bc.setSource("bad.go", true);
+      const errors = await t.waitForError(/Unexpected token/);
+      t.match(errors[0].message, /Unexpected token ':'/);
+      await t.sleep(100);
+      t.equal(t.text("#json .j"), "[##cfg.theme.value|(none)##]", "the saved nodes were re-inserted but never processed");
+    });
+  </script>
+</body>
+</html>
