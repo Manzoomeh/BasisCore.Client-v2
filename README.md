@@ -246,6 +246,9 @@ the 2.39.6 source; details such as attribute names are documented in the later s
 - **Over a hundred runnable example pages** covering every command and connection type.
 - **AI assistant packages** under `ai/`: a skill folder plus generated rule files for Cursor,
   GitHub Copilot, Windsurf and a generic single-file reference, built by `ai/build.py`.
+- **Functional tests** under [`tests/`](tests/README.md): one runnable browser page per
+  documentation page, with a headless runner (`npm test`) and an in-browser runner. Every page is
+  also a complete example that can be copied.
 
 ---
 
@@ -623,6 +626,7 @@ under `/api`, `/schema`, `/blob`, `/assets`, `/chunk` and `/validation` (see [`s
 | `npm run dev:no-serve` | Development build only |
 | `npm run rel` | Production build: `dist/basiscore.js` and `dist/basiscore.min.js` with source maps |
 | `npm run pub` | Production build plus the bundled type definitions `dist/basiscore.d.ts` |
+| `npm test` | Runs the functional test pages under [`tests/`](tests/README.md) in headless Chromium (needs `npx playwright-core install chromium` once) |
 
 `prerel` and `prepub` clean `dist` with a Windows command (`rd`); on Linux or macOS remove `dist`
 yourself before building. Publishing steps are in [`help.txt`](help.txt).
@@ -645,6 +649,12 @@ Found while verifying this README against the source and the published bundle:
 | The console banner says `2.39.7` | Cosmetic; the package version is 2.39.6 | — |
 | `view` never renders its level 2 faces (render-cache collision) | Group headers appear with empty `@child` slots | Group rows with `print` + `OnProcessing`, or nested `print` inside a `repeater` |
 | A text token re-rendered to an empty value throws `TypeError` | `[##x.y.value##]` without a fallback breaks when the source is cleared | Always add a fallback: `[##x.y.value|( )##]` |
+| A `{{ }}` block that awaits a source nobody has published stalls every command of the runtime | A `print` next to such a block never renders | Use `$bc.tryToGetSource('a.b')` with a `null` check, or publish the source first |
+| An `inlinesource` join member without `jointype` throws and blocks rendering | No renderer of the page runs | Always write `jointype` |
+
+The complete list, with the source location of each defect, is in
+[`docs/troubleshooting.md`](docs/troubleshooting.md#known-defects-in-2396); each one that runs
+headless is reproduced by a `bcTest.defect` case in [`tests/`](tests/README.md).
 
 ---
 

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>component</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      settings: {
+        "time-component": { millisecond: false, headerMessage: "My timer" },
+      },
+      // the prefix "bc" serves every `component.bc.<name>` class; the script must define `bc.<name>`
+      repositories: {
+        "bc": "/tests/fixtures/component/bc.widget.js",
+      },
+      sources: {
+        "inlineSource.print": [
+          { id: 1, name: "a", options: { id: 12, data: "p" } },
+          { id: 2, name: "b", options: { id: 13, data: "q" } },
+        ],
+      },
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/component.md">
+  <main>
+    <h1>component</h1>
+    <p class="intro">
+      Checks <code>docs/commands/component.md</code>: a page-local class
+      (<code>component.local.&lt;expr&gt;</code>), host settings read through the owner, per-row
+      options from a <code>print</code> face, the built-in <code>basiscore.exposer</code>, a class
+      loaded from <code>host.repositories</code> by prefix, the resolution error, and the command
+      lifecycle (<code>if</code>, <code>triggers</code>, <code>ignoreNullSource</code>,
+      <code>OnRendering</code>, <code>OnRendered</code>, disposal).
+    </p>
+
+    <section class="case" id="case-simple">
+      <h2>Page-local class (documentation example)</h2>
+      <button id="refresh" bc-value="0" bc-triggers="click" name="event.click">Click to refresh</button>
+      <div id="simple-output">
+        <Basis core="component.local.DemoComponent" run="atclient" triggers="event.click"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-setting">
+      <h2>Reading a host setting (documentation example)</h2>
+      <div id="setting-output">
+        <Basis core="component.local.DemoWithSetting" run="atclient"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-options">
+      <h2>Options from a face</h2>
+      <p>As written in the documentation (<code>options="@options@"</code>):</p>
+      <div id="options-raw">
+        <Basis core="print" datamembername="inlineSource.print" run="atclient">
+          <face>
+            <Basis core="component.local.DemoWithOptions" run="atclient" options="@options@"> </Basis>
+          </face>
+        </Basis>
+      </div>
+      <p>Working variant: the face stores the row's object as a global and passes its name:</p>
+      <div id="options-global">
+        <Basis core="print" datamembername="inlineSource.print" run="atclient">
+          <face>
+            <Basis core="component.local.DemoWithGlobalOptions" run="atclient"
+                   options="{{ return window.$bc.util.storeAsGlobal($data.options); }}"> </Basis>
+          </face>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-exposer">
+      <h2>Exposer (documentation example)</h2>
+      <Basis core="component.basiscore.exposer" run="atclient"
+             component="global_variable_component" method="runInLoad"></Basis>
+      <Basis core="component.basiscore.exposer" run="atclient" triggers="expo.ping"
+             component="ping_component" method="onPing"></Basis>
+      <!-- Component and Method on another command are plain attributes -->
+      <div id="plain-attributes">
+        <basis core="print" datamembername="inlineSource.print" run="atclient"
+               component="plain_attribute_variable" method="runInLoad">
+          <face><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-repository">
+      <h2>Class loaded from a repository (prefix <code>bc</code> serves <code>bc.widget</code>)</h2>
+      <div id="repo-output">
+        <Basis core="component.bc.widget" run="atclient" label="First"></Basis>
+        <Basis core="component.bc.widget" run="atclient" label="Second"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-lifecycle">
+      <h2>Lifecycle: <code>if</code>, <code>ignoreNullSource</code>, <code>OnRendering</code>, <code>OnRendered</code></h2>
+      <div id="lifecycle-output">
+        <Basis core="component.local.Recorder" run="atclient" name="if-case" triggers="flags.show"
+               if="'[##flags.show.value|(no)##]' == 'yes'"></Basis>
+        <Basis core="component.local.Recorder" run="atclient" name="ignore-null" triggers="flags.go"
+               ignoreNullSource="true"></Basis>
+        <Basis core="component.local.Recorder" run="atclient" name="prevented" OnRendering="preventRendering"></Basis>
+        <Basis core="component.local.Recorder" run="atclient" name="returns-42" returns="42" OnRendered="recordRendered"></Basis>
+        <Basis core="component.local.Recorder" run="atclient" name="returns-null" returns="null" OnRendered="recordRendered"></Basis>
+        <Basis core="component.local.NoRunMethod" run="atclient" name="no-run" OnRendered="recordRendered"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-dispose">
+      <h2>Disposal: <code>disposeAsync</code>, nested collections, errors are logged</h2>
+      <div id="dispose-output">
+        <Basis core="component.local.Disposable" run="atclient"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-silent">
+      <h2>Nothing is shown until the class calls <code>owner.setContent</code></h2>
+      <div id="silent-output"><Basis core="component.local.Silent" run="atclient"><b>original inner markup</b></Basis></div>
+    </section>
+
+    <!-- bc-ignore keeps the default runtime away; the test runs this fragment in its own runtime -->
+    <section class="case" id="case-not-found" bc-ignore>
+      <h2>Resolution failure: <code>'&lt;key&gt;' related repository setting not found</code></h2>
+      <div id="isolated-not-found">
+        <Basis core="component.nope.thing" run="atclient"></Basis>
+        <Basis core="component" run="atclient"></Basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ---- classes used by the cases above (defined after the elements, like in the documentation) ----
+    const demoRuns = [];
+    class DemoComponent {
+      constructor(owner) {
+        this.owner = owner;
+      }
+      async initializeAsync() {
+        console.log("initializeAsync");
+      }
+      async runAsync(source) {
+        demoRuns.push(source ? source.id : source);
+        const date = new Date();
+        const node = this.owner.toNode(`<div class="clock">${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</div>`);
+        this.owner.setContent(node);
+      }
+    }
+
+    class DemoWithSetting {
+      constructor(owner) {
+        this.owner = owner;
+        this.defaultSetting = { millisecond: true, headerMessage: "default header", footerMessage: "default footer" };
+      }
+      async runAsync() {
+        const date = new Date();
+        const userSetting = this.owner.getSetting("time-component", null);
+        const setting = $bc.util.defaultsDeep(userSetting, this.defaultSetting);
+        this.owner.setContent(this.owner.toNode(
+          `<div class="timer"><span class="head">${setting.headerMessage}</span><br/><span class="time">${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}${setting.millisecond ? `:${date.getMilliseconds()}` : ""}</span><br/><span class="foot">${setting.footerMessage}</span></div>`));
+      }
+    }
+
+    const rawOptions = [];
+    class DemoWithOptions {
+      constructor(owner) { this.owner = owner; }
+      async initializeAsync() {
+        rawOptions.push(await this.owner.getAttributeObjectValueAsync("options"));
+      }
+    }
+
+    const globalOptions = [];
+    class DemoWithGlobalOptions {
+      constructor(owner) { this.owner = owner; }
+      async initializeAsync() {
+        const name = await this.owner.getAttributeValueAsync("options");
+        this.options = window[name];
+        globalOptions.push(this.options);
+      }
+      async runAsync() {
+        this.owner.setContent(this.owner.toNode(`<span class="opt">${this.options.data}</span>`));
+      }
+    }
+
+    const exposerCalls = [];
+    function runInLoad(component, source) {
+      exposerCalls.push({ component, source, isGlobal: component === window.global_variable_component });
+    }
+    const pingCalls = [];
+    function onPing(component, source) {
+      pingCalls.push({ component, source });
+    }
+
+    const lifecycleLog = [];
+    class Recorder {
+      constructor(owner) {
+        this.owner = owner;
+      }
+      async initializeAsync() {
+        this.name = await this.owner.getAttributeValueAsync("name");
+        this.returns = await this.owner.getAttributeValueAsync("returns");
+        lifecycleLog.push({ name: this.name, phase: "initialize" });
+      }
+      async runAsync(source) {
+        lifecycleLog.push({ name: this.name, phase: "run", source: source ? source.id : undefined });
+        this.owner.setContent(this.owner.toNode(`<span class="ran" data-name="${this.name}">${this.name} ran</span>`));
+        return this.returns === "null" ? null : this.returns === "42" ? 42 : undefined;
+      }
+    }
+    class NoRunMethod {
+      constructor(owner) {
+        this.owner = owner;
+      }
+    }
+    let preventFlag = true;
+    async function preventRendering(args) {
+      lifecycleLog.push({ name: "prevented", phase: "OnRendering", prevent: preventFlag });
+      args.prevent = preventFlag;
+    }
+    const renderedCalls = [];
+    async function recordRendered(args) {
+      renderedCalls.push({ core: args.node.getAttribute("core"), name: args.node.getAttribute("name"), result: args.result, source: args.source });
+    }
+
+    const disposeLog = [];
+    class Disposable {
+      constructor(owner) {
+        this.owner = owner;
+        window.disposableOwner = owner;
+      }
+      async runAsync() {
+        const fragment = this.owner.toNode(`
+          <basis core="print" datamembername="nested.rows" run="atclient">
+            <face><li class="nested">@name@</li></face>
+          </basis>`);
+        const nodes = [...fragment.childNodes];
+        this.owner.setContent(fragment);
+        await this.owner.processNodesAsync(nodes);
+      }
+      async disposeAsync() {
+        disposeLog.push("disposeAsync");
+        throw new Error("cleanup failed on purpose");
+      }
+    }
+
+    class Silent {
+      constructor(owner) {
+        this.owner = owner;
+        window.silentOwner = owner;
+      }
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Cannot read properties of undefined \(reading 'runAsync'\)/);
+
+    bcTest.test("a page-local class is loaded with eval, initializeAsync runs once, runAsync renders through owner.setContent and the <basis> element disappears", async (t) => {
+      const clock = await t.waitFor(() => t.$("#simple-output .clock"));
+      t.match(t.text(clock), /^\d{1,2}:\d{1,2}:\d{1,2}$/);
+      t.equal(t.$$("#simple-output basis").length, 0, "the <basis> element is removed from the document");
+      t.equal(t.consoleMessages(/^initializeAsync$/).length, 1, "initializeAsync logged once");
+      t.equal(t.consoleMessages(/loaded from local.*DemoComponent/).length, 1, "the library logs where the class came from");
+      t.deepEqual(demoRuns, [undefined], "the first run receives no source");
+      const command = $bc.global.GetCommandListByCore("component.local.DemoComponent")[0];
+      t.ok(command instanceof basiscore.UserDefineComponent, "the command class is UserDefineComponent");
+      t.ok(command.manager instanceof DemoComponent, "owner.manager is the class instance");
+      t.equal(command.priority, 2, "component has the default (low) priority");
+      t.equal((await command.onInitialized), command, "onInitialized resolves with the owner");
+    });
+
+    bcTest.test("a triggers source re-runs the component and runAsync receives that source", async (t) => {
+      await t.waitFor(() => t.$("#simple-output .clock"));
+      t.click("#refresh");
+      await t.waitFor(() => demoRuns, (l) => l.length === 2);
+      t.equal(demoRuns[1], "event.click");
+      t.equal(t.$$("#simple-output .clock").length, 1, "setContent replaces the previous output");
+    });
+
+    bcTest.test("owner.getSetting reads host.settings and $bc.util.defaultsDeep fills the rest (documentation example)", async (t) => {
+      const timer = await t.waitFor(() => t.$("#setting-output .timer"));
+      t.equal(t.text(t.$(".head", timer)), "My timer", "the host setting wins");
+      t.equal(t.text(t.$(".foot", timer)), "default footer", "missing keys come from the defaults");
+      t.match(t.text(t.$(".time", timer)), /^\d{1,2}:\d{1,2}:\d{1,2}$/, "millisecond: false from the host setting");
+    });
+
+    bcTest.test("options=\"@options@\" in a face yields the text '[object Object]'; getAttributeObjectValueAsync returns the attribute text unchanged", async (t) => {
+      await t.waitFor(() => rawOptions, (l) => l.length === 2);
+      t.deepEqual(rawOptions, ["[object Object]", "[object Object]"], "an object rendered by a face is stringified, and the attribute is not evaluated");
+      t.equal(typeof rawOptions[0], "string");
+    });
+
+    bcTest.test("a face can store the row's object as a global and pass its name; one component per row reads it back", async (t) => {
+      const spans = await t.waitFor(() => t.$$("#options-global .opt"), (l) => l.length === 2);
+      t.deepEqual(spans.map((s) => t.text(s)), ["p", "q"]);
+      t.deepEqual(globalOptions, [{ id: 12, data: "p" }, { id: 13, data: "q" }], "each component received its own row's object");
+    });
+
+    bcTest.test("exposer: the instance is stored as window[Component] and Method is called with (exposer, source)", async (t) => {
+      await t.waitFor(() => exposerCalls, (l) => l.length === 1);
+      t.equal(typeof basiscore.exposer, "function", "basiscore.exposer is exported");
+      t.ok(window.global_variable_component instanceof basiscore.exposer, "the global holds the exposer instance, not the command");
+      t.ok(exposerCalls[0].isGlobal, "the first argument is that same instance");
+      t.equal(exposerCalls[0].source, undefined, "no source on the first run");
+      const owner = global_variable_component.owner;
+      t.ok(owner instanceof basiscore.UserDefineComponent, "the exposer keeps the owner at runtime");
+      t.equal(owner.node.nodeName, "BASIS", "component.owner.node is the <basis> element");
+      t.equal(owner.node.getAttribute("method"), "runInLoad");
+      t.equal(owner.node.isConnected, false, "the element is detached from the document");
+    });
+
+    bcTest.test("exposer with triggers: Method is called again with the triggering source", async (t) => {
+      await t.waitFor(() => window.ping_component);
+      $bc.setSource("expo.ping", 7);
+      await t.waitFor(() => pingCalls, (l) => l.length === 2);
+      t.equal(pingCalls[0].source, undefined);
+      t.equal(pingCalls[1].source.id, "expo.ping");
+      t.deepEqual(pingCalls[1].source.rows, [{ value: 7 }]);
+      t.ok(pingCalls[1].component === window.ping_component);
+    });
+
+    bcTest.test("Component and Method on a print command are plain attributes", async (t) => {
+      await t.waitFor(() => t.$$("#plain-attributes .row"), (l) => l.length === 2);
+      t.equal(window.plain_attribute_variable, undefined, "no global is created by print");
+    });
+
+    bcTest.test("a class is loaded from host.repositories by prefix: the script is injected once, the full key is evaluated, both instances render", async (t) => {
+      const widgets = await t.waitFor(() => t.$$("#repo-output .widget"), (l) => l.length === 2);
+      t.deepEqual(widgets.map((w) => t.text(w)), ["First from repository", "Second from repository"]);
+      const scripts = t.$$("head script[src='/tests/fixtures/component/bc.widget.js']");
+      t.equal(scripts.length, 1, "the repository script is downloaded once");
+      t.equal(scripts[0].getAttribute("type"), "text/javascript");
+      t.ok(t.consoleMessages(/loaded from.*bc\.widget.*\/tests\/fixtures\/component\/bc\.widget\.js/).length >= 1, "the library logs 'bc.widget loaded from <url>'");
+      t.equal(typeof bc.widget, "function", "the script defined the full key as a global path");
+      const command = $bc.global.GetCommandListByCore("component.bc.widget")[0];
+      t.ok(command.manager instanceof bc.widget);
+    });
+
+    bcTest.test("a key without local./basiscore. prefix and without a repositories entry rejects onInitialized with the documented message; the run then fails with a TypeError", async (t) => {
+      const w = $bc.new().addFragment("#isolated-not-found").run();
+      const missing = w.GetCommandListByCore("component.nope.thing")[0];
+      t.ok(missing, "the command exists in the isolated runtime");
+      await t.rejects(missing.onInitialized, /^'nope\.thing' related repository setting not found$/);
+      const bare = w.GetCommandListByCore("component")[0];
+      await t.rejects(bare.onInitialized, /^'component' related repository setting not found$/, "core=\"component\" without a key uses the word itself as key");
+      const errors = await t.waitForError(/reading 'runAsync'/);
+      t.ok(errors.length >= 1, "manager is undefined when the command runs");
+      t.equal(t.consoleMessages(/repository setting not found/).length, 0, "nothing is written to the console at resolution time");
+    });
+
+    bcTest.test("if: the component does not run while the expression is false and runs when the trigger makes it true", async (t) => {
+      await t.waitFor(() => lifecycleLog.filter((l) => l.phase === "initialize"), (l) => l.length >= 5);
+      await t.sleep(100);
+      t.equal(lifecycleLog.filter((l) => l.name === "if-case" && l.phase === "run").length, 0, "'no' == 'yes' is false: no run");
+      t.equal(t.$$("#lifecycle-output .ran[data-name='if-case']").length, 0);
+      $bc.setSource("flags.show", "yes");
+      await t.waitFor(() => t.$("#lifecycle-output .ran[data-name='if-case']"));
+      const run = lifecycleLog.find((l) => l.name === "if-case" && l.phase === "run");
+      t.equal(run.source, "flags.show", "the run was caused by the trigger");
+    });
+
+    bcTest.test("ignoreNullSource=\"true\" skips the initial run; the component runs once a trigger fires", async (t) => {
+      await t.waitFor(() => lifecycleLog.find((l) => l.name === "ignore-null" && l.phase === "initialize"));
+      await t.sleep(100);
+      t.equal(lifecycleLog.filter((l) => l.name === "ignore-null" && l.phase === "run").length, 0);
+      $bc.setSource("flags.go", 1);
+      await t.waitFor(() => t.$("#lifecycle-output .ran[data-name='ignore-null']"));
+      t.equal(lifecycleLog.filter((l) => l.name === "ignore-null" && l.phase === "run").length, 1);
+    });
+
+    bcTest.test("OnRendering with prevent = true skips runAsync", async (t) => {
+      await t.waitFor(() => lifecycleLog.find((l) => l.name === "prevented" && l.phase === "OnRendering"));
+      await t.sleep(100);
+      t.equal(lifecycleLog.filter((l) => l.name === "prevented" && l.phase === "run").length, 0, "runAsync was not called");
+      t.equal(t.$$("#lifecycle-output .ran[data-name='prevented']").length, 0);
+    });
+
+    bcTest.test("OnRendered receives the non-null return value of runAsync; a null return skips it; a class without runAsync fires it with result undefined", async (t) => {
+      await t.waitFor(() => renderedCalls, (l) => l.length >= 2);
+      await t.sleep(100);
+      const forty = renderedCalls.find((c) => c.name === "returns-42");
+      t.ok(forty, "OnRendered called for the class returning 42");
+      t.equal(forty.result, 42);
+      t.equal(forty.source, undefined);
+      t.equal(renderedCalls.filter((c) => c.name === "returns-null").length, 0, "OnRendered skipped when runAsync returned null");
+      const noRun = renderedCalls.find((c) => c.name === "no-run");
+      t.ok(noRun, "OnRendered called although the class has no runAsync");
+      t.equal(noRun.result, undefined);
+      t.equal(noRun.core, "component.local.NoRunMethod");
+    });
+
+    bcTest.test("disposeAsync: the class method is awaited (its error is logged), collections from processNodesAsync are disposed, triggers are removed", async (t) => {
+      await t.waitFor(() => window.disposableOwner);
+      $bc.setSource("nested.rows", [{ name: "one" }, { name: "two" }]);
+      await t.waitFor(() => t.$$("#dispose-output .nested"), (l) => l.length === 2, { message: "the nested print rendered by processNodesAsync shows the rows" });
+      const command = $bc.global.GetCommandListByCore("component.local.Disposable")[0];
+      t.equal(command.disposed, false);
+      await command.disposeAsync();
+      t.deepEqual(disposeLog, ["disposeAsync"]);
+      t.equal(command.disposed, true);
+      t.ok(t.consoleMessages(/error in dispose component.*cleanup failed on purpose/).length === 1, "the exception is logged and does not stop disposal");
+      t.ok(t.consoleMessages(/handler removed for nested\.rows/).length >= 1, "the nested print unsubscribed from its source");
+      $bc.setSource("nested.rows", [{ name: "three" }]);
+      await t.sleep(150);
+      t.equal(t.$$("#dispose-output .nested").length, 2, "the disposed nested print no longer reacts");
+    });
+
+    bcTest.test("a class that never calls setContent shows nothing; the original inner markup is removed with the element", async (t) => {
+      await t.waitFor(() => window.silentOwner);
+      await t.sleep(50);
+      const output = t.$("#silent-output");
+      t.equal(output.children.length, 0, "no element is rendered");
+      t.equal(t.text(output), "", "the original inner markup is gone");
+      t.equal(silentOwner.content.firstChild.nodeName, "BASIS", "owner.content holds the original element");
+      t.equal(silentOwner.content.firstChild.innerHTML.trim(), "<b>original inner markup</b>", "with its inner markup");
+    });
+  </script>
+</body>
+</html>

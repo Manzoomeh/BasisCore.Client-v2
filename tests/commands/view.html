@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>view</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "edit.user": {
+          data: [
+            { id: 1, question: "FaName", answer: "ali",  prpid: "1", status: 0 },
+            { id: 2, question: "FaName", answer: "amir", prpid: "1", status: 0 },
+            { id: 4, question: "EnName", answer: "Amir", prpid: "2", status: 0 },
+            { id: 5, question: "EnName", answer: "Ali",  prpid: "2", status: 0 }
+          ],
+          options: { keyFieldName: "id", statusFieldName: "status", mergeType: 1 /* basiscore.MergeType.append */ }
+        },
+        "product.info": [
+          { id: 1, question: "Colour", answer: "red",   prpid: "1" },
+          { id: 2, question: "Colour", answer: "blue",  prpid: "1" },
+          { id: 3, question: "Size",   answer: "M",     prpid: "2" },
+          { id: 4, question: "Weight", answer: "1 kg",  prpid: "3" }
+        ],
+        "plain.rows": [
+          { id: 1, title: "first" },
+          { id: 2, title: "second" },
+          { id: 3, title: "third" }
+        ],
+        "view.empty": []
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/view.md">
+  <main>
+    <h1>view</h1>
+    <p class="intro">
+      Checks <code>docs/commands/view.md</code>: grouping by <code>groupcol</code> (default
+      <code>prpid</code> from <code>default.viewcommand.groupcolumn</code>), the level 1 face rendered once per
+      group with the first row of the group, filtered level 1 faces, <code>else-layout</code>,
+      <code>processRenderedContent</code>, the level 2 pitfall, and the known defect of this version:
+      the level 2 faces are never rendered.
+    </p>
+
+    <section class="case" id="case-simple">
+      <h2>Questions with their answers</h2>
+      <div id="simple">
+        <basis core="callback" triggers="local.user" run="atclient"></basis>
+        <basis core="view" datamembername="local.user" run="atclient">
+          <face level="1">
+            <ul>
+              <li>@question <ul>@child</ul></li>
+            </ul>
+          </face>
+          <face level="2">
+            <li>
+              @answer {{ return await fn($bc, $data); }}
+            </li>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Editing one row of a group</h2>
+      <input type="button" id="edit-5" value="Edit row 5" onclick="clickHandler()" />
+      <div id="edit">
+        <basis core="view" datamembername="edit.user" groupcol="prpid" run="atclient">
+          <face level="1">
+            <script type="text/template">
+              <ul data-l1="">
+                <li>@question :
+                  <button onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change color</button>
+                  <ul>@child</ul>
+                </li>
+              </ul>
+            </script>
+          </face>
+          <face level="2">
+            <li data-l2="">
+              @answer
+              <button onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">change color</button>
+            </li>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-highlight">
+      <h2>A highlighted group and a fallback face</h2>
+      <div id="highlight">
+        <basis core="view" datamembername="product.info" groupcol="prpid" run="atclient">
+          <face level="1" filter="prpid = '2'">
+            <div class="highlight"><span>@question@:</span> @child</div>
+          </face>
+          <face level="1">
+            <div><span>@question@:</span> @child</div>
+          </face>
+          <face level="2">
+            <span>@answer@, </span>
+          </face>
+          <else-layout>
+            <p>nothing to show</p>
+          </else-layout>
+        </basis>
+      </div>
+      <div id="highlight-empty">
+        <basis core="view" datamembername="view.empty" groupcol="prpid" run="atclient">
+          <face level="1"><div><span>@question@:</span> @child</div></face>
+          <face level="2"><span>@answer@, </span></face>
+          <else-layout>
+            <p>nothing to show</p>
+          </else-layout>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-groupcol">
+      <h2>Group column: the default setting, an explicit column, a missing column</h2>
+      <div id="by-question">
+        <basis core="view" datamembername="product.info" groupcol="question" run="atclient">
+          <layout><ol>@child</ol></layout>
+          <face level="1"><li class="head">@question@: @answer @child</li></face>
+          <face level="2"><span>@answer@</span></face>
+        </basis>
+      </div>
+      <div id="no-prpid">
+        <basis core="view" datamembername="plain.rows" run="atclient">
+          <face level="1"><p class="head">@title@</p></face>
+          <face level="2"><span>@title@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-rescan">
+      <h2><code>processRenderedContent</code></h2>
+      <div id="rescan-on">
+        <basis core="view" datamembername="product.info" run="atclient">
+          <face level="1"><p>@question@: <span class="tok">[##view.extra.value|(none)##]</span></p></face>
+          <face level="2"><span>@answer@</span></face>
+        </basis>
+      </div>
+      <div id="rescan-off">
+        <basis core="view" datamembername="product.info" run="atclient" processRenderedContent="false">
+          <face level="1"><p>@question@: <span class="tok">[##view.extra.value|(none)##]</span></p></face>
+          <face level="2"><span>@answer@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls: a skipped group, a row without a level 2 face</h2>
+      <div id="skipped">
+        <basis core="view" datamembername="product.info" run="atclient">
+          <face level="1" filter="prpid = '2'"><div class="head">@question@</div></face>
+          <face level="2"><span>@answer@</span></face>
+        </basis>
+      </div>
+      <div id="no-level2">
+        <basis core="view" datamembername="pitfall.rows" run="atclient">
+          <face level="1"><div class="head">@question @child</div></face>
+          <face level="2" filter="id > 100"><span>@answer@</span></face>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Scripts of the documented examples.
+    async function fn(_, $data) {
+      const lis = $data.tags.sort().reduce((total, tag) => total += `<li>${tag}</li>`, "");
+      return `${$data.prpid}<ul>${lis}</ul>`;
+    }
+    function clickHandler() {
+      $bc.setSource("edit.user",
+        { id: 5, question: "EnName", answer: "Ali-edited", prpid: "2", status: 1 },
+        { keyFieldName: "id", statusFieldName: "status", mergeType: basiscore.MergeType.append });
+    }
+  </script>
+
+  <!-- bc-ignore: the test code below quotes token syntax that the library must not scan -->
+  <script bc-ignore>
+    bcTest.allowError(/reading 'key'/);
+
+    bcTest.defect("known defect: the default group column prpid gives two headers, but the level 2 faces are never rendered (empty @child, no error)", async (t) => {
+      $bc.setSource("local.user", [
+        { id: 1, question: "FaName", answer: "ali",    prpid: "1", tags: ["A", "C", "D"] },
+        { id: 2, question: "FaName", answer: "amir",   prpid: "1", tags: ["A", "B", "E"] },
+        { id: 3, question: "FaName", answer: "hassan", prpid: "1", tags: ["E", "D"] },
+        { id: 4, question: "EnName", answer: "Amir",   prpid: "2", tags: ["F", "A"] },
+        { id: 5, question: "EnName", answer: "Ali",    prpid: "2", tags: ["D", "B", "A"] }
+      ]);
+      const errorsBefore = t.errors().length;
+      const heads = await t.waitFor(() => t.$$("#simple > ul > li"), (l) => l.length === 2);
+      t.deepEqual(heads.map((li) => li.firstChild.textContent.trim()), ["FaName", "EnName"], "one level 1 face per group, in first-appearance order");
+      await t.sleep(200);
+      t.equal(t.$$("#simple > ul > li > ul > li").length, 0, "no level 2 row appears under the headers");
+      t.equal(t.$$("#simple li li").length, 0);
+      t.equal(t.errors().length, errorsBefore, "and nothing is thrown");
+      await t.waitForConsole(/hassan/);
+    });
+
+    bcTest.defect("known defect: editing row 5 keeps both level 1 headers (same DOM nodes) and still shows no level 2 row", async (t) => {
+      const errorsBefore = t.errors().length;
+      const heads = await t.waitFor(() => t.$$("#edit ul[data-l1] > li"), (l) => l.length === 2);
+      t.deepEqual(heads.map((li) => li.firstChild.textContent.trim()), ["FaName :", "EnName :"]);
+      t.equal(t.$$("#edit li[data-l2]").length, 0, "no level 2 row before the edit");
+      t.click(heads[0].querySelector("button"));
+      const colour = heads[0].querySelector("button").style.color;
+
+      t.click("#edit-5");
+      await t.waitFor(() => t.rows("edit.user"), (r) => r[3].answer === "Ali-edited");
+      await t.sleep(200);
+      const after = t.$$("#edit ul[data-l1] > li");
+      t.equal(after.length, 2, "both headers are still there");
+      t.ok(after[0] === heads[0] && after[1] === heads[1], "the level 1 results are re-used from the cache");
+      t.equal(after[0].querySelector("button").style.color, colour, "with their state");
+      t.equal(t.$$("#edit li[data-l2]").length, 0, "the edited row is still not rendered");
+      t.equal(t.errors().length, errorsBefore, "nothing is thrown");
+    });
+
+    bcTest.test("level 1 faces are tried in document order: the filtered face highlights group 2, the plain one renders the others", async (t) => {
+      const heads = await t.waitFor(() => t.$$("#highlight > div"), (l) => l.length === 3, { timeout: 10000 });
+      t.deepEqual(heads.map((d) => t.text(d.querySelector("span"))), ["Colour:", "Size:", "Weight:"], "one header per distinct prpid, first-appearance order");
+      t.deepEqual(heads.map((d) => d.classList.contains("highlight")), [false, true, false]);
+    });
+
+    bcTest.defect("known defect: the level 2 spans of the highlighted example are missing from every group", async (t) => {
+      await t.waitFor(() => t.$$("#highlight > div"), (l) => l.length === 3, { timeout: 10000 });
+      t.equal(t.$$("#highlight > div > span").length, 3, "only the header span of each group");
+      t.equal(t.$$("#highlight span").length, 3);
+      t.notMatch(t.text("#highlight"), /red|blue|M|1 kg/, "no answer is rendered");
+    });
+
+    bcTest.test("an empty source renders the else-layout", async (t) => {
+      await t.waitForText("#highlight-empty", "nothing to show");
+    });
+
+    bcTest.test("groupcol selects the grouping column and the level 1 face sees only the first row of each group", async (t) => {
+      const heads = await t.waitFor(() => t.$$("#by-question > ol > li.head"), (l) => l.length === 3);
+      t.deepEqual(heads.map((li) => t.text(li)), ["Colour: red", "Size: M", "Weight: 1 kg"], "grouped by question; the header shows the first row's answer");
+      t.equal(t.$$("#by-question ol").length, 1, "the layout wraps all level 1 results");
+    });
+
+    bcTest.test("without groupcol and without a prpid column every row falls into one group whose header is the first row", async (t) => {
+      const heads = await t.waitFor(() => t.$$("#no-prpid p.head"));
+      t.equal(heads.length, 1);
+      t.equal(t.text(heads[0]), "first");
+      t.equal(t.rows("plain.rows").length, 3);
+    });
+
+    bcTest.test("processRenderedContent (default true) re-scans the output for tokens; false leaves them as text", async (t) => {
+      const on = await t.waitFor(() => t.$$("#rescan-on .tok"), (l) => l.length === 3);
+      t.deepEqual(on.map((s) => t.text(s)), ["none", "none", "none"], "the fallback of the token is rendered");
+      const off = await t.waitFor(() => t.$$("#rescan-off .tok"), (l) => l.length === 3);
+      t.deepEqual(off.map((s) => t.text(s)), ["[##view.extra.value|(none)##]", "[##view.extra.value|(none)##]", "[##view.extra.value|(none)##]"], "the token text is kept verbatim");
+
+      $bc.setSource("view.extra", "x");
+      await t.waitFor(() => t.$$("#rescan-on .tok"), (l) => l.every((s) => t.text(s) === "x"));
+      t.equal(t.text(t.$("#rescan-off .tok")), "[##view.extra.value|(none)##]");
+    });
+
+    bcTest.test("a group whose first row matches no level 1 face is skipped silently with all its rows", async (t) => {
+      await t.waitFor(() => t.$$("#skipped .head"), (l) => l.length === 1, { timeout: 10000 });
+      t.equal(t.text("#skipped .head"), "Size");
+      t.equal(t.$$("#skipped span").length, 0);
+      t.equal(t.errors(/skipped/).length, 0);
+    });
+
+    bcTest.test("pitfall: a row that matches no level 2 face makes the render throw TypeError: Cannot read properties of null (reading 'key')", async (t) => {
+      $bc.setSource("pitfall.rows", [{ id: 1, question: "Q", answer: "A", prpid: "1" }]);
+      const errors = await t.waitForError(/reading 'key'/, { timeout: 10000 });
+      t.match(errors[0].message, /Cannot read properties of null \(reading 'key'\)/);
+      t.equal(t.$$("#no-level2 .head").length, 0, "nothing is rendered");
+    });
+  </script>
+</body>
+</html>

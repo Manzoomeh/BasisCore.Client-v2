@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>callback</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // Sources that exist before the page is processed: a callback is never run for them on load.
+    const host = {
+      sources: {
+        "book.list": [
+          { id: 1, title: "Book A" },
+          { id: 2, title: "Book B" }
+        ],
+        "pre.rows": [{ id: 1 }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/callback.md">
+  <main>
+    <h1>callback</h1>
+    <p class="intro">
+      Checks <code>docs/commands/callback.md</code>: the handler argument, one run per publication,
+      <code>method</code> as a global name or an expression, logging without <code>method</code>,
+      DOM and timer <code>events</code>, orchestration of several sources, error handling,
+      <code>if</code>, <code>ignoreNullSource</code> and the pitfalls (no run on load, empty
+      <code>triggers</code>, unreachable handler, ignored <code>datamembername</code>).
+    </p>
+
+    <section class="case" id="case-source">
+      <h2>React to a source</h2>
+      <basis core="callback" run="atclient" triggers="local.print" method="onSource"></basis>
+      <basis core="callback" run="atclient" triggers="pre.rows" method="onPre"></basis>
+    </section>
+
+    <section class="case" id="case-log">
+      <h2>Log a source without writing a function, and a handler that is an expression</h2>
+      <basis core="callback" run="atclient" triggers="book.list"></basis>
+      <basis core="callback" run="atclient" triggers="book.list"
+             method="(a) => window.app.onBooks(a.source.rows)"></basis>
+      <basis core="callback" run="atclient" datamembername="book.list" method="onDataMemberName"></basis>
+    </section>
+
+    <section class="case" id="case-events">
+      <h2>DOM events</h2>
+      <basis core="callback" run="atclient"
+             events="document.click #evt-button.click #evtText.keyup"
+             preventDefault="true" stopPropagation="true" method="onEvent"></basis>
+      <input id="evt-button" type="button" value="Click me" />
+      <input id="evtText" type="text" value="Hi" />
+      <p id="plain-area">click here for a plain document click</p>
+    </section>
+
+    <section class="case" id="case-timer">
+      <h2>Timer</h2>
+      <basis core="callback" run="atclient" events="timer.100" method="timerCallback"></basis>
+    </section>
+
+    <section class="case" id="case-orchestration">
+      <h2>Orchestrating several sources (incremental list)</h2>
+      <basis core="callback" run="atclient" triggers="user.buffer"
+             events="#data-area.scroll timer.5000" method="onBuffer"></basis>
+      <div id="data-area" style="height: 300px; overflow: scroll;">
+        <basis core="print" datamembername="user.list" run="atclient">
+          <layout>@child</layout>
+          <face><div class="user">@id@ - @name@</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-control">
+      <h2>Errors, <code>OnRendered</code>, <code>if</code>, <code>ignoreNullSource</code>, empty <code>triggers</code></h2>
+      <basis core="callback" run="atclient" triggers="err.go" method="throwing" OnRendered="onRenderedSpy"></basis>
+      <basis core="callback" run="atclient" triggers="gate.go" method="gated" if="window.cbEnabled"></basis>
+      <basis core="callback" run="atclient" triggers="missing.go" method="notDefinedAnywhere"></basis>
+      <basis core="callback" run="atclient" triggers="" method="onSource"></basis>
+      <basis core="callback" run="atclient" triggers="manual.x" method="onManual" ignoreNullSource="true"></basis>
+    </section>
+  </main>
+
+  <script>
+    // --- handlers referenced by the markup (must be reachable from eval in the global scope) ---
+    const calls = [];
+    function onSource(args) {
+      "use strict";
+      calls.push({ args: args, self: this });
+    }
+
+    let preCalls = 0;
+    function onPre() {
+      preCalls++;
+    }
+
+    window.app = { books: null, onBooks(rows) { window.app.books = rows; } };
+
+    let dmCalls = 0;
+    function onDataMemberName() {
+      dmCalls++;
+    }
+
+    const events = [];
+    function onEvent(args) {
+      const event = args.source.rows[0]; // for DOM events the row is the Event object itself
+      events.push({
+        id: args.source.id,
+        type: event.type,
+        defaultPrevented: event.defaultPrevented,
+        target: event.target,
+        rowIsEvent: event instanceof Event,
+        valueProp: event.value
+      });
+    }
+
+    const ticks = [];
+    let count = 5;
+    function timerCallback(args) {
+      const timerId = args.source.rows[0].value;
+      ticks.push({ id: args.source.id, timerId: timerId });
+      if (--count <= 0) {
+        clearInterval(timerId);
+      }
+    }
+
+    const bufferIds = [];
+    let mustUpdate = true;
+    let newDataCame = false;
+    function onBuffer(args) {
+      bufferIds.push(args.source.id);
+      const div = document.getElementById("data-area");
+      const hasScrollbar = div.scrollHeight > div.clientHeight;
+      if (args.source.id === "#data-area.scroll" || args.source.id === "timer.5000") {
+        mustUpdate = true;
+      } else if (args.source.id === "user.buffer") {
+        newDataCame = true;
+      }
+      if (mustUpdate && newDataCame) {
+        mustUpdate = !hasScrollbar;
+        newDataCame = false;
+        const shown = args.context.tryToGetSource("user.list");
+        const buffer = args.context.tryToGetSource("user.buffer");
+        args.context.setAsSource(
+          "user.list",
+          buffer.rows.filter((x) => !shown?.rows.includes(x)),
+          { keyFieldName: "id", mergeType: basiscore.MergeType.append }
+        );
+      }
+    }
+
+    function throwing() {
+      throw new Error("boom");
+    }
+    const rendered = [];
+    function onRenderedSpy(args) {
+      rendered.push(args);
+    }
+
+    window.cbEnabled = false;
+    let gatedCalls = 0;
+    function gated() {
+      gatedCalls++;
+    }
+
+    let manualCalls = 0;
+    function onManual() {
+      manualCalls++;
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/notDefinedAnywhere is not defined/);
+
+    bcTest.test("callback has Priority.none and is never run on load, even when its trigger source already exists", async (t) => {
+      await t.waitForSource("cms.cms");
+      await t.sleep(300);
+      t.equal(preCalls, 0, "pre.rows was published from host.sources before processing; the handler was not called");
+      const commands = $bc.global.GetCommandListByCore("callback");
+      t.ok(commands.length >= 10, "every <basis core='callback'> is a root-level command");
+      commands.forEach((c) => t.equal(c.priority, 3, "Priority.none is 3"));
+      $bc.setSource("pre.rows", [{ id: 2 }]);
+      await t.waitFor(() => preCalls, (n) => n === 1);
+    });
+
+    bcTest.test("each publication of a trigger source runs the handler once with { context, node, source } and this === null", async (t) => {
+      $bc.setSource("local.print", [{ id: 0, name: "row-0" }, { id: 1, name: "row-1" }]);
+      await t.waitFor(() => calls, (c) => c.length === 1);
+      const { args, self } = calls[0];
+      t.deepEqual(Object.keys(args).sort(), ["context", "node", "source"]);
+      t.equal(args.source.id, "local.print");
+      t.deepEqual(args.source.rows, [{ id: 0, name: "row-0" }, { id: 1, name: "row-1" }]);
+      t.ok(args.source === t.source("local.print"), "args.source is the stored source object");
+      t.ok(args.context === $bc.global.basiscore.context, "args.context is the context the command belongs to");
+      t.equal(typeof args.context.tryToGetSource, "function");
+      t.equal(typeof args.context.waitToGetSourceAsync, "function");
+      t.equal(typeof args.context.setAsSource, "function");
+      t.equal(args.node.getAttribute("core"), "callback", "args.node is the <basis core='callback'> element");
+      t.equal(args.node.getAttribute("method"), "onSource");
+      t.ok(!document.contains(args.node), "the element was removed from the document when the command was built");
+      t.equal(self, null, "Reflect.apply(method, null, [args]) gives a strict handler this === null");
+
+      $bc.setSource("local.print", [{ id: 2, name: "row-2" }]);
+      await t.waitFor(() => calls, (c) => c.length === 2);
+      t.deepEqual(calls[1].args.source.rows, [{ id: 2, name: "row-2" }], "replace: the source now holds the new rows");
+    });
+
+    bcTest.test("allowMultiProcess: rapid publications all reach the handler", async (t) => {
+      const before = calls.length;
+      $bc.setSource("local.print", [{ id: 10 }]);
+      $bc.setSource("local.print", [{ id: 11 }]);
+      $bc.setSource("local.print", [{ id: 12 }]);
+      await t.waitFor(() => calls, (c) => c.length === before + 3);
+      t.deepEqual(calls.slice(before).map((c) => c.args.source.rows[0].id), [12, 12, 12], "all three runs see the same (replaced in place) source object");
+    });
+
+    bcTest.test("without method the source is dumped to the console; method may be any expression that yields a function", async (t) => {
+      t.equal(t.consoleMessages(/"title": "Book A"/).length, 0, "nothing was logged on load");
+      $bc.setSource("book.list", [{ id: 1, title: "Book A" }, { id: 3, title: "Book C" }]);
+      await t.waitForConsole(/"title": "Book C"/);
+      t.ok(t.consoleMessages(/"_id":\s*"book\.list"/).length >= 1, "console.log(source) prints the source object");
+      await t.waitFor(() => window.app.books, (rows) => Array.isArray(rows));
+      t.deepEqual(window.app.books.map((r) => r.title), ["Book A", "Book C"], "the arrow function handler received the rows");
+    });
+
+    bcTest.test("pitfall: datamembername on a callback is ignored and the handler never runs", async (t) => {
+      await t.waitForSource("book.list");
+      await t.sleep(200);
+      t.equal(dmCalls, 0);
+      const cmd = $bc.global.GetCommandListByCore("callback").find((c) => c.node.hasAttribute("datamembername"));
+      t.ok(cmd, "the command exists");
+      t.equal(cmd.triggers, undefined, "it has no triggers");
+    });
+
+    bcTest.test("events: a source per entry whose id is the lower-cased entry and whose single row is the Event; preventDefault and stopPropagation apply", async (t) => {
+      await t.waitForSource("cms.cms");
+      t.ok(t.consoleMessages(/^document$/).length >= 1, "the events attribute logs each selector at initialisation");
+      t.ok(t.consoleMessages(/^#evt-button$/).length >= 1);
+
+      t.click("#evt-button");
+      await t.waitFor(() => events, (e) => e.length === 1);
+      t.equal(events[0].id, "#evt-button.click");
+      t.equal(events[0].type, "click");
+      t.equal(events[0].defaultPrevented, true, "preventDefault='true'");
+      t.ok(events[0].rowIsEvent, "rows[0] is the Event object (not { value: Event })");
+      t.equal(events[0].valueProp, undefined, "rows[0].value is undefined for a DOM event");
+      t.ok(events[0].target === t.$("#evt-button"));
+      await t.sleep(100);
+      t.equal(events.length, 1, "stopPropagation='true': the document.click listener did not see the button click");
+
+      t.click("#plain-area");
+      await t.waitFor(() => events, (e) => e.length === 2);
+      t.equal(events[1].id, "document.click");
+
+      t.fire("#evtText", "keyup");
+      await t.waitFor(() => events, (e) => e.length === 3);
+      t.equal(events[2].id, "#evttext.keyup", "the source id is lower-cased even though the selector was #evtText");
+      t.equal(events[2].type, "keyup");
+    });
+
+    bcTest.test("timer.<ms>: the row value is the interval id, which the handler can clear", async (t) => {
+      await t.waitFor(() => ticks, (l) => l.length === 5, { timeout: 5000 });
+      t.equal(ticks[0].id, "timer.100");
+      t.equal(typeof ticks[0].timerId, "number");
+      t.ok(ticks.every((x) => x.timerId === ticks[0].timerId), "every tick carries the same interval id");
+      await t.sleep(350);
+      t.equal(ticks.length, 5, "clearInterval(timerId) stopped the ticks");
+      t.ok(t.consoleMessages(/^timer$/).length >= 2, "timer entries are logged twice at initialisation");
+    });
+
+    bcTest.test("orchestration: the handler branches on args.source.id and publishes through args.context.setAsSource", async (t) => {
+      $bc.setSource("user.buffer", [{ id: 1, name: "user-1" }, { id: 2, name: "user-2" }], { keyFieldName: "id", mergeType: basiscore.MergeType.append });
+      await t.waitFor(() => t.$$("#data-area .user"), (l) => l.length === 2);
+      t.deepEqual(t.$$("#data-area .user").map((d) => t.text(d)), ["1 - user-1", "2 - user-2"]);
+      t.includes(bufferIds, "user.buffer");
+      t.ok(!bufferIds.includes("#data-area.scroll"), "no scroll yet (timer.5000 ticks may already be listed)");
+
+      t.fire("#data-area", "scroll", { bubbles: false });
+      await t.waitFor(() => bufferIds, (l) => l.includes("#data-area.scroll"), { message: "a scroll on the selected element runs the same handler" });
+
+      $bc.setSource("user.buffer", [{ id: 3, name: "user-3" }], { keyFieldName: "id", mergeType: basiscore.MergeType.append });
+      await t.waitFor(() => t.$$("#data-area .user"), (l) => l.length === 3);
+      t.equal(t.rows("user.buffer").length, 3, "the buffer keeps every row (append with key)");
+      t.equal(t.rows("user.list").length, 3);
+    });
+
+    bcTest.test("a handler that throws is logged as 'error in execute callback method' and the error becomes OnRendered's result", async (t) => {
+      $bc.setSource("err.go", 1);
+      await t.waitForConsole(/error in execute callback method 'throwing'\./);
+      await t.waitFor(() => rendered, (r) => r.length === 1);
+      t.deepEqual(Object.keys(rendered[0]).sort(), ["context", "node", "result", "source"]);
+      t.ok(rendered[0].result instanceof Error, "result is the error object");
+      t.equal(rendered[0].result.message, "boom");
+      t.equal(rendered[0].source.id, "err.go");
+      t.equal(t.errors(/boom/).length, 0, "the exception did not escape as an uncaught error");
+    });
+
+    bcTest.test("if is evaluated before every run", async (t) => {
+      window.cbEnabled = false;
+      $bc.setSource("gate.go", 1);
+      await t.waitForSource("gate.go");
+      await t.sleep(200);
+      t.equal(gatedCalls, 0, "a false if skips the handler");
+      window.cbEnabled = true;
+      $bc.setSource("gate.go", 2);
+      await t.waitFor(() => gatedCalls, (n) => n === 1);
+    });
+
+    bcTest.test("pitfall: a method that eval cannot resolve surfaces as an unhandled ReferenceError", async (t) => {
+      $bc.setSource("missing.go", 1);
+      const errors = await t.waitForError(/notDefinedAnywhere is not defined/);
+      t.ok(errors[0].message.indexOf("ReferenceError") !== -1 || /is not defined/.test(errors[0].message));
+    });
+
+    bcTest.test("pitfall: triggers='' registers no trigger", async (t) => {
+      const cmd = $bc.global.GetCommandListByCore("callback").find((c) => c.node.getAttribute("triggers") === "");
+      t.ok(cmd, "the command exists");
+      t.equal(cmd.triggers, undefined);
+    });
+
+    bcTest.test("processAsync() from JavaScript runs the handler for every existing trigger source; ignoreNullSource skips that run", async (t) => {
+      const commands = $bc.global.GetCommandListByCore("callback");
+      const local = commands.find((c) => c.node.getAttribute("triggers") === "local.print");
+      const before = calls.length;
+      await local.processAsync();
+      t.equal(calls.length, before + 1);
+      t.equal(calls[before].args.source.id, "local.print", "the run without an incoming source looks the trigger up in the context");
+
+      const manual = commands.find((c) => c.node.getAttribute("triggers") === "manual.x");
+      await manual.processAsync();
+      t.equal(manualCalls, 0, "ignoreNullSource='true' returns before the handler");
+      $bc.setSource("manual.x", 1);
+      await t.waitFor(() => manualCalls, (n) => n === 1, { message: "a trigger run has a source and is not skipped" });
+    });
+  </script>
+</body>
+</html>

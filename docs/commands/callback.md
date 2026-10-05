@@ -75,13 +75,15 @@ type SourceCallbackArgument = {
 ### Sources produced by `events`
 
 For each entry the base class creates a source whose id is the entry text, lower-cased by the
-`Source` constructor, and whose single row is `{ value: <payload> }`:
+`Source` constructor, with a single row. The `Source` constructor stores an object as the row
+itself and wraps a scalar in `{ value }`, so for DOM events the row **is** the `Event` object, and
+for timers the row is `{ value: <interval id> }`:
 
-| Entry | Listener | `args.source.id` | `args.source.rows[0].value` |
+| Entry | Listener | `args.source.id` | `args.source.rows[0]` |
 | --- | --- | --- | --- |
 | `document.click` | `document.addEventListener("click", …)` | `document.click` | the `Event` |
 | `window.scroll` | `window.addEventListener("scroll", …)` | `window.scroll` | the `Event` |
-| `timer.5000` | `setInterval(…, 5000)` | `timer.5000` | the interval id (pass it to `clearInterval`) |
+| `timer.5000` | `setInterval(…, 5000)` | `timer.5000` | `{ value: <interval id> }` (pass `rows[0].value` to `clearInterval`) |
 | `#data-area.scroll` | `document.querySelectorAll("#data-area")`, one listener per element | `#data-area.scroll` | the `Event` |
 | `input[type='button'].click` | `querySelectorAll("input[type='button']")` | `input[type='button'].click` | the `Event` |
 
@@ -150,7 +152,7 @@ From `example/component/source/callback/event/index.html`.
 
 <script>
   function onEvent(args) {
-    const event = args.source.rows[0].value;
+    const event = args.source.rows[0]; // the row is the Event itself
     console.log(args.source.id, event.type, event.target);
   }
 </script>
@@ -249,6 +251,9 @@ seconds.
   logged by the command.
 - **Event source ids are lower-cased.** `events="#dataArea.scroll"` produces the id
   `#dataarea.scroll`; compare against the lower-cased string.
+- **DOM events are the row, timers are wrapped.** Read the event as `args.source.rows[0]`;
+  `args.source.rows[0].value` is `undefined` for a DOM event and the interval id for a `timer.*`
+  entry.
 - **Selectors with a dot are not supported** in `events`; use an id or attribute selector.
 - **Event listeners are attached once**, at initialisation, to the elements that exist at that
   moment.

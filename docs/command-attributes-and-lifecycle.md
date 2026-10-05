@@ -234,7 +234,7 @@ Every re-render of a command therefore replaces exactly the nodes between its tw
 </html>
 ```
 
-The first two commands render, the third does not (`5 > 10` is false), and the fourth renders only if something later publishes `app.user`.
+The first two commands render, the third does not (`5 > 10` is false), and the fourth renders only when `app.user` exists at the time the command runs. The sources named in `if` are not triggers: publishing `app.user` later does not by itself re-run the fourth command; it is evaluated again when `inlinesource.print` is published again, or when a source listed in `triggers` is set.
 
 ### `events` and `triggers` on a callback
 
@@ -332,7 +332,7 @@ The hook receives the published source and substitutes a filtered copy; the comm
 - [callback](commands/callback.md), [group](commands/group.md), [call](commands/call.md), [api](commands/api.md), [print](commands/print.md)
 - [User-defined components](user-defined-components.md) - writing a component class on top of this lifecycle
 - [Internals](internals.md) - bootstrap, class hierarchy, IoC tokens
-- [JavaScript API](javascript-api.md) - `$bc.GetCommandList`, `$bc.setSource`
+- [JavaScript API](javascript-api.md) - `GetCommandList` (on a wrapper such as `$bc.global`), `$bc.setSource`
 
 ## Source files
 

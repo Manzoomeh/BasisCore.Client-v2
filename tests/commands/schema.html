@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: question schemas, one saved answer, fix values and validation messages -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // Question schemas, written from docs/schema/schema-json-contract.md.
+    const schemas = {
+      // trimmed version of server/schemas/questions/1161.json
+      1161: {
+        schemaId: 1161,
+        paramUrl: "/1161",
+        schemaVersion: 1.1,
+        lid: 1,
+        sections: [
+          { id: 1, title: "Sec 1", description: "Simple description" },
+          { id: 2 }
+        ],
+        questions: [
+          {
+            prpId: 55, typeId: 150, title: "Web site", multi: true,
+            parts: [{ part: 1, viewType: "text", validations: { required: true, regex: "^https?:\\/\\/.+$" } }]
+          },
+          {
+            prpId: 13057, typeId: 262, title: "Emergency power", multi: true, sectionId: 1,
+            cssClass: "css_13057", help: "help data",
+            parts: [
+              { part: 1, viewType: "select", caption: "Unit", link: "/schema/fix-data/${prpId}/${part}?rkey=${rkey}", validations: { required: true } },
+              { part: 2, viewType: "text", caption: "Speed (rpm)", validations: { required: true, min: 200, max: 4000, dataType: "int" } },
+              { part: 3, viewType: "text", caption: "Power" }
+            ]
+          },
+          {
+            prpId: 130601, typeId: 128, title: "Voltage", multi: true, sectionId: 3,
+            parts: [{
+              part: 1, viewType: "checklist", validations: { required: true, maxLength: 10 },
+              fixValues: [{ id: 4, value: "110" }, { id: 5, value: "220" }, { id: 6, value: "R1", selected: true }]
+            }]
+          },
+          {
+            prpId: 130605, typeId: 128, title: "Notes", sectionId: 2,
+            parts: [{ part: 1, viewType: "textarea" }]
+          }
+        ]
+      },
+      // sub-schema option (docs: "Sub-schema driven by a select value")
+      1163: {
+        schemaId: 1163, paramUrl: "/1163", schemaVersion: 1.1, lid: 1,
+        questions: [{
+          prpId: 2, typeId: 128, title: "Voltage", multi: true,
+          parts: [{
+            part: 1, viewType: "select",
+            fixValues: [
+              { id: 0, value: "Please choose" },
+              { id: 4, value: "110", schema: { schemaId: 1164, paramUrl: "/1164", lid: 1, schemaVersion: 1.1 } },
+              { id: 5, value: "220" },
+              { id: 6, value: "R1", selected: true }
+            ]
+          }]
+        }]
+      },
+      1164: {
+        schemaId: 1164, paramUrl: "/1164", schemaVersion: 1.1, lid: 1,
+        questions: [{ prpId: 55, typeId: 150, title: "Web site", multi: true, parts: [{ part: 1, viewType: "text" }] }]
+      },
+      // template2 skin: a section with gridColumns and questions with colSpan
+      1167: {
+        schemaId: 1167, paramUrl: "/1167", schemaVersion: 1.1, lid: 1,
+        sections: [{ id: 1, title: "Identity", gridColumns: 3 }],
+        questions: [
+          { prpId: 1, title: "First name", sectionId: 1, colSpan: 2, parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 2, title: "Initial", sectionId: 1, parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 3, title: "Range", sectionId: 1, colSpan: 3, parts: [{ part: 1, viewType: "text", caption: "From" }, { part: 2, viewType: "text", caption: "To" }] },
+          { prpId: 4, title: "Comment", parts: [{ part: 1, viewType: "textarea" }] }
+        ]
+      }
+    };
+
+    // Saved answer for schema 1161 (trimmed from server/schemas/answers/1423330.json)
+    const answer1423330 = {
+      usedForId: 1423330,
+      schemaId: 1161,
+      paramUrl: "/1161",
+      schemaVersion: 1.1,
+      lastUpdate: "",
+      lid: 1,
+      properties: [
+        { prpId: 55, answers: [{ id: 12361, parts: [{ part: 1, values: [{ id: 33, value: "http://www.basiscore.com" }] }] }] },
+        {
+          prpId: 13057,
+          answers: [
+            { id: 45615, parts: [{ part: 1, values: [{ id: 59757, value: 5248 }] }, { part: 2, values: [{ id: 85257, value: "1000" }] }] },
+            { id: 156852, parts: [{ part: 1, values: [{ id: 78517, value: 5247 }] }, { part: 2, values: [{ id: 79457, value: "1500" }] }, { part: 3, values: [{ id: 78737, value: "250" }] }] }
+          ]
+        },
+        { prpId: 130601, answers: [{ id: 8456215, parts: [{ part: 1, values: [{ id: 78854, value: 5 }, { id: 78855, value: 6 }] }] }] }
+      ]
+    };
+
+    const fixDataRequests = [];
+    const validationRequests = [];
+    const envelope = (data, tableName = "answer.data") => ({
+      setting: { keepalive: true },
+      sources: [{ options: { tableName, keyFieldName: null, statusFieldName: null, mergeType: 0 }, data: [data] }]
+    });
+
+    BasisCoreMock.route({ url: "/schema/questions/:id", method: "GET", response: (ctx) => envelope(schemas[ctx.params.id]) });
+    BasisCoreMock.route({ url: "/schema/answers", method: "GET", response: (ctx) => envelope(ctx.query.id == "1423330" ? answer1423330 : null) });
+    BasisCoreMock.route({
+      url: "/schema/fix-data/:prpId/:part", method: "GET",
+      response: (ctx) => {
+        fixDataRequests.push({ prpId: ctx.params.prpId, part: ctx.params.part, rkey: ctx.query.rkey });
+        return [{ id: 0, value: "please choose" }, { id: 5247, value: "kW" }, { id: 5248, value: "HP" }];
+      }
+    });
+    BasisCoreMock.route({
+      url: "/validation/:culture", method: "POST",
+      response: (ctx) => {
+        validationRequests.push({ culture: ctx.params.culture, body: ctx.bodyJSON });
+        return [
+          { id: 111, title: "Server says: this field is required" },
+          { id: 555, title: "Server says: between ${min} and ${max}" }
+        ];
+      }
+    });
+  </script>
+  <script>
+    const host = {
+      sources: { "inline.object": [{ id: 1423330 }] }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/schema.md">
+  <main>
+    <h1>schema</h1>
+    <p class="intro">
+      Checks the examples of <code>docs/commands/schema.md</code>: a new form with server-side
+      validation messages, an edit form fed by an <code>api</code> command, view mode with a
+      per-field <code>callback</code>, the <code>cell</code> columns, the <code>template2</code>
+      skin, switching between view and edit, <code>schemaCallback</code> and a sub-schema option.
+    </p>
+
+    <section class="case" id="case-new">
+      <h2>New form with validation messages from a server</h2>
+      <button data-btn-add>Add</button>
+      <div id="new-form">
+        <basis core="schema" run="atclient"
+               schemaUrl="/schema/questions/1161"
+               displayMode="new"
+               button="[data-btn-add]"
+               resultSourceId="demo.data"
+               errorResultSourceId="demo.error"
+               options="optionsConfig"
+               qs_rKey="www"
+               direction="rtl">
+        </basis>
+      </div>
+      <div id="errorResultSourceId"></div>
+      <basis core="callback" run="atclient" triggers="demo.data"></basis>
+      <basis core="callback" run="atclient" triggers="demo.error" method="onSource"></basis>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Edit form fed by an api command</h2>
+      <basis core="api" run="atclient" method="get" url="/schema/answers?id=[##inline.object.id##]"></basis>
+      <button data-btn-edit>Edit</button>
+      <div id="edit-form">
+        <basis core="schema" run="atclient"
+               datamembername="answer.data"
+               schemaUrl="/schema/questions"
+               displayMode="edit"
+               button="[data-btn-edit]"
+               resultSourceId="edit.data"
+               max_width="800" min_width="200" max_height="600" min_height="200"
+               qs_rkey="123"
+               filesPath="siteName/"
+               direction="rtl">
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="edit.data" method="onEdited"></basis>
+    </section>
+
+    <section class="case" id="case-view">
+      <h2>View mode with a per-field callback</h2>
+      <div id="view-form">
+        <basis core="schema" run="atclient"
+               datamembername="answer.data"
+               schemaUrl="/schema/questions"
+               displayMode="view"
+               qs_rkey="123"
+               callback="onCreateAnswerPart">
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-cells">
+      <h2>Two columns in the default skin</h2>
+      <button data-btn-cells>Add</button>
+      <div id="cells-form">
+        <basis core="schema" run="atclient"
+               schemaCallback="getSchemaAsync" paramUrl="/cells" displayMode="new"
+               button="[data-btn-cells]" cell="2" resultSourceId="cells.data" direction="rtl"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-template2">
+      <h2>template2 skin with sections, gridColumns and colSpan</h2>
+      <button data-btn-t2>Add</button>
+      <div id="t2-form">
+        <basis core="schema" run="atclient"
+               schemaUrl="/schema/questions/1167" displayMode="new"
+               button="[data-btn-t2]" resultSourceId="t2.data" cell="2"
+               skin="template2" direction="rtl"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-switch">
+      <h2>Switching between view and edit on the same element</h2>
+      <fieldset dir="ltr">
+        <label>
+          <input id="mode-toggle" type="checkbox" bc-triggers="change" name="cms.form"
+                 bc-value="view" bc-off-value="edit" checked />In View Mode
+        </label>
+      </fieldset>
+      <div id="switch-form">
+        <basis core="schema" run="atclient"
+               datamembername="answer.data"
+               schemaUrl="/schema/questions"
+               qs_rkey="123"
+               displayMode="[##cms.form.value|(view)##]"
+               triggers="cms.form">
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-callback">
+      <h2>Loading the schema through schemaCallback</h2>
+      <button data-btn-cb>Add</button>
+      <button data-btn-cb>Add (second button, same selector)</button>
+      <span id="late-button-slot"></span>
+      <div id="cb-form">
+        <basis core="schema" run="atclient"
+               schemaCallback="getSchemaAsync"
+               button="[data-btn-cb]"
+               resultSourceId="cb.data"></basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="cb.data"></basis>
+    </section>
+
+    <section class="case" id="case-envelope">
+      <h2>schemaCallback returning the envelope renders an empty form</h2>
+      <button data-btn-env>Add</button>
+      <div id="env-form">
+        <basis core="schema" run="atclient" schemaCallback="getEnvelopeAsync"
+               button="[data-btn-env]" resultSourceId="env.data" errorResultSourceId="env.error"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-button-only">
+      <h2>button without resultSourceId does nothing</h2>
+      <button data-btn-only>Add</button>
+      <div id="only-form">
+        <basis core="schema" run="atclient" schemaCallback="getSchemaAsync" paramUrl="/required"
+               button="[data-btn-only]" errorResultSourceId="only.error"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-subschema">
+      <h2>Sub-schema driven by a select value</h2>
+      <button data-btn-sub>Add</button>
+      <div id="sub-form">
+        <basis core="schema" run="atclient"
+               schemaUrl="/schema/questions" paramUrl="/1163"
+               displayMode="new" button="[data-btn-sub]" resultSourceId="sub.data"></basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="sub.data"></basis>
+    </section>
+  </main>
+
+  <script>
+    // --- page scripts, as in the documentation examples -----------------------------------
+    const errorNotifications = [];
+    function onSource(args) {
+      errorNotifications.push(args.source.rows[0].value); // true
+      const box = document.getElementById("errorResultSourceId");
+      box.textContent = "error in validation";
+      setTimeout(() => (box.textContent = ""), 3000);
+    }
+    var optionsConfig = {
+      validationErrors: {
+        required: 111, type: 222, regex: 333, length: 444,
+        range: 555, size: 666, mime: 777, "mime-size": 888
+      },
+      messagesApi: "/validation"
+    };
+
+    const editResults = [];
+    function onEdited(args) {
+      editResults.push(args.source.rows[0]);
+    }
+
+    const callbackParams = [];
+    function onCreateAnswerPart(params) {
+      callbackParams.push(params);
+      if (params.typeId == 262) {
+        const a = document.createElement("a");
+        a.href = `#${params.prpId}`;
+        params.element.appendChild(a);
+        a.appendChild(params.element.querySelector("label"));
+      }
+    }
+
+    // schemaCallback: receives (context, paramUrl) and must return the schema object itself
+    const schemaCallbackCalls = [];
+    const localSchemas = {
+      "/cells": {
+        schemaId: "cells", schemaVersion: "1", paramUrl: "/cells", lid: 2, direction: "ltr",
+        questions: [
+          { prpId: 1, title: "One", parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 2, title: "Two", parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 3, title: "Three", parts: [{ part: 1, viewType: "text" }] }
+        ]
+      },
+      "/required": {
+        schemaId: "req", schemaVersion: "1", paramUrl: "/required", lid: 2,
+        questions: [{ prpId: 1, title: "Needed", parts: [{ part: 1, viewType: "text", validations: { required: true } }] }]
+      },
+      // used when no paramUrl is given
+      default: {
+        schemaId: "simple", schemaVersion: "1", paramUrl: "/simple", lid: 2,
+        questions: [{ prpId: 7, title: "Free text", parts: [{ part: 1, viewType: "text" }] }]
+      }
+    };
+    async function getSchemaAsync(context, paramUrl) {
+      schemaCallbackCalls.push({ context, paramUrl });
+      return localSchemas[paramUrl] ?? localSchemas.default;
+    }
+    async function getEnvelopeAsync(context, paramUrl) {
+      return envelope(localSchemas.default); // wrong on purpose: the envelope instead of the schema
+    }
+  </script>
+
+  <script>
+    const normalize = (v) => JSON.parse(JSON.stringify(v));
+    const waitForOptions = (t, selector, count) =>
+      t.waitFor(() => t.$$(selector + " option"), (o) => o.length === count, { message: "options of " + selector });
+
+    bcTest.test("new mode renders the schema: root markers, sections in schema order, titles and help", async (t) => {
+      const root = await t.waitFor(() => t.$("#new-form [data-bc-schema-main-container]"));
+      t.equal(root.getAttribute("data-bc-schema-direction"), "rtl", "direction attribute is written to the root");
+      t.equal(root.getAttribute("data-bc-schema-skin"), "default", "skin defaults to default");
+      t.equal(t.$$("#new-form basis").length, 0, "the <basis> element is replaced by the form");
+
+      const titles = t.$$("#new-form [data-bc-question-title]").map((e) => t.text(e));
+      t.deepEqual(titles, ["Web site", "Emergency power", "Voltage", "Notes"], "questions follow the array order");
+
+      const sections = t.$$("#new-form fieldset[data-bc-section]");
+      t.equal(sections.length, 2, "one <fieldset data-bc-section> per section that has a question");
+      t.equal(t.text(sections[0].querySelector("legend[data-bc-section-title]")), "Sec 1");
+      t.ok(sections[0].querySelector("[data-bc-question-title]").textContent.includes("Emergency power"), "question with sectionId 1 is inside section 1");
+      t.equal(sections[1].querySelector("[data-bc-section-title]"), null, "a section without title has no title element");
+      t.ok(sections[1].textContent.includes("Notes"), "sectionId 2 question goes into the second section");
+      t.notMatch(root.textContent, /Simple description/, "section.description is not rendered");
+
+      // sectionId 3 has no section: the question is rendered outside sections
+      const voltage = t.$$("#new-form [data-bc-question]").find((q) => q.textContent.includes("Voltage"));
+      t.equal(voltage.closest("[data-bc-section]"), null, "a question whose section is not found is placed outside sections");
+      // and it does not join the first unsectioned block (a new container starts after each section)
+      const columns = t.$$("#new-form [data-bc-schema-column]");
+      t.ok(columns.length >= 3, "the default skin creates one column per container (two unsectioned blocks and the sections)");
+      t.notEqual(voltage.closest("[data-bc-schema-column]"), t.$("#new-form [data-bc-question]").closest("[data-bc-schema-column]"), "unsectioned questions after a section do not join the earlier block");
+
+      const q = t.$("#new-form [data-bc-question].css_13057");
+      t.ok(q, "question.cssClass is added to the question block");
+      t.equal(q.querySelector("[data-bc-help-btn]").getAttribute("data-bc-help-tooltip"), "help data");
+      t.equal(t.$$("#new-form [data-bc-question]")[0].querySelector("[data-bc-help-btn]"), null, "no help button without help");
+      const captions = t.$$("[data-bc-answer-title] span", q).map((e) => t.text(e));
+      t.deepEqual(captions, ["Unit", "Speed (rpm)", "Power"], "default skin renders captions once as a header row");
+      t.equal(q.querySelectorAll("[data-bc-answer] [data-bc-part]").length, 4, "three parts plus the button block per answer row");
+      t.equal(q.querySelector("[data-bc-btn]").getAttribute("data-bc-btn"), "add", "a multi question gets an add button");
+    });
+
+    bcTest.test("qs_rKey becomes the ${rkey} placeholder (lower-cased) of a part link", async (t) => {
+      await waitForOptions(t, "#new-form .css_13057 select", 3);
+      const req = fixDataRequests.find((r) => r.rkey === "www");
+      t.ok(req, "the fix-data request carried rkey=www");
+      t.equal(req.prpId, "13057");
+      t.equal(req.part, "1");
+      t.deepEqual(t.$$("#new-form .css_13057 select option").map((o) => [o.value, o.text]), [["0", "please choose"], ["5247", "kW"], ["5248", "HP"]]);
+    });
+
+    bcTest.test("clicking the button with invalid input publishes true to errorResultSourceId and nothing to resultSourceId", async (t) => {
+      await waitForOptions(t, "#new-form .css_13057 select", 3);
+      t.click("[data-btn-add]");
+      const src = await t.waitForSource("demo.error");
+      t.deepEqual(src.rows, [{ value: true }], "the error source has one row { value: true }");
+      await t.waitFor(() => errorNotifications, (l) => l.length === 1);
+      t.equal(errorNotifications[0], true, "the callback saw rows[0].value === true");
+      t.equal(t.text("#errorResultSourceId"), "error in validation");
+      t.ok(t.source("demo.data") == null, "resultSourceId is untouched on failure");
+
+      const invalid = t.$$("#new-form [data-bc-part][data-bc-invalid]");
+      t.equal(invalid.length, 3, "Web site, Unit and Speed are required and empty");
+      // the messages come from the server through options.messagesApi (lid 1 -> culture fa)
+      await t.waitFor(() => validationRequests, (l) => l.length >= 1);
+      t.equal(validationRequests[0].culture, "fa");
+      t.deepEqual(validationRequests[0].body, { sentenceId: [111, 222, 333, 444, 555, 666, 777, 888] });
+      t.equal(t.text(invalid[0].querySelector("[data-bc-validation-part] li")), "* Server says: this field is required");
+    });
+
+    bcTest.test("a valid form publishes the IUserActionResult to resultSourceId; the error source is not reset", async (t) => {
+      await waitForOptions(t, "#new-form .css_13057 select", 3);
+      const q = t.$("#new-form .css_13057");
+      t.setValue(t.$$("#new-form [data-bc-question]")[0].querySelector("input[data-bc-text-input]"), "http://example.com");
+      t.setValue(q.querySelector("select"), "5248", ["change"]);
+      t.setValue(q.querySelectorAll("input[data-bc-text-input]")[0], "1500");
+      t.click("[data-btn-add]");
+      const src = await t.waitForSource("demo.data");
+      const result = src.rows[0];
+      t.ok("usedForId" in result && result.usedForId === undefined, "usedForId is present as undefined in new mode");
+      t.deepEqual(normalize(result), {
+        lid: 1,
+        paramUrl: "/1161",
+        schemaId: 1161,
+        schemaVersion: 1.1,
+        properties: [
+          { propId: 55, multi: true, added: [{ parts: [{ part: 1, values: [{ value: "http://example.com" }] }] }] },
+          { propId: 13057, multi: true, added: [{ parts: [{ part: 1, values: [{ value: "5248" }] }, { part: 2, values: [{ value: "1500" }] }] }] },
+          { propId: 130601, multi: true, added: [{ parts: [{ part: 1, values: [{ value: 6 }] }] }] }
+        ]
+      });
+      t.equal(t.$$("#new-form [data-bc-invalid]").length, 0, "markers are cleared on success");
+      t.deepEqual(t.rows("demo.error"), [{ value: true }], "errorResultSourceId keeps its value after a successful submit");
+      await t.waitForConsole(/"propId": 55/);
+      t.note("the callback without method logged the result to the console");
+    });
+
+    bcTest.test("edit mode: the api command publishes answer.data, the answer's paramUrl selects the schema and the form is pre-filled", async (t) => {
+      await t.waitForSource("answer.data");
+      const form = await t.waitFor(() => t.$("#edit-form [data-bc-schema-main-container] [data-bc-question]"));
+      const log = BasisCoreMock.state().log;
+      t.ok(log.some((e) => e.url === "/schema/answers" && e.method === "GET"), "GET /schema/answers?id=1423330 was sent");
+      t.ok(log.some((e) => e.url === "/schema/questions/1161" && e.method === "GET"), "schemaUrl + answer.paramUrl was requested");
+
+      t.equal(t.$$("#edit-form [data-bc-question]")[0].querySelector("input[data-bc-text-input]").value, "http://www.basiscore.com");
+      const power = t.$("#edit-form .css_13057");
+      const rows = t.$$("[data-bc-answer]", power);
+      t.equal(rows.length, 2, "one answer row per entry of answers");
+      await waitForOptions(t, "#edit-form .css_13057 [data-bc-answer]:first-child select", 3);
+      t.equal(rows[0].querySelector("select").value, "5248", "the saved fix value id is selected");
+      t.equal(rows[0].querySelectorAll("input[data-bc-text-input]")[0].value, "1000");
+      t.equal(rows[0].querySelectorAll("input[data-bc-text-input]")[1].value, "", "a part without saved value is empty");
+      t.equal(rows[1].querySelectorAll("input[data-bc-text-input]")[1].value, "250");
+      t.equal(rows[0].querySelector("[data-bc-btn]").getAttribute("data-bc-btn"), "remove", "earlier rows get a remove button");
+      t.equal(rows[1].querySelector("[data-bc-pair-btn-container]").style.display, "block", "the last pre-filled row shows the remove/add pair");
+      t.equal(rows[1].querySelector("[data-bc-btn]").style.display, "none");
+
+      const notes = t.$$("#edit-form [data-bc-question]").find((q) => q.textContent.includes("Notes"));
+      t.equal(notes.querySelectorAll("[data-bc-answer]").length, 1, "a property without answer gets a single empty row");
+      t.equal(notes.querySelector("textarea").value, "");
+      const checks = t.$$("#edit-form [data-bc-part-checkbox] input");
+      t.deepEqual(checks.map((c) => c.checked), [false, true, true], "checked items follow the saved values 5 and 6");
+      t.ok(fixDataRequests.some((r) => r.rkey === "123"), "qs_rkey of the edit form reached the link");
+    });
+
+    bcTest.test("edit mode reports differences only: edited, added, deleted rows and changed checklist items", async (t) => {
+      await t.waitFor(() => t.$("#edit-form .css_13057 [data-bc-answer] select"));
+      const power = t.$("#edit-form .css_13057");
+      let rows = t.$$("[data-bc-answer]", power);
+      // change part 2 of the first row
+      t.setValue(rows[0].querySelectorAll("input[data-bc-text-input]")[0], "1200");
+      // remove the second row with the paired remove button: a fresh empty row is appended
+      t.click(rows[1].querySelector("[data-bc-btn-remove]"));
+      rows = await t.waitFor(() => t.$$("[data-bc-answer]", power), (r) => r.length === 2 && r[1] !== rows[1]);
+      await t.waitFor(() => t.$$("select option", rows[1]), (o) => o.length === 3);
+      t.equal(rows[1].querySelector("[data-bc-btn]").getAttribute("data-bc-btn"), "add", "the new last row has an add button");
+      t.setValue(rows[1].querySelector("select"), "5247", ["change"]);
+      t.setValue(rows[1].querySelectorAll("input[data-bc-text-input]")[0], "900");
+      // uncheck 6 and check 4
+      const checks = t.$$("#edit-form [data-bc-part-checkbox] input");
+      checks[2].checked = false; t.fire(checks[2], "change");
+      checks[0].checked = true; t.fire(checks[0], "change");
+
+      t.click("[data-btn-edit]");
+      const src = await t.waitForSource("edit.data");
+      t.deepEqual(normalize(src.rows[0]), {
+        lid: 1, paramUrl: "/1161", schemaId: 1161, schemaVersion: 1.1, usedForId: 1423330,
+        properties: [
+          {
+            propId: 13057, multi: true,
+            added: [{ parts: [{ part: 1, values: [{ value: "5247" }] }, { part: 2, values: [{ value: "900" }] }] }],
+            edited: [{ id: 45615, parts: [{ part: 2, values: [{ id: 85257, value: "1200" }] }] }],
+            deleted: [{ id: 156852 }]
+          },
+          {
+            propId: 130601, multi: true,
+            added: [{ id: 8456215, parts: [{ part: 1, values: [{ value: 4 }] }] }],
+            deleted: [{ id: 8456215, parts: [{ part: 1, values: [{ id: 78855, value: 6 }] }] }]
+          }
+        ]
+      });
+      await t.waitFor(() => editResults, (l) => l.length === 1);
+      t.equal(editResults[0].usedForId, 1423330, "the callback receives the same object as rows[0]");
+    });
+
+    bcTest.test("view mode renders read-only controls for answered questions only, without buttons, and calls callback per value", async (t) => {
+      await t.waitFor(() => t.$$("#view-form [data-bc-question]"), (q) => q.length === 3);
+      const titles = t.$$("#view-form [data-bc-question-title]").map((e) => t.text(e));
+      t.deepEqual(titles, ["Web site", "Emergency power", "Voltage"], "Notes has no answer property and is skipped");
+      t.equal(t.$$("#view-form input[data-bc-text-input], #view-form textarea").length, 0, "no editable text controls");
+      t.equal(t.$$("#view-form [data-bc-btn], #view-form [data-bc-pair-btn-container]").length, 0, "no add/remove buttons");
+      t.equal(t.text(t.$("#view-form label[data-bc-text-input]")), "http://www.basiscore.com");
+      t.equal(t.$$("#view-form .css_13057 [data-bc-answer]").length, 2, "both saved rows are rendered");
+      // ReadOnlySelectType resolves the saved id against the list loaded from link
+      await t.waitFor(() => t.$$("#view-form .css_13057 a[href='#13057'] label"), (l) => l.length === 6);
+      const firstRow = t.$$("#view-form .css_13057 [data-bc-answer]")[0];
+      t.deepEqual(t.$$("label", firstRow).map((l) => t.text(l)), ["HP", "1000", ""]);
+      const checks = t.$$("#view-form [data-bc-part-checkbox] input");
+      t.equal(checks.length, 2, "read-only checklist renders only the selected items");
+      t.ok(checks.every((c) => c.checked && c.disabled));
+      t.deepEqual(t.$$("#view-form [data-bc-part-checkbox] [data-sys-text]").map((e) => t.text(e)), ["220", "R1"]);
+
+      const site = callbackParams.find((p) => p.prpId === 55);
+      t.equal(site.typeId, 150);
+      t.deepEqual(site.value, { id: 33, value: "http://www.basiscore.com" }, "read-only text passes the IPartValue");
+      t.ok(site.element.hasAttribute("data-bc-part"), "element is the [data-bc-part] wrapper");
+      const unit = callbackParams.find((p) => p.prpId === 13057 && p.value && p.value.id === 5248);
+      t.deepEqual(unit.value, { id: 5248, value: "HP" }, "read-only select passes the matching IFixValue");
+      const volt = callbackParams.filter((p) => p.prpId === 130601).map((p) => p.value);
+      t.deepEqual(volt, [{ id: 5, value: "220" }, { id: 6, value: "R1", selected: true }], "read-only checklist calls once per selected item");
+    });
+
+    bcTest.test("cell=\"2\" creates two columns filled round-robin; schema.direction wins over the direction attribute", async (t) => {
+      const root = await t.waitFor(() => t.$("#cells-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      t.equal(root.getAttribute("data-bc-schema-direction"), "ltr", "the schema's direction overrides the rtl attribute");
+      const columns = t.$$("[data-bc-schema-column]", root);
+      t.equal(columns.length, 2);
+      t.deepEqual(t.$$("[data-bc-question-title]", columns[0]).map((e) => t.text(e)), ["One", "Three"]);
+      t.deepEqual(t.$$("[data-bc-question-title]", columns[1]).map((e) => t.text(e)), ["Two"]);
+      const call = schemaCallbackCalls.find((c) => c.paramUrl === "/cells");
+      t.ok(call, "schemaCallback received the paramUrl attribute");
+      t.equal(typeof call.context.tryToGetSource, "function", "the first argument is the context");
+    });
+
+    bcTest.test("template2 skin: grid container, section title div, widths from gridColumns and colSpan, cell ignored", async (t) => {
+      const root = await t.waitFor(() => t.$("#t2-form [data-bc-schema-main-container][data-bc-schema-skin='template2']"));
+      t.equal(t.$$("[data-bc-schema-column]", root).length, 0, "cell has no effect in template2");
+      const section = t.$("fieldset[data-bc-section]", root);
+      t.equal(t.text(section.querySelector("div[data-bc-section-title]")), "Identity");
+      t.ok(section.querySelector("[data-bc-schema-grid-container]"), "a section gets its own grid container");
+      t.equal(t.$$("[data-bc-schema-grid-container]", root).length, 2, "one grid for the section, one for the unsectioned question");
+
+      const probe = document.createElement("div");
+      const expected = (gridColumns, colSpan) => {
+        probe.style.width = `calc(((100% - (${gridColumns - colSpan} * 10px)) / ${gridColumns}) * (${colSpan}))`;
+        return probe.style.width;
+      };
+      const q = (title) => t.$$("[data-bc-question]", root).find((e) => t.text(e.querySelector("[data-bc-question-title]")) === title);
+      t.equal(q("First name").getAttribute("data-colspan"), "2", "colSpan is written as data-colSpan");
+      t.equal(q("Initial").getAttribute("data-colspan"), "1", "colSpan defaults to 1");
+      t.equal(q("First name").style.width, expected(3, 2), "colSpan 2 of 3 columns");
+      t.equal(q("Initial").style.width, expected(3, 1));
+      t.equal(q("Range").style.width, expected(3, 3));
+      t.equal(q("Comment").style.width, "100%", "a question outside a section is full width");
+      t.deepEqual(t.$$("[data-bc-caption-title] span", q("Range")).map((e) => t.text(e)), ["From", "To"], "each part carries its caption in template2");
+      t.equal(q("First name").querySelector("[data-bc-caption-title] span"), null, "single-part questions have no caption span");
+    });
+
+    bcTest.test("displayMode bound to a source re-runs the command and switches between view and edit", async (t) => {
+      await t.waitFor(() => t.$$("#switch-form label[data-bc-text-input]"), (l) => l.length >= 1);
+      t.equal(t.$$("#switch-form input[data-bc-text-input]").length, 0, "initially in view mode (fallback of the token)");
+      const toggle = t.$("#mode-toggle");
+      toggle.checked = false; t.fire(toggle, "change");
+      await t.waitForSource("cms.form", (s) => s.rows[0].value === "edit");
+      await t.waitFor(() => t.$$("#switch-form input[data-bc-text-input]"), (l) => l.length >= 1);
+      t.equal(t.$("#switch-form input[data-bc-text-input]").value, "http://www.basiscore.com", "edit mode shows editable, pre-filled inputs");
+      t.equal(t.$$("#switch-form [data-bc-schema-main-container]").length, 1, "the form is rebuilt in place");
+      toggle.checked = true; t.fire(toggle, "change");
+      await t.waitForSource("cms.form", (s) => s.rows[0].value === "view");
+      await t.waitFor(() => t.$$("#switch-form input[data-bc-text-input]"), (l) => l.length === 0);
+      t.ok(t.$("#switch-form label[data-bc-text-input]"), "back to view mode");
+    });
+
+    bcTest.test("schemaCallback: called with (context, undefined) without paramUrl; displayMode defaults to new; direction defaults to rtl", async (t) => {
+      const root = await t.waitFor(() => t.$("#cb-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      t.equal(root.getAttribute("data-bc-schema-direction"), "rtl");
+      const call = schemaCallbackCalls.find((c) => c.paramUrl === undefined);
+      t.ok(call, "schemaCallback was called with an undefined paramUrl");
+      t.ok(t.$("#cb-form input[data-bc-text-input]"), "new mode renders an editable control");
+    });
+
+    bcTest.test("nothing entered: the click publishes nothing; every button matched by the selector is wired; later buttons are not", async (t) => {
+      await t.waitFor(() => t.$("#cb-form input[data-bc-text-input]"));
+      const buttons = t.$$("[data-btn-cb]");
+      t.click(buttons[0]);
+      await t.sleep(300);
+      t.ok(t.source("cb.data") == null, "getAnswersAsync returns null when nothing changed");
+
+      t.setValue("#cb-form input[data-bc-text-input]", "hello");
+      t.click(buttons[1]);
+      const src = await t.waitForSource("cb.data");
+      t.deepEqual(normalize(src.rows[0]), {
+        lid: 2, paramUrl: "/simple", schemaId: "simple", schemaVersion: "1",
+        properties: [{ propId: 7, multi: undefined, added: [{ parts: [{ part: 1, values: [{ value: "hello" }] }] }] }].map(normalize)
+      });
+
+      const late = document.createElement("button");
+      late.setAttribute("data-btn-cb", "");
+      late.textContent = "late";
+      t.$("#late-button-slot").appendChild(late);
+      t.setValue("#cb-form input[data-bc-text-input]", "changed");
+      t.click(late);
+      await t.sleep(300);
+      t.equal(t.rows("cb.data")[0].properties[0].added[0].parts[0].values[0].value, "hello", "a button added after initialization is not wired");
+    });
+
+    bcTest.test("a schemaCallback that returns the envelope yields an empty main container and no submission", async (t) => {
+      const root = await t.waitFor(() => t.$("#env-form [data-bc-schema-main-container]"));
+      await t.sleep(200);
+      t.equal(root.children.length, 0, "no questions rendered");
+      t.ok(!root.hasAttribute("data-bc-schema-direction"), "direction and skin are not written");
+      t.click("[data-btn-env]");
+      await t.sleep(300);
+      t.ok(t.source("env.data") == null, "no result published");
+      t.ok(t.source("env.error") == null, "no error published");
+    });
+
+    bcTest.test("with button but without resultSourceId the click does nothing, not even the error source", async (t) => {
+      await t.waitFor(() => t.$("#only-form input[data-bc-text-input]"));
+      t.click("[data-btn-only]");
+      await t.sleep(300);
+      t.ok(t.source("only.error") == null, "errorResultSourceId is not published");
+      t.equal(t.$$("#only-form [data-bc-invalid]").length, 0, "validation did not even run");
+    });
+
+    bcTest.test("a fix value with schema renders a nested schema command when selected and reports it under value.answer", async (t) => {
+      const select = await t.waitFor(() => t.$("#sub-form select"));
+      await t.waitFor(() => t.$$("option", select), (o) => o.length === 4);
+      t.equal(select.value, "6", "the selected fix value is preselected in new mode");
+      const option = select.querySelector("option[value='4']");
+      t.equal(option.getAttribute("data-schema-id"), "1164");
+      t.equal(option.getAttribute("data-param-url"), "/1164");
+      t.equal(option.getAttribute("data-lid"), "1");
+      t.equal(option.getAttribute("data-schema-version"), "1.1");
+      t.equal(t.$$("#sub-form [data-bc-sm-sub-schema-container] *").length, 0, "no nested form before the option is selected");
+
+      t.setValue(select, "4", ["change"]);
+      const nestedInput = await t.waitFor(() => t.$("#sub-form [data-bc-sm-sub-schema-container] [data-bc-schema-main-container] input[data-bc-text-input]"));
+      t.ok(BasisCoreMock.state().log.some((e) => e.url === "/schema/questions/1164"), "schemaUrl + option paramUrl was requested for the nested form");
+      t.setValue(nestedInput, "nested text");
+      t.click("[data-btn-sub]");
+      const src = await t.waitForSource("sub.data");
+      t.deepEqual(normalize(src.rows[0]), {
+        lid: 1, paramUrl: "/1163", schemaId: 1163, schemaVersion: 1.1,
+        properties: [{
+          propId: 2, multi: true,
+          added: [{ parts: [{ part: 1, values: [{
+            value: "4",
+            answer: {
+              lid: 1, paramUrl: "/1164", schemaId: 1164, schemaVersion: 1.1,
+              properties: [{ propId: 55, multi: true, added: [{ parts: [{ part: 1, values: [{ value: "nested text" }] }] }] }]
+            }
+          }] }] }]
+        }]
+      });
+      t.setValue(select, "5", ["change"]);
+      await t.waitFor(() => t.$$("#sub-form [data-bc-sm-sub-schema-container] *"), (l) => l.length === 0, { message: "nested form removed" });
+    });
+  </script>
+</body>
+</html>

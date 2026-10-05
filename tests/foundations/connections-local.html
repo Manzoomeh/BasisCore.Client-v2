@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>connections - local</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // A data function that already exists when the page starts: the object form of the setting
+    // names it with a dotted path, and no script is loaded for it.
+    window.demoProviders = {
+      calls: [],
+      getTables(parameters) {
+        window.demoProviders.calls.push(parameters);
+        return {
+          list: [
+            ["id", "Name"],
+            [10, "book"],
+            [11, "pen"]
+          ]
+        };
+      },
+      // returns one table for a dbsource that declares two members
+      oneTable() {
+        return { list: [["id"], [1]] };
+      }
+    };
+    var host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      settings: {
+        // string form: "<script url>|<function name>", loaded on first use
+        "connection.local.cache": "/tests/fixtures/connections/local-provider.js|getTables",
+        // object form with a dotted function path that is already defined
+        "connection.local.inline": { Url: "/not/loaded.js", Function: "demoProviders.getTables" },
+        "connection.local.short": { Url: "/not/loaded.js", Function: "demoProviders.oneTable" },
+        "default.dmnid": 2668
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/connections.md">
+  <main>
+    <h1>connections - local</h1>
+    <p class="intro">
+      Checks the <code>local</code> provider of <code>docs/connections.md</code>: a JavaScript function
+      loaded with <code>$bc.util.getLibAsync</code> answers a <code>dbsource</code> in the column-array
+      table format, which <code>ConvertObject</code> turns into rows mapped onto the members by position.
+    </p>
+
+    <section class="case" id="case-script">
+      <h2>Data from a JavaScript function loaded on demand</h2>
+      <basis core="dbsource" source="cache" name="people" run="atclient" who="[##cms.cms.time2##]">
+        <member name="list" sort="age desc"></member>
+        <member name="summary"></member>
+      </basis>
+      <div id="people">
+        <Basis core="print" datamembername="people.list" run="atclient">
+          <face>
+            <script type="text/template"><div class="person">@rownumber@. @name@ (@age@)</div></script>
+          </face>
+        </Basis>
+      </div>
+      <p id="summary">[##people.summary.count|(?)##] people, oldest: [##people.summary.Oldest|(?)##]</p>
+    </section>
+
+    <section class="case" id="case-inline">
+      <h2>Object form with a function that already exists</h2>
+      <basis core="dbsource" source="inline" name="shop" run="atclient" triggers="shop.reload">
+        <member name="items"></member>
+      </basis>
+      <p id="shop">[##shop.items.Name|(?)##]</p>
+    </section>
+
+    <section class="case" id="case-errors">
+      <h2>Failures</h2>
+      <template id="tpl-short">
+        <basis core="dbsource" source="short" name="short" run="atclient">
+          <member name="a"></member>
+          <member name="b"></member>
+        </basis>
+      </template>
+      <div id="mount-short"></div>
+      <div id="mount-bad"></div>
+    </section>
+  </main>
+
+  <script>
+    function connection(name) {
+      return $bc.global.basiscore.context.connections.getConnection(name);
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Command 'short' has 2 member\(s\) but 1 result\(s\) returned from source!/);
+
+    bcTest.test("the function script is appended to <head> on first use, called with { command, dmnid }, and the tables are mapped onto the members by position", async (t) => {
+      await t.waitForSource("people.summary");
+      const script = t.$('head script[src="/tests/fixtures/connections/local-provider.js"]');
+      t.ok(script, "a <script> for the provider URL was added to <head>");
+      t.equal(t.consoleMessages(/loaded from %s getTables \/tests\/fixtures\/connections\/local-provider\.js/).length, 1, "'<function> loaded from <url>' is logged once");
+      t.equal(window.__localProviderCalls.length, 1);
+      const params = window.__localProviderCalls[0];
+      t.deepEqual(Object.keys(params).sort(), ["command", "dmnid"]);
+      t.match(params.command, /^<basis core="dbsource" source="cache" name="people" run="atclient" who="\d{6}">/, "tokens in the command are resolved before the call");
+      t.equal(params.dmnid, 2668);
+
+      const people = await t.waitFor(() => t.$$("#people .person"), (l) => l.length === 3);
+      t.deepEqual(people.map((p) => t.text(p)), ["1. reza (41)", "2. ali (30)", "3. sara (25)"], "sort=\"age desc\" is applied on the client and rownumber follows the sorted order");
+      await t.waitForText("#summary", "3 people, oldest: reza");
+      t.deepEqual(t.rows("people.summary"), [{ count: 3, Oldest: "reza", rownumber: 1 }], "column names keep their case");
+      t.equal(t.source("people.list").mergeType, 0, "no options are carried, so the source uses replace");
+      t.equal(t.source("people.list").keyFieldName, undefined);
+    });
+
+    bcTest.test("object form: a dotted function path that already exists is used without loading a script", async (t) => {
+      await t.waitForText("#shop", "book,pen", "a token over a two-row source joins the values");
+      t.equal(t.$$('head script[src="/not/loaded.js"]').length, 0);
+      t.equal(window.demoProviders.calls.length, 1);
+      t.equal(connection("inline").Url, "/not/loaded.js");
+      t.equal(connection("inline").FunctionName, "demoProviders.getTables");
+      $bc.setSource("shop.reload", 1);
+      await t.waitFor(() => window.demoProviders.calls, (c) => c.length === 2, { message: "every trigger calls the function again" });
+      t.ok(window.demoProviders.calls[1].command.includes('name="shop"'));
+    });
+
+    bcTest.test("ConvertObject: the _ key becomes Setting, the header row is shifted out of every table (mutating the input) and each row becomes an object", (t) => {
+      const input = {
+        _: { anything: "optional settings" },
+        list: [["id", "name", "age"], [1, "ali", 30], [2, "sara", 25]],
+        type: [["id", "Name"], [1, "book"]]
+      };
+      const parsed = connection("cache").ConvertObject(input);
+      t.deepEqual(parsed.Setting, { anything: "optional settings" });
+      t.equal(parsed.Tables.length, 2, "_ is not a table");
+      t.equal(parsed.Tables[0].Key, "list");
+      t.deepEqual(parsed.Tables[0].Value, [{ id: 1, name: "ali", age: 30 }, { id: 2, name: "sara", age: 25 }]);
+      t.equal(parsed.Tables[1].Key, "type");
+      t.deepEqual(parsed.Tables[1].Value, [{ id: 1, Name: "book" }]);
+      t.equal(input.list.length, 2, "shift() removed the header row from the caller's array");
+      t.deepEqual(input.list[0], [1, "ali", 30]);
+      const again = connection("cache").ConvertObject(input);
+      t.deepEqual(again.Tables[0].Value, [{ 1: 2, ali: "sara", 30: 25 }], "a second conversion of the same object uses the first data row as header");
+    });
+
+    bcTest.test("ParseJsonString parses a JSON string and reports a malformed one as 'Invalid Json Format:'", (t) => {
+      const parsed = connection("cache").ParseJsonString('{"t":[["a"],[1]]}');
+      t.deepEqual(parsed.Tables[0].Value, [{ a: 1 }]);
+      t.throws(() => connection("cache").ParseJsonString("{not json"), /^Invalid Json Format:\{not json\./);
+    });
+
+    bcTest.test("the number of tables must match the number of members", async (t) => {
+      const mount = t.$("#mount-short");
+      mount.innerHTML = t.$("#tpl-short").innerHTML;
+      const wrapper = $bc.new().addFragment(mount).run();
+      const errors = await t.waitForError(/Command 'short' has 2 member\(s\) but 1 result\(s\) returned from source!/);
+      t.equal(errors.length, 1);
+      t.equal(t.source("short.a", wrapper), undefined);
+    });
+
+    bcTest.test("an invalid string setting throws at startup: For Local Storage Connection '<name>', Setting In Not Valid", (t) => {
+      // the error surfaces from run(); the dependency container wraps it, so the message is matched, not compared
+      t.throws(
+        () => $bc.new().addFragment("#mount-bad").setOptions({ settings: { "connection.local.bad": "/js/provider.js" } }).run(),
+        /For Local Storage Connection 'bad', Setting In Not Valid/
+      );
+      t.throws(
+        () => $bc.new().addFragment("#mount-bad").setOptions({ settings: { "connection.local.bad": "/js/a.js|fn|extra" } }).run(),
+        /For Local Storage Connection 'bad', Setting In Not Valid/
+      );
+    });
+
+    bcTest.test("TestConnectionAsync loads the function and resolves true; loadPageAsync is not supported", async (t) => {
+      const context = $bc.global.basiscore.context;
+      t.equal(await connection("inline").TestConnectionAsync(context), true);
+      t.throws(() => connection("inline").loadPageAsync(context, "x.html", {}), /^LoadPageAsync Method not Supported In LocalStorage Provider\.$/);
+    });
+  </script>
+</body>
+</html>

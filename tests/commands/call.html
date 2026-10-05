@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>call</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    /*
+     * `call` loads fragments with XMLHttpRequest. The fragments are real files under
+     * tests/fixtures/call/; this small wrapper only records what every request looked like
+     * (method, URL, headers, body, timeout) in window.__xhr so the tests can inspect it.
+     */
+    window.__xhr = [];
+    (function () {
+      const open = XMLHttpRequest.prototype.open;
+      const send = XMLHttpRequest.prototype.send;
+      const setRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        this.__entry = { method: method, url: url, headers: {}, body: null, timeout: null };
+        window.__xhr.push(this.__entry);
+        return open.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.setRequestHeader = function (name, value) {
+        if (this.__entry) this.__entry.headers[name.toLowerCase()] = value;
+        return setRequestHeader.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send = function (body) {
+        if (this.__entry) {
+          this.__entry.body = body;
+          this.__entry.timeout = this.timeout;
+        }
+        return send.apply(this, arguments);
+      };
+    })();
+    function requestsFor(url) {
+      return window.__xhr.filter((r) => r.url === url);
+    }
+  </script>
+  <script>
+    const host = {
+      settings: {
+        // the verb is upper-cased by the provider, so the documented lower-case value works
+        "default.call.verb": "get",
+        // the page name is appended with no separator: the connection URL must end with "/"
+        "connection.web.callcommand": "/tests/fixtures/call/"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/call.md">
+  <main>
+    <h1>call</h1>
+    <p class="intro">
+      Checks <code>docs/commands/call.md</code>: fragments loaded through the <code>callcommand</code>
+      connection and through an ad-hoc <code>url</code>, GET versus POST parameters, nested calls, a
+      fragment switched from a source, the rendering hooks, the 404 error path and the processing of
+      tokens and commands inside the loaded fragment.
+    </p>
+
+    <section class="case" id="case-simple">
+      <h2>Load a fragment through the <code>callcommand</code> connection</h2>
+      <basis core="call" file="called.html" pagesize="" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-post">
+      <h2>POST with extra attributes as parameters</h2>
+      <basis core="call" file="called.html" run="atclient"
+             method="Post" data-pp="[##cms.cms.time##]" data-extra="x y" pagesize="5" if="true"></basis>
+    </section>
+
+    <section class="case" id="case-nested">
+      <h2>Nested calls</h2>
+      <basis core="call" file="call-level-1.html" pagesize="" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-dynamic">
+      <h2>Switching the fragment from a source</h2>
+      <span id="loading">Load [##local.call.filename|(nothing yet)##]...</span>
+      <div id="dynamic">
+        <basis core="call" file="[##local.call.filename##]" pagesize="" run="atclient" triggers="local.call"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-url">
+      <h2>Ad-hoc URL</h2>
+      <basis core="call" pagesize="" url="/tests/fixtures/call/adhoc/" file="called.html" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-hooks">
+      <h2>Rendering hooks</h2>
+      <div id="hooked">
+        <basis core="call" file="full-document.html" pagesize="" run="atclient"
+               OnRendering="rendering" OnRendered="rendered" OnProcessing="processing" OnProcessed="processed"></basis>
+      </div>
+      <div id="prevented">
+        <basis core="call" file="never.html" run="atclient" OnRendering="preventIt"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-rescan">
+      <h2>The loaded fragment is processed: tokens and commands inside it work</h2>
+      <div id="rescan">
+        <basis core="call" file="tokens.html" method="get" run="atclient"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-404">
+      <h2>A missing fragment rejects the run</h2>
+      <template id="tpl-404">
+        <basis core="call" file="missing.html" run="atclient"></basis>
+      </template>
+      <div id="mount-404"></div>
+    </section>
+  </main>
+
+  <script>
+    const hookCalls = [];
+    async function rendering(args) {
+      hookCalls.push({ hook: "rendering", prevent: args.prevent, source: args.source, node: args.node });
+      args.prevent = await Promise.resolve(false);
+    }
+    function rendered(args) {
+      hookCalls.push({ hook: "rendered", result: args.result, source: args.source, node: args.node });
+    }
+    function processing() {
+      hookCalls.push({ hook: "processing" });
+    }
+    function processed() {
+      hookCalls.push({ hook: "processed" });
+    }
+    function preventIt(args) {
+      args.prevent = true;
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/HTTP 404: not found: \/tests\/fixtures\/call\/missing\.html/);
+
+    bcTest.test("GET through callcommand: <connection url><file> is requested, the fragment replaces the command and its script runs", async (t) => {
+      await t.waitForText("#case-simple h1.called", "hi from called");
+      t.equal(t.$$("#case-simple basis").length, 0, "the <basis> element is gone");
+      t.ok(window.__calledCount >= 1, "the <script> of the fragment was executed on insertion");
+      const requests = requestsFor("/tests/fixtures/call/called.html").filter((r) => r.method === "GET");
+      t.equal(requests.length, 1);
+      t.equal(requests[0].timeout, 15000, "15 second timeout");
+      t.equal(requests[0].body, null);
+      t.equal(requests[0].headers["content-type"], undefined, "no Content-Type on GET");
+      const command = $bc.global.basiscore.GetCommandListByCore("call")[0];
+      t.equal(command.priority, 0, "call is the only Priority.high command");
+    });
+
+    bcTest.defect("known defect: a GET call sends no parameters at all (fileNames and siteSize are computed, then dropped)", (t) => {
+      const requests = requestsFor("/tests/fixtures/call/called.html").filter((r) => r.method === "GET");
+      t.ok(requests.length >= 1);
+      t.notMatch(requests[0].url, /\?/, "no query string");
+      t.equal(window.__xhr.filter((r) => /fileNames|siteSize/.test(r.url)).length, 0);
+    });
+
+    bcTest.test("POST: every attribute except core, run, file, method and pagesize is sent form-encoded under its lower-cased name, tokens resolved", async (t) => {
+      const request = await t.waitFor(() => requestsFor("/tests/fixtures/call/called.html").find((r) => r.method === "POST"));
+      t.equal(request.headers["content-type"], "application/x-www-form-urlencoded");
+      const params = new URLSearchParams(request.body);
+      t.match(params.get("data-pp"), /^\d{2}:\d{2}$/, "[##cms.cms.time##] was resolved");
+      t.equal(params.get("data-extra"), "x y");
+      t.equal(params.get("if"), "true", "non-reserved attributes such as if are posted too");
+      ["core", "run", "file", "method", "pagesize"].forEach((name) => t.equal(params.has(name), false, name + " is reserved"));
+      t.equal(params.has("fileNames"), false);
+      t.equal(params.has("siteSize"), false, "pagesize never reaches the server");
+      await t.waitFor(() => t.$$("#case-post h1.called"), (l) => l.length === 1);
+    });
+
+    bcTest.test("nested calls: a loaded fragment may contain another call, each level is loaded in turn", async (t) => {
+      const levels = await t.waitFor(() => t.$$("#case-nested h1.level"), (l) => l.length === 3);
+      t.deepEqual(levels.map((h) => t.text(h)), ["hi from call-level-1", "hi from call-level-2", "hi from call-level-3"]);
+      t.equal(t.$$("#case-nested basis").length, 0);
+      ["call-level-1", "call-level-2", "call-level-3"].forEach((name) =>
+        t.equal(requestsFor("/tests/fixtures/call/" + name + ".html").length, 1, name + " requested once")
+      );
+      t.equal(t.consoleMessages(/^hi from call-level-1$/).length, 1, "the fragment's console.log ran");
+    });
+
+    bcTest.test("a file token without a value waits; every setSource of the trigger loads the new fragment and replaces the previous one", async (t) => {
+      await t.waitForText("#loading", "Load nothing yet...");
+      t.ok(t.consoleMessages(/^wait for local\.call$/).length >= 1, "the command waits for local.call");
+      t.equal(t.$$("#dynamic h1").length, 0);
+
+      $bc.setSource("local.call", { filename: "call-level-3.html" });
+      await t.waitForText("#dynamic h1.level", "hi from call-level-3");
+      await t.waitForText("#loading", "Load call-level-3.html...");
+
+      const countBefore = window.__calledCount;
+      $bc.setSource("local.call", { filename: "called.html" });
+      await t.waitForText("#dynamic h1.called", "hi from called");
+      t.equal(t.$$("#dynamic h1.level").length, 0, "the previous fragment was removed");
+      t.equal(window.__calledCount, countBefore + 1, "scripts inside the fragment run on every re-run");
+
+      $bc.setSource("local.call", { filename: "call-level-3.html" });
+      await t.waitForText("#dynamic h1.level", "hi from call-level-3");
+      t.equal(t.$$("#dynamic h1.called").length, 0);
+      t.equal(requestsFor("/tests/fixtures/call/call-level-3.html").length, 3, "nested run + two dynamic loads");
+    });
+
+    bcTest.test("url creates an ad-hoc web connection; callcommand is not consulted", async (t) => {
+      await t.waitForText("#case-url h1.adhoc", "hi from the ad-hoc url");
+      t.equal(requestsFor("/tests/fixtures/call/adhoc/called.html").length, 1);
+    });
+
+    bcTest.test("OnRendering runs before the request and can prevent it; OnRendered runs after processing with result undefined; OnProcessing/OnProcessed never run", async (t) => {
+      await t.waitForText("#hooked .doc-body", "only the body content survives");
+      t.deepEqual(hookCalls.map((h) => h.hook), ["rendering", "rendered"]);
+      t.equal(hookCalls[0].prevent, false);
+      t.equal(hookCalls[0].source, undefined, "the initial run has no incoming source");
+      t.equal(hookCalls[0].node.getAttribute("core"), "call");
+      t.equal(hookCalls[1].result, undefined, "runAsync returns undefined");
+      t.equal(t.$$("#hooked html, #hooked head, #hooked body").length, 0, "html/head/body wrappers of a full document are dropped");
+      t.equal(t.$$("#hooked title").length, 1, "their children (here the <title>) are kept");
+
+      await t.sleep(200);
+      t.equal(requestsFor("/tests/fixtures/call/never.html").length, 0, "args.prevent = true skipped the request");
+      t.equal(t.text("#prevented"), "", "nothing was rendered for the prevented command");
+    });
+
+    bcTest.test("the fragment is processed in the same context: its tokens see the page sources and its commands render and update", async (t) => {
+      await t.waitForText("#rescan .greeting", "Hello, guest!");
+      t.equal(t.$$("#rescan ul.menu").length, 0, "the print inside the fragment waits for local.menu");
+      $bc.setSource("local.greet", { name: "Sara" });
+      $bc.setSource("local.menu", [{ title: "Home" }, { title: "Books" }]);
+      await t.waitForText("#rescan .greeting", "Hello, Sara!");
+      const items = await t.waitFor(() => t.$$("#rescan ul.menu li"), (l) => l.length === 2);
+      t.deepEqual(items.map((li) => t.text(li)), ["Home", "Books"]);
+      t.equal(t.$$("#rescan basis").length, 0, "the nested print was processed and replaced");
+    });
+
+    bcTest.test("a 404 rejects the run with HTTP <status>: <response text>", async (t) => {
+      const mount = t.$("#mount-404");
+      mount.innerHTML = t.$("#tpl-404").innerHTML;
+      $bc.new().addFragment(mount).run();
+      const errors = await t.waitForError(/HTTP 404/);
+      t.equal(errors[0].message, "HTTP 404: not found: /tests/fixtures/call/missing.html");
+      t.equal(t.text("#mount-404"), "", "nothing was rendered in place of the command");
+      t.equal(requestsFor("/tests/fixtures/call/missing.html")[0].method, "GET", "default.call.verb \"get\" is upper-cased");
+    });
+
+    bcTest.skip("a server that takes longer than 15 seconds rejects with Request timeout", "would make the page wait for the fixed 15 s XMLHttpRequest timeout");
+  </script>
+</body>
+</html>

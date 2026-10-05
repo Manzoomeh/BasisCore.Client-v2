@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>command attributes and lifecycle</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    var host = {
+      // AlaSQL is needed by the inlinesource used to show the priority waves
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "cms.userA": [{ id: 15, name: "amir" }],
+        "cms.userB": [{ id: 5, name: "amir" }],
+        "cms.if": [{ trueVal: true, falseVal: false }],
+        "cms.mode": [{ value: "edit" }],
+        "demo.show": [{ value: "yes" }],
+        "inlinesource.print": [
+          { id: 1, name: "qamsari" },
+          { id: 2, name: "akaberi" },
+          { id: 3, name: "amir" }
+        ],
+        "demo.rows": [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+        "lazy.rows": [{ id: 1 }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/command-attributes-and-lifecycle.md">
+  <main>
+    <h1>command attributes and lifecycle</h1>
+    <p class="intro" bc-ignore>
+      Checks <code>docs/command-attributes-and-lifecycle.md</code>: which elements become commands,
+      <code>if</code>, <code>triggers</code>, <code>events</code>, <code>ignoreNullSource</code>,
+      <code>processRenderedContent</code>, the <code>On*</code> hooks and their argument shapes, the priority
+      waves, the busy guard, disposal and the range markers that replace a <code>&lt;basis&gt;</code> element.
+    </p>
+
+    <section class="case" id="case-if">
+      <h2><code>if</code> with a token, an expression, a code block and an existence check</h2>
+      <div id="if-1">
+        <basis core="print" datamembername="inlinesource.print" run="atclient" if="[##cms.if.trueVal##]">
+          <face><script type="text/template"><div>@id (name is: @name@)</div></script></face>
+        </basis>
+      </div>
+      <div id="if-2">
+        <basis core="print" datamembername="inlinesource.print" run="atclient" if="[##cms.userA.id##]==15">
+          <face><script type="text/template"><div>@id (name is: @name@)</div></script></face>
+        </basis>
+      </div>
+      <div id="if-3">
+        <basis core="print" datamembername="inlinesource.print" run="atclient"
+               if="{{return await idGreaterThanTen($bc,'cms.userB')}}">
+          <face><script type="text/template"><div>@id (name is: @name@)</div></script></face>
+        </basis>
+      </div>
+      <div id="if-4">
+        <basis core="print" datamembername="inlinesource.print" run="atclient" if="[##app.user##]">
+          <face><script type="text/template"><div>rendered only when app.user exists</div></script></face>
+        </basis>
+      </div>
+      <div id="if-bare">
+        <basis core="print" datamembername="inlinesource.print" run="atclient" if="[##cms.mode.value##]">
+          <face><div>bare text</div></face>
+        </basis>
+      </div>
+      <div id="if-quoted">
+        <basis core="print" datamembername="inlinesource.print" run="atclient" if="'[##cms.mode.value##]'=='edit'">
+          <face><div>quoted text</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-hide">
+      <h2>A falsy <code>if</code> keeps a rendering command's output but removes a group's content</h2>
+      <p>Outside the group, show = <span id="show-outside">[##demo.show.value##]</span></p>
+      <div id="hide-print">
+        <basis core="print" datamembername="demo.rows" run="atclient" triggers="demo.show" if="'[##demo.show.value##]'!='no'">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <div id="hide-group">
+        <basis core="group" run="atclient" triggers="demo.show" if="'[##demo.show.value##]'!='no'">
+          <p class="inside">group content, show = [##demo.show.value##]</p>
+          <basis core="print" datamembername="demo.rows" run="atclient">
+            <face><span class="inner-row">@id@</span></face>
+          </basis>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-events">
+      <h2><code>events</code> and <code>triggers</code> on a callback</h2>
+      <basis core="callback" run="atclient" triggers="local.print"
+             events="document.click window.scroll input[type='button'].click input[type='text'].keyup"
+             preventDefault="true" stopPropagation="true"></basis>
+      <basis core="callback" run="atclient" events="timer.200" method="timerCallback"></basis>
+      <basis core="callback" run="atclient" events="#evt-button.click window.scroll" preventDefault="true" method="recordEvent"></basis>
+      <input id="evt-button" type="button" value="Click Me!" />
+      <input id="evt-text" type="text" value="Hi" />
+    </section>
+
+    <section class="case" id="case-hooks">
+      <h2>Hooks on a rendering command</h2>
+      <div id="hook-filter">
+        <basis core="print" datamembername="demo.rows" run="atclient" OnProcessing="filter" OnRendered="app.hooks.rendered">
+          <face><script type="text/template"><span class="row">@id@</span><br /></script></face>
+        </basis>
+      </div>
+      <div id="hook-prevent">
+        <basis core="print" datamembername="demo.rows" run="atclient" OnRendering="preventRender" OnRendered="app.hooks.neverCalled">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <div id="hook-async">
+        <basis core="print" datamembername="demo.rows" run="atclient" OnRendering="slowRendering" OnRendered="((a) => app.hooks.arrow(a))" OnProcessing="">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <div id="hook-null">
+        <basis core="print" datamembername="never.published" run="atclient" OnRendered="app.hooks.nullSource">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="cb.ping" method="pingMethod" OnRendered="app.hooks.callbackRendered"></basis>
+    </section>
+
+    <section class="case" id="case-html-hooks">
+      <h2>Hooks on an HTML element</h2>
+      <input id="hook-input" name="hook.in" bc-triggers="change"
+             OnProcessing="inProcessing" OnRendering="inRendering" OnRendered="inRendered" OnProcessed="inProcessed" />
+    </section>
+
+    <section class="case" id="case-waves">
+      <h2>Priority waves, <code>ignoreNullSource</code> and <code>processRenderedContent</code></h2>
+      <basis core="inlinesource" name="order" run="atclient" OnRendered="orderHook('inlinesource')">
+        <member name="rows" format="sql" datamembername="demo.rows">SELECT * FROM [demo.rows] WHERE id > 3</member>
+      </basis>
+      <div id="wave-print">
+        <basis core="print" datamembername="order.rows" run="atclient" OnRendered="orderHook('print')">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="order.rows" method="orderHook('callback')"></basis>
+      <div id="lazy">
+        <basis core="print" datamembername="lazy.rows" run="atclient" IGNORENULLSOURCE="TRUE">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <div id="prc-true">
+        <basis core="print" datamembername="lazy.rows" run="atclient">
+          <face><span class="row">[##cms.userA.name##]</span></face>
+        </basis>
+      </div>
+      <div id="prc-false">
+        <basis core="print" datamembername="lazy.rows" run="atclient" processRenderedContent="false">
+          <face><span class="row">[##cms.userA.name##]</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-markup">
+      <h2>Which elements become commands</h2>
+      <div id="no-run">
+        <basis core="print" datamembername="inlinesource.print">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <div id="run-server">
+        <basis core="print" datamembername="inlinesource.print" run="server">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <div id="run-mixed">
+        <basis core="Print" DATAMEMBERNAME="inlinesource.print" run="AtClient" ONRENDERED="app.hooks.mixedCase">
+          <face><span class="row">@id@</span></face>
+        </basis>
+      </div>
+      <div id="range"><b class="before">before</b><basis core="print" datamembername="rng.rows" run="atclient"><face><span class="row">@id@</span></face></basis><b class="after">after</b></div>
+    </section>
+
+    <section class="case" id="case-busy">
+      <h2>Busy guard and disposal</h2>
+      <div id="burst">
+        <basis core="print" datamembername="burst.rows" run="atclient" OnRendering="app.hooks.burstRendering">
+          <face><span class="row">@v@</span></face>
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="burst.rows" method="app.hooks.burstCallback"></basis>
+      <div id="dispose">
+        <basis core="print" datamembername="outer.rows" run="atclient">
+          <face>
+            <script type="text/template">
+              <div class="row">@id@<basis core="callback" run="atclient" triggers="inner.ping" method="app.hooks.innerPing"></basis></div>
+            </script>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-errors">
+      <h2>Errors that stop a collection (each run in its own instance)</h2>
+      <div bc-ignore>
+        <div id="frag-if-syntax">
+          <basis core="print" datamembername="inlinesource.print" run="atclient" if="1 +">
+            <face><span class="row">@id@</span></face>
+          </basis>
+        </div>
+        <div id="frag-bad-hook">
+          <basis core="print" datamembername="inlinesource.print" run="atclient" OnRendered="app.hooks.nope">
+            <face><span class="row">@id@</span></face>
+          </basis>
+        </div>
+        <div id="frag-bad-selector">
+          <basis core="callback" run="atclient" events=".toolbar.click"></basis>
+        </div>
+        <div id="frag-unknown-core">
+          <basis core="nope" run="atclient"></basis>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function idGreaterThanTen($bc, sourceId) {
+      const data = await $bc.waitToGetSourceAsync(sourceId);
+      return data.rows[0].id > 10;
+    }
+
+    // --- events example ---
+    let count = 5;
+    function timerCallback(arg) {
+      const timerHandler = arg.source.rows[0].value;
+      console.log(`timer ${arg.source.id}, ${--count} turns left`);
+      if (count <= 0) {
+        clearInterval(timerHandler);
+      }
+    }
+    const recordedEvents = [];
+    function recordEvent(arg) {
+      recordedEvents.push(arg);
+    }
+
+    // --- hooks ---
+    const app = {
+      hooks: {
+        renderedArgs: [],
+        rendered(args) {
+          app.hooks.renderedArgs.push(args);
+        },
+        neverCalled() {
+          app.hooks.neverCalledCount = (app.hooks.neverCalledCount || 0) + 1;
+        },
+        arrowArgs: [],
+        arrow(args) {
+          app.hooks.arrowArgs.push({ at: Date.now(), args });
+        },
+        nullSourceCalls: 0,
+        nullSource() {
+          app.hooks.nullSourceCalls++;
+        },
+        callbackRenderedArgs: [],
+        callbackRendered(args) {
+          app.hooks.callbackRenderedArgs.push(args);
+        },
+        mixedCaseArgs: [],
+        mixedCase(args) {
+          app.hooks.mixedCaseArgs.push(args);
+        },
+        burstRenders: 0,
+        burstRendering(args) {
+          // the start-up pass also calls OnRendering (without a source); count only source-driven renders
+          if (args.source) app.hooks.burstRenders++;
+        },
+        burstCallbacks: [],
+        burstCallback(args) {
+          app.hooks.burstCallbacks.push(args.source.rows[0].v);
+        },
+        innerPings: [],
+        innerPing(args) {
+          app.hooks.innerPings.push(args.source.rows[0].value);
+        }
+      }
+    };
+
+    function filter(args) {
+      const rows = args.source.rows.filter((x) => x.id > 3);
+      args.source = $bc.util.source.new("inlinesource.print2", rows);
+    }
+    const preventArgs = [];
+    function preventRender(args) {
+      preventArgs.push(args);
+      args.prevent = true;
+    }
+    let slowRenderingDone = 0;
+    async function slowRendering(args) {
+      await new Promise((r) => setTimeout(r, 150));
+      slowRenderingDone = Date.now();
+      args.prevent = false;
+    }
+    const pingCalls = [];
+    function pingMethod(args) {
+      pingCalls.push(args);
+    }
+
+    // --- hooks on an HTML element ---
+    const inputHooks = [];
+    let preventInput = false;
+    function inProcessing(args) {
+      inputHooks.push(["processing", args.id, args.value]);
+      args.value = String(args.value).toUpperCase();
+    }
+    function inRendering(args) {
+      inputHooks.push(["rendering", args.source.id, args.source.rows[0].value]);
+      args.prevent = preventInput;
+    }
+    function inRendered(args) {
+      inputHooks.push(["rendered", args.result, args.source.rows[0].value]);
+    }
+    function inProcessed(args) {
+      inputHooks.push(["processed", args.id, args.value]);
+    }
+
+    // --- priority waves: the hook attribute is an expression that evaluates to a function ---
+    const order = [];
+    function orderHook(name) {
+      return () => order.push(name);
+    }
+  </script>
+
+  <script bc-ignore>
+    bcTest.allowError(/Unexpected token/);
+    bcTest.allowError(/app\.hooks\.nope is not a function/);
+    bcTest.allowError(/provided selector is empty|not a valid selector/);
+    bcTest.allowError(/nope/);
+    const ctx = () => $bc.global.basiscore.context;
+    const rowsOf = (sel) => Array.from(document.querySelectorAll(sel + " .row")).map((x) => x.textContent.trim());
+
+    bcTest.test("if: token, comparison and code block (documentation example); false renders nothing", async (t) => {
+      await t.waitFor(() => t.$$("#if-1 div"), (l) => l.length === 3);
+      t.equal(t.text(t.$$("#if-1 div")[0]), "1 (name is: qamsari)");
+      await t.waitFor(() => t.$$("#if-2 div"), (l) => l.length === 3);
+      await t.waitFor(() => t.$$("#if-quoted div"), (l) => l.length === 3);
+      await t.sleep(200);
+      t.equal(t.$$("#if-3 div").length, 0, "5 > 10 is false");
+      t.equal(t.$$("#if-4 div").length, 0, "app.user does not exist");
+      t.equal(t.$$("#if-bare div").length, 0, "if=\"[##cms.mode.value##]\" became `return edit`, a ReferenceError, which counts as false");
+    });
+
+    bcTest.test("if is evaluated on every render, not when its sources change: publishing app.user alone does nothing", async (t) => {
+      $bc.setSource("app.user", { id: 1 });
+      await t.waitForSource("app.user");
+      await t.sleep(200);
+      t.equal(t.$$("#if-4 div").length, 0, "the if token's sources are not triggers");
+      $bc.setSource("inlinesource.print", t.rows("inlinesource.print").slice());
+      await t.waitFor(() => t.$$("#if-4 div"), (l) => l.length === 3, { message: "re-publishing the data source re-ran the command and if was true" });
+      t.equal(t.text(t.$("#if-4 div")), "rendered only when app.user exists");
+    });
+
+    bcTest.test("a falsy if keeps a print's previous output, removes a group's content and restores it when true again", async (t) => {
+      await t.waitFor(() => rowsOf("#hide-print"), (l) => l.length === 5);
+      await t.waitForText("#hide-group .inside", "group content, show = yes");
+      await t.waitFor(() => t.$$("#hide-group .inner-row"), (l) => l.length === 5);
+      $bc.setSource("demo.show", "no");
+      await t.waitFor(() => t.$("#hide-group .inside"), (el) => el === null, { message: "the group did not delete its content" });
+      t.equal(t.$$("#hide-group .inner-row").length, 0);
+      t.equal(rowsOf("#hide-print").length, 5, "the print keeps what it rendered");
+      $bc.setSource("demo.show", "again");
+      await t.waitFor(() => t.$$("#hide-group .inner-row"), (l) => l.length === 5, { message: "the nested print was processed again" });
+      t.ok(t.$("#hide-group .inside"), "the saved child nodes are back");
+      await t.waitForText("#show-outside", "again");
+    });
+
+    bcTest.defect("known defect: text bindings inside a group that was hidden and shown again keep their last value", async (t) => {
+      t.equal(t.text("#hide-group .inside"), "group content, show = no",
+        "the binding was updated to the hiding value while detached and was not re-bound on restore");
+      $bc.setSource("demo.show", "once more");
+      await t.waitForText("#show-outside", "once more");
+      await t.sleep(200);
+      t.equal(t.text("#hide-group .inside"), "group content, show = no", "later changes never reach it");
+      t.equal(t.$$("#hide-group .inner-row").length, 5, "the nested command is alive");
+    });
+
+    bcTest.test("events example: a callback without method logs every event source; the timer callback stops itself after five ticks", async (t) => {
+      t.click("#evt-button");
+      await t.waitFor(() => t.consoleMessages(/"_id":"input\[type='button'\]\.click"/));
+      t.fire("#evt-text", "keyup");
+      await t.waitFor(() => t.consoleMessages(/"_id":"input\[type='text'\]\.keyup"/));
+      t.click(document.body);
+      await t.waitFor(() => t.consoleMessages(/"_id":"document\.click"/));
+      window.dispatchEvent(new Event("scroll"));
+      await t.waitFor(() => t.consoleMessages(/"_id":"window\.scroll"/));
+      $bc.setSource("local.print", [{ id: 1 }]);
+      await t.waitFor(() => t.consoleMessages(/"_id":"local\.print"/));
+      await t.waitFor(() => t.consoleMessages(/^timer timer\.200, 0 turns left$/), null, { timeout: 4000 });
+      t.equal(t.consoleMessages(/^timer timer\.200, /).length, 5);
+      await t.sleep(500);
+      t.equal(t.consoleMessages(/^timer timer\.200, /).length, 5, "clearInterval(arg.source.rows[0].value) stopped the timer");
+    });
+
+    bcTest.test("events: the source id is the entry text, rows[0] is the Event, preventDefault applies to it", async (t) => {
+      const before = recordedEvents.length;
+      t.click("#evt-button");
+      const arg = await t.waitFor(() => recordedEvents[before]);
+      t.equal(arg.source.id, "#evt-button.click");
+      t.ok(arg.source.rows[0] instanceof MouseEvent);
+      t.equal(arg.source.rows[0].defaultPrevented, true);
+      t.ok(arg.context === ctx());
+      window.dispatchEvent(new Event("scroll"));
+      const scroll = await t.waitFor(() => recordedEvents[before + 1]);
+      t.equal(scroll.source.id, "window.scroll");
+    });
+
+    bcTest.defect("known defect: each events entry writes its target type to the console (timer twice)", (t) => {
+      t.ok(t.consoleMessages(/^document$/).length >= 1);
+      t.ok(t.consoleMessages(/^window$/).length >= 2);
+      t.ok(t.consoleMessages(/^input\[type='button'\]$/).length >= 1);
+      t.ok(t.consoleMessages(/^timer$/).length >= 2, "timer.N logs the type a second time");
+    });
+
+    bcTest.test("OnProcessing can substitute the source; OnRendered gets { result, source } with the generated nodes", async (t) => {
+      await t.waitFor(() => rowsOf("#hook-filter"), (l) => l.length === 2);
+      t.deepEqual(rowsOf("#hook-filter"), ["4", "5"], "the hook replaced the source with a filtered copy");
+      t.deepEqual(t.rows("demo.rows").map((r) => r.id), [1, 2, 3, 4, 5], "the stored source is untouched");
+      const args = app.hooks.renderedArgs[0];
+      t.ok(args, "OnRendered was called through a property path");
+      t.equal(args.source, undefined, "no source on the start-up pass");
+      t.ok(Array.isArray(args.result), "result is the array of generated nodes");
+      t.equal(args.result.filter((n) => n.nodeType === 1).length, 4, "two <span> and two <br>");
+      t.ok(args.context === ctx());
+      t.equal(args.node.tagName, "BASIS");
+      t.equal(document.contains(args.node), false, "args.node is detached from the document");
+      t.ok(args.node.parentNode instanceof DocumentFragment);
+    });
+
+    bcTest.test("OnRendering: { prevent, source }; prevent = true cancels the run and OnRendered", async (t) => {
+      await t.waitFor(() => preventArgs, (l) => l.length === 1);
+      t.equal(preventArgs[0].prevent, true, "the hook set prevent");
+      t.equal(preventArgs[0].source, undefined);
+      await t.sleep(100);
+      t.equal(rowsOf("#hook-prevent").length, 0);
+      t.equal(app.hooks.neverCalledCount, undefined, "OnRendered is not called when the run was prevented");
+      $bc.setSource("demo.rows", t.rows("demo.rows").slice());
+      await t.waitFor(() => preventArgs, (l) => l.length === 2);
+      t.equal(preventArgs[1].source.id, "demo.rows", "on a trigger, source is the triggering source");
+    });
+
+    bcTest.test("hooks are awaited; an arrow function in parentheses is a valid hook; an empty attribute installs no hook", async (t) => {
+      await t.waitFor(() => rowsOf("#hook-async"), (l) => l.length === 5);
+      t.ok(app.hooks.arrowArgs.length >= 1);
+      t.ok(slowRenderingDone > 0 && app.hooks.arrowArgs[0].at >= slowRenderingDone, "OnRendered ran after the async OnRendering resolved");
+      t.deepEqual(rowsOf("#hook-async"), ["1", "2", "3", "4", "5"], "OnProcessing=\"\" did not filter anything");
+    });
+
+    bcTest.test("OnRendered is skipped when the source is missing (runAsync returned null); callback's result is true", async (t) => {
+      await t.sleep(200);
+      t.equal(app.hooks.nullSourceCalls, 0);
+      t.equal(rowsOf("#hook-null").length, 0);
+      $bc.setSource("cb.ping", "x");
+      const args = await t.waitFor(() => app.hooks.callbackRenderedArgs[0]);
+      t.equal(args.result, true);
+      t.equal(args.source.id, "cb.ping");
+      t.equal(pingCalls.length, 1);
+      t.ok(pingCalls[0].source === args.source);
+    });
+
+    bcTest.test("HTML element hooks: OnProcessing { id, value } changes what is published; OnProcessed runs even when prevented", async (t) => {
+      const input = t.$("#hook-input");
+      input.value = "abc";
+      t.fire(input, "change");
+      await t.waitForSource("hook.in");
+      t.deepEqual(t.rows("hook.in"), [{ value: "ABC" }]);
+      t.deepEqual(inputHooks, [
+        ["processing", "hook.in", "abc"],
+        ["rendering", "hook.in", "ABC"],
+        ["rendered", null, "ABC"],
+        ["processed", "hook.in", "ABC"]
+      ]);
+      inputHooks.length = 0;
+      preventInput = true;
+      input.value = "skip";
+      t.fire(input, "change");
+      await t.waitFor(() => inputHooks, (l) => l.length === 3);
+      t.deepEqual(inputHooks.map((x) => x[0]), ["processing", "rendering", "processed"]);
+      t.deepEqual(t.rows("hook.in"), [{ value: "ABC" }], "nothing was published");
+    });
+
+    bcTest.test("priority waves: sources (normal) finish before renderers (low); callback (none) only runs on a trigger", async (t) => {
+      await t.waitFor(() => rowsOf("#wave-print"), (l) => l.length === 2, { timeout: 10000 });
+      t.deepEqual(rowsOf("#wave-print"), ["4", "5"]);
+      t.ok(order.indexOf("inlinesource") !== -1 && order.indexOf("inlinesource") < order.indexOf("print"),
+        "the inlinesource (normal wave) finished before the print (low wave) rendered: " + order.join(","));
+      t.equal(order.filter((x) => x === "callback").length, 1, "the callback ran once, triggered by order.rows, not by a wave");
+      const list = $bc.global.GetCommandList();
+      const byCore = (core) => list.filter((c) => c.core === core).map((c) => c.priority);
+      t.deepEqual(byCore("inlinesource"), [1], "normal");
+      t.ok(byCore("print").every((p) => p === 2), "low");
+      t.ok(byCore("group").every((p) => p === 2), "low");
+      t.ok(byCore("callback").every((p) => p === 3), "none");
+    });
+
+    bcTest.test("ignoreNullSource=\"true\" (any attribute case) skips the start-up render until a source arrives", async (t) => {
+      await t.waitFor(() => rowsOf("#prc-true"), (l) => l.length === 1);
+      t.equal(rowsOf("#lazy").length, 0, "lazy.rows exists but the initial pass has no source argument");
+      $bc.setSource("lazy.rows", [{ id: 9 }]);
+      await t.waitFor(() => rowsOf("#lazy"), (l) => l.join() === "9");
+    });
+
+    bcTest.test("processRenderedContent: generated markup is scanned for bindings unless it is \"false\"", async (t) => {
+      await t.waitFor(() => rowsOf("#prc-true"), (l) => l.length === 1 && l[0] === "amir");
+      await t.waitFor(() => rowsOf("#prc-false"), (l) => l.length === 1);
+      t.equal(rowsOf("#prc-false")[0], "[##cms.userA.name##]");
+    });
+
+    bcTest.test("only <basis run=\"atclient\"> (any case) is a command; core and attribute names are case-insensitive", async (t) => {
+      await t.waitFor(() => rowsOf("#run-mixed"), (l) => l.length === 3);
+      t.ok(app.hooks.mixedCaseArgs.length >= 1, "ONRENDERED is the OnRendered hook");
+      t.ok(t.$("#no-run basis"), "without run the element stays in the page untouched");
+      t.ok(t.$("#run-server basis"), "run=\"server\" belongs to the server");
+      t.equal(t.text("#no-run"), "@id@", "its face markup is left in place, unrendered");
+      t.equal(t.text("#run-server"), "@id@");
+      t.equal(t.$("#run-mixed basis"), null, "the processed element is removed from the document");
+    });
+
+    bcTest.test("RangeObject: two empty text markers replace the element and only the content between them is re-rendered", async (t) => {
+      const range = t.$("#range");
+      const before = range.querySelector(".before");
+      const after = range.querySelector(".after");
+      t.equal(range.childNodes.length, 4, "<b>, marker, marker, <b>");
+      t.equal(range.childNodes[1].nodeType, Node.TEXT_NODE);
+      t.equal(range.childNodes[1].textContent, "");
+      t.equal(range.childNodes[2].textContent, "");
+      $bc.setSource("rng.rows", [{ id: 1 }, { id: 2 }]);
+      await t.waitFor(() => rowsOf("#range"), (l) => l.length === 2);
+      t.ok(range.querySelector(".before") === before && range.querySelector(".after") === after, "neighbours are untouched");
+      t.equal(range.childNodes[0], before);
+      t.equal(range.childNodes[range.childNodes.length - 1], after);
+      $bc.setSource("rng.rows", [{ id: 3 }]);
+      await t.waitFor(() => rowsOf("#range"), (l) => l.join() === "3");
+      t.equal(range.childNodes.length, 5, "<b>, marker, <span>, marker, <b>");
+    });
+
+    bcTest.test("busy guard: a burst of three publications renders a print once but reaches a callback three times", async (t) => {
+      $bc.setSource("burst.rows", { v: "a" });
+      $bc.setSource("burst.rows", { v: "b" });
+      $bc.setSource("burst.rows", { v: "c" });
+      await t.waitFor(() => rowsOf("#burst"), (l) => l.join() === "c");
+      await t.sleep(200);
+      t.equal(app.hooks.burstRenders, 1, "the second and third triggers arrived while the first render was in flight and were dropped");
+      t.equal(app.hooks.burstCallbacks.length, 3, "callback has allowMultiProcess, so every trigger reached the method");
+      t.deepEqual(app.hooks.burstCallbacks, ["c", "c", "c"],
+        "each call received the same stored source object, which already held the last rows when the method ran");
+      t.equal(t.rows("burst.rows")[0].v, "c");
+    });
+
+    bcTest.test("disposal: a rendering command disposes the collection of its previous output, whose commands stop listening", async (t) => {
+      $bc.setSource("outer.rows", [{ id: 1 }]);
+      await t.waitFor(() => rowsOf("#dispose"), (l) => l.join() === "1");
+      await t.waitForConsole(/^handler Added for inner\.ping\.\.\.$/);
+      $bc.setSource("inner.ping", "first");
+      await t.waitFor(() => app.hooks.innerPings, (l) => l.length === 1);
+      $bc.setSource("outer.rows", [{ id: 2 }]);
+      await t.waitFor(() => rowsOf("#dispose"), (l) => l.join() === "2");
+      await t.waitForConsole(/^handler removed for inner\.ping\.\.\.$/);
+      $bc.setSource("inner.ping", "second");
+      await t.waitFor(() => app.hooks.innerPings, (l) => l.length === 2);
+      await t.sleep(200);
+      t.deepEqual(app.hooks.innerPings, ["first", "second"], "the disposed callback did not run a second time");
+    });
+
+    bcTest.test("a syntax error in if is logged as `Error in parse 'if' attribute expression` and rethrown", async (t) => {
+      $bc.new().addFragment("#frag-if-syntax").run();
+      await t.waitForConsole(/^Error in parse 'if' attribute expression in command: '1 \+'$/);
+      await t.waitForError(/Unexpected token/);
+      t.equal(rowsOf("#frag-if-syntax").length, 0);
+    });
+
+    bcTest.test("a hook name that does not resolve to a function fails the render with a TypeError", async (t) => {
+      $bc.new().addFragment("#frag-bad-hook").run();
+      await t.waitForError(/app\.hooks\.nope is not a function/);
+    });
+
+    bcTest.test("an events selector containing a dot is split at the first dot and querySelectorAll(\"\") throws", async (t) => {
+      $bc.new().addFragment("#frag-bad-selector").run();
+      await t.waitForError(/provided selector is empty|not a valid selector/);
+    });
+
+    bcTest.test("an unknown core fails at resolution time with an error from the dependency container", async (t) => {
+      $bc.new().addFragment("#frag-unknown-core").run();
+      await t.waitForError(/unregistered dependency token.*nope/);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>connections - chunkbased</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    /*
+     * A streaming back end for the chunkbased provider. The provider calls fetch(new Request(url, init))
+     * and reads response.body as a stream, so this page replaces window.fetch for a few paths and
+     * answers each of them with a Response whose body is a ReadableStream. The tests write into the
+     * stream with push(path, text) and end it with end(path), exactly as the real server writes
+     * "[", then JSON.stringify(envelope) + ",", then "null]".
+     */
+    window.__chunk = { requests: [], controllers: {}, routes: {}, closes: [] };
+    const realFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      const request = input instanceof Request ? input : new Request(input, init);
+      const pathname = new URL(request.url, location.href).pathname;
+      const route = window.__chunk.routes[pathname];
+      return route ? route(request) : realFetch(input, init);
+    };
+    function streamRoute(pathname, options) {
+      options = options || {};
+      window.__chunk.routes[pathname] = async (request) => {
+        const body = await request.clone().text();
+        window.__chunk.requests.push({
+          pathname: pathname,
+          method: request.method,
+          contentType: request.headers.get("content-type"),
+          body: body
+        });
+        const stream = new ReadableStream({
+          start(controller) {
+            window.__chunk.controllers[pathname] = controller;
+          }
+        });
+        return new Response(stream, { status: options.status || 200, headers: { "Content-Type": "application/json" } });
+      };
+    }
+    const encoder = new TextEncoder();
+    function push(pathname, text) {
+      window.__chunk.controllers[pathname].enqueue(encoder.encode(text));
+    }
+    function end(pathname) {
+      window.__chunk.controllers[pathname].close();
+    }
+    function requestsFor(pathname) {
+      return window.__chunk.requests.filter((r) => r.pathname === pathname);
+    }
+    function envelope(tableName, rows, mergeType, setting) {
+      const env = { sources: [{ options: { tableName: tableName, mergeType: mergeType === undefined ? 1 : mergeType }, data: rows }] };
+      if (setting) env.setting = setting;
+      return JSON.stringify(env) + ",";
+    }
+
+    streamRoute("/chunk/chunk-stream-post");
+    streamRoute("/chunk/chunk-stream");
+    streamRoute("/chunk/static-body");
+    streamRoute("/chunk/params");
+    streamRoute("/chunk/bad-tail");
+    streamRoute("/chunk/not-found", { status: 404 });
+    streamRoute("/chunk/again");
+    window.__chunk.routes["/chunk/network-error"] = () => Promise.reject(new TypeError("Failed to fetch"));
+  </script>
+  <script>
+    function bodyMakerFunction(context, sourceId, params) {
+      return Object.assign(params, { id: 12, data3: sourceId });
+    }
+    function onCloseConnection(param) {
+      window.__chunk.closes.push({ connection: "simple", withError: param.withError, context: param.context });
+    }
+    function onCloseByName(param) {
+      window.__chunk.closes.push({ connection: "static", withError: param.withError, context: param.context });
+    }
+    function onCloseBadTail(param) {
+      window.__chunk.closes.push({ connection: "badtail", withError: param.withError, context: param.context });
+    }
+    function onCloseNetwork(param) {
+      window.__chunk.closes.push({ connection: "broken", withError: param.withError, context: param.context });
+    }
+    var host = {
+      settings: {
+        "connection.chunkBased.simple": {
+          Connection: "/chunk/chunk-stream-post",
+          method: "POST",
+          bodyFactory: "bodyMakerFunction",
+          onClose: onCloseConnection
+        },
+        "connection.chunkbased.plain": "/chunk/chunk-stream",
+        "connection.chunkbased.static": { Connection: "/chunk/static-body", method: "POST", body: { fixed: true }, onClose: "onCloseByName" },
+        "connection.chunkbased.params": { Connection: "/chunk/params", method: "PUT" },
+        "connection.chunkbased.badtail": { Connection: "/chunk/bad-tail", onClose: onCloseBadTail },
+        "connection.chunkbased.notfound": "/chunk/not-found",
+        "connection.chunkbased.again": "/chunk/again",
+        "connection.chunkbased.broken": { Connection: "/chunk/network-error", onClose: onCloseNetwork },
+        "default.dmnid": 2668
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/connections.md">
+  <main>
+    <h1>connections - chunkbased</h1>
+    <p class="intro">
+      Checks the <code>chunkbased</code> provider of <code>docs/connections.md</code>: the request built
+      from the setting (<code>GET</code> without body, <code>POST</code> with <code>bodyFactory</code>,
+      <code>body</code> or the parameters), envelopes extracted from the stream as they arrive,
+      <code>keepalive</code>, the <code>onClose</code> callback, the <code>Invalid remain part of json</code>
+      error, the unchecked HTTP status and the known re-trigger defect.
+    </p>
+
+    <section class="case" id="case-post">
+      <h2>POST with a body factory and a close callback</h2>
+      <basis core="dbsource" source="simple" name="user" run="atclient">
+        <member name="list"></member>
+      </basis>
+      <div id="users">
+        <Basis core="print" datamembername="user.list" run="atclient">
+          <layout>
+            <script type="text/template"><table><tbody>@child</tbody></table></script>
+          </layout>
+          <face>
+            <script type="text/template"><tr><td>@id@</td><td>@name@</td><td>@age@</td></tr></script>
+          </face>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-get">
+      <h2>String form: GET, no body, stopped by <code>keepalive: false</code></h2>
+      <basis core="dbsource" source="plain" name="feed" run="atclient">
+        <member name="list"></member>
+      </basis>
+      <p id="feed">rows: [##feed.list.id|(none)##]</p>
+    </section>
+
+    <section class="case" id="case-bodies">
+      <h2>Static <code>body</code> and the default parameters body</h2>
+      <basis core="dbsource" source="static" name="fixed" run="atclient">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="params" name="prm" run="atclient" filter="x">
+        <member name="rows"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-errors">
+      <h2>A bad tail, a 404 status and a transport error</h2>
+      <basis core="dbsource" source="badtail" name="tail" run="atclient">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="notfound" name="missing" run="atclient">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="broken" name="broken" run="atclient">
+        <member name="rows"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-again">
+      <h2>Re-triggering an open chunk stream</h2>
+      <basis core="dbsource" source="again" name="again" run="atclient" triggers="chunk.again">
+        <member name="rows"></member>
+      </basis>
+    </section>
+  </main>
+
+  <script>
+    function dbsourceCommand(name) {
+      return $bc.global.basiscore.GetCommandListByCore("dbsource").find((x) => x.id === name);
+    }
+    function connection(name) {
+      return $bc.global.basiscore.context.connections.getConnection(name);
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/send is not a function/);
+    bcTest.allowError(/Failed to fetch/);
+
+    bcTest.test("POST with bodyFactory: Content-Type application/json and a JSON body built from the parameters", async (t) => {
+      const requests = await t.waitFor(() => requestsFor("/chunk/chunk-stream-post"));
+      t.equal(requests.length, 1);
+      t.equal(requests[0].method, "POST");
+      t.equal(requests[0].contentType, "application/json");
+      const body = JSON.parse(requests[0].body);
+      t.match(body.command, /^<basis core="dbsource" source="simple" name="user" run="atclient">/);
+      t.equal(body.dmnid, 2668);
+      t.equal(body.id, 12, "added by bodyMakerFunction");
+      t.equal(body.data3, "user", "the factory receives the source id (the dbsource name)");
+      await t.waitForConsole(/\/chunk\/chunk-stream-post Connected/);
+      const command = dbsourceCommand("user");
+      t.equal(command.connection.connectionName, "simple");
+      t.equal(command.connection.isOpen, true, "the stream reader is registered under the source id");
+      t.ok(connection("simple").activeFetch.get("user") != null);
+    });
+
+    bcTest.test("every complete envelope in the stream is published as soon as it can be parsed; a split envelope waits for its end", async (t) => {
+      const path = "/chunk/chunk-stream-post";
+      push(path, "[");
+      push(path, envelope("user.list", [{ id: 1, name: "ali", age: 30 }]));
+      let rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 1);
+      t.deepEqual(t.$$("td", rows[0]).map((td) => t.text(td)), ["1", "ali", "30"]);
+      t.equal(t.source("user.list").mergeType, 1);
+
+      push(path, envelope("user.list", [{ id: 2, name: "sara", age: 25 }]));
+      rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 2);
+
+      const third = envelope("user.list", [{ id: 3, name: "reza", age: 41 }]);
+      push(path, third.slice(0, 30));
+      await t.sleep(150);
+      t.equal(t.rows("user.list").length, 2, "an incomplete envelope is kept in the buffer");
+      push(path, third.slice(30));
+      rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 3);
+      t.deepEqual(t.rows("user.list").map((r) => r.id), [1, 2, 3]);
+
+      // two envelopes in one chunk are both extracted
+      push(path, envelope("user.list", [{ id: 4, name: "a", age: 1 }]) + envelope("user.list", [{ id: 5, name: "b", age: 2 }]));
+      await t.waitFor(() => t.rows("user.list"), (r) => r.length === 5);
+    });
+
+    bcTest.test("a frame with the wrong source count is written with console.error and the stream goes on", async (t) => {
+      const path = "/chunk/chunk-stream-post";
+      push(path, JSON.stringify({ sources: [{ options: { tableName: "a" }, data: [] }, { options: { tableName: "b" }, data: [] }] }) + ",");
+      await t.waitForConsole(/Command 'user' has 1 member\(s\) but 2 result\(s\) returned from source!/);
+      push(path, envelope("user.list", [{ id: 6, name: "c", age: 3 }]));
+      await t.waitFor(() => t.rows("user.list"), (r) => r.length === 6);
+      t.equal(dbsourceCommand("user").connection.isOpen, true);
+    });
+
+    bcTest.test("the stream ends with null]: End of chunked data, <url> Disconnected, onClose({ withError: false, context }) and the promise resolves", async (t) => {
+      const path = "/chunk/chunk-stream-post";
+      push(path, "null]");
+      end(path);
+      await t.waitForConsole(/End of chunked data\.\.\./);
+      await t.waitForConsole(/\/chunk\/chunk-stream-post Disconnected/);
+      const close = await t.waitFor(() => window.__chunk.closes.find((c) => c.connection === "simple"));
+      t.equal(close.withError, false);
+      t.ok(close.context === $bc.global.basiscore.context, "onClose receives the context");
+      t.equal(dbsourceCommand("user").connection.isOpen, false);
+      t.equal(connection("simple").activeFetch.has("user"), false);
+      t.equal(t.rows("user.list").length, 6, "the rows stay published");
+    });
+
+    bcTest.test("string form: GET with no body and no Content-Type; command and dmnid are not sent at all", async (t) => {
+      const requests = await t.waitFor(() => requestsFor("/chunk/chunk-stream"));
+      t.equal(requests[0].method, "GET");
+      t.equal(requests[0].body, "");
+      t.equal(requests[0].contentType, null);
+      t.equal(connection("plain").method, "GET");
+      t.equal(connection("plain").url, "/chunk/chunk-stream");
+    });
+
+    bcTest.test("setting.keepalive false: the sources of that envelope are applied, 'Disconnect ... by server request' is logged and reading stops", async (t) => {
+      const path = "/chunk/chunk-stream";
+      push(path, "[" + envelope("feed.list", [{ id: 1 }], 0));
+      await t.waitForText("#feed", "rows: 1");
+      push(path, envelope("feed.list", [{ id: 2 }], 0, { keepalive: false }));
+      await t.waitForText("#feed", "rows: 2");
+      await t.waitForConsole(/Disconnect from %s by server request.*\/chunk\/chunk-stream/);
+      await t.waitForConsole(/\/chunk\/chunk-stream Disconnected/);
+      t.equal(dbsourceCommand("feed").connection.isOpen, false);
+      // the separator after the last envelope is still in the buffer when the loop ends, so the
+      // client reports it: a keepalive:false envelope written as "{...}," always ends with this error
+      t.equal(t.consoleMessages(/Invalid remain part of json/).pop(), "Invalid remain part of json ,");
+      // the server is still writing, but the client no longer reads
+      push(path, envelope("feed.list", [{ id: 3 }], 0));
+      await t.sleep(150);
+      t.equal(t.text("#feed"), "rows: 2");
+      end(path);
+    });
+
+    bcTest.test("a static body is sent as JSON; without body and bodyFactory the parameters themselves are the body; onClose may be a function name", async (t) => {
+      const fixed = (await t.waitFor(() => requestsFor("/chunk/static-body")))[0];
+      t.equal(fixed.method, "POST");
+      t.deepEqual(JSON.parse(fixed.body), { fixed: true });
+
+      const prm = (await t.waitFor(() => requestsFor("/chunk/params")))[0];
+      t.equal(prm.method, "PUT");
+      t.equal(prm.contentType, "application/json");
+      const body = JSON.parse(prm.body);
+      t.deepEqual(Object.keys(body).sort(), ["command", "dmnid"]);
+      t.includes(body.command, 'filter="x"', "extra attributes travel inside command");
+      t.equal(body.dmnid, 2668);
+
+      push("/chunk/static-body", "[" + envelope("fixed.rows", [{ id: 1 }], 0) + "null]");
+      end("/chunk/static-body");
+      const close = await t.waitFor(() => window.__chunk.closes.find((c) => c.connection === "static"));
+      t.equal(close.withError, false, "the onClose string was evaluated to the global function");
+      t.deepEqual(t.rows("fixed.rows").map((r) => r.id), [1]);
+
+      push("/chunk/params", "[" + envelope("prm.rows", [{ id: 2 }], 0) + "null]");
+      end("/chunk/params");
+      await t.waitForSource("prm.rows");
+    });
+
+    bcTest.test("a stream that does not end with null] logs 'Invalid remain part of json' and onClose gets withError: true", async (t) => {
+      const path = "/chunk/bad-tail";
+      await t.waitFor(() => requestsFor(path));
+      push(path, "[" + envelope("tail.rows", [{ id: 1 }], 0));
+      await t.waitForSource("tail.rows");
+      push(path, "garbage");
+      end(path);
+      const errors = await t.waitForConsole(/Invalid remain part of json ,garbage/);
+      t.equal(errors[0].text, "Invalid remain part of json ,garbage", "the separator and the unparsed tail are reported");
+      const close = await t.waitFor(() => window.__chunk.closes.find((c) => c.connection === "badtail"));
+      t.equal(close.withError, true);
+      t.equal(t.consoleMessages(/\/chunk\/bad-tail Disconnected/).length, 1);
+    });
+
+    bcTest.test("the HTTP status is not checked: a 404 body is read as a stream like any other", async (t) => {
+      const path = "/chunk/not-found";
+      await t.waitFor(() => requestsFor(path));
+      await t.waitForConsole(/\/chunk\/not-found Connected/);
+      push(path, "[" + envelope("missing.rows", [{ id: 404 }], 0) + "null]");
+      end(path);
+      await t.waitForSource("missing.rows");
+      t.deepEqual(t.rows("missing.rows").map((r) => r.id), [404]);
+    });
+
+    bcTest.test("an error thrown by fetch itself is not caught: the stream promise stays pending and onClose is never called", async (t) => {
+      const errors = await t.waitForError(/Failed to fetch/);
+      t.equal(errors[0].message, "Failed to fetch");
+      await t.sleep(100);
+      t.equal(window.__chunk.closes.filter((c) => c.connection === "broken").length, 0, "onClose not called");
+      t.equal(dbsourceCommand("broken").connection.isOpen, false);
+      t.equal(t.consoleMessages(/network-error Disconnected/).length, 0);
+    });
+
+    bcTest.defect("known defect: re-triggering a dbsource while its chunk stream is open throws a TypeError (send is called on the stream reader)", async (t) => {
+      const path = "/chunk/again";
+      await t.waitFor(() => requestsFor(path));
+      await t.waitForConsole(/\/chunk\/again Connected/);
+      t.equal(dbsourceCommand("again").connection.isOpen, true);
+      $bc.setSource("chunk.again", 1);
+      await t.waitForError(/send is not a function/);
+      t.equal(requestsFor(path).length, 1, "no second request was made");
+    });
+
+    bcTest.test("re-triggering after the stream ended starts a new request", async (t) => {
+      const path = "/chunk/again";
+      push(path, "[" + envelope("again.rows", [{ id: 1 }], 0) + "null]");
+      end(path);
+      await t.waitForConsole(/\/chunk\/again Disconnected/);
+      t.equal(dbsourceCommand("again").connection.isOpen, false);
+      $bc.setSource("chunk.again", 2);
+      await t.waitFor(() => requestsFor(path), (l) => l.length === 2);
+      push(path, "[" + envelope("again.rows", [{ id: 2 }], 0) + "null]");
+      end(path);
+      await t.waitForSource("again.rows", (src) => src.rows[0].id === 2);
+      t.deepEqual(t.rows("again.rows").map((r) => r.id), [2]);
+    });
+
+    bcTest.test("TestConnectionAsync resolves true, loadPageAsync throws, maxRetry is declared but there is no reconnect", async (t) => {
+      const context = $bc.global.basiscore.context;
+      const simple = connection("simple");
+      t.equal(await simple.TestConnectionAsync(context), true);
+      t.throws(() => simple.loadPageAsync(context, "x.html", {}), /^WebSocket call not implemented\.$/);
+      t.equal(simple.maxRetry, 5);
+      t.equal(t.consoleMessages(/Reconnected|Try reconnect/).length, 0, "no reconnect attempt was ever made on this page");
+    });
+  </script>
+</body>
+</html>

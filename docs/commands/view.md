@@ -16,7 +16,7 @@ In this version a `view` renders the level 1 face of every group with an empty `
     </ul>
   </face>
   <face level="2">
-    <li>@answer</li>
+    <li>@answer@</li>
   </face>
 </basis>
 ```
@@ -175,13 +175,13 @@ Click some "change color" buttons, then "Edit row 5": the intended result is tha
 ```html
 <basis core="view" datamembername="product.info" groupcol="prpid" run="atclient">
   <face level="1" filter="prpid = '2'">
-    <div class="highlight"><span>@question:</span> @child</div>
+    <div class="highlight"><span>@question@:</span> @child</div>
   </face>
   <face level="1">
-    <div><span>@question:</span> @child</div>
+    <div><span>@question@:</span> @child</div>
   </face>
   <face level="2">
-    <span>@answer, </span>
+    <span>@answer@, </span>
   </face>
   <else-layout>
     <p>nothing to show</p>
@@ -189,7 +189,7 @@ Click some "change color" buttons, then "Edit row 5": the intended result is tha
 </basis>
 ```
 
-Faces are tried in document order, so the filtered level 1 face must come before the general one. The filter is SQL and needs the client-side SQL library (`host.dbLibPath`).
+Faces are tried in document order, so the filtered level 1 face must come before the general one. The filter is SQL and needs the client-side SQL library (`host.dbLibPath`). The column is written `@question@` because the open form `@question` would run on to the next whitespace and take `:</span>` as part of the expression.
 
 ## Pitfalls
 

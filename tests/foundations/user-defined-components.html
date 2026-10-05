@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>user-defined components</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- the date picker example fetches its month data -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    const calendarRequests = [];
+    BasisCoreMock.route({
+      url: "/calendar.json",
+      method: "GET",
+      response: (ctx) => {
+        calendarRequests.push(ctx.query);
+        return [
+          { id: "2024-07-05", label: "5", today: false },
+          { id: "2024-07-06", label: "6", today: true },
+          { id: "2024-07-07", label: "7", today: false },
+        ];
+      },
+    });
+  </script>
+  <script>
+    const host = {
+      settings: {
+        "Widget.Title": "Mixed case key",
+        "datepicker.url": "/calendar.json",
+      },
+      repositories: {
+        "bc": "/tests/fixtures/user-defined-components/bc.components.js",
+      },
+      sources: {
+        "probe.label": [{ value: "bound label" }],
+        "probe.obj": { data: [{ value: { nested: true, n: 1 } }] },
+      },
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/user-defined-components.md">
+  <main>
+    <h1>user-defined components</h1>
+    <p class="intro">
+      Checks the authoring contract of <code>docs/user-defined-components.md</code>: constructor
+      injection of the owner, the <code>initializeAsync</code> / <code>runAsync</code> /
+      <code>disposeAsync</code> sequence, every member of the owner API
+      (<code>IUserDefineComponent</code>), rendering patterns with nested commands, reacting to
+      sources, loading classes from a repository prefix, the IoC container tokens and the worked
+      date picker example.
+    </p>
+
+    <section class="case" id="case-clock">
+      <h2>Class contract and lifecycle order</h2>
+      <div id="clock-output">
+        <Basis core="component.local.Clock" run="atclient" triggers="clock.tick"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-probe">
+      <h2>The owner API (<code>IUserDefineComponent</code>)</h2>
+      <div id="probe-output">
+        <Basis core="component.local.Probe" run="atclient" triggers="probe.a probe.b"
+               label="[##probe.label.value##]" obj="[##probe.obj.value##]" flag="TRUE"
+               fallback="[##never.published.value|(dflt)##]" plain="just text">
+          <template><i>inner template</i></template>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-nested">
+      <h2>Rendering markup that contains tokens and commands (<code>processNodesAsync</code>)</h2>
+      <div id="nested-output">
+        <Basis core="component.local.NestedRenderer" run="atclient"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-badge">
+      <h2>Reacting to sources (Badge example)</h2>
+      <div id="badge-output">
+        <Basis core="component.local.Badge" run="atclient" triggers="cart.items"></Basis>
+      </div>
+      <p id="badge-count">count: [##cart.count.value|(none)##]</p>
+    </section>
+
+    <section class="case" id="case-repo">
+      <h2>Loading from a repository prefix (<code>bc</code> serves <code>bc.badge</code> and <code>bc.stamp</code>)</h2>
+      <div id="repo-output">
+        <Basis core="component.bc.badge" run="atclient" triggers="repo.items"></Basis>
+        <Basis core="component.bc.stamp" run="atclient"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-ioc">
+      <h2>The IoC container: <code>owner.dc</code>, <code>parent.dc</code>, <code>root.context</code></h2>
+      <div id="ioc-output">
+        <Basis core="component.local.Registrar" run="atclient"></Basis>
+        <Basis core="component.local.Consumer" run="atclient"></Basis>
+      </div>
+    </section>
+
+    <!-- bc-ignore: this fragment is run in its own runtime by the test, because a blocked
+         initializeAsync keeps every other command of the same runtime from starting -->
+    <section class="case" id="case-blocked" bc-ignore>
+      <h2>Pitfall: an attribute bound to a source that is never set blocks <code>initializeAsync</code></h2>
+      <div id="isolated-blocked">
+        <Basis core="component.local.Blocked" run="atclient" title="[##late.title.value##]"></Basis>
+        <div id="blocked-sibling">
+          <basis core="print" datamembername="late.rows" run="atclient"><face><span class="late-row">@n@</span></face></basis>
+        </div>
+      </div>
+    </section>
+
+    <section class="case" id="case-instances">
+      <h2>Several instances of one class get their own owner</h2>
+      <div id="instances-output">
+        <Basis core="component.local.Counter" run="atclient"></Basis>
+        <Basis core="component.local.Counter" run="atclient"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-datepicker">
+      <h2>Worked example: a date picker component</h2>
+      <Basis core="component.local.DatePicker" run="atclient" result="form.date" culture="fa"></Basis>
+      <p id="selected">Selected: [##form.date.value|(nothing yet)##]</p>
+    </section>
+  </main>
+
+  <script>
+    // ---- Class contract ----
+    const clockLog = [];
+    class Clock {
+      constructor(owner) {
+        clockLog.push("constructor");
+        this.owner = owner;
+        window.clockInstance = this;
+      }
+      async initializeAsync() {
+        clockLog.push("initializeAsync");
+        this.owner.onInitialized.then(() => clockLog.push("onInitialized"));
+      }
+      async runAsync(source) {
+        clockLog.push("runAsync:" + (source ? source.id : "undefined"));
+        this.owner.setContent(this.owner.toNode(`<time class="clock">${clockLog.length}</time>`));
+      }
+      async disposeAsync() {
+        clockLog.push("disposeAsync");
+      }
+    }
+
+    // ---- Owner API probe ----
+    class Probe {
+      constructor(owner) {
+        this.owner = owner;
+        this.runs = [];
+        window.probe = this;
+      }
+      async runAsync(source) {
+        this.runs.push(source ? source.id : undefined);
+        this.owner.setContent(this.owner.toNode(`<span class="probe">probe ${this.runs.length}</span>`));
+      }
+    }
+
+    // ---- Rendering pattern with nested commands ----
+    class NestedRenderer {
+      constructor(owner) {
+        this.owner = owner;
+        window.nestedOwner = owner;
+      }
+      async runAsync() {
+        const fragment = this.owner.toNode(`
+          <h3 class="nested-time">[##cms.cms.time##]</h3>
+          <ul class="nested-list">
+            <basis core="print" datamembername="app.rows" run="atclient">
+              <face><li>@name@</li></face>
+            </basis>
+          </ul>`);
+        const nodes = [...fragment.childNodes];
+        this.owner.setContent(fragment);
+        this.collection = await this.owner.processNodesAsync(nodes);
+      }
+    }
+
+    // ---- Badge example (documentation) ----
+    class Badge {
+      constructor(owner) { this.owner = owner; }
+      async runAsync(source) {
+        source = source ?? this.owner.tryToGetSource("cart.items");
+        const count = source?.rows.length ?? 0;
+        this.owner.setContent(this.owner.toNode(`<span class="badge">${count}</span>`));
+        this.owner.setSource("cart.count", count);   // publishes { value: count }
+      }
+    }
+
+    // ---- IoC ----
+    let registrarDone;
+    const registrarReady = new Promise((resolve) => (registrarDone = resolve));
+    class Registrar {
+      constructor(owner) {
+        this.owner = owner;
+        window.registrarOwner = owner;
+      }
+      async initializeAsync() {
+        this.owner.dc.register("own.service", { useValue: "only for my children" });
+        this.owner.dc.resolve("parent.dc").register("shared.service", { useValue: "for siblings too" });
+        registrarDone();
+      }
+      async runAsync() {
+        const fragment = this.owner.toNode(`<basis core="component.local.Child" run="atclient"></basis>`);
+        const nodes = [...fragment.childNodes];
+        this.owner.setContent(fragment);
+        await this.owner.processNodesAsync(nodes);
+      }
+    }
+    class Child {
+      constructor(owner) {
+        this.owner = owner;
+        window.childOwner = owner;
+      }
+    }
+    class Consumer {
+      constructor(owner) {
+        this.owner = owner;
+        window.consumerOwner = owner;
+      }
+      async initializeAsync() {
+        await registrarReady;
+      }
+    }
+
+    // ---- Blocked by a bound attribute ----
+    const blockedLog = [];
+    class Blocked {
+      constructor(owner) {
+        this.owner = owner;
+        window.blockedOwner = owner;
+      }
+      async initializeAsync() {
+        blockedLog.push("initialize:start");
+        this.title = await this.owner.getAttributeValueAsync("title");
+        blockedLog.push("initialize:end");
+      }
+      async runAsync() {
+        blockedLog.push("run");
+        this.owner.setContent(this.owner.toNode(`<span class="blocked">${this.title}</span>`));
+      }
+    }
+
+    // ---- Several instances ----
+    const counters = [];
+    class Counter {
+      constructor(owner) {
+        this.owner = owner;
+        this.count = counters.push(this);
+      }
+      async runAsync() {
+        this.owner.setContent(this.owner.toNode(`<span class="counter">${this.count}</span>`));
+      }
+    }
+
+    // ---- Worked example: date picker (documentation) ----
+    class DatePicker {
+      static get style() {
+        return `<style data-datepicker-style>
+          .dp-box { border: 1px solid #ccc; width: 280px; position: absolute; background: #fff; }
+          .dp-body { display: grid; grid-template-columns: repeat(7, 1fr); }
+          .dp-day { padding: 6px; text-align: center; cursor: pointer; }
+          .dp-day:hover, .dp-today { background: #f2fbfd; }
+        </style>`;
+      }
+
+      constructor(owner) {
+        this.owner = owner;
+        window.datePicker = this;
+        this.onDocumentClick = (e) => {
+          if (!e.target.closest(".dp-box") && e.target !== this.input) this.box.style.display = "none";
+        };
+      }
+
+      async initializeAsync() {
+        if (!document.querySelector("[data-datepicker-style]")) {
+          document.head.append(this.owner.toNode(DatePicker.style));
+        }
+        this.resultId = await this.owner.getAttributeValueAsync("result", "datepicker.value");
+        this.culture = await this.owner.getAttributeValueAsync("culture", "en");
+        this.url = this.owner.getSetting("datepicker.url", "/calendar.json");
+
+        const fragment = this.owner.toNode(`
+          <div class="dp-wrapper">
+            <input type="text" class="dp-input" readonly />
+            <div class="dp-box" style="display:none"></div>
+          </div>`);
+        this.input = fragment.querySelector(".dp-input");
+        this.box = fragment.querySelector(".dp-box");
+        this.input.addEventListener("click", () => this.openAsync());
+        document.body.addEventListener("click", this.onDocumentClick, true);
+        this.owner.setContent(fragment);
+      }
+
+      async runAsync(source) {
+        // Re-runs come from `triggers`; nothing to redraw unless a source asks for it.
+        if (source) this.input.value = source.rows[0]?.value ?? "";
+      }
+
+      async openAsync() {
+        const response = await fetch(`${this.url}?culture=${this.culture}`);
+        const days = await response.json();   // [{ id, label, today }, ...]
+        this.box.innerHTML = `<div class="dp-body">${days
+          .map((d) => `<div class="dp-day${d.today ? " dp-today" : ""}" data-id="${d.id}">${d.label}</div>`)
+          .join("")}</div>`;
+        this.box.querySelectorAll(".dp-day").forEach((el) =>
+          el.addEventListener("click", (e) => this.select(e.currentTarget)));
+        this.box.style.display = "block";
+      }
+
+      select(dayElement) {
+        const value = dayElement.getAttribute("data-id");
+        this.input.value = dayElement.textContent;
+        this.box.style.display = "none";
+        this.owner.setSource(this.resultId, value);   // published as { value }
+      }
+
+      async disposeAsync() {
+        document.body.removeEventListener("click", this.onDocumentClick, true);
+      }
+    }
+  </script>
+
+  <script>
+    bcTest.test("lifecycle: constructor(owner), initializeAsync, onInitialized, runAsync(undefined), then runAsync(source) per trigger and disposeAsync on disposal", async (t) => {
+      await t.waitFor(() => t.$("#clock-output .clock"));
+      t.deepEqual(clockLog, ["constructor", "initializeAsync", "onInitialized", "runAsync:undefined"]);
+      const command = $bc.global.GetCommandListByCore("component.local.Clock")[0];
+      t.ok(command.manager === window.clockInstance, "owner.manager is the instance built with Reflect.construct");
+      t.ok(window.clockInstance.owner === command, "the constructor receives the UserDefineComponent as owner");
+      $bc.setSource("clock.tick", 1);
+      await t.waitFor(() => clockLog, (l) => l.length === 5);
+      t.equal(clockLog[4], "runAsync:clock.tick");
+      await command.disposeAsync();
+      t.equal(clockLog[5], "disposeAsync");
+      t.equal(command.disposed, true);
+    });
+
+    bcTest.test("owner: content, range, triggers, priority, node, manager, onInitialized", async (t) => {
+      await t.waitFor(() => window.probe && t.$("#probe-output .probe"));
+      const owner = probe.owner;
+      t.ok(owner.content instanceof DocumentFragment);
+      t.equal(owner.content.firstChild.nodeName, "BASIS", "content.firstChild is the original element");
+      t.equal(owner.content.firstChild.querySelector("template").innerHTML, "<i>inner template</i>", "its children are the inner markup");
+      t.ok(owner.node === owner.content.firstChild, "node is that element");
+      t.equal(owner.node.isConnected, false, "detached from the document");
+      t.equal(owner.node.innerHTML.trim(), "<template><i>inner template</i></template>");
+      t.deepEqual(owner.triggers, ["probe.a", "probe.b"]);
+      t.equal(owner.priority, 2, "Priority.low");
+      t.ok(owner.manager === probe);
+      t.equal(await owner.onInitialized, owner);
+      t.equal(typeof owner.range.setContent, "function");
+      t.equal(typeof owner.range.deleteContents, "function");
+      owner.range.setContent(owner.toNode('<em class="appended">more</em>'), true);
+      t.equal(t.$$("#probe-output .probe").length, 1, "append = true keeps the existing output");
+      t.equal(t.$$("#probe-output .appended").length, 1);
+      owner.range.deleteContents();
+      t.equal(t.$("#probe-output").children.length, 0, "deleteContents clears the range");
+    });
+
+    bcTest.test("owner: toNode, toHTMLElement, toElement", async (t) => {
+      await t.waitFor(() => window.probe);
+      const owner = probe.owner;
+      const fragment = owner.toNode("<p>a</p><p>b</p>");
+      t.ok(fragment instanceof DocumentFragment);
+      t.equal(fragment.childNodes.length, 2);
+      const el = owner.toHTMLElement("<div> <span>x</span> </div>");
+      t.ok(el instanceof HTMLDivElement);
+      t.equal(el.childNodes.length, 1, "whitespace-only text is dropped");
+      t.equal(el.namespaceURI, "http://www.w3.org/1999/xhtml");
+      const broken = owner.toHTMLElement("<p>unclosed<br></p>");
+      t.ok(broken.nodeName === "parsererror" || broken.querySelector("parsererror"), "XML parsing: an unclosed <br> yields the browser's parsererror element (root or inside the partial result)");
+      t.ok(owner.toHTMLElement("<p>a & b</p>").querySelector("parsererror") || owner.toHTMLElement("<p>a & b</p>").nodeName === "parsererror", "a raw & is a parse error too");
+      const svg = owner.toElement('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>');
+      t.equal(svg.namespaceURI, "http://www.w3.org/2000/svg", "toElement keeps the SVG namespace");
+      t.equal(svg.firstChild.namespaceURI, "http://www.w3.org/2000/svg");
+      t.equal(owner.toElement("<div><b>x</b></div>").namespaceURI, "http://www.w3.org/1999/xhtml");
+    });
+
+    bcTest.test("owner: getAttributeValueAsync (defaults, bound tokens, objects stay objects), getAttributeBooleanValueAsync, getAttributeToken", async (t) => {
+      await t.waitFor(() => window.probe);
+      const owner = probe.owner;
+      t.equal(await owner.getAttributeValueAsync("plain"), "just text");
+      t.equal(await owner.getAttributeValueAsync("missing"), null, "default null");
+      t.equal(await owner.getAttributeValueAsync("missing", "d"), "d");
+      t.equal(await owner.getAttributeValueAsync("label"), "bound label", "a token is resolved against the sources");
+      t.equal(await owner.getAttributeValueAsync("LABEL"), "bound label", "attribute names are case-insensitive");
+      const obj = await owner.getAttributeValueAsync("obj");
+      t.deepEqual(obj, { nested: true, n: 1 }, "a single-token attribute returns the bound value as-is");
+      t.equal(await owner.getAttributeValueAsync("fallback"), "dflt", "the token default is used when the source is missing");
+      t.equal(await owner.getAttributeBooleanValueAsync("flag"), true, "\"TRUE\" is true (case-insensitive)");
+      t.equal(await owner.getAttributeBooleanValueAsync("plain"), false);
+      t.equal(await owner.getAttributeBooleanValueAsync("missing"), false, "default false");
+      t.equal(await owner.getAttributeBooleanValueAsync("missing", true), true);
+      t.equal(owner.getAttributeToken("missing"), undefined);
+      const token = owner.getAttributeToken("fallback");
+      t.deepEqual(token.getSourceNames(), ["never.published"]);
+      t.equal(token.getDefault(), "dflt");
+      t.equal(await owner.getAttributeToken("label").getValueAsync(), "bound label");
+    });
+
+    bcTest.test("owner: addTrigger, setSource (primitive becomes { value }), tryToGetSource, waitToGetSourceAsync", async (t) => {
+      await t.waitFor(() => window.probe && probe.runs.length === 1);
+      const owner = probe.owner;
+      $bc.setSource("probe.a", 1);
+      await t.waitFor(() => probe.runs, (r) => r.length === 2);
+      t.equal(probe.runs[1], "probe.a", "a triggers source re-runs the component with that source");
+      owner.addTrigger(["probe.extra"]);
+      $bc.setSource("probe.extra", 2);
+      await t.waitFor(() => probe.runs, (r) => r.length === 3);
+      t.equal(probe.runs[2], "probe.extra", "addTrigger registers additional sources");
+
+      t.equal(owner.tryToGetSource("probe.published"), undefined);
+      const waiting = owner.waitToGetSourceAsync("probe.published");
+      owner.setSource("probe.published", "hello");
+      const src = await waiting;
+      t.equal(src.id, "probe.published");
+      t.deepEqual(src.rows, [{ value: "hello" }], "a primitive is published as one row { value }");
+      t.ok(owner.tryToGetSource("probe.published") === src);
+      t.deepEqual(t.rows("probe.published"), [{ value: "hello" }], "published into the page context");
+      owner.setSource("probe.list", [{ a: 1 }, { a: 2 }], { keyFieldName: "a" });
+      t.equal(t.source("probe.list").keyFieldName, "a", "options are honoured");
+      t.equal(t.rows("probe.list").length, 2, "an array is the rows");
+      owner.setSource("probe.one", { b: 2 });
+      t.deepEqual(t.rows("probe.one"), [{ b: 2 }], "an object is one row");
+    });
+
+    bcTest.test("owner: getDefault returns null for a missing key, getSetting throws without a default and matches keys case-insensitively", async (t) => {
+      await t.waitFor(() => window.probe);
+      const owner = probe.owner;
+      t.equal(owner.getDefault("does-not-exist"), null, "default.<key> missing never throws");
+      t.equal(owner.getDefault("does-not-exist", "x"), "x");
+      t.equal(owner.getDefault("source.verb"), "POST", "built-in default.source.verb");
+      t.equal(owner.getDefault("call.verb"), "POST");
+      t.throws(() => owner.getSetting("missing.key"), /^In 'host\.settings' object, property 'missing\.key' not configured!$/);
+      t.equal(owner.getSetting("missing.key", null), null, "pass null to make it optional");
+      t.equal(owner.getSetting("missing.key", "fb"), "fb");
+      t.equal(owner.getSetting("widget.title", null), "Mixed case key", "settings keys match case-insensitively");
+      t.equal(owner.getSetting("datepicker.url", null), "/calendar.json");
+    });
+
+    bcTest.test("owner: storeAsGlobal, getRandomName, format (defect), getLibAsync, disposed", async (t) => {
+      await t.waitFor(() => window.probe);
+      const owner = probe.owner;
+      const name = owner.storeAsGlobal({ k: 1 }, "probeStoredValue");
+      t.equal(name, "probeStoredValue");
+      t.deepEqual(window.probeStoredValue, { k: 1 });
+      const random = owner.storeAsGlobal(42, undefined, "pre", "post");
+      t.match(random, /^pre_\d+_[a-z0-9]+_post$/, "<prefix>_<timestamp>_<random>_<postfix>");
+      t.equal(window[random], 42);
+      t.match(owner.getRandomName(), /^_\d+_[a-z0-9]+_$/);
+      t.equal($bc.util.format("{0}-{1}", "a", "b"), "a-b", "$bc.util.format works");
+      const greeter = await owner.getLibAsync("greeter", "/tests/fixtures/user-defined-components/greeter.js");
+      t.equal(greeter.greet("Ann"), "Hello, Ann!", "resolves eval(objectName) once the script loaded");
+      t.equal(t.$$("head script[src='/tests/fixtures/user-defined-components/greeter.js']").length, 1);
+      t.ok(t.consoleMessages(/loaded from.*greeter.*greeter\.js/).length === 1);
+      t.ok((await owner.getLibAsync("greeter", "/tests/fixtures/user-defined-components/greeter.js")) === greeter, "a second call resolves at once without downloading again");
+      t.equal(owner.disposed, false);
+    });
+
+    bcTest.defect("known defect: owner.format forwards its parameters as one array, so {0} becomes all parameters joined with commas", async (t) => {
+      await t.waitFor(() => window.probe);
+      t.equal(probe.owner.format("{0}-{1}", "a", "b"), "a,b-{1}");
+    });
+
+    bcTest.test("processNodesAsync renders tokens and nested commands in the component's context; the collection is returned and disposed with the component", async (t) => {
+      await t.waitFor(() => window.nestedOwner && t.$("#nested-output .nested-time"));
+      await t.waitForText("#nested-output .nested-time", /^\d{2}:\d{2}$/);
+      $bc.setSource("app.rows", [{ name: "one" }, { name: "two" }]);
+      const items = await t.waitFor(() => t.$$("#nested-output .nested-list li"), (l) => l.length === 2);
+      t.deepEqual(items.map((i) => t.text(i)), ["one", "two"]);
+      const collection = nestedOwner.manager.collection;
+      t.equal(typeof collection.processNodesAsync, "function", "an IComponentCollection is returned");
+      t.equal(collection.GetCommandListByCore("print").length, 1);
+      t.ok(collection.context === nestedOwner.context, "the collection uses the component's context");
+      await nestedOwner.disposeAsync();
+      t.equal(collection.disposed, true, "collections created through the owner are disposed with it");
+      t.equal(nestedOwner.disposed, true);
+    });
+
+    bcTest.test("Badge example: the first run has no source, later runs receive cart.items; setSource publishes { value } and updates a page token", async (t) => {
+      await t.waitForText("#badge-output .badge", "0");
+      await t.waitForText("#badge-count", "count: 0", { message: "the token outside the component sees cart.count" });
+      $bc.setSource("cart.items", [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      await t.waitForText("#badge-output .badge", "3");
+      await t.waitForText("#badge-count", "count: 3");
+      t.deepEqual(t.rows("cart.count"), [{ value: 3 }]);
+    });
+
+    bcTest.test("repository prefix: one script serves bc.badge and bc.stamp, downloaded once, each class taken from its full key", async (t) => {
+      await t.waitFor(() => t.$("#repo-output .repo-badge") && t.$("#repo-output .repo-stamp"));
+      t.equal(t.text("#repo-output .repo-badge"), "0");
+      t.equal(t.text("#repo-output .repo-stamp"), "stamped");
+      t.equal(t.$$("head script[src='/tests/fixtures/user-defined-components/bc.components.js']").length, 1, "downloaded once for both components");
+      t.ok(t.consoleMessages(/loaded from.*bc\.badge/).length >= 1, "bc.badge loaded from <url>");
+      t.ok($bc.global.GetCommandListByCore("component.bc.badge")[0].manager instanceof bc.badge);
+      t.ok($bc.global.GetCommandListByCore("component.bc.stamp")[0].manager instanceof bc.stamp);
+      $bc.setSource("repo.items", [{ id: 1 }, { id: 2 }]);
+      await t.waitForText("#repo-output .repo-badge", "2");
+    });
+
+    bcTest.test("a key that matches no repository entry fails with '<key>' related repository setting not found (resolution through $bc.util.getComponentAsync)", async (t) => {
+      const context = $bc.global.basiscore.context;
+      await t.rejects($bc.util.getComponentAsync(context, "nope.widget.deep"), /^'nope\.widget\.deep' related repository setting not found$/);
+      t.equal(await $bc.util.getComponentAsync(context, "local.Badge"), Badge, "local.<expr> evaluates the expression");
+      t.equal(await $bc.util.getComponentAsync(context, "basiscore.exposer"), basiscore.exposer, "basiscore.<name> evaluates the export");
+      t.equal(await $bc.util.getComponentAsync(context, "bc.stamp"), bc.stamp, "walks host.repositories: bc.stamp -> bc");
+    });
+
+    bcTest.test("IoC: dc.resolve('context') is the owner's context, 'parent.dc' is the collection container, 'root.context' the runtime root; registrations on dc are private, on parent.dc shared", async (t) => {
+      await t.waitFor(() => window.registrarOwner && window.consumerOwner && window.childOwner);
+      t.ok(registrarOwner.dc.resolve("context") === registrarOwner.context);
+      t.ok(registrarOwner.dc.resolve("root.context") === $bc.global.basiscore.context);
+      t.ok(registrarOwner.dc.resolve("dc") === registrarOwner.dc);
+      t.ok(registrarOwner.dc.resolve("element") === registrarOwner.node, "the element token holds the <basis> element");
+      t.ok(registrarOwner.dc.resolve("parent.dc") === consumerOwner.dc.resolve("parent.dc"), "siblings share the collection's container");
+      t.ok(registrarOwner.dc.resolve("host_options") === registrarOwner.context.options, "host_options is the root HostOptions");
+      t.equal(consumerOwner.dc.isRegistered("own.service", true), false, "a registration on a sibling's dc is not visible");
+      t.equal(consumerOwner.dc.isRegistered("shared.service", true), true, "a registration on parent.dc is");
+      t.equal(consumerOwner.dc.resolve("shared.service"), "for siblings too");
+      t.equal(childOwner.dc.isRegistered("own.service", true), true, "a collection created with processNodesAsync inherits the owner's dc");
+      t.equal(childOwner.dc.resolve("own.service"), "only for my children");
+      t.ok(childOwner.dc.resolve("parent.dc") === registrarOwner.dc, "the nested collection is resolved from owner.dc, so the child's parent.dc is the owner's dc");
+      t.ok(childOwner.context === registrarOwner.context, "same context as the component");
+    });
+
+    bcTest.test("pitfall: an attribute bound to a source that is never set blocks initializeAsync, the whole runtime's first pass and even its setSource calls, until the source arrives", async (t) => {
+      const w = $bc.new().addFragment("#isolated-blocked").run();
+      await t.waitFor(() => window.blockedOwner);
+      t.ok(t.consoleMessages(/^wait for late\.title$/).length >= 1, "the only trace is the 'wait for late.title' log line");
+      w.setSource("late.rows", [{ n: 1 }]);
+      await t.sleep(250);
+      t.deepEqual(blockedLog, ["initialize:start"], "getAttributeValueAsync waits for late.title");
+      t.equal(t.$$("#isolated-blocked .blocked").length, 0);
+      t.equal(t.$$("#isolated-blocked .late-row").length, 0, "the sibling print never ran: the priority waves wait for every initializeAsync");
+      t.equal(t.source("late.rows", w), undefined, "wrapper.setSource waits for the same initialize task, so late.rows was not even published");
+      let settled = false;
+      blockedOwner.onInitialized.then(() => (settled = true));
+      await t.sleep(50);
+      t.equal(settled, false, "onInitialized is pending");
+      // publish straight into the runtime's root context: this does not wait for initialization
+      w.basiscore.context.setAsSource("late.title", "finally");
+      await t.waitForText("#isolated-blocked .blocked", "finally");
+      t.deepEqual(blockedLog, ["initialize:start", "initialize:end", "run"]);
+      t.equal(await blockedOwner.onInitialized, blockedOwner);
+      await t.waitFor(() => t.$$("#isolated-blocked .late-row"), (l) => l.length === 1, { message: "once unblocked, the queued setSource is applied and the sibling renders" });
+    });
+
+    bcTest.test("two elements of one class are two instances with two owners", async (t) => {
+      const spans = await t.waitFor(() => t.$$("#instances-output .counter"), (l) => l.length === 2);
+      t.deepEqual(spans.map((s) => t.text(s)), ["1", "2"]);
+      t.equal(counters.length, 2);
+      t.ok(counters[0].owner !== counters[1].owner);
+      t.equal($bc.global.GetCommandListByCore("component.local.Counter").length, 2);
+    });
+
+    bcTest.test("date picker example: attributes with defaults, a host setting, one-time style injection, fetch on click, setSource updates the page token", async (t) => {
+      await t.waitFor(() => window.datePicker && t.$("#case-datepicker .dp-input"));
+      t.equal(datePicker.resultId, "form.date");
+      t.equal(datePicker.culture, "fa");
+      t.equal(datePicker.url, "/calendar.json");
+      t.equal(t.$$("head [data-datepicker-style]").length, 1, "the stylesheet is injected once");
+      t.equal(t.text("#selected"), "Selected: nothing yet");
+      t.equal(t.$("#case-datepicker .dp-box").style.display, "none");
+      t.click("#case-datepicker .dp-input");
+      const days = await t.waitFor(() => t.$$("#case-datepicker .dp-day"), (l) => l.length === 3);
+      t.deepEqual(calendarRequests, [{ culture: "fa" }], "the month data is fetched with the culture");
+      t.equal(t.$("#case-datepicker .dp-box").style.display, "block");
+      t.ok(days[1].classList.contains("dp-today"));
+      t.click(days[2]);
+      await t.waitForText("#selected", "Selected: 2024-07-07");
+      t.equal(t.$("#case-datepicker .dp-input").value, "7");
+      t.equal(t.$("#case-datepicker .dp-box").style.display, "none");
+      t.deepEqual(t.rows("form.date"), [{ value: "2024-07-07" }]);
+    });
+
+    bcTest.skip("schema field components (ISchemaBaseComponent)", "driven by the schema command's component-container part control; covered by the schema test pages");
+  </script>
+</body>
+</html>

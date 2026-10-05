@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>client-side SQL - dbLibPath not configured</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    var host = {
+      // an empty dbLibPath: every SQL feature fails until an alasql global exists
+      dbLibPath: "",
+      sources: {
+        "demo.rows": [{ id: 1, name: "ali" }, { id: 2, name: "reza" }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/client-side-sql.md">
+  <main>
+    <h1>client-side SQL - dbLibPath not configured</h1>
+    <p class="intro">
+      Checks the loading errors of <code>docs/client-side-sql.md</code>: the message for an empty
+      <code>dbLibPath</code>, a script URL that does not load, <code>LocalDataBase</code> without the
+      global, and the recovery once <code>alasql</code> has been loaded by hand.
+    </p>
+
+    <section class="case" id="case-filter">
+      <h2>A face filter with an empty <code>dbLibPath</code></h2>
+      <div id="filtered">
+        <basis core="print" datamembername="demo.rows" run="atclient">
+          <face filter="id = 1"><span class="item">@name@</span></face>
+        </basis>
+      </div>
+      <div id="plain">
+        <basis core="print" datamembername="demo.rows" run="atclient">
+          <face><span class="item">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    bcTest.allowError(/Error in load 'alasql'\. 'DbLibPath' not configure properly in host object\./);
+
+    bcTest.test("a face filter fails with the documented message while a face without filter never touches AlaSQL", async (t) => {
+      const errors = await t.waitForError(/DbLibPath/);
+      t.equal(errors[0].message, "Error in load 'alasql'. 'DbLibPath' not configure properly in host object.");
+      const items = await t.waitFor(() => t.$$("#plain .item"), (l) => l.length === 2);
+      t.deepEqual(items.map((i) => t.text(i)), ["ali", "reza"]);
+      t.equal(t.$$("#filtered .item").length, 0);
+      t.equal(t.$$("head script[src*='alasql']").length, 0, "nothing was requested");
+    });
+
+    bcTest.test("getOrLoadDbLibAsync and the $bc.util.source helpers reject with the same message", async (t) => {
+      const context = $bc.global.basiscore.context;
+      await t.rejects(context.getOrLoadDbLibAsync(), /^Error in load 'alasql'\. 'DbLibPath' not configure properly in host object\.$/);
+      await t.rejects($bc.util.source.runSqlAsync(t.source("demo.rows"), "SELECT * FROM ?", context), /DbLibPath/);
+      await t.rejects($bc.util.source.filterAsync(t.source("demo.rows"), "id = 1", context), /DbLibPath/);
+    });
+
+    bcTest.test("a dbLibPath that does not load rejects with the script's error event", async (t) => {
+      const wrapper = $bc.new().addFragment("#case-filter").setOptions({ dbLibPath: "/tests/fixtures/client-side-sql/missing.js" }).run();
+      const context = wrapper.basiscore.context;
+      let reason = null;
+      try {
+        await context.getOrLoadDbLibAsync();
+        t.fail("expected a rejection");
+      } catch (e) {
+        reason = e;
+      }
+      t.ok(reason instanceof Event && reason.type === "error", "the rejection reason is the error event of the script element");
+      t.equal(t.$$("head script[src='/tests/fixtures/client-side-sql/missing.js']").length, 1);
+    });
+
+    bcTest.test("LocalDataBase does not load the library: without the global it throws ReferenceError: alasql is not defined", async (t) => {
+      const db = new basiscore.LocalDataBase("nolib", () => new Map());
+      await t.rejects(db.executeAsync("SELECT 1"), /^alasql is not defined$/);
+    });
+
+    bcTest.test("once alasql has been loaded by hand with $bc.util.getLibAsync, the empty dbLibPath no longer matters", async (t) => {
+      const lib = await $bc.util.getLibAsync("alasql", "/node_modules/alasql/dist/alasql.min.js");
+      t.equal(typeof lib, "function");
+      t.ok(lib === alasql);
+      const context = $bc.global.basiscore.context;
+      t.ok((await context.getOrLoadDbLibAsync()) === alasql, "the global is found first; dbLibPath is not read");
+      const rows = await $bc.util.source.filterAsync(t.source("demo.rows"), "id = 2", context);
+      t.deepEqual(rows.map((r) => r.name), ["reza"]);
+      const again = await $bc.util.getLibAsync("alasql", "/somewhere/else.js");
+      t.ok(again === alasql, "an existing global is returned without loading anything");
+      t.equal(t.$$("head script[src='/somewhere/else.js']").length, 0);
+    });
+  </script>
+</body>
+</html>

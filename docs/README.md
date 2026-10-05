@@ -8,6 +8,10 @@ library has a limitation or a bug, the page says so.
 If you are new to the library, read the pages in the *Foundations* section in order. If you are
 looking for one attribute, open the command page and search for it.
 
+Every page has a runnable counterpart under [`tests/`](../tests/README.md): a browser page that
+reproduces the examples, asserts what this reference says and reports pass or fail. Open it when
+you want to see a feature working, or copy it as a starting point.
+
 ## Foundations
 
 | Page | What it covers |

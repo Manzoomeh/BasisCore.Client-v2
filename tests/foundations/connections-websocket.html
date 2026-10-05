@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>connections - websocket</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    /*
+     * A stand-in for window.WebSocket. The library only uses the constructor, send(), close()
+     * and the onopen/onmessage/onerror/onclose properties. Every instance is kept in
+     * window.__sockets so the tests can play the server: serverOpen(), serverMessage(envelope),
+     * serverError() and serverClose().
+     */
+    window.__sockets = [];
+    class FakeWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = FakeWebSocket.CONNECTING;
+        this.sent = [];
+        this.closeCalls = 0;
+        this.onopen = this.onmessage = this.onerror = this.onclose = null;
+        this._listeners = {};
+        window.__sockets.push(this);
+      }
+      addEventListener(type, fn) {
+        (this._listeners[type] = this._listeners[type] || []).push(fn);
+      }
+      removeEventListener(type, fn) {
+        this._listeners[type] = (this._listeners[type] || []).filter((x) => x !== fn);
+      }
+      _emit(type, ev) {
+        if (typeof this["on" + type] === "function") this["on" + type](ev);
+        (this._listeners[type] || []).forEach((fn) => fn(ev));
+      }
+      send(data) {
+        if (this.readyState !== FakeWebSocket.OPEN) throw new Error("InvalidStateError: socket is not open");
+        this.sent.push(data);
+      }
+      close() {
+        this.closeCalls += 1;
+        if (this.readyState >= FakeWebSocket.CLOSING) return;
+        this.readyState = FakeWebSocket.CLOSING;
+        setTimeout(() => {
+          this.readyState = FakeWebSocket.CLOSED;
+          this._emit("close", new CloseEvent("close", { code: 1000, wasClean: true }));
+        }, 0);
+      }
+      /* server side, driven by the tests */
+      serverOpen() {
+        this.readyState = FakeWebSocket.OPEN;
+        this._emit("open", new Event("open"));
+      }
+      serverMessage(envelope) {
+        this._emit("message", new MessageEvent("message", { data: typeof envelope === "string" ? envelope : JSON.stringify(envelope) }));
+      }
+      serverError() {
+        this._emit("error", new Event("error"));
+      }
+      serverClose() {
+        this.readyState = FakeWebSocket.CLOSED;
+        this._emit("close", new CloseEvent("close", { code: 1006, wasClean: false }));
+      }
+    }
+    FakeWebSocket.CONNECTING = 0;
+    FakeWebSocket.OPEN = 1;
+    FakeWebSocket.CLOSING = 2;
+    FakeWebSocket.CLOSED = 3;
+    window.WebSocket = FakeWebSocket;
+
+    function socketsFor(url) {
+      return window.__sockets.filter((s) => s.url === url);
+    }
+    function lastSocketFor(url) {
+      const list = socketsFor(url);
+      return list[list.length - 1];
+    }
+    function clock(hh, mm, ss, remain, keepalive) {
+      const envelope = {
+        sources: [{ options: { tableName: "stream.time", mergeType: 0 }, data: [{ hh, mm, ss, remain }] }]
+      };
+      if (keepalive !== undefined) envelope.setting = { keepalive };
+      return envelope;
+    }
+    function userRow(id, name, age) {
+      return { sources: [{ options: { tableName: "user.list", mergeType: 1 }, data: [{ id, name, age }] }] };
+    }
+  </script>
+  <script>
+    var host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      settings: {
+        "connection.websocket.simple": "ws://fake.test/time",
+        "connection.websocket.feed": { Connection: "ws://fake.test/list" },
+        "connection.websocket.simple2": "ws://fake.test/time2",
+        "connection.websocket.other": "ws://fake.test/other",
+        "connection.websocket.flaky": "ws://fake.test/flaky",
+        "connection.websocket.shared": "ws://fake.test/shared",
+        "default.dmnid": 2668
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/connections.md">
+  <main>
+    <h1>connections - websocket</h1>
+    <p class="intro">
+      Checks the <code>websocket</code> provider of <code>docs/connections.md</code> with a fake
+      <code>WebSocket</code>: the lifecycle (first frame, envelopes per message, <code>keepalive</code>,
+      close), sending new parameters over the open socket, the append feed with client-side filtering,
+      error handling per frame, reconnection after errors, the shared socket slot and the methods that
+      only throw.
+    </p>
+
+    <section class="case" id="case-clock">
+      <h2>Live clock that the server stops, and new parameters over the open socket</h2>
+      <form id="counter-form" name="test.counter" bc-triggers="submit">
+        <input id="counter-input" type="number" name="value" min="5" max="30" value="10" />
+        <input type="submit" value="send counter" />
+      </form>
+      <basis core="dbsource" source="simple" name="stream" run="atclient"
+             counter="[##test.counter.value|(10)##]" triggers="test.counter">
+        <member name="time"></member>
+      </basis>
+      <div id="clock">
+        Updates for 10 seconds (remaining <span id="remain">[##stream.time.remain|(?)##]</span>)<br />
+        Time: <span id="time">[##stream.time.hh|(00)##]:[##stream.time.mm|(00)##]:[##stream.time.ss|(00)##]</span>
+      </div>
+    </section>
+
+    <section class="case" id="case-feed">
+      <h2>Append feed with client-side filtering</h2>
+      <basis core="dbsource" source="feed" name="user" run="atclient">
+        <member name="list"></member>
+      </basis>
+      <label>name: <input id="filter-name" name="demo.filter-name" bc-triggers="keyup change" /></label>
+      <div id="users">
+        <Basis core="print" datamembername="user.list" run="atclient"
+               OnProcessing="manipulation" triggers="demo.filter-name">
+          <layout>
+            <script type="text/template">
+              <table><tbody>@child</tbody></table>
+            </script>
+          </layout>
+          <face>
+            <script type="text/template">
+              <tr><td>@id@</td><td>@name@</td><td>@age@</td></tr>
+            </script>
+          </face>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-switch">
+      <h2>The <code>source</code> attribute cannot change while the socket is open</h2>
+      <basis core="dbsource" source="[##cfg.conn.name|(simple2)##]" name="switcher" run="atclient" triggers="cfg.conn">
+        <member name="rows"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-retry">
+      <h2>Reconnection after errors: five attempts in total</h2>
+      <basis core="dbsource" source="flaky" name="retry" run="atclient">
+        <member name="rows"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-shared">
+      <h2>Two commands with the same <code>name</code> share one socket slot</h2>
+      <basis core="dbsource" source="shared" name="dup" run="atclient">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="shared" name="dup" run="atclient" ignoreNullSource="true" triggers="dup.go">
+        <member name="rows"></member>
+      </basis>
+    </section>
+  </main>
+
+  <script>
+    async function manipulation(args) {
+      const where = args.context.tryToGetSource("demo.filter-name");
+      const nameValue = where?.rows[0].value;
+      const sql = `select * from ? ${nameValue ? `where name like '%${nameValue}%'` : ""}`;
+      args.source = await $bc.util.source.runSqlAsync(args.source, sql, args.context);
+    }
+    function dbsourceCommand(name) {
+      return $bc.global.basiscore.GetCommandListByCore("dbsource").find((x) => x.id === name);
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Source attribute can't change when socket is open/);
+    bcTest.allowError(/^\[object Event\]$/);
+
+    bcTest.test("lifecycle: a socket is opened per dbsource and the first frame is { command, dmnid } with resolved tokens", async (t) => {
+      const socket = await t.waitFor(() => lastSocketFor("ws://fake.test/time"));
+      t.equal(socket.readyState, 0, "nothing is sent before onopen");
+      const command = dbsourceCommand("stream");
+      t.ok(command.connection instanceof Promise, "loadDataAsync returned a promise the command keeps instead of awaiting");
+      t.equal(command.connection.connectionName, "simple");
+      t.equal(command.connection.isOpen, false, "not open until the socket is registered");
+
+      socket.serverOpen();
+      await t.waitFor(() => socket.sent, (s) => s.length === 1);
+      const frame = JSON.parse(socket.sent[0]);
+      t.match(frame.command, /^<basis core="dbsource" source="simple" name="stream" run="atclient" counter="10" triggers="test.counter">/, "the fallback of the counter token is sent");
+      t.equal(frame.dmnid, 2668, "dmnid is JSON, not a string");
+      t.ok(t.consoleMessages(/ws:\/\/fake\.test\/time Connected/).length === 1, "'<url> Connected' is logged");
+      t.equal(command.connection.isOpen, true);
+      t.ok($bc.global.basiscore.context.connections.getConnection("simple").activeSockets.get("stream") === socket, "the socket is registered under the dbsource name");
+      t.equal(t.source("stream.time"), undefined, "the command finished its run before any data arrived");
+    });
+
+    bcTest.test("every message is one envelope: mergeType 0 replaces the clock row and the tokens re-render", async (t) => {
+      const socket = lastSocketFor("ws://fake.test/time");
+      socket.serverMessage(clock(10, 20, 30, 5));
+      await t.waitForText("#time", "10:20:30");
+      t.equal(t.text("#remain"), "5");
+      socket.serverMessage(clock(10, 20, 31, 4));
+      await t.waitForText("#time", "10:20:31");
+      t.equal(t.rows("stream.time").length, 1, "replace keeps one row");
+      t.equal(t.rows("stream.time")[0].rownumber, 1, "rownumber is added to streamed rows too");
+    });
+
+    bcTest.test("a trigger while the socket is open sends a new { command, dmnid } frame instead of reconnecting", async (t) => {
+      const socket = lastSocketFor("ws://fake.test/time");
+      const before = socketsFor("ws://fake.test/time").length;
+      t.$("#counter-input").value = "20";
+      t.fire("#counter-form", "submit");
+      await t.waitFor(() => socket.sent, (s) => s.length === 2);
+      const frame = JSON.parse(socket.sent[1]);
+      t.includes(frame.command, 'counter="20"', "the freshly resolved command is sent");
+      t.equal(frame.dmnid, 2668);
+      t.equal(socketsFor("ws://fake.test/time").length, before, "no second socket was opened");
+    });
+
+    bcTest.test("setting.keepalive false: the sources of that frame are applied, then the socket is closed by server request and the promise resolves", async (t) => {
+      const socket = lastSocketFor("ws://fake.test/time");
+      const command = dbsourceCommand("stream");
+      socket.serverMessage(clock(10, 20, 40, 0, false));
+      await t.waitForText("#remain", "0");
+      t.equal(t.text("#time"), "10:20:40", "the frame with keepalive false is still processed");
+      t.equal(socket.closeCalls, 1, "close() was called on the socket");
+      t.ok(t.consoleMessages(/Disconnect from %s by server request/).length === 1);
+      await t.waitForConsole(/ws:\/\/fake\.test\/time Disconnected/);
+      t.equal(command.connection.isOpen, false);
+      t.equal($bc.global.basiscore.context.connections.getConnection("simple").activeSockets.has("stream"), false);
+      t.equal(t.consoleMessages(/Try reconnect/).length, 0, "a close without a prior error never reconnects");
+      t.equal(t.errors().length, 0, "a clean close resolves the stream promise; nothing is rejected");
+    });
+
+    bcTest.test("after the stream closed, the next trigger opens a new socket", async (t) => {
+      const before = socketsFor("ws://fake.test/time").length;
+      t.$("#counter-input").value = "25";
+      t.fire("#counter-form", "submit");
+      const socket = await t.waitFor(() => lastSocketFor("ws://fake.test/time"), (s) => socketsFor("ws://fake.test/time").length === before + 1);
+      t.equal(socket.readyState, 0);
+      socket.serverOpen();
+      await t.waitFor(() => socket.sent, (s) => s.length === 1);
+      t.includes(JSON.parse(socket.sent[0]).command, 'counter="25"');
+    });
+
+    bcTest.test("append feed: mergeType 1 adds one row per message and print re-renders; a frame with the wrong source count is logged and the socket stays open", async (t) => {
+      const socket = await t.waitFor(() => lastSocketFor("ws://fake.test/list"));
+      socket.serverOpen();
+      await t.waitFor(() => socket.sent, (s) => s.length === 1);
+      socket.serverMessage(userRow(1, "ali", 30));
+      socket.serverMessage(userRow(2, "sara", 25));
+      const cells = (tr) => t.$$("td", tr).map((td) => t.text(td)).join(" ");
+      let rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 2, { timeout: 10000 });
+      t.deepEqual(rows.map(cells), ["1 ali 30", "2 sara 25"]);
+      t.equal(t.source("user.list").mergeType, 1);
+
+      socket.serverMessage({
+        sources: [
+          { options: { tableName: "user.list", mergeType: 1 }, data: [{ id: 99, name: "x", age: 1 }] },
+          { options: { tableName: "user.extra", mergeType: 1 }, data: [] }
+        ]
+      });
+      await t.waitForConsole(/Error in process WebSocket received message Command 'user' has 1 member\(s\) but 2 result\(s\) returned from source!/);
+      t.equal(socket.closeCalls, 0, "the socket is not closed on a bad frame");
+      t.equal(t.rows("user.list").length, 2, "nothing of the bad frame was published");
+
+      socket.serverMessage("this is not json");
+      await t.waitForConsole(/Error in process WebSocket received message/, { timeout: 2000 });
+      t.equal(socket.closeCalls, 0);
+
+      socket.serverMessage(userRow(3, "alex", 41));
+      rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 3, { timeout: 10000 });
+      t.setValue("#filter-name", "al", ["keyup"]);
+      rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 2 && l.every((r) => /al/.test(r.textContent)), { timeout: 10000 });
+      t.deepEqual(rows.map(cells), ["1 ali 30", "3 alex 41"]);
+      t.equal(t.rows("user.list").length, 3, "OnProcessing filters a copy; the published source keeps every row");
+    });
+
+    bcTest.test("a disposed dbsource makes the receiver return false: the provider closes the socket by receiver request", async (t) => {
+      const socket = lastSocketFor("ws://fake.test/list");
+      await dbsourceCommand("user").disposeAsync();
+      socket.serverMessage(userRow(4, "reza", 50));
+      await t.waitForConsole(/Disconnect from %s by receiver request\. maybe disposed!/);
+      t.equal(socket.closeCalls, 1);
+      t.equal(t.rows("user.list").length, 3, "the disposed command did not publish");
+      await t.waitForConsole(/ws:\/\/fake\.test\/list Disconnected/);
+    });
+
+    bcTest.test("re-running with a source that resolves to another connection while the socket is open throws", async (t) => {
+      const socket = await t.waitFor(() => lastSocketFor("ws://fake.test/time2"));
+      socket.serverOpen();
+      await t.waitFor(() => socket.sent, (s) => s.length === 1);
+      t.equal(dbsourceCommand("switcher").connection.connectionName, "simple2");
+
+      $bc.setSource("cfg.conn", { name: "other" });
+      const errors = await t.waitForError(/Source attribute can't change when socket is open/);
+      t.equal(errors[0].message, "Source attribute can't change when socket is open . Valid connection is 'simple2'");
+      t.equal(socketsFor("ws://fake.test/other").length, 0, "no socket was opened on the other connection");
+      t.equal(socket.sent.length, 1, "nothing was sent on the open socket either");
+    });
+
+    bcTest.test("reconnect: an error followed by close reopens the socket, five attempts in total, then the stream promise rejects", async (t) => {
+      const url = "ws://fake.test/flaky";
+      const command = dbsourceCommand("retry");
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        const socket = await t.waitFor(() => lastSocketFor(url), () => socketsFor(url).length === attempt);
+        socket.serverOpen();
+        socket.serverError();
+        t.equal(t.errors(/^\[object Event\]$/).length, 0, "attempt " + attempt + ": the promise has not rejected yet");
+        socket.serverClose();
+        if (attempt < 5) {
+          await t.waitFor(() => socketsFor(url), (l) => l.length === attempt + 1);
+        }
+      }
+      // nobody awaits the StreamPromise, so its rejection (the last error event) surfaces as an unhandled rejection
+      await t.waitForError(/^\[object Event\]$/);
+      await t.sleep(50);
+      t.equal(socketsFor(url).length, 5, "the first attempt counts, so five sockets are opened at most");
+      t.equal(t.consoleMessages(/Try reconnect To %s/).length, 5, "'Try reconnect To' is logged after every error");
+      t.equal(t.consoleMessages(/Error On 'ws:\/\/fake\.test\/flaky'/).length, 5);
+      t.equal(t.consoleMessages(/ws:\/\/fake\.test\/flaky Reconnected/).length, 4);
+      t.equal(command.connection.isOpen, false);
+    });
+
+    bcTest.defect("undocumented defect: a StreamPromise cannot be awaited or chained (Promise subclass without a species-safe constructor)", (t) => {
+      const command = dbsourceCommand("retry");
+      t.throws(() => command.connection.then(() => {}), /Promise resolver undefined is not a function/);
+      t.throws(() => command.connection.catch(() => {}), /Promise resolver undefined is not a function/);
+      t.note("dbsource never awaits the StreamPromise, so the library itself is not affected; page code that does `await` it throws a TypeError.");
+    });
+
+    bcTest.test("two dbsource commands with the same name on one connection share a slot: opening the second closes the first by client request", async (t) => {
+      const url = "ws://fake.test/shared";
+      const first = await t.waitFor(() => lastSocketFor(url));
+      t.equal(socketsFor(url).length, 1, "the second command has ignoreNullSource and did not run yet");
+      first.serverOpen();
+      await t.waitFor(() => first.sent, (s) => s.length === 1);
+      $bc.setSource("dup.go", 1);
+      const second = await t.waitFor(() => lastSocketFor(url), (s) => s !== first);
+      await t.waitForConsole(/Disconnect from %s by client request/);
+      t.equal(first.closeCalls, 1, "the first socket was closed");
+      second.serverOpen();
+      await t.waitFor(() => second.sent, (s) => s.length === 1);
+      t.ok($bc.global.basiscore.context.connections.getConnection("shared").activeSockets.get("dup") === second);
+    });
+
+    bcTest.test("TestConnectionAsync resolves true, loadPageAsync throws, maxRetry is fixed at 5", async (t) => {
+      const context = $bc.global.basiscore.context;
+      const simple = context.connections.getConnection("simple");
+      t.equal(await simple.TestConnectionAsync(context), true);
+      t.throws(() => simple.loadPageAsync(context, "x.html", {}), /^WebSocket call not implemented\.$/);
+      t.equal(simple.maxRetry, 5);
+      t.equal(simple.url, "ws://fake.test/time", "string form");
+      t.equal(context.connections.getConnection("feed").url, "ws://fake.test/list", "object form reads Connection");
+    });
+  </script>
+</body>
+</html>

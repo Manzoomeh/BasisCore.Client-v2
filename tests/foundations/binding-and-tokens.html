@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>binding and tokens</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    var host = {
+      sources: {
+        "cms.user": [{ id: 1, name: "amir" }],
+        "inlinesource.print": [
+          { id: 1, name: "qamsari" },
+          { id: 2, name: "akaberi" },
+          { id: 3, name: "amir" }
+        ],
+        "db.users": [{ FirstName: "Sara", address: { city: "Tehran" }, "a.b": "dotted" }],
+        "app.blank": [{ name: "", nick: null, real: "Nick" }],
+        "demo.data": [
+          { id: 1000, name: "amir", age: 31 },
+          { id: 1001, name: "sara", age: 12 }
+        ],
+        "face.rows": [
+          { id: 1, name: "Pen", price: 2, tags: ["A", "B"], note: null, later: "L" },
+          { id: 2, name: "Ink", price: 5, tags: ["C"], note: "ok" }
+        ]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/binding-and-tokens.md">
+  <main>
+    <h1>binding and tokens</h1>
+    <!-- bc-ignore: this paragraph quotes the token syntax literally and must not be scanned -->
+    <p class="intro" bc-ignore>
+      Checks <code>docs/binding-and-tokens.md</code>: the <code>[##...##]</code> grammar (fallback chains,
+      literals, existence check, single row versus many rows, the <code>cms</code> rule), typed tokens and the
+      prototype extensions, <code>{{ }}</code> code blocks in text, attributes and faces, face templates
+      (<code>@column@</code>, XML parsing, <code>text/template</code>), text and attribute components and the
+      configurable patterns.
+    </p>
+
+    <section class="case" id="case-tokens">
+      <h2>Tokens in text and attributes</h2>
+      <input id="text1" bc-triggers="keyup" name="cms.text1" />
+      <p id="qid">Query string id: [##cms.query.id|(none)##]</p>
+      <p id="typed">Typed text: [##cms.text1.value|( )##]</p>
+      <p id="exists">Is cms.user published? [##cms.user##]</p>
+      <p id="missing">Is cms.nobody published? [##cms.nobody##]</p>
+      <a id="link" href="/detail?id=[##cms.query.id|(0)##]&amp;mode=view">Open</a>
+      <p id="names">All names: [##inlinesource.print.name##]</p>
+      <p id="one">One name: [##cms.user.name##]</p>
+      <span id="names-attr" data-names="[##inlinesource.print.name##]"></span>
+      <p id="two">A: [##cms.user.id##], B: [##cms.user.name##]</p>
+      <p id="ignored" bc-ignore>[##cms.user.name##]</p>
+    </section>
+
+    <section class="case" id="case-grammar">
+      <h2>Token grammar</h2>
+      <p id="case-id">Source id lower-cased, column kept: [##DB.Users.FirstName##]</p>
+      <p id="nested">Nested path: [##db.users.address.city##]</p>
+      <p id="dotted">Column with a dot: [##db.users.a.b##]</p>
+      <p id="blank">Empty and null columns fall through: [##app.blank.name|app.blank.nick|app.blank.real##]</p>
+      <p id="literal-first">Literal first: [##(guest)|app.user.name##]</p>
+      <p id="literal-last">Literal last: [##app.user.name|(guest)##]</p>
+      <p id="fallback-src">Fallback source: [##app.late.v|cms.user.name##]</p>
+      <p id="hash">[##cms.query.color|(#fff)##]</p>
+      <div id="if-wait">
+        <basis core="print" run="atclient" datamembername="cms.user" if="[##(true)|never.published.flag##]">
+          <face><span class="blocked">@name@</span></face>
+        </basis>
+        <basis core="print" run="atclient" datamembername="cms.user" if="[##never.published.flag|(true)##]">
+          <face><span class="passed">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-blocks">
+      <h2>Code blocks in text, in an attribute and in a face</h2>
+      <div id="cb-attr" style="display:{{return 'block';}}">
+        <p id="cb-text">{{
+          const data = $bc.tryToGetSource('cms.text1');
+          return data ? data.rows[0].value : 'not set';
+        }}</p>
+        <p id="cb-time">{{
+          const date = new Date();
+          return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+        }}</p>
+        <p id="cb-ctx">{{ return typeof $bc.tryToGetSource === 'function' && $bc.util === undefined ? 'context' : 'wrapper'; }}</p>
+        <p id="cb-data">{{ return $data === undefined ? 'no-row' : 'row'; }}</p>
+        <p id="cb-null">[{{ return null; }}]</p>
+        <p id="cb-error">{{ return missingVariable; }}</p>
+        <p id="cb-dq">{{
+          const s = $bc.tryToGetSource("cms.text2");
+          return s ? s.rows[0].value : 'unset';
+        }}</p>
+        <p id="cb-markup">{{ return window.markupSample; }}</p>
+      </div>
+      <div id="cb-face">
+        <basis core="print" datamembername="face.rows" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face>
+            <li data-v='{{ return "quoted"; }}'>@id @name@{{ return await fn($bc, $data); }}</li>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-faces">
+      <h2>Face templates</h2>
+      <div id="face-expr">
+        <basis core="print" datamembername="face.rows" run="atclient">
+          <face><script type="text/template"><span class="row">@price*2@|@tags.length@|@unknown@|@note@|@later@|mail: info@example.com </span></script></face>
+        </basis>
+      </div>
+      <div id="face-ws">
+        <basis core="print" datamembername="cms.user" run="atclient">
+          <face><b>@id@</b> <i>@name@</i></face>
+        </basis>
+      </div>
+      <div id="face-open">
+        <!-- the open form @id runs to the next whitespace, so it swallows the closing tag -->
+        <basis core="print" datamembername="cms.user" run="atclient">
+          <face><b>@id</b></face>
+        </basis>
+      </div>
+      <div id="xml-bad">
+        <basis core="print" datamembername="cms.user" run="atclient">
+          <face><span>@id@</span><br></face>
+        </basis>
+      </div>
+      <div id="face-table">
+        <basis core="print" datamembername="demo.data" run="atclient">
+          <layout>
+            <script type="text/template">
+              <table>
+                <thead><tr><td>Id</td><td>Name</td><td>Age</td></tr></thead>
+                <tbody>@child</tbody>
+              </table>
+            </script>
+          </layout>
+          <face>
+            <script type="text/Template">
+              <tr>
+                <td>@id@</td>
+                <td>@name@</td>
+                <td>@age@ ({{ return $data.age >= 18 ? 'adult' : 'minor'; }})</td>
+              </tr>
+            </script>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-defect">
+      <h2>Known defect: a text token re-rendered to an empty value</h2>
+      <p>Flag: <span id="defect-text">[##app.flag.value##]</span></p>
+      <span id="defect-attr" data-flag="[##app.flag.value##]"></span>
+    </section>
+
+    <section class="case" id="case-patterns">
+      <h2>Configurable patterns</h2>
+      <div bc-ignore>
+        <div id="section-1">Time is (local) : [##data.time.hh|(00)##]:[##data.time.mm|(00)##]:[##data.time.ss|(00)##]</div>
+        <div class="section-2">Time is (UTC) : {data.time.hh|(00)}:{data.time.mm|(00)}:{data.time.ss|(00)}</div>
+        <div id="section-3">String pattern: {data.time.hh|(00)}</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function fn(_, $data) {
+      const lis = $data.tags.reduce((total, tag) => (total += `<li>${tag}</li>`), "");
+      return `<ul>${lis}</ul>`;
+    }
+  </script>
+
+  <!-- bc-ignore: the scanner also visits the text of inline scripts; this one quotes tokens literally -->
+  <script bc-ignore>
+    bcTest.allowError(/toString|null/);
+    bcTest.allowError(/Invalid regular expression/);
+    // returned by the #cb-markup block: markup is parsed as HTML, the token inside it is left alone
+    window.markupSample = "<b>bold</b> and [##cms.user.name##]";
+    const ctx = () => $bc.global.basiscore.context;
+
+    bcTest.test("tokens in text and attributes: literal default, existence check as a string, multi-row list", async (t) => {
+      await t.waitForText("#qid", "Query string id: none");
+      await t.waitForText("#exists", "Is cms.user published? true");
+      await t.waitForText("#missing", "Is cms.nobody published? false");
+      t.match(t.$("#typed").textContent, /^Typed text: {2}$/, "( ) is a single space literal");
+      t.equal(t.$("#link").getAttribute("href"), "/detail?id=0&mode=view", "attribute token with literal text around it");
+      await t.waitForText("#names", "All names: qamsari,akaberi,amir");
+      await t.waitForText("#one", "One name: amir");
+      t.equal(t.$("#names-attr").getAttribute("data-names"), "qamsari,akaberi,amir", "an array is stringified by the DOM");
+      await t.waitForText("#two", "A: 1, B: amir");
+      t.equal(t.text("#ignored"), "[##cms.user.name##]", "bc-ignore subtrees are not scanned");
+      const nodes = t.$("#qid").childNodes;
+      t.equal(nodes[0].textContent, "Query string id: ");
+      t.equal(nodes[1].textContent, "", "an empty text node marks the start of the binding");
+      t.equal(nodes[2].textContent, "none");
+      t.equal(nodes[3].textContent, "", "and another one marks its end");
+    });
+
+    bcTest.test("an input publishes [{ value }] and the text token tracks it", async (t) => {
+      t.setValue("#text1", "hello", ["keyup"]);
+      await t.waitForText("#typed", "Typed text: hello");
+      t.deepEqual(t.rows("cms.text1"), [{ value: "hello" }]);
+    });
+
+    bcTest.test("grammar: source id lower-cased, column path kept, nested path, dotted column, empty values fall through", async (t) => {
+      await t.waitForText("#case-id", "Source id lower-cased, column kept: Sara");
+      await t.waitForText("#nested", "Nested path: Tehran");
+      await t.waitForText("#dotted", "Column with a dot: dotted");
+      await t.waitForText("#blank", "Empty and null columns fall through: Nick");
+      t.equal(t.text("#hash"), "[##cms.query.color|(#fff)##]", "# inside the brackets does not match the default pattern");
+    });
+
+    bcTest.test("a single-segment token throws while it is built", (t) => {
+      t.throws(() => "[##name##]".ToStringToken(ctx()), /toLowerCase/);
+      t.equal("".ToStringToken(ctx()), undefined, "an empty string produces no token");
+    });
+
+    bcTest.test("a literal does not end the chain: a later source overrides it, a missing one leaves it in place", async (t) => {
+      await t.waitForText("#literal-first", "Literal first: guest");
+      await t.waitForText("#literal-last", "Literal last: guest");
+      await t.waitForText("#fallback-src", "Fallback source: amir");
+      $bc.setSource("app.user", { name: "Sara" });
+      await t.waitForText("#literal-first", "Literal first: Sara");
+      await t.waitForText("#literal-last", "Literal last: Sara");
+      $bc.setSource("app.late", { v: "late" });
+      await t.waitForText("#fallback-src", "Fallback source: late");
+    });
+
+    bcTest.test("a command attribute whose last part is a missing non-cms source waits forever; a literal last part does not", async (t) => {
+      await t.waitForText("#if-wait .passed", "amir");
+      await t.waitForConsole(/wait for never\.published/);
+      await t.sleep(300);
+      t.equal(t.$$("#if-wait .blocked").length, 0, "the command with the literal first never rendered");
+    });
+
+    bcTest.test("cms.* sources resolve to null immediately instead of waiting", async (t) => {
+      const cmsToken = "[##cms.nothing.v##]".ToStringToken(ctx());
+      t.equal(await cmsToken.getValueAsync(true), null);
+      const otherToken = "[##other.nothing.v##]".ToStringToken(ctx());
+      const outcome = await Promise.race([otherToken.getValueAsync(true).then(() => "resolved"), t.sleep(200).then(() => "pending")]);
+      t.equal(outcome, "pending");
+      t.deepEqual(cmsToken.getSourceNames(), ["cms.nothing"]);
+      t.deepEqual("[##a.b.c|x.y.z|(d)##]".ToStringToken(ctx()).getSourceNames(), ["a.b", "x.y"]);
+      t.equal("[##a.b.c|(dflt)##]".ToStringToken(ctx()).getDefault(), "dflt");
+    });
+
+    bcTest.test("typed tokens: literal conversion by tryParse, column values returned as stored", async (t) => {
+      const c = ctx();
+      t.equal("[##(12px)##]".ToIntegerToken(c).getDefault(), 12);
+      t.equal("12".ToIntegerToken(c).getDefault(), 12);
+      t.ok(Number.isNaN("[##(abc)##]".ToIntegerToken(c).getDefault()));
+      t.equal("[##(TRUE)##]".ToBooleanToken(c).getDefault(), true);
+      t.equal("[##(yes)##]".ToBooleanToken(c).getDefault(), false);
+      t.equal("True".ToBooleanToken(c).getDefault(), true);
+      t.deepEqual("[##(({ a: 1 }))##]".ToObjectToken(c).getDefault(), { a: 1 });
+      t.equal(await "plain".ToObjectToken(c).getValueAsync(), "plain", "no token: the raw string");
+      t.equal(await "[##cms.user.id##]".ToIntegerToken(c).getValueAsync(), 1, "the row holds a number");
+      t.equal(await "[##cms.user.name##]".ToIntegerToken(c).getValueAsync(), "amir", "a column value is not passed through tryParse");
+      t.equal(await "[##cms.user.id##]-[##cms.user.name##]".ToStringToken(c).getValueAsync(), "1-amir", "array tokens join with \"\"");
+    });
+
+    bcTest.test("String and Element prototype extensions", (t) => {
+      const c = ctx();
+      t.equal("AtClient".isEqual("atclient"), true);
+      t.equal("a".isEqual(null), false);
+      const el = document.createElement("basis");
+      t.equal(el.isBasisCore(), false, "no run attribute");
+      el.setAttribute("run", "AtClient");
+      t.equal(el.isBasisCore(), true, "run is compared ignoring case");
+      t.equal(el.GetStringToken("missing", c), undefined);
+      el.setAttribute("data-x", "");
+      t.equal(el.GetStringToken("data-x", c), undefined, "an empty attribute produces no token");
+      el.setAttribute("Data-Y", "[##cms.user.name##]");
+      t.ok(el.GetStringToken("data-y", c), "attribute names are case-insensitive on HTML elements");
+      const tag = document.createElement("div");
+      tag.setAttribute("bc-triggers", "click");
+      t.equal(tag.isBasisTag(), true);
+      t.equal(tag.isIgnoreTag(), false);
+      tag.setAttribute("bc-ignore", "");
+      t.equal(tag.isIgnoreTag(), true);
+      const face = document.createElement("face");
+      face.innerHTML = "<li>@id</li>";
+      t.equal(face.getTemplate(), "<li>@id</li>");
+      t.equal(face.getXMLTemplate(), "<basis-core-template-tag><li>@id</li></basis-core-template-tag>");
+      // "<\/script>" keeps the HTML parser from ending this page script
+      face.innerHTML = '<script type="text/Template"><tr><td>@id</td></tr><\/script>';
+      t.equal(face.getTemplate(), "<tr><td>@id</td></tr>", "textContent of the single text/template script");
+      t.equal(face.getXMLTemplate(), '<script type="text/Template"><tr><td>@id</td></tr><\/script>', "outerHTML of the script is the XML root");
+    });
+
+    bcTest.test("code blocks: $bc is the context, $data is undefined outside faces, null renders as \"\", errors render as the error", async (t) => {
+      t.equal(t.$("#cb-attr").getAttribute("style"), "display:block");
+      await t.waitForText("#cb-text", "hello", { message: "the block re-ran when cms.text1 was published" });
+      t.match(t.text("#cb-time"), /^\d{1,2}:\d{1,2}:\d{1,2}$/);
+      t.equal(t.text("#cb-ctx"), "context");
+      t.equal(t.text("#cb-data"), "no-row");
+      t.equal(t.text("#cb-null"), "[]");
+      t.match(t.text("#cb-error"), /^ReferenceError: missingVariable is not defined/);
+      t.ok(t.consoleMessages(/missingVariable is not defined/).length > 0, "the error is logged with console.error");
+      t.equal(t.$("#cb-markup b") && t.text("#cb-markup b"), "bold", "returned markup is parsed as HTML");
+      t.match(t.text("#cb-markup"), /\[##cms\.user\.name##\]$/, "produced nodes are not scanned for further bindings");
+    });
+
+    bcTest.test("a block re-runs only for sources read with single-quoted $bc.tryToGetSource('...') / waitToGetSourceAsync('...')", async (t) => {
+      t.equal(t.text("#cb-dq"), "unset");
+      t.setValue("#text1", "again", ["keyup"]);
+      await t.waitForText("#cb-text", "again");
+      $bc.setSource("cms.text2", "published");
+      await t.waitForSource("cms.text2");
+      await t.sleep(200);
+      t.equal(t.text("#cb-dq"), "unset", "double quotes are not detected, so no trigger was registered");
+      const blockToken = "{{ return $bc.tryToGetSource('a.b'); }}".ToStringToken(ctx());
+      t.deepEqual(blockToken.getSourceNames(), ["a.b"]);
+    });
+
+    bcTest.test("code blocks in a face receive the row as $data; &quot; in serialised templates is restored", async (t) => {
+      const items = await t.waitFor(() => t.$$("#cb-face > ul > li"), (l) => l.length === 2);
+      t.match(t.text(items[0]), /^1 Pen/);
+      t.deepEqual(t.$$("ul li", items[0]).map((x) => t.text(x)), ["A", "B"], "the block returned a nested <ul> built from $data.tags");
+      t.deepEqual(t.$$("ul li", items[1]).map((x) => t.text(x)), ["C"]);
+      t.equal(items[0].getAttribute("data-v"), "quoted", "&quot; produced by innerHTML is replaced by \" before compiling");
+    });
+
+    bcTest.test("face expressions: JavaScript over row columns, unknown identifiers render \"\", null prints null, open form stops at whitespace", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#face-expr .row"), (l) => l.length === 2);
+      t.equal(t.text(rows[0]), "4|2||null|L|mail: info");
+      t.equal(t.text(rows[1]), "10|1||ok|undefined|mail: info", "a property missing from a later row prints undefined");
+    });
+
+    bcTest.test("an open-form placeholder followed directly by a tag swallows the tag and fails to compile", async (t) => {
+      await t.waitForConsole(/Error in create binding expression for 'id<\/b>/);
+      await t.waitForError(/Invalid regular expression/);
+      t.equal(t.$$("#face-open b").length, 0, "nothing was rendered");
+    });
+
+    bcTest.test("whitespace between inline elements is dropped; malformed XML yields a parsererror element", async (t) => {
+      await t.waitFor(() => t.$("#face-ws i"));
+      t.equal(t.$("#face-ws").innerHTML.replace(/^\s+|\s+$/g, ""), "<b>1</b><i>amir</i>");
+      const err = await t.waitFor(() => t.$("#xml-bad parsererror"), null, { message: "an unclosed <br> produced no parsererror" });
+      t.match(t.text(err), /tag mismatch: br/, "the parser error names the unclosed <br>");
+      t.note("Chromium appends its partial rendering of the template after the parsererror element");
+    });
+
+    bcTest.test("text/template faces keep <tr> markup in place; the type is compared ignoring case", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#face-table tbody tr"), (l) => l.length === 2);
+      t.deepEqual(t.$$("td", rows[0]).map((td) => t.text(td)), ["1000", "amir", "31 (adult)"]);
+      t.deepEqual(t.$$("td", rows[1]).map((td) => t.text(td)), ["1001", "sara", "12 (minor)"]);
+      t.equal(t.$$("#face-table thead td").length, 3, "the layout table survived the HTML parser");
+      t.equal(t.$$("#face-table script").length, 0, "the script wrapper never appears in the output");
+    });
+
+    bcTest.defect("known defect: a text token re-rendered to an empty value throws a TypeError (an attribute writes null)", async (t) => {
+      $bc.setSource("app.flag", "on");
+      await t.waitForText("#defect-text", "on");
+      t.equal(t.$("#defect-attr").getAttribute("data-flag"), "on");
+      $bc.setSource("app.flag", "");
+      await t.waitForError(/Cannot read properties of null \(reading 'toString'\)/);
+      await t.waitFor(() => t.$("#defect-attr").getAttribute("data-flag"), (v) => v === "null");
+      t.equal(t.text("#defect-text"), "", "the old text is deleted before the exception, so the binding ends up empty");
+    });
+
+    bcTest.test("default.binding.regex can be changed per instance, as a RegExp or as a string", async (t) => {
+      const bc = $bc.new().addFragment("#section-1").run();
+      const bc2 = $bc.new().addFragment(".section-2")
+        .setOptions({ settings: { "default.binding.regex": /\{([^\}]*)\}/ } })
+        .run();
+      const bc3 = $bc.new().addFragment("#section-3")
+        .setOptions({ settings: { "default.binding.regex": "\\{([^\\}]*)\\}" } })
+        .run();
+      await t.waitForText("#section-1", "Time is (local) : 00:00:00");
+      await t.waitForText(".section-2", "Time is (UTC) : 00:00:00");
+      await t.waitForText("#section-3", "String pattern: 00");
+      bc.setSource("data.time", { hh: 10, mm: 20, ss: 30 });
+      bc2.setSource("data.time", { hh: 7, mm: 5, ss: 1 });
+      bc3.setSource("data.time", { hh: 23 });
+      await t.waitForText("#section-1", "Time is (local) : 10:20:30");
+      await t.waitForText(".section-2", "Time is (UTC) : 7:5:1");
+      await t.waitForText("#section-3", "String pattern: 23");
+      t.equal(t.text("#qid"), "Query string id: none", "the default instance keeps the default syntax");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>connections - push</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    var host = {
+      settings: {
+        // the value is the message `type` the connection listens for
+        "connection.push.simple": "test",
+        "connection.push.simple1": "test1",
+        "connection.push.retrig": "retrig",
+        "default.dmnid": 2668
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/connections.md">
+  <main>
+    <h1>connections - push</h1>
+    <p class="intro">
+      Checks the <code>push</code> provider of <code>docs/connections.md</code>. The provider is fed by
+      <code>message</code> events of <code>navigator.serviceWorker</code>; this page dispatches those
+      events itself (the page runs on a secure origin, so <code>navigator.serviceWorker</code> exists)
+      instead of registering a worker and a push subscription.
+    </p>
+
+    <section class="case" id="case-two-types">
+      <h2>Two message types</h2>
+      <basis core="dbsource" source="simple" name="stream" run="atclient">
+        <member name="time"></member>
+      </basis>
+      <basis core="dbsource" source="simple1" name="stream1" run="atclient">
+        <member name="time2"></member>
+      </basis>
+      <div id="clock">Time is : <span id="time">[##stream.time.hh|(00)##]:[##stream.time.mm|(00)##]:[##stream.time.ss|(00)##]</span>
+        (remain <span id="remain">[##stream.time.remain|(?)##]</span>)</div>
+      <div id="clock2">Second stream: <span id="time2">[##stream1.time2.value|(none)##]</span></div>
+    </section>
+
+    <section class="case" id="case-retrigger">
+      <h2>A trigger adds another receiver</h2>
+      <basis core="dbsource" source="retrig" name="r" run="atclient" triggers="push.go">
+        <member name="rows"></member>
+      </basis>
+    </section>
+  </main>
+
+  <script>
+    function pushMessage(type, message) {
+      navigator.serviceWorker.dispatchEvent(new MessageEvent("message", { data: { type: type, message: message } }));
+    }
+    function clock(hh, mm, ss, remain) {
+      return { sources: [{ options: { tableName: "stream.time", mergeType: 0 }, data: [{ hh, mm, ss, remain }] }] };
+    }
+    function dbsourceCommand(name) {
+      return $bc.global.basiscore.GetCommandListByCore("dbsource").find((x) => x.id === name);
+    }
+    function connection(name) {
+      return $bc.global.basiscore.context.connections.getConnection(name);
+    }
+  </script>
+
+  <script>
+    bcTest.test("loadDataAsync only subscribes: the dbsource completes without data and the page renders the token fallbacks", async (t) => {
+      t.ok("serviceWorker" in navigator, "the page is a secure context with service worker support");
+      await t.waitForText("#time", "00:00:00");
+      t.equal(t.text("#remain"), "?");
+      t.equal(t.source("stream.time"), undefined);
+      t.equal(dbsourceCommand("stream").busy, false, "the command run finished immediately");
+      t.equal($bc.util.addMessageHandler("some-type", () => {}), true, "addMessageHandler registers handlers when serviceWorker is supported");
+    });
+
+    bcTest.test("a message of the configured type carries an envelope: 'push message receive' is logged and the member is published", async (t) => {
+      pushMessage("test", clock(10, 20, 30, 5));
+      await t.waitForText("#time", "10:20:30");
+      t.equal(t.text("#remain"), "5");
+      t.ok(t.consoleMessages(/^push message receive/).length === 1);
+      t.deepEqual(t.rows("stream.time"), [{ hh: 10, mm: 20, ss: 30, remain: 5, rownumber: 1 }]);
+      t.equal(t.source("stream.time").mergeType, 0);
+      t.equal(t.source("stream1.time2"), undefined, "the other type did not receive anything");
+
+      pushMessage("test", clock(10, 20, 31, 4));
+      await t.waitForText("#time", "10:20:31");
+      t.equal(t.rows("stream.time").length, 1, "mergeType 0 replaces");
+    });
+
+    bcTest.test("the second type feeds the second dbsource; an entry without options falls back to the id cms.no-name and is still mapped by position", async (t) => {
+      pushMessage("test1", { sources: [{ data: [{ value: "hello" }] }] });
+      await t.waitForText("#time2", "hello");
+      t.deepEqual(t.rows("stream1.time2"), [{ value: "hello", rownumber: 1 }], "published as <name>.<member> whatever the tableName");
+      t.equal(t.source("stream1.time2").mergeType, 0, "no options means replace");
+      t.equal(t.text("#time"), "10:20:31", "the first stream is untouched");
+    });
+
+    bcTest.test("messages of an unknown type, without a type or without sources are ignored", async (t) => {
+      const received = t.consoleMessages(/^push message receive/).length;
+      pushMessage("nope", clock(1, 1, 1, 1));
+      navigator.serviceWorker.dispatchEvent(new MessageEvent("message", { data: { message: clock(2, 2, 2, 2) } }));
+      pushMessage("test", { setting: { keepalive: false } });
+      await t.sleep(150);
+      t.equal(t.text("#time"), "10:20:31");
+      t.equal(t.consoleMessages(/^push message receive/).length, received + 1, "only the typed message reached the provider, and it had no sources");
+    });
+
+    bcTest.test("a message with the wrong number of sources is written with console.error and later messages still work", async (t) => {
+      pushMessage("test", {
+        sources: [
+          { options: { tableName: "stream.time" }, data: [{ hh: 9 }] },
+          { options: { tableName: "stream.other" }, data: [] }
+        ]
+      });
+      await t.waitForConsole(/Command 'stream' has 1 member\(s\) but 2 result\(s\) returned from source!/);
+      t.equal(t.text("#time"), "10:20:31");
+      pushMessage("test", clock(11, 10, 20, 3));
+      await t.waitForText("#time", "11:10:20");
+    });
+
+    bcTest.test("every trigger of a push dbsource adds one more receiver, so one message is published once per run", async (t) => {
+      const published = () => t.consoleMessages(/^r\.rows (Added|Updated)/).length;
+      pushMessage("retrig", { sources: [{ options: { tableName: "r.rows" }, data: [{ id: 1 }] }] });
+      await t.waitFor(published, (n) => n === 1);
+      $bc.setSource("push.go", 1);
+      await t.sleep(100);
+      pushMessage("retrig", { sources: [{ options: { tableName: "r.rows" }, data: [{ id: 2 }] }] });
+      await t.waitFor(published, (n) => n === 3, { message: "two receivers publish the same message twice" });
+      t.deepEqual(t.rows("r.rows").map((r) => r.id), [2]);
+    });
+
+    bcTest.test("a disposed dbsource keeps receiving but no longer publishes, and the provider never disconnects", async (t) => {
+      await dbsourceCommand("stream1").disposeAsync();
+      pushMessage("test1", { sources: [{ options: { tableName: "x" }, data: [{ value: "after dispose" }] }] });
+      await t.sleep(150);
+      t.equal(t.text("#time2"), "hello");
+      t.equal(t.consoleMessages(/Disconnect/).length, 0);
+    });
+
+    bcTest.test("TestConnectionAsync and loadPageAsync are not supported", (t) => {
+      const context = $bc.global.basiscore.context;
+      t.throws(() => connection("simple").TestConnectionAsync(context), /^TestConnection not support in PushConnectionOptions\.$/);
+      t.throws(() => connection("simple").loadPageAsync(context, "x.html", {}), /^loadPage not support in PushConnectionOptions\.$/);
+    });
+
+    bcTest.skip("a real push subscription (host.serviceWorker, host.push) delivers the payload through the worker", "needs notification permission and a push server; the worker registration itself is covered by the service-worker-and-push pages");
+  </script>
+</body>
+</html>

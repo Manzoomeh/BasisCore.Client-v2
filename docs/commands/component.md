@@ -146,7 +146,8 @@ The class is defined after the element; that is fine because the page is rendere
 ```html
 <Basis core="print" datamembername="inlineSource.print" run="atclient">
   <face>
-    <Basis core="component.local.DemoWithSetting" run="atclient" options="@options@"> </Basis>
+    <Basis core="component.local.DemoWithSetting" run="atclient"
+           options="{{ return window.$bc.util.storeAsGlobal($data.options); }}"> </Basis>
   </face>
 </Basis>
 <script>
@@ -161,15 +162,20 @@ The class is defined after the element; that is fine because the page is rendere
   class DemoWithSetting {
     constructor(owner) { this.owner = owner; }
     async initializeAsync() {
-      const options = await this.owner.getAttributeObjectValueAsync("options");
-      console.log(options);
+      const options = window[await this.owner.getAttributeValueAsync("options")];
+      console.log(options); // { id: 12, data: "p" } for the first row
     }
   }
 </script>
 ```
 
-`print` writes one `<basis>` per row; each is processed as its own `component` command and
-`getAttributeObjectValueAsync` evaluates the attribute text as JavaScript.
+`print` writes one `<basis>` per row and each is processed as its own `component` command. An
+attribute cannot carry an object: `options="@options@"` renders the row value as text
+(`[object Object]`), and `getAttributeObjectValueAsync` returns the attribute text as it is (no
+expression is evaluated; a bound `[##...##]` token resolves like in `getAttributeValueAsync`). The
+code block above stores the row's object as a global with a random name and writes that name into
+the attribute, the same technique the `schema` command uses for its field components; the class
+reads the object back from `window`.
 
 ### Exposer
 

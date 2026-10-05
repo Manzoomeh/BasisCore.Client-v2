@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>troubleshooting - dbLibPath</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // An empty dbLibPath is the first symptom under test, so it is the global host value.
+    // The other two cases override it with $bc.new().setOptions({ dbLibPath }).
+    var host = { dbLibPath: "" };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/troubleshooting.md">
+  <main>
+    <h1>troubleshooting - AlaSQL not found</h1>
+    <p class="intro">
+      The "AlaSQL not found" rows of <code>docs/troubleshooting.md</code>: an empty
+      <code>host.dbLibPath</code> throws <code>Error in load 'alasql'. 'DbLibPath' not configure
+      properly in host object.</code>, a path that is not served fails with the script's error event,
+      and the fix (a reachable <code>dbLibPath</code>) makes a face <code>filter</code> work. Each case
+      runs in its own runtime, in this order, because a successfully loaded <code>alasql</code> is
+      global and would hide the two failures.
+    </p>
+
+    <!-- bc-ignore: every fragment is started by its test with $bc.new() -->
+    <section class="case" bc-ignore>
+      <h2>1. <code>dbLibPath: ""</code></h2>
+      <div id="empty-path">
+        <basis core="print" datamembername="sql.rows" run="atclient">
+          <face filter="age > 30"><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>2. <code>dbLibPath</code> points to a file that is not served</h2>
+      <div id="missing-path">
+        <basis core="print" datamembername="sql.rows" run="atclient">
+          <face filter="age > 30"><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>3. Fix: <code>dbLibPath: "/node_modules/alasql/dist/alasql.min.js"</code></h2>
+      <div id="good-path">
+        <basis core="print" datamembername="sql.rows" run="atclient">
+          <face filter="age > 30"><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const rows = [
+      { name: "young", age: 20 },
+      { name: "older", age: 40 },
+    ];
+    bcTest.allowError(/'DbLibPath' not configure properly in host object/);
+    bcTest.allowError(/^\[object Event\]$/);
+
+    bcTest.test("an empty dbLibPath throws the documented ClientException when a face filter needs SQL", async (t) => {
+      t.equal(typeof window.alasql, "undefined", "alasql is not on the page yet");
+      const w = $bc.new().addFragment("#empty-path").run();
+      t.equal(w.basiscore.context.options.dbLibPath, "", "the host value is kept, not replaced by the default");
+      w.setSource("sql.rows", rows);
+      const errors = await t.waitForError(/DbLibPath/);
+      t.equal(errors[0].message, "Error in load 'alasql'. 'DbLibPath' not configure properly in host object.");
+      t.equal(t.$$("#empty-path .row").length, 0, "nothing is rendered");
+      await t.rejects(w.basiscore.context.getOrLoadDbLibAsync(), /^Error in load 'alasql'\. 'DbLibPath' not configure properly in host object\.$/);
+    });
+
+    bcTest.test("a dbLibPath that is not served appends a <script> to <head> and rejects with the script's error event; the rows never render", async (t) => {
+      const url = "/tests/fixtures/troubleshooting/does-not-exist/alasql.min.js";
+      const w = $bc.new().addFragment("#missing-path").setOptions({ dbLibPath: url }).run();
+      w.setSource("sql.rows", rows);
+      await t.waitFor(() => t.$("head script[src='" + url + "']"), { message: "the loader appends <script src=dbLibPath>" });
+      const errors = await t.waitForError(/^\[object Event\]$/, { message: "the promise rejects with the script error event" });
+      t.ok(errors.length >= 1);
+      t.equal(typeof window.alasql, "undefined");
+      t.equal(t.$$("#missing-path .row").length, 0);
+    });
+
+    bcTest.test("the fix: with alasql reachable at dbLibPath the filtered face renders and later runtimes reuse the global", async (t) => {
+      const url = "/node_modules/alasql/dist/alasql.min.js";
+      const w = $bc.new().addFragment("#good-path").setOptions({ dbLibPath: url }).run();
+      w.setSource("sql.rows", rows);
+      const rendered = await t.waitFor(() => t.$$("#good-path .row"), (l) => l.length === 1, { timeout: 10000 });
+      t.equal(t.text(rendered[0]), "older", "filter=\"age > 30\" keeps one row");
+      t.equal(typeof window.alasql, "function", "alasql is now a global");
+      t.equal(t.$$("head script[src='" + url + "']").length, 1);
+      t.ok((await w.basiscore.context.getOrLoadDbLibAsync()) === window.alasql, "an existing global alasql is reused");
+      t.ok((await $bc.new().addFragment("#good-path").setOptions({ dbLibPath: "" }).run().basiscore.context.getOrLoadDbLibAsync()) === window.alasql, "even with an empty dbLibPath, once the global exists nothing throws");
+    });
+  </script>
+</body>
+</html>

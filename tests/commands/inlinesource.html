@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>inlinesource</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // Every input source is published from host.sources, so the derived members can run as
+    // soon as the page is processed. Ids are lower-cased when they are published.
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "db.data1": [
+          { id: 1, name: "ali" },
+          { id: 2, name: "reza" },
+          { id: 3, name: "mohamad" }
+        ],
+        "db.data2": [
+          { studentid: 1, mark: "20" },
+          { studentid: 1, mark: "19" },
+          { studentid: 2, mark: "13" }
+        ],
+        "db.empty": [],
+        "book.list": [
+          { id: 1, BookName: "Alpha", Price: 5000 },
+          { id: 2, BookName: "Beta", Price: 12000 },
+          { id: 3, BookName: "Gamma", Price: 30000 }
+        ],
+        "nf.a": [{ id: 1 }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/inlinesource.md">
+  <main>
+    <h1>inlinesource</h1>
+    <p class="intro">
+      Checks the examples of <code>docs/commands/inlinesource.md</code>: <code>join</code> and
+      <code>sql</code> members, source auto-detection from bracketed names, explicit
+      <code>datamembername</code>, <code>sort</code>, <code>postsql</code>, <code>preview</code>,
+      re-running on <code>triggers</code>, and the pitfalls (missing <code>format</code>, a member
+      that waits forever, a spaced <code>datamembername</code>).
+    </p>
+
+    <section class="case" id="case-join">
+      <h2>Join two sources (<code>format="join"</code>, <code>jointype="leftjoin"</code>)</h2>
+      <basis core="inlinesource" name="list" run="atclient">
+        <member name="star" format="join" jointype="leftjoin"
+                lefttblcol="db.data1.id" righttblcol="db.data2.studentid"></member>
+      </basis>
+      <div id="join">
+        <basis core="print" datamembername="list.star" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face><li>@db_data1_name@: @(db_data2_mark??'no-mark')@</li></face>
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="list.star"></basis>
+    </section>
+
+    <section class="case" id="case-sql">
+      <h2>SQL over several sources (table names auto-detected from <code>[…]</code>)</h2>
+      <basis core="inlinesource" name="report" run="atclient">
+        <member name="marks" format="sql" sort="total desc">
+          SELECT s.name, COUNT(m.mark) AS exams, SUM(CAST(m.mark AS INT)) AS total
+          FROM [db.data1] AS s
+          LEFT JOIN [db.data2] AS m ON m.studentid = s.id
+          GROUP BY s.name
+        </member>
+      </basis>
+      <div id="report">
+        <basis core="print" datamembername="report.marks" run="atclient">
+          <layout><script type="text/template"><table><tbody>@child</tbody></table></script></layout>
+          <face><script type="text/template"><tr><td>@rownumber@</td><td>@name@</td><td>@exams@</td><td>@total@</td></tr></script></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-explicit">
+      <h2>Bracketed columns with an explicit <code>datamembername</code></h2>
+      <basis core="inlinesource" name="Catalog" run="atclient">
+        <member name="Expensive" format="sql" datamembername="book.list">
+          SELECT [id], [BookName], [Price] FROM [book.list] WHERE [Price] > 10000
+        </member>
+      </basis>
+      <div id="catalog">
+        <basis core="print" datamembername="catalog.expensive" run="atclient">
+          <face><div class="book">@BookName@ (@Price@)</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-triggers">
+      <h2>Recomputing when an input changes (<code>triggers</code> and a token in the SQL)</h2>
+      <label>filter: <input id="filter-name" name="filter.name" bc-triggers="keyup" /></label>
+      <basis core="inlinesource" name="view" run="atclient" triggers="filter.name">
+        <member name="rows" format="sql" datamembername="db.data1">
+          SELECT * FROM [db.data1] WHERE name LIKE '%[##filter.name.value|()##]%'
+        </member>
+      </basis>
+      <div id="view">
+        <basis core="print" datamembername="view.rows" run="atclient">
+          <face><div class="name">@name@</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-jointypes">
+      <h2>Join types: <code>innerjoin</code>, <code>rightjoin</code> on an empty left source, unknown type</h2>
+      <basis core="inlinesource" name="joins" run="atclient">
+        <member name="inner" format="join" jointype="innerjoin" lefttblcol="db.data1.id" righttblcol="db.data2.studentid"></member>
+        <member name="right" format="join" jointype="rightjoin" lefttblcol="db.empty.id" righttblcol="db.data2.studentid"></member>
+        <member name="plain" format="join" jointype="cross" lefttblcol="db.data1.id" righttblcol="db.data2.studentid"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-post">
+      <h2><code>postsql</code>, <code>sort</code> and <code>preview</code></h2>
+      <basis core="inlinesource" name="agg" run="atclient">
+        <member name="top" format="sql" postsql="SELECT * FROM [agg.top] WHERE id > 1" sort="id desc" preview="true">
+          SELECT id, name FROM [db.data1]
+        </member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-follow">
+      <h2>Derived sources do not follow their inputs; <code>ignoreNullSource</code> skips the initial run</h2>
+      <basis core="inlinesource" name="derived" run="atclient">
+        <member name="copy" format="sql">SELECT id FROM [nf.a]</member>
+      </basis>
+      <basis core="inlinesource" name="lazy" run="atclient" triggers="kick.go" ignoreNullSource="true">
+        <member name="rows" format="sql">SELECT id FROM [nf.a]</member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls, each in an isolated runtime</h2>
+      <p>The tests inject the faulty markup into these mounts and run them with <code>$bc.new()</code>.</p>
+      <div id="pit-format"></div>
+      <div id="pit-parts"></div>
+      <div id="pit-space"></div>
+      <div id="pit-brackets"></div>
+      <div id="pit-jointype"></div>
+    </section>
+  </main>
+
+  <script>
+    // The pitfalls below produce unhandled rejections by design.
+    bcTest.allowError(/Cannot read properties of null \(reading 'AddDataSourceExAsync'\)/);
+    bcTest.allowError(/InValid Data Format For 'LeftDataMember' Property 'db\.data1'/);
+    bcTest.allowError(/Cannot read properties of undefined \(reading 'getValueAsync'\)/);
+
+    bcTest.test("a join member publishes <source>_<member>_<field> columns plus rownumber, and leftjoin keeps unmatched left rows", async (t) => {
+      const items = await t.waitFor(() => t.$$("#join li"), (l) => l.length === 4, { timeout: 10000 });
+      t.deepEqual(items.map((li) => t.text(li)), ["ali: 20", "ali: 19", "reza: 13", "mohamad: no-mark"]);
+      const rows = t.rows("list.star");
+      t.equal(rows.length, 4);
+      t.deepEqual(Object.keys(rows[0]).sort(), ["db_data1_id", "db_data1_name", "db_data2_mark", "db_data2_studentid", "rownumber"]);
+      t.deepEqual(rows.map((r) => r.rownumber), [1, 2, 3, 4], "rownumber is 1-based and follows the result order");
+      t.equal(rows[3].db_data1_name, "mohamad");
+      t.ok(rows[3].db_data2_mark == null, "the right side of an unmatched left row is empty");
+      t.ok(t.consoleMessages(/list\.star Added\.\.\. 4 Row\(s\)/).length >= 1, "the repository logs the publication");
+    });
+
+    bcTest.test("a callback without method dumps the published source to the console", async (t) => {
+      await t.waitForConsole(/"db_data1_name": "ali"/);
+      t.ok(t.consoleMessages(/"db_data2_mark": "20"/).length >= 1, "rows are logged as indented JSON");
+    });
+
+    bcTest.test("a sql member reads every bracketed name as a table, applies sort and adds rownumber", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#report tbody tr"), (l) => l.length === 3, { timeout: 10000 });
+      const cells = rows.map((tr) => t.$$("td", tr).map((td) => t.text(td)));
+      t.deepEqual(cells[0], ["1", "ali", "2", "39"], "ali has two marks, total 39, sorted first");
+      t.deepEqual(cells[1].slice(0, 3), ["2", "reza", "1"]);
+      t.equal(cells[1][3], "13");
+      t.equal(cells[2][1], "mohamad", "the student without marks comes last");
+      t.equal(cells[2][0], "3");
+      t.deepEqual(t.rows("report.marks").map((r) => r.name), ["ali", "reza", "mohamad"]);
+    });
+
+    bcTest.test("datamembername lists the awaited sources, so bracketed columns are allowed; ids are published lower-cased", async (t) => {
+      const books = await t.waitFor(() => t.$$("#catalog .book"), (l) => l.length === 2, { timeout: 10000 });
+      t.deepEqual(books.map((b) => t.text(b)), ["Beta (12000)", "Gamma (30000)"]);
+      t.ok(t.source("catalog.expensive"), "name='Catalog' and member name='Expensive' publish catalog.expensive");
+      t.equal(t.source("catalog.expensive").id, "catalog.expensive");
+      t.deepEqual(Object.keys(t.rows("catalog.expensive")[0]).sort(), ["BookName", "Price", "id", "rownumber"]);
+      t.equal(t.rows("catalog.expensive")[0].rownumber, 1);
+      t.equal(t.consoleMessages(/^wait for (id|bookname|price)$/).length, 0, "no bracketed column was awaited as a source");
+    });
+
+    bcTest.test("published sources use the default options (mergeType replace, no key field)", async (t) => {
+      const src = await t.waitForSource("catalog.expensive");
+      t.equal(src.mergeType, basiscore.MergeType.replace);
+      t.equal(src.keyFieldName, undefined);
+      t.equal(src.statusFieldName, undefined);
+    });
+
+    bcTest.test("triggers re-run the command and the token inside the SQL is resolved on every run", async (t) => {
+      const names = () => t.$$("#view .name").map((n) => t.text(n));
+      await t.waitFor(names, (n) => n.join() === "ali,reza,mohamad", { timeout: 10000 });
+      t.setValue("#filter-name", "re", ["keyup"]);
+      await t.waitFor(names, (n) => n.join() === "reza", { timeout: 10000 });
+      t.setValue("#filter-name", "a", ["keyup"]);
+      await t.waitFor(names, (n) => n.join() === "ali,reza,mohamad", { timeout: 10000 });
+      t.setValue("#filter-name", "", ["keyup"]);
+      await t.waitFor(() => t.consoleMessages(/view\.rows Updated\.\.\. 3 Row\(s\)/), (l) => l.length >= 2, { timeout: 10000 });
+      t.equal(names().join(), "ali,reza,mohamad", "the empty fallback '()' matches every row");
+    });
+
+    bcTest.test("innerjoin drops unmatched rows, rightjoin on an empty left side only has right columns, an unknown type is a plain JOIN", async (t) => {
+      const inner = await t.waitForSource("joins.inner", null, { timeout: 10000 });
+      t.equal(inner.rows.length, 3, "inner join drops mohamad");
+      t.deepEqual(inner.rows.map((r) => r.db_data1_name), ["ali", "ali", "reza"]);
+
+      const right = await t.waitForSource("joins.right", null, { timeout: 10000 });
+      t.equal(right.rows.length, 3);
+      t.deepEqual(Object.keys(right.rows[0]).sort(), ["db_data2_mark", "db_data2_studentid", "rownumber"], "the empty left source contributes no columns");
+
+      const plain = await t.waitForSource("joins.plain", null, { timeout: 10000 });
+      t.equal(plain.rows.length, 3, "a plain JOIN behaves like an inner join here");
+    });
+
+    bcTest.test("postsql runs over the member result (as [name.member]), then sort, then rownumber; preview logs the source", async (t) => {
+      const src = await t.waitForSource("agg.top", null, { timeout: 10000 });
+      t.deepEqual(src.rows, [
+        { id: 3, name: "mohamad", rownumber: 1 },
+        { id: 2, name: "reza", rownumber: 2 }
+      ]);
+      await t.waitForConsole(/"name": "mohamad",\s+"rownumber": 1/);
+    });
+
+    bcTest.test("a derived source keeps its rows when an input is published again (no triggers)", async (t) => {
+      const before = await t.waitForSource("derived.copy", null, { timeout: 10000 });
+      t.deepEqual(before.rows.map((r) => r.id), [1]);
+      $bc.setSource("nf.a", [{ id: 1 }, { id: 2 }]);
+      await t.waitForSource("nf.a", (s) => s.rows.length === 2);
+      await t.sleep(300);
+      t.deepEqual(t.rows("derived.copy").map((r) => r.id), [1], "derived.copy was not recomputed");
+    });
+
+    bcTest.test("ignoreNullSource='true' skips the initial run; the first trigger publishes the member", async (t) => {
+      await t.waitForSource("derived.copy");
+      await t.sleep(200);
+      t.equal(t.source("lazy.rows"), undefined, "nothing was published on load");
+      $bc.setSource("kick.go", 1);
+      const src = await t.waitForSource("lazy.rows", null, { timeout: 10000 });
+      t.deepEqual(src.rows.map((r) => r.id), [1, 2], "the member reads the current rows of nf.a");
+    });
+
+    bcTest.test("pitfall: a member without format='sql' or 'join' throws a TypeError and the rendering wave never starts", async (t) => {
+      const mount = t.$("#pit-format");
+      mount.innerHTML =
+        '<basis core="inlinesource" name="pit" run="atclient">' +
+        '  <member name="rows" format="json">SELECT id FROM [db.data1]</member>' +
+        "</basis>" +
+        '<div class="out"><basis core="print" datamembername="pit.never" run="atclient"><face><li>@id@</li></face></basis></div>';
+      $bc.new().addFragment(mount).run();
+      await t.waitForError(/Cannot read properties of null \(reading 'AddDataSourceExAsync'\)/);
+      await t.sleep(300);
+      t.equal(t.$$("#pit-format basis").length, 0, "the <basis> elements were extracted (constructed)");
+      t.equal(t.$$("#pit-format li").length, 0, "the print rendered nothing");
+      t.equal(t.consoleMessages(/^wait for pit\.never$/).length, 0, "the low wave never ran, so the print never subscribed to its source");
+    });
+
+    bcTest.test("pitfall: lefttblcol with fewer than three parts throws InvalidPropertyValueException", async (t) => {
+      const mount = t.$("#pit-parts");
+      mount.innerHTML =
+        '<basis core="inlinesource" name="pit2" run="atclient">' +
+        '  <member name="bad" format="join" jointype="innerjoin" lefttblcol="db.data1" righttblcol="db.data2.studentid"></member>' +
+        "</basis>";
+      $bc.new().addFragment(mount).run();
+      const errors = await t.waitForError(/InValid Data Format For 'LeftDataMember' Property 'db\.data1'/);
+      t.ok(errors.length >= 1);
+    });
+
+    bcTest.test("pitfall: a space in datamembername waits for a source whose id starts with a space", async (t) => {
+      const mount = t.$("#pit-space");
+      mount.innerHTML =
+        '<basis core="inlinesource" name="pit3" run="atclient">' +
+        '  <member name="rows" format="sql" datamembername="db.data1, db.data2">SELECT * FROM [db.data1]</member>' +
+        "</basis>";
+      $bc.new().addFragment(mount).run();
+      await t.waitForConsole(/^wait for  db\.data2$/);
+      await t.sleep(200);
+      t.equal(t.consoleMessages(/pit3\.rows Added/).length, 0, "the member never publishes");
+    });
+
+    bcTest.test("pitfall: without datamembername every bracketed identifier, including columns, is awaited as a source", async (t) => {
+      const mount = t.$("#pit-brackets");
+      mount.innerHTML =
+        '<basis core="inlinesource" name="pit4" run="atclient">' +
+        '  <member name="expensive" format="sql">SELECT [id], [BookName], [Price] FROM [book.list] WHERE [Price] > 10000</member>' +
+        "</basis>";
+      $bc.new().addFragment(mount).run();
+      await t.waitForConsole(/^wait for price$/);
+      t.ok(t.consoleMessages(/^wait for id$/).length >= 1, "waits for a source called id");
+      t.ok(t.consoleMessages(/^wait for bookname$/).length >= 1, "ids are lower-cased for the lookup");
+      await t.sleep(200);
+      t.equal(t.consoleMessages(/pit4\.expensive Added/).length, 0, "the member never publishes");
+    });
+
+    bcTest.defect("known defect: a join member without jointype throws a TypeError instead of defaulting to innerjoin (and blocks the rendering wave)", async (t) => {
+      const mount = t.$("#pit-jointype");
+      mount.innerHTML =
+        '<basis core="inlinesource" name="pit5" run="atclient">' +
+        '  <member name="inner" format="join" lefttblcol="db.data1.id" righttblcol="db.data2.studentid"></member>' +
+        "</basis>" +
+        '<div class="out"><basis core="print" datamembername="pit5.inner" run="atclient"><face><li>@db_data1_name@</li></face></basis></div>';
+      $bc.new().addFragment(mount).run();
+      await t.waitForError(/Cannot read properties of undefined \(reading 'getValueAsync'\)/);
+      await t.sleep(300);
+      t.equal(t.source("pit5.inner"), undefined, "pit5.inner is never published");
+      t.equal(t.$$("#pit-jointype li").length, 0, "the print in the same runtime never renders");
+    });
+  </script>
+</body>
+</html>

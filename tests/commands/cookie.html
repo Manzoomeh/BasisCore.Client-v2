@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>cookie</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // Cookies that exist before the library starts: cms.cookie is a snapshot of them.
+    // The first two have no path, so they belong to this page's directory like the ones the
+    // commands below write with path="" and get overwritten by them.
+    document.cookie = "last_time=120000";
+    document.cookie = "second=two";
+    document.cookie = "todelete=1;path=/";
+
+    // Record every string assigned to document.cookie from now on (the browser still gets it).
+    const cookieDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, "cookie");
+    window.cookieWrites = [];
+    Object.defineProperty(document, "cookie", {
+      configurable: true,
+      get() { return cookieDescriptor.get.call(document); },
+      set(value) { window.cookieWrites.push(value); cookieDescriptor.set.call(document, value); }
+    });
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/cookie.md">
+  <main>
+    <h1>cookie</h1>
+    <p class="intro">
+      Checks <code>docs/commands/cookie.md</code>: the exact <code>name=value;max-age=…;path=…</code>
+      strings written, tokens in <code>value</code>, <code>triggers</code>, <code>ignoreNullSource</code>,
+      deleting with <code>max-age="0"</code>, trimming, the <code>cms.cookie</code> snapshot (leading
+      space on the second cookie, unchanged after writes) and the missing <code>name</code> pitfall.
+    </p>
+
+    <section class="case" id="case-last-visit">
+      <h2>Remember the time of the last visit</h2>
+      Last visit: <span id="last-visit">[##cms.cookie.last_time|(not set)##]</span><br />
+      Now: <span id="now">[##cms.cms.time2##]</span>
+      <basis core="cookie" name="last_time" value="[##cms.cms.time2##]" max-age="55" path="" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-js-source">
+      <h2>Value from a source published in JavaScript</h2>
+      Cookie value: <span id="lid-text">[##local.cookie.value|()##]</span>
+      <basis core="cookie" name="lid" value="[##local.cookie.value##]" max-age="55" path="/" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-dynamic">
+      <h2>Rewrite the cookie whenever a source changes</h2>
+      <span id="tick">[##data.time.value|(not set)##]</span>
+      <basis core="cookie" name="last_tick" value="[##data.time.value|(none)##]" max-age="55" path=""
+             run="atclient" triggers="data.time" OnRendered="cookieRendered"></basis>
+    </section>
+
+    <section class="case" id="case-preference">
+      <h2>Persist a user preference</h2>
+      <select id="lang" name="ui.lang" bc-triggers="change">
+        <option value="en">English</option>
+        <option value="fa">Persian</option>
+      </select>
+      <basis core="cookie" name="lang" value="[##ui.lang.value##]" max-age="2592000" path="/"
+             run="atclient" triggers="ui.lang" ignoreNullSource="true"></basis>
+    </section>
+
+    <section class="case" id="case-delete">
+      <h2>Delete a cookie</h2>
+      <basis core="cookie" name="todelete" value="" max-age="0" path="/" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-format">
+      <h2>Trimming, optional attributes and no encoding</h2>
+      <basis core="cookie" name=" spaced " value="v" path=" / " run="atclient"></basis>
+      <basis core="cookie" name="flag" value="1" run="atclient"></basis>
+      <basis core="cookie" name="enc" value="a;b" path="/" run="atclient"></basis>
+    </section>
+
+    <section class="case" id="case-snapshot">
+      <h2><code>cms.cookie</code> is a start-up snapshot</h2>
+      second cookie through a token: <span id="second">[##cms.cookie.second|(missing)##]</span>
+    </section>
+
+    <section class="case" id="case-noname">
+      <h2>Pitfall: missing <code>name</code></h2>
+      <div id="noname-mount"></div>
+    </section>
+  </main>
+
+  <script>
+    const renderedCalls = [];
+    function cookieRendered(args) {
+      renderedCalls.push(args);
+    }
+    const hasCookie = (pair) => document.cookie.split("; ").includes(pair);
+  </script>
+
+  <script>
+    bcTest.allowError(/Cannot read properties of null \(reading 'trim'\)/);
+
+    bcTest.test("the token shows the snapshot value while the command writes name=HHmmss;max-age=55 (path='' adds no path)", async (t) => {
+      await t.waitForText("#last-visit", "120000");
+      const now = await t.waitForText("#now", /^\d{6}$/);
+      const write = await t.waitFor(() => cookieWrites.find((w) => /^last_time=/.test(w)), (w) => !!w);
+      t.equal(write, "last_time=" + now + ";max-age=55");
+      t.ok(hasCookie("last_time=" + now), "the browser stored the new value");
+      t.ok(!hasCookie("last_time=120000"), "the cookie of the previous visit was overwritten");
+    });
+
+    bcTest.test("a value token without fallback waits for its source; a scalar setSource becomes { value }", async (t) => {
+      await t.waitForConsole(/^wait for local\.cookie$/);
+      await t.sleep(200);
+      t.equal(cookieWrites.filter((w) => /^lid=/.test(w)).length, 0, "nothing written before local.cookie exists");
+      $bc.setSource("local.cookie", 345);
+      const write = await t.waitFor(() => cookieWrites.find((w) => /^lid=/.test(w)), (w) => !!w);
+      t.equal(write, "lid=345;max-age=55;path=/");
+      await t.waitForText("#lid-text", "345");
+      t.deepEqual(t.rows("local.cookie"), [{ value: 345 }]);
+      t.ok(hasCookie("lid=345"));
+    });
+
+    bcTest.test("triggers rewrite the cookie with freshly resolved tokens; OnRendered runs after every write", async (t) => {
+      const writes = () => cookieWrites.filter((w) => /^last_tick=/.test(w));
+      await t.waitFor(writes, (w) => w.length === 1);
+      t.equal(writes()[0], "last_tick=none;max-age=55", "the initial run uses the token fallback");
+      t.equal(renderedCalls.length, 1);
+      t.equal(renderedCalls[0].source, undefined, "the initial run has no incoming source");
+      t.deepEqual(Object.keys(renderedCalls[0]).sort(), ["context", "node", "result", "source"]);
+
+      $bc.setSource("data.time", 111);
+      await t.waitFor(writes, (w) => w.length === 2);
+      t.equal(writes()[1], "last_tick=111;max-age=55");
+      await t.waitForText("#tick", "111");
+
+      $bc.setSource("data.time", 222);
+      await t.waitFor(writes, (w) => w.length === 3);
+      t.equal(writes()[2], "last_tick=222;max-age=55");
+      t.equal(renderedCalls.length, 3);
+      t.equal(renderedCalls[2].source.id, "data.time");
+      t.ok(hasCookie("last_tick=222"));
+    });
+
+    bcTest.test("ignoreNullSource='true' skips the initial write; the cookie is written when the select publishes", async (t) => {
+      await t.waitFor(() => cookieWrites, (w) => w.length >= 5);
+      await t.sleep(200);
+      t.equal(cookieWrites.filter((w) => /^lang=/.test(w)).length, 0, "no lang= written on load");
+      t.setValue("#lang", "fa", ["change"]);
+      const write = await t.waitFor(() => cookieWrites.find((w) => /^lang=/.test(w)), (w) => !!w);
+      t.equal(write, "lang=fa;max-age=2592000;path=/");
+      t.ok(hasCookie("lang=fa"));
+      t.deepEqual(t.rows("ui.lang"), [{ value: "fa" }]);
+    });
+
+    bcTest.test("max-age='0' is appended and deletes the cookie", async (t) => {
+      const write = await t.waitFor(() => cookieWrites.find((w) => /^todelete=/.test(w)), (w) => !!w);
+      t.equal(write, "todelete=;max-age=0;path=/");
+      t.ok(!/(^|; )todelete=/.test(document.cookie), "the browser removed the cookie");
+    });
+
+    bcTest.test("name and path are trimmed, max-age and path are omitted when empty, the value is not encoded", async (t) => {
+      await t.waitFor(() => cookieWrites, (w) => w.includes("enc=a;b;path=/"));
+      t.includes(cookieWrites, "spaced=v;path=/");
+      t.includes(cookieWrites, "flag=1");
+      t.ok(hasCookie("spaced=v"));
+      t.ok(hasCookie("flag=1"));
+      t.ok(hasCookie("enc=a"), "the browser kept only the part before ';'");
+      t.ok(!/(^|; )b=/.test(document.cookie), "'b' was read as a cookie attribute and dropped");
+    });
+
+    bcTest.test("cms.cookie keeps the leading space of every cookie after the first and never changes after a write", async (t) => {
+      await t.waitFor(() => cookieWrites, (w) => w.length >= 8);
+      const row = t.rows("cms.cookie")[0];
+      t.equal(row.last_time, "120000", "still the value the page started with");
+      t.equal(row[" second"], "two", "second cookie keyed with its leading space");
+      t.equal(row.second, undefined);
+      t.equal(row[" todelete"], "1", "the deleted cookie is still in the snapshot");
+      t.ok(!("lid" in row) && !("last_tick" in row) && !("lang" in row), "cookies written by the commands are not added");
+      t.equal(t.text("#second"), "missing", "a token cannot address the key with the space");
+      t.equal(t.rows("cms.cookie").length, 1, "single-row source");
+    });
+
+    bcTest.test("pitfall: a cookie command without name throws TypeError: Cannot read properties of null (reading 'trim')", async (t) => {
+      const mount = t.$("#noname-mount");
+      mount.innerHTML = '<basis core="cookie" value="x" max-age="55" run="atclient"></basis>';
+      const writesBefore = cookieWrites.length;
+      $bc.new().addFragment(mount).run();
+      await t.waitForError(/Cannot read properties of null \(reading 'trim'\)/);
+      t.equal(cookieWrites.length, writesBefore, "nothing was written");
+    });
+  </script>
+</body>
+</html>

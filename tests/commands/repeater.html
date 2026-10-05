@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>repeater</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {};
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/repeater.md">
+  <main>
+    <h1>repeater</h1>
+    <p class="intro">
+      Checks <code>docs/commands/repeater.md</code>: one copy of the inner markup per row, each in its own
+      <code>LocalContext</code> where the row is published as <code>&lt;name&gt;.current</code>; tokens such as
+      <code>[##rep.current.id##]</code>; <code>replace</code> against the merge type of the source; nested
+      commands reading the row; row-scoped <code>bc-triggers</code> elements; and the pitfall of a missing
+      <code>name</code>.
+    </p>
+
+    <section class="case" id="case-basic">
+      <h2>Basic list</h2>
+      <input type="button" id="set-basic" value="Set Source" onclick="set()" />
+      <ul id="basic">
+        <basis core="repeater" name="rep" datamembername="replace.data" run="atclient">
+          <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+        </basis>
+      </ul>
+    </section>
+
+    <section class="case" id="case-merge">
+      <h2><code>replace</code> versus source merge type</h2>
+      <input type="button" id="set-pair" value="Set Source" onclick="setPair()" />
+      <input type="button" id="trigger" value="trigger" name="event.render" bc-triggers="click" bc-value="0" />
+      <fieldset>
+        <legend>Source.MergeType = replace, repeater.replace = true</legend>
+        <ul id="rep-replace">
+          <basis core="repeater" name="rep" datamembername="pair.replace" run="atclient" triggers="event.render">
+            <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+          </basis>
+        </ul>
+      </fieldset>
+      <fieldset>
+        <legend>Source.MergeType = append, repeater.replace = false</legend>
+        <ul id="rep-append">
+          <basis core="repeater" name="rep" datamembername="pair.append" run="atclient" triggers="event.render" replace="false">
+            <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##] </li>
+          </basis>
+        </ul>
+      </fieldset>
+    </section>
+
+    <section class="case" id="case-nested">
+      <h2>Nested commands reading the row</h2>
+      <div id="nested">
+        <basis core="repeater" name="rep" datamembername="page.data" run="atclient">
+          <basis core="group" run="atclient" options="[##rep.current.options##]">
+            <fieldset>
+              <legend>[##rep.current.title##]</legend>
+              <basis core="print" datamembername="data.test" run="atclient">
+                <layout><ul>@child</ul></layout>
+                <face><script type="text/template"><li> @id - @name@</li></script></face>
+              </basis>
+            </fieldset>
+          </basis>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-scoped">
+      <h2>Row-scoped HTML bindings</h2>
+      <div id="scoped">
+        <basis core="repeater" name="item" datamembername="shop.items" run="atclient">
+          <div class="item">
+            <span class="title">[##item.current.title##]</span>
+            <button name="shop.selected" bc-triggers="click" bc-value="[##item.current.id##]">Select</button>
+            <span class="sel">[##shop.selected.value|(none)##]</span>
+          </div>
+        </basis>
+        <basis core="callback" run="atclient" triggers="shop.selected" method="onSelected"></basis>
+        <p>page level: <span id="page-selected">[##shop.selected.value|(none)##]</span></p>
+      </div>
+    </section>
+
+    <section class="case" id="case-noname">
+      <h2>Pitfall: a repeater without <code>name</code></h2>
+      <ul id="noname">
+        <basis core="repeater" datamembername="noname.data" run="atclient">
+          <li class="nn">[##rep.current.id##]</li>
+        </basis>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    // Scripts of the documented examples (the tests call them instead of the page).
+    let i = 0;
+    function set() {
+      $bc.setSource("replace.data", [{ id: i, name: `data ${i}` }]);
+      i += 1;
+    }
+
+    let k = 0;
+    function setPair() {
+      $bc.setSource("pair.replace",
+        [{ id: k, name: `data ${k}` }, { id: k + 1, name: `data ${k + 1}` }],
+        { mergeType: basiscore.MergeType.replace });
+      $bc.setSource("pair.append",
+        [{ id: k, name: `data ${k}` }, { id: k + 1, name: `data ${k + 1}` }],
+        { mergeType: basiscore.MergeType.append });
+      k += 2;
+    }
+
+    const selectedLog = [];
+    function onSelected(args) { selectedLog.push(args.source.rows[0].value); }
+  </script>
+
+  <!-- bc-ignore: the test code below quotes token syntax that the library must not scan -->
+  <script bc-ignore>
+    const texts = (sel) => Array.from(document.querySelectorAll(sel)).map((el) => el.textContent.replace(/\s+/g, " ").trim());
+    const repeaterFor = (member) =>
+      $bc.global.GetCommandListByCore("repeater").find((c) => c.node.getAttribute("datamembername") === member);
+
+    bcTest.test("one <li> per row; the row is read through rep.current tokens; a new publication replaces the output", async (t) => {
+      await t.sleep(100);
+      t.equal(t.$$("#basic li").length, 0, "nothing is rendered until the source exists");
+      set();
+      const first = await t.waitFor(() => t.$$("#basic li"), (l) => l.length === 1);
+      t.equal(t.text(first[0]), "hi 0 data 0");
+
+      t.click("#set-basic");
+      await t.waitForText("#basic", "hi 1 data 1");
+      const second = t.$$("#basic li");
+      t.equal(second.length, 1, "replace: the previous <li> is removed");
+      t.ok(second[0] !== first[0], "and a new node is rendered");
+      t.equal(t.$$("#basic basis").length, 0, "the <basis> element is taken out of the document");
+    });
+
+    bcTest.test("the row object itself is published as rep.current in the row's LocalContext with the parent's merge options", async (t) => {
+      const cmd = repeaterFor("replace.data");
+      t.ok(cmd, "the repeater command is reachable through GetCommandListByCore");
+      t.equal(cmd.oldChildContexts.length, 1, "one row context per row (the previous ones were disposed)");
+      const local = cmd.oldChildContexts[0].tryToGetSource("rep.current");
+      t.ok(local, "rep.current exists in the row context");
+      t.equal(local.rows.length, 1);
+      t.ok(local.rows[0] === t.rows("replace.data")[0], "the very same row object, not a copy");
+      t.equal(local.mergeType, t.source("replace.data").mergeType, "mergeType is cloned from the parent source");
+      t.ok(t.source("rep.current") == null, "rep.current is not visible in the page context");
+    });
+
+    bcTest.test("replace=true always shows the current rows; replace=false appends the whole current row set on every run", async (t) => {
+      setPair();
+      await t.waitFor(() => t.$$("#rep-replace li"), (l) => l.length === 2);
+      await t.waitFor(() => t.$$("#rep-append li"), (l) => l.length === 2);
+      t.deepEqual(texts("#rep-replace li"), ["hi 0 data 0", "hi 1 data 1"]);
+      t.deepEqual(texts("#rep-append li"), ["hi 0 data 0", "hi 1 data 1"]);
+
+      t.click("#set-pair");
+      await t.waitFor(() => t.$$("#rep-append li"), (l) => l.length === 6);
+      t.deepEqual(texts("#rep-replace li"), ["hi 2 data 2", "hi 3 data 3"], "the replace source holds the two latest rows");
+      t.deepEqual(texts("#rep-append li"), ["hi 0 data 0", "hi 1 data 1", "hi 0 data 0", "hi 1 data 1", "hi 2 data 2", "hi 3 data 3"],
+        "the append source grew to four rows and replace=false kept the two earlier <li>");
+      t.equal(t.rows("pair.append").length, 4);
+
+      const before = t.$$("#rep-replace li");
+      t.click("#trigger");
+      await t.waitFor(() => t.$$("#rep-append li"), (l) => l.length === 10);
+      t.deepEqual(texts("#rep-replace li"), ["hi 2 data 2", "hi 3 data 3"], "a trigger re-runs the repeater without changing the source");
+      t.ok(t.$$("#rep-replace li").every((li) => !before.includes(li)), "replace=true re-renders its rows");
+      t.equal(repeaterFor("pair.replace").oldChildContexts.length, 2, "replace=true disposes the previous row contexts");
+      t.equal(repeaterFor("pair.append").oldChildContexts.length, 10, "replace=false keeps every row context until disposal");
+    });
+
+    bcTest.test("nested group and print are cloned per row; a single-token attribute hands the row's object to the group", async (t) => {
+      $bc.setSource("page.data", [
+        { title: "Group#1", options: { sources: { "data.test": [{ id: 1, name: "Data#1" }] } } },
+        { title: "Group#2", options: { sources: { "data.test": [{ id: 3, name: "Data#3" }] } } }
+      ]);
+      const sets = await t.waitFor(() => t.$$("#nested fieldset"), (l) => l.length === 2 && l.every((f) => f.querySelector("li")));
+      t.deepEqual(sets.map((f) => t.text(f.querySelector("legend"))), ["Group#1", "Group#2"]);
+      t.deepEqual(sets.map((f) => texts("li").length && t.text(f.querySelector("ul"))), ["1 - Data#1", "3 - Data#3"], "each group's print reads the data.test of its own row");
+      t.ok(t.source("data.test") == null, "data.test lives in the groups, not in the page");
+
+      $bc.setSource("page.data", [{ title: "Group#9", options: { sources: { "data.test": [{ id: 9, name: "Data#9" }] } } }]);
+      await t.waitFor(() => t.$$("#nested fieldset"), (l) => l.length === 1 && l[0].querySelector("li"));
+      t.equal(t.text("#nested legend"), "Group#9");
+      t.equal(t.text("#nested ul"), "9 - Data#9");
+    });
+
+    bcTest.test("a bc-triggers element inside a row publishes into that row's context only", async (t) => {
+      $bc.setSource("shop.items", [{ id: 1, title: "A" }, { id: 2, title: "B" }]);
+      const items = await t.waitFor(() => t.$$("#scoped .item"), (l) => l.length === 2);
+      t.deepEqual(items.map((d) => t.text(d.querySelector(".title"))), ["A", "B"]);
+      t.deepEqual(items.map((d) => d.querySelector("button").getAttribute("bc-value")), ["1", "2"], "the attribute token resolved per row");
+
+      t.click(items[1].querySelector("button"));
+      await t.waitForText(items[1].querySelector(".sel"), "2");
+      t.equal(t.text(items[0].querySelector(".sel")), "none", "the other row did not see it");
+      await t.sleep(150);
+      t.equal(t.text("#page-selected"), "none", "the page did not see it");
+      t.ok(t.source("shop.selected") == null, "shop.selected is not in the page repository");
+      t.deepEqual(selectedLog, [], "the callback outside the repeater was never called");
+    });
+
+    bcTest.test("pitfall: without name the row source is null.current, so a token on rep.current never resolves (a text token stays empty)", async (t) => {
+      $bc.setSource("noname.data", [{ id: 1 }]);
+      await t.waitForConsole(/null\.current Added\.\.\. 1 Row/);
+      await t.waitForConsole(/handler Added for rep\.current/);
+      t.equal(t.consoleMessages(/undefined\.current/).length, 0, "the id is null.current, not undefined.current");
+      t.equal(t.$$("#noname li.nn").length, 1, "the row markup is still cloned");
+      t.equal(t.text("#noname li.nn"), "", "the token has nothing to show and never will");
+    });
+  </script>
+</body>
+</html>

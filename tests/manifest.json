@@ -1,24 +1,94 @@
 {
   "tests": [
     {
-      "file": "foundations/getting-started.html",
-      "doc": "docs/getting-started.md",
-      "title": "getting started"
-    },
-    {
       "file": "foundations/getting-started-autorender.html",
       "doc": "docs/getting-started.md",
       "title": "getting started - autoRender false"
     },
     {
-      "file": "commands/print.html",
-      "doc": "docs/commands/print.md",
-      "title": "print"
+      "file": "foundations/getting-started.html",
+      "doc": "docs/getting-started.md",
+      "title": "getting started"
     },
     {
-      "file": "foundations/service-worker-and-push.html",
-      "doc": "docs/service-worker-and-push.md",
-      "title": "service worker and push"
+      "file": "foundations/host-configuration.html",
+      "doc": "docs/host-configuration.md",
+      "title": "host configuration"
+    },
+    {
+      "file": "foundations/binding-and-tokens.html",
+      "doc": "docs/binding-and-tokens.md",
+      "title": "binding and tokens"
+    },
+    {
+      "file": "foundations/sources-and-reactivity.html",
+      "doc": "docs/sources-and-reactivity.md",
+      "title": "sources and reactivity"
+    },
+    {
+      "file": "foundations/command-attributes-and-lifecycle.html",
+      "doc": "docs/command-attributes-and-lifecycle.md",
+      "title": "command attributes and lifecycle"
+    },
+    {
+      "file": "foundations/html-element-binding.html",
+      "doc": "docs/html-element-binding.md",
+      "title": "html element binding"
+    },
+    {
+      "file": "foundations/connections-chunkbased.html",
+      "doc": "docs/connections.md",
+      "title": "connections - chunkbased"
+    },
+    {
+      "file": "foundations/connections-local.html",
+      "doc": "docs/connections.md",
+      "title": "connections - local"
+    },
+    {
+      "file": "foundations/connections-push.html",
+      "doc": "docs/connections.md",
+      "title": "connections - push"
+    },
+    {
+      "file": "foundations/connections-web.html",
+      "doc": "docs/connections.md",
+      "title": "connections - web"
+    },
+    {
+      "file": "foundations/connections-websocket.html",
+      "doc": "docs/connections.md",
+      "title": "connections - websocket"
+    },
+    {
+      "file": "foundations/client-side-sql-localdb.html",
+      "doc": "docs/client-side-sql.md",
+      "title": "client-side SQL - LocalDataBase"
+    },
+    {
+      "file": "foundations/client-side-sql-no-dblib.html",
+      "doc": "docs/client-side-sql.md",
+      "title": "client-side SQL - dbLibPath not configured"
+    },
+    {
+      "file": "foundations/client-side-sql.html",
+      "doc": "docs/client-side-sql.md",
+      "title": "client-side SQL"
+    },
+    {
+      "file": "foundations/javascript-api-autorun.html",
+      "doc": "docs/javascript-api.md",
+      "title": "JavaScript API - auto-run"
+    },
+    {
+      "file": "foundations/javascript-api.html",
+      "doc": "docs/javascript-api.md",
+      "title": "JavaScript API"
+    },
+    {
+      "file": "foundations/user-defined-components.html",
+      "doc": "docs/user-defined-components.md",
+      "title": "user-defined components"
     },
     {
       "file": "foundations/service-worker-and-push-default.html",
@@ -36,19 +106,114 @@
       "title": "service worker and push - permission dialog"
     },
     {
-      "file": "foundations/service-worker-and-push-subscribe.html",
-      "doc": "docs/service-worker-and-push.md",
-      "title": "service worker and push - subscription"
-    },
-    {
       "file": "foundations/service-worker-and-push-repost.html",
       "doc": "docs/service-worker-and-push.md",
       "title": "service worker and push - existing subscription"
     },
     {
-      "file": "foundations/html-element-binding.html",
-      "doc": "docs/html-element-binding.md",
-      "title": "html element binding"
+      "file": "foundations/service-worker-and-push-subscribe.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - subscription"
+    },
+    {
+      "file": "foundations/service-worker-and-push.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push"
+    },
+    {
+      "file": "foundations/internals.html",
+      "doc": "docs/internals.md",
+      "title": "internals"
+    },
+    {
+      "file": "foundations/troubleshooting-dblibpath.html",
+      "doc": "docs/troubleshooting.md",
+      "title": "troubleshooting - dbLibPath"
+    },
+    {
+      "file": "foundations/troubleshooting.html",
+      "doc": "docs/troubleshooting.md",
+      "title": "troubleshooting"
+    },
+    {
+      "file": "commands/print.html",
+      "doc": "docs/commands/print.md",
+      "title": "print"
+    },
+    {
+      "file": "commands/list.html",
+      "doc": "docs/commands/list.md",
+      "title": "list"
+    },
+    {
+      "file": "commands/view.html",
+      "doc": "docs/commands/view.md",
+      "title": "view"
+    },
+    {
+      "file": "commands/tree.html",
+      "doc": "docs/commands/tree.md",
+      "title": "tree"
+    },
+    {
+      "file": "commands/chart.html",
+      "doc": "docs/commands/chart.md",
+      "title": "chart"
+    },
+    {
+      "file": "commands/schema.html",
+      "doc": "docs/commands/schema.md",
+      "title": "schema"
+    },
+    {
+      "file": "commands/schemalist.html",
+      "doc": "docs/commands/schemalist.md",
+      "title": "schemalist"
+    },
+    {
+      "file": "commands/schemauploader.html",
+      "doc": "docs/commands/schemauploader.md",
+      "title": "schemauploader"
+    },
+    {
+      "file": "commands/inlinesource.html",
+      "doc": "docs/commands/inlinesource.md",
+      "title": "inlinesource"
+    },
+    {
+      "file": "commands/dbsource.html",
+      "doc": "docs/commands/dbsource.md",
+      "title": "dbsource"
+    },
+    {
+      "file": "commands/api.html",
+      "doc": "docs/commands/api.md",
+      "title": "api"
+    },
+    {
+      "file": "commands/cookie.html",
+      "doc": "docs/commands/cookie.md",
+      "title": "cookie"
+    },
+    {
+      "file": "commands/call.html",
+      "doc": "docs/commands/call.md",
+      "title": "call"
+    },
+    {
+      "file": "commands/group.html",
+      "doc": "docs/commands/group.md",
+      "title": "group"
+    },
+    {
+      "file": "commands/repeater.html",
+      "doc": "docs/commands/repeater.md",
+      "title": "repeater"
+    },
+    {
+      "file": "commands/callback.html",
+      "doc": "docs/commands/callback.md",
+      "title": "callback"
     },
     {
       "file": "commands/input.html",
@@ -61,14 +226,14 @@
       "title": "select"
     },
     {
-      "file": "commands/form.html",
-      "doc": "docs/commands/form.md",
-      "title": "form"
-    },
-    {
       "file": "commands/form-codeblock.html",
       "doc": "docs/commands/form.md",
       "title": "form - code block result"
+    },
+    {
+      "file": "commands/form.html",
+      "doc": "docs/commands/form.md",
+      "title": "form"
     },
     {
       "file": "commands/unknown-html.html",
@@ -76,14 +241,24 @@
       "title": "unknown-html"
     },
     {
-      "file": "commands/schemalist.html",
-      "doc": "docs/commands/schemalist.md",
-      "title": "schemalist"
+      "file": "commands/component.html",
+      "doc": "docs/commands/component.md",
+      "title": "component"
     },
     {
-      "file": "commands/schemauploader.html",
-      "doc": "docs/commands/schemauploader.md",
-      "title": "schemauploader"
+      "file": "schema/schema-json-contract.html",
+      "doc": "docs/schema/schema-json-contract.md",
+      "title": "schema JSON contract"
+    },
+    {
+      "file": "schema/field-types.html",
+      "doc": "docs/schema/field-types.md",
+      "title": "schema field types"
+    },
+    {
+      "file": "schema/validation.html",
+      "doc": "docs/schema/validation.md",
+      "title": "schema validation"
     },
     {
       "file": "schema/lookup-and-autocomplete.html",
@@ -104,6 +279,11 @@
       "file": "schema/answers-and-submission.html",
       "doc": "docs/schema/answers-and-submission.md",
       "title": "schema answers and submission"
+    },
+    {
+      "file": "schema/dom-markers.html",
+      "doc": "docs/schema/dom-markers.md",
+      "title": "schema DOM markers"
     }
   ]
 }

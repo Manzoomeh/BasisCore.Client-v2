@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JavaScript API - auto-run</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/dist/basiscore.js"></script>
+  <script>
+    // Touching $bc.global before the load event creates a wrapper, which disables the automatic
+    // $bc.run() on load, but does not start the engine.
+    const earlyWrapper = $bc.global;
+    window.wrappersBeforeLoad = $bc.all.length;
+  </script>
+</head>
+<body data-doc="docs/javascript-api.md">
+  <main>
+    <h1>JavaScript API - auto-run</h1>
+    <p class="intro">
+      Checks the auto-run rule of <code>docs/javascript-api.md</code>: a wrapper created before
+      <code>load</code> (here through <code>$bc.global</code>) disables the automatic run, so the page
+      has to call <code>run()</code> itself.
+    </p>
+    <section class="case">
+      <h2>A lone <code>$bc.global</code> disables auto-run without starting the engine</h2>
+      <p id="token">value: [##auto.x.v|(not run)##]</p>
+    </section>
+  </main>
+  <script>
+    bcTest.test("$bc.global before load created the wrapper and nothing ran on load", async (t) => {
+      await t.sleep(300);
+      t.equal(window.wrappersBeforeLoad, 1);
+      t.equal($bc.all.length, 1);
+      t.ok($bc.global === earlyWrapper);
+      t.equal($bc.global.basiscore, null, "the engine was not built");
+      t.equal(t.text("#token"), "value: [##auto.x.v|(not run)##]", "the token is untouched");
+    });
+
+    bcTest.test("run() afterwards processes the page; $bc.setSource then publishes", async (t) => {
+      t.ok($bc.run() === $bc.global);
+      t.ok($bc.global.basiscore, "built");
+      await t.waitForText("#token", "value: not run");
+      $bc.setSource("auto.x", { v: "ran" });
+      await t.waitForText("#token", "value: ran");
+    });
+  </script>
+</body>
+</html>

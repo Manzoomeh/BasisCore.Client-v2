@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>troubleshooting</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // ---- mock back end for the dbsource cases ----
+    const bookRequests = [];
+    BasisCoreMock.route({
+      url: "/api/books",
+      method: "POST",
+      response: (ctx) => {
+        bookRequests.push({ dmnid: ctx.bodyJSON.dmnid, command: ctx.bodyJSON.command });
+        return BasisCoreMock.bc.api([{ id: 1, title: "A" }], { tableName: "book.list" });
+      },
+    });
+    BasisCoreMock.route({
+      url: "/api/mismatch",
+      method: "POST",
+      response: () => BasisCoreMock.bc.api([{ id: 1 }], { tableName: "two.first" }),
+    });
+    const getRequests = [];
+    BasisCoreMock.route({
+      url: "/api/get-books",
+      method: "GET",
+      response: (ctx) => {
+        getRequests.push({ method: ctx.method, query: ctx.query });
+        return BasisCoreMock.bc.api([{ id: 2, title: "B" }], { tableName: "upper.list" });
+      },
+    });
+
+    // ---- chunked streams: the mock serialises every route result as JSON, so the streamed
+    //      bodies are served by this small wrapper around fetch (installed after the mock) ----
+    const chunkStreams = {};
+    (function () {
+      const inner = window.fetch;
+      const encoder = new TextEncoder();
+      window.fetch = function (input, init) {
+        const url = typeof input === "string" ? input : input.url;
+        const path = new URL(url, location.href).pathname;
+        if (path === "/chunk-broken") {
+          // one complete object, then an unfinished second one and the end of the stream
+          const stream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode('[{"sources":[{"options":{"tableName":"chunk.rows"},"data":[{"id":1}]}]}'));
+              controller.enqueue(encoder.encode(', {"half": '));
+              controller.close();
+            },
+          });
+          return Promise.resolve(new Response(stream, { headers: { "Content-Type": "application/json" } }));
+        }
+        if (path === "/chunk-open") {
+          // one message, then the stream stays open
+          const stream = new ReadableStream({
+            start(controller) {
+              chunkStreams.open = controller;
+              controller.enqueue(encoder.encode('[{"sources":[{"options":{"tableName":"live.rows"},"data":[{"id":1}]}]}'));
+            },
+          });
+          return Promise.resolve(new Response(stream, { headers: { "Content-Type": "application/json" } }));
+        }
+        if (path === "/chunk-mismatch") {
+          const stream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode('[{"sources":[{"options":{"tableName":"cm.first"},"data":[{"id":1}]}]},null]'));
+              controller.close();
+            },
+          });
+          return Promise.resolve(new Response(stream, { headers: { "Content-Type": "application/json" } }));
+        }
+        return inner.apply(this, arguments);
+      };
+    })();
+    const chunkCloses = [];
+    function onChunkClose(param) {
+      chunkCloses.push({ withError: param.withError, hasContext: !!param.context });
+    }
+
+    // ---- record every XMLHttpRequest (used by `call`), the request itself still goes out ----
+    const xhrLog = [];
+    (function () {
+      const open = XMLHttpRequest.prototype.open;
+      const send = XMLHttpRequest.prototype.send;
+      const setHeader = XMLHttpRequest.prototype.setRequestHeader;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        this.__bc = { method, url, headers: {}, body: null };
+        return open.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.setRequestHeader = function (name, value) {
+        if (this.__bc) this.__bc.headers[name] = value;
+        return setHeader.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send = function (body) {
+        if (this.__bc) {
+          this.__bc.body = body == null ? null : String(body);
+          xhrLog.push(this.__bc);
+        }
+        return send.apply(this, arguments);
+      };
+    })();
+
+    // cookies for the cms.cookie defect (cleared again by the test)
+    document.cookie = "bcfirst=1";
+    document.cookie = "bcsecond=a=b";
+
+    const eventRenders = [];
+    async function countEventsRender(args) {
+      eventRenders.push(args.source ? args.source.id : undefined);
+    }
+
+    var host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      settings: {
+        "connection.web.bookapi": { url: "/api/books", verb: "POST" },
+        "connection.web.mismatchweb": "/api/mismatch",
+        "connection.web.lower": { url: "/api/lower-books", verb: "get" },
+        "connection.web.upper": { url: "/api/get-books", verb: "GET" },
+        "connection.rest.restapi": "/rest",
+        "connection.web.callcommand": "/tests/fixtures/troubleshooting/",
+        "connection.chunkbased.broken": { Connection: "/chunk-broken", onClose: "onChunkClose" },
+        "connection.chunkbased.open": "/chunk-open",
+        "connection.chunkbased.mismatch": "/chunk-mismatch",
+        "connection.websocket.socket": "ws://127.0.0.1:1/never-opened",
+        "connection.local.loc": "/tests/fixtures/user-defined-components/greeter.js|greeter",
+        "connection.push.pushed": "pushed-messages",
+        "connection.web.my.api": "/api/books",
+        "x.zero": 0,
+        // default.dmnid is deliberately not set: see the dmnid=null defect
+      },
+      sources: {
+        "qr.rows": [{ id: 1, name: "first" }, { id: 2, name: "second" }],
+        "qr.table": [{ id: 1, name: "Ann" }, { id: 2, name: "Bob" }],
+        "qr.tree": [
+          { id: 1, parentid: null, name: "root" },
+          { id: 2, parentid: 1, name: "child" },
+        ],
+        "qr.view": [
+          { id: 1, question: "FaName", answer: "ali", prpid: "1" },
+          { id: 2, question: "FaName", answer: "amir", prpid: "1" },
+          { id: 3, question: "EnName", answer: "Amir", prpid: "2" },
+        ],
+        "bleed.rows": [{ a: 1 }, { a: 2 }, { a: 3 }],
+      },
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/troubleshooting.md">
+  <main>
+    <h1>troubleshooting</h1>
+    <p class="intro">
+      Reproduces the symptoms of the quick reference in <code>docs/troubleshooting.md</code>, each
+      with the documented console message or error and the documented fix, and the known defects of
+      2.39.6 that can be observed in a headless browser (<code>cms.cms</code> dates, lower-case verb,
+      <code>dmnid=null</code>, the console banner, the <code>rest</code> provider, <code>call</code>
+      with <code>GET</code>, <code>events</code> logging, <code>bc-key</code>, <code>view</code> level 2,
+      the text token <code>TypeError</code>, <code>setSource</code> before <code>run</code>,
+      <code>level</code> on a <code>print</code> face, and several of the "other defects").
+      Cases that would stop the whole runtime are marked <code>bc-ignore</code> and started by their
+      test in a runtime of their own.
+    </p>
+
+    <section class="case" id="qr-run">
+      <h2>Command does nothing without <code>run="atclient"</code> (the value is case-insensitive)</h2>
+      <div id="run-missing">
+        <basis core="print" datamembername="qr.silent"><face><span class="row">@name@</span></face></basis>
+      </div>
+      <div id="run-upper">
+        <basis core="print" datamembername="qr.rows" run="ATCLIENT"><face><span class="row">@name@</span></face></basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-table">
+      <h2>Table rows: raw <code>&lt;tr&gt;</code> in a face vs <code>&lt;script type="text/template"&gt;</code></h2>
+      <div id="table-broken">
+        <table>
+          <basis core="print" datamembername="qr.table" run="atclient">
+            <face><tr><td>@id@</td><td>@name@</td></tr></face>
+          </basis>
+        </table>
+      </div>
+      <div id="table-fixed">
+        <table>
+          <basis core="print" datamembername="qr.table" run="atclient">
+            <layout>
+              <script type="text/template">
+                <thead><tr><th>Id</th><th>Name</th></tr></thead>
+                <tbody>@child</tbody>
+              </script>
+            </layout>
+            <face>
+              <script type="text/template">
+                <tr><td>@id@</td><td>@name@</td></tr>
+              </script>
+            </face>
+          </basis>
+        </table>
+      </div>
+    </section>
+
+    <section class="case" id="qr-parsererror">
+      <h2>A template that is not well-formed XML renders a <code>parsererror</code></h2>
+      <div id="xml-broken">
+        <basis core="print" datamembername="qr.rows" run="atclient">
+          <face><span class="row">@name@</span><br></face>
+        </basis>
+      </div>
+      <div id="xml-fixed">
+        <basis core="print" datamembername="qr.rows" run="atclient">
+          <face><script type="text/template"><span class="row">@name@</span><br /></script></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-dbsource">
+      <h2>dbsource over a web connection: <code>dmnid</code>, the console sequence, lower- and upper-case verbs</h2>
+      <basis core="dbsource" source="bookapi" name="book" run="atclient">
+        <member name="list" />
+      </basis>
+      <div id="book-output">
+        <basis core="print" datamembername="book.list" run="atclient">
+          <face><span class="book">@id@ - @title@</span></face>
+        </basis>
+      </div>
+      <basis core="dbsource" source="upper" name="upper" run="atclient">
+        <member name="list" />
+      </basis>
+    </section>
+
+    <section class="case" id="qr-layout">
+      <h2><code>&lt;layout&gt;</code> without <code>@child</code> (warning)</h2>
+      <div id="layout-output">
+        <basis core="print" datamembername="qr.rows" run="atclient">
+          <layout><ul class="no-child"><li>static</li></ul></layout>
+          <face><li class="row">@name@</li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-chunk">
+      <h2>Chunked stream ending with leftover data; a member mismatch inside a stream message</h2>
+      <basis core="dbsource" source="broken" name="chunk" run="atclient">
+        <member name="rows" />
+      </basis>
+      <basis core="dbsource" source="mismatch" name="cm" run="atclient">
+        <member name="first" />
+        <member name="second" />
+      </basis>
+    </section>
+
+    <section class="case" id="qr-wait">
+      <h2><code>wait for x.y</code> with no later <code>x.y Added</code></h2>
+      <div id="wait-output">
+        <basis core="print" datamembername="qr.rows" if="[##typo.member.value##]" run="atclient">
+          <face><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-call">
+      <h2><code>call</code>: POST parameters, GET without parameters (defect), a working fragment</h2>
+      <div id="call-post"><basis core="call" file="called.html" extra="1" run="atclient"></basis></div>
+      <div id="call-get"><basis core="call" file="called.html" method="GET" pagesize="5" run="atclient"></basis></div>
+    </section>
+
+    <section class="case" id="qr-tree">
+      <h2><code>tree</code> with <code>nullvalue="null"</code> (the fix for a missing root)</h2>
+      <div id="tree-output">
+        <basis core="tree" datamembername="qr.tree" nullvalue="null" run="atclient">
+          <face><li class="node">@name@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-view">
+      <h2><code>view</code>: group headers without rows (known defect)</h2>
+      <div id="view-output">
+        <basis core="view" datamembername="qr.view" run="atclient">
+          <face level="1"><ul><li class="group">@question <ul class="answers">@child</ul></li></ul></face>
+          <face level="2"><li class="answer">@answer@</li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-token">
+      <h2>A text token re-rendered to an empty value (known defect) and the fallback fix</h2>
+      <p>bad: <span id="tok-bad">[##tt.v.value##]</span> good: <span id="tok-good">[##tt.v.value|( )##]</span></p>
+    </section>
+
+    <section class="case" id="qr-events">
+      <h2><code>events</code> writes to the console; listeners survive disposal (known defects)</h2>
+      <div id="events-output">
+        <basis core="print" datamembername="qr.rows" events="document.click" OnRendered="countEventsRender" run="atclient">
+          <face><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-bckey">
+      <h2><code>bc-key</code> is not an attribute; <code>bc-keyField</code> is</h2>
+      <input id="key-wrong" name="k.wrong" bc-key="id" bc-triggers="change" />
+      <input id="key-right" name="k.right" bc-keyField="id" bc-triggers="change" />
+    </section>
+
+    <section class="case" id="qr-dup">
+      <h2>append with <code>keyFieldName</code> but no <code>statusFieldName</code> (known defect)</h2>
+      <div id="dup-output">
+        <basis core="print" datamembername="dup.rows" run="atclient">
+          <face><span class="dup-row">@n@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="qr-chart">
+      <h2>Chart SVG appended to <code>body</code> first; tooltips accumulate (known defects)</h2>
+      <div id="chart-output">
+        <basis core="chart" datamembername="chart.rows" run="atclient" chartType="bar" group="label" y="value" hover="true"></basis>
+      </div>
+    </section>
+
+    <!-- ---- isolated cases: each is started by its test with $bc.new().addFragment(...) ---- -->
+    <section class="case" bc-ignore>
+      <h2>Isolated: member count mismatch</h2>
+      <div id="iso-mismatch">
+        <basis core="dbsource" source="mismatchweb" name="two" run="atclient">
+          <member name="first" />
+          <member name="second" />
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: connection not configured</h2>
+      <div id="iso-noconn">
+        <basis core="dbsource" source="nope" name="nowhere" run="atclient"><member name="list" /></basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: tree without a root record</h2>
+      <div id="iso-tree">
+        <basis core="tree" datamembername="qr.tree" run="atclient">
+          <face><li class="node">@name@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: <code>source</code> attribute changed while a stream is open</h2>
+      <div id="iso-stream">
+        <basis core="dbsource" source="[##cfg.conn.value##]" name="live" run="atclient" triggers="cfg.conn">
+          <member name="rows" />
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: unsupported chart type</h2>
+      <div id="iso-chart">
+        <basis core="chart" datamembername="chart.bad" chartType="pie" group="g" y="y" run="atclient"></basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: repository setting not found</h2>
+      <div id="iso-repo"><basis core="component.missing.widget" run="atclient"></basis></div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: <code>call</code> HTTP 404</h2>
+      <div id="iso-call404"><basis core="call" file="missing.html" run="atclient"></basis></div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: lower-case <code>verb</code> on a GET dbsource</h2>
+      <div id="iso-lower">
+        <basis core="dbsource" source="lower" name="lower" run="atclient"><member name="list" /></basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: <code>default.dmnid</code> set</h2>
+      <div id="iso-dmnid">
+        <basis core="dbsource" source="bookapi" name="book2" run="atclient"><member name="list" /></basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: <code>level</code> on a <code>print</code> face</h2>
+      <div id="iso-level">
+        <basis core="print" datamembername="lvl.rows" run="atclient">
+          <face level="1"><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: one-segment token and a token without member</h2>
+      <div id="iso-token-one"><span>[##name##]</span></div>
+      <div id="iso-token-nomember"><span>[##name.##]</span></div>
+    </section>
+
+    <section class="case" bc-ignore>
+      <h2>Isolated: fragments for wrapper-level checks</h2>
+      <div id="iso-plain-a">a</div>
+      <div id="iso-plain-b">b</div>
+      <div id="iso-plain-c">c</div>
+      <div id="iso-plain-d">d</div>
+    </section>
+  </main>
+
+  <script>
+    bcTest.allowError(/has 2 member\(s\) but 1 result\(s\) returned from source!/);
+    bcTest.allowError(/In 'host\.settings' object, property 'nope' not configured!/);
+    bcTest.allowError(/Tree command has no root record/);
+    bcTest.allowError(/Source attribute can't change when socket is open/);
+    bcTest.allowError(/socket\.send is not a function/);
+    bcTest.allowError(/Chart type pie is not supported/);
+    bcTest.allowError(/reading 'runAsync'/);
+    bcTest.allowError(/HTTP 404/);
+    bcTest.allowError(/Request with GET\/HEAD method cannot have body/);
+    bcTest.allowError(/Cannot read properties of null \(reading 'toString'\)/);
+    bcTest.allowError(/Cannot read properties of undefined \(reading 'some'\)/);
+    bcTest.allowError(/reading 'toLowerCase'/);
+    bcTest.allowError(/^Method not implemented\.$/);
+
+    const isolate = (selector, options) => {
+      const w = $bc.new().addFragment(selector);
+      if (options) w.setOptions(options);
+      return w.run();
+    };
+
+    /* ------------------------------------------------------------------ */
+    /* Quick reference                                                     */
+    /* ------------------------------------------------------------------ */
+
+    bcTest.test("a <basis> without run=\"atclient\" is left untouched and nothing is logged; run=\"ATCLIENT\" is accepted", async (t) => {
+      await t.waitFor(() => t.$$("#run-upper .row"), (l) => l.length === 2);
+      t.ok(t.$("#run-missing basis"), "the element is still in the DOM");
+      t.equal(t.$("#run-missing basis").innerHTML.indexOf("@name@") !== -1, true, "with its template unrendered");
+      t.equal(t.consoleMessages(/qr\.silent/).length, 0, "no handler, no wait, nothing logged about qr.silent");
+      t.equal(t.$$("#run-upper basis").length, 0);
+      t.equal(document.createElement("basis").isBasisCore(), false);
+    });
+
+    bcTest.test("raw <tr> inside a <face> is moved out by the HTML parser; the script template version renders inside the table", async (t) => {
+      const fixed = await t.waitFor(() => t.$$("#table-fixed tbody tr"), (l) => l.length === 2);
+      t.deepEqual(fixed.map((r) => t.$$("td", r).map((td) => t.text(td))), [["1", "Ann"], ["2", "Bob"]]);
+      t.deepEqual(t.$$("#table-fixed thead th").map((th) => t.text(th)), ["Id", "Name"], "the layout keeps the header inside the table");
+      await t.sleep(100);
+      const brokenRows = t.$$("#table-broken tr").map((r) => t.$$("td", r).map((td) => t.text(td)).join(" "));
+      t.equal(brokenRows.filter((r) => r === "1 Ann" || r === "2 Bob").length, 0, "no row with data is rendered in the broken table");
+      t.ok(t.$("#table-broken table").textContent.indexOf("@id") !== -1, "the <tr> with the raw placeholders was foster-parented into the table");
+    });
+
+    bcTest.test("an unclosed <br> in a face makes the output a parsererror element; closing it (<br />) in a script template works", async (t) => {
+      await t.waitFor(() => t.$$("#xml-fixed .row"), (l) => l.length === 2);
+      t.equal(t.$$("#xml-fixed br").length, 2);
+      await t.waitFor(() => t.$("#xml-broken parsererror"), { message: "the output contains the parser's error element" });
+      t.equal(t.$$("#xml-broken parsererror").length, 2, "one parsererror per row");
+      t.match(t.text("#xml-broken parsererror"), /error/i, "its content is the parser's error text");
+    });
+
+    bcTest.test("Command 'x' has N member(s) but M result(s) returned from source! when the response has a different number of sources", async (t) => {
+      isolate("#iso-mismatch");
+      const errors = await t.waitForError(/has 2 member\(s\) but 1 result\(s\)/);
+      t.equal(errors[0].message, "Command 'two' has 2 member(s) but 1 result(s) returned from source!");
+    });
+
+    bcTest.test("In 'host.settings' object, property 'x' not configured! for an unknown connection name; names are case-sensitive", async (t) => {
+      isolate("#iso-noconn");
+      const errors = await t.waitForError(/property 'nope' not configured/);
+      t.equal(errors[0].message, "In 'host.settings' object, property 'nope' not configured!");
+      const connections = $bc.global.basiscore.context.connections;
+      t.equal(connections.getConnection("bookapi").Name, "bookapi");
+      t.throws(() => connections.getConnection("BookApi"), /property 'BookApi' not configured!/, "connection names are case-sensitive");
+      t.equal(connections.getConnection("callcommand").Url, "/tests/fixtures/troubleshooting/", "call without url uses the connection named callcommand");
+    });
+
+    bcTest.test("wrapper errors: addFragment/setOptions after run, no element selected, invalid selector", async (t) => {
+      const w = isolate("#iso-plain-a");
+      t.throws(() => w.addFragment("#iso-plain-a"), /^Can't add fragment for already builded bc object\.$/);
+      t.throws(() => w.setOptions({}), /^Can't set option for already builded bc object\.$/);
+      const warnBefore = t.consoleMessages(/Selector '#does-not-exist' don't refer to any element\(s\)\./).length;
+      t.throws(() => $bc.new().addFragment("#does-not-exist").run(), /^No element\(s\) selected for start rendering!$/);
+      t.equal(t.consoleMessages(/Selector '#does-not-exist' don't refer to any element\(s\)\./).length, warnBefore + 1, "each failed selector logs a warning");
+      t.throws(() => $bc.new().addFragment(42), /^Invalid selector$/);
+    });
+
+    bcTest.test("Tree command has no root record ... when no row matches nullvalue; nullvalue=\"null\" matches null parents", async (t) => {
+      const nodes = await t.waitFor(() => t.$$("#tree-output .node"), (l) => l.length === 2);
+      t.equal(t.text(nodes[0]), "root child");
+      isolate("#iso-tree");
+      const errors = await t.waitForError(/Tree command has no root record/);
+      t.equal(errors[0].message, "Tree command has no root record in data member 'qr.tree' with '0' value in 'parentid' column that set in NullValue attribute.");
+    });
+
+    bcTest.test("Source attribute can't change when socket is open: a dbsource on an open stream re-run with another connection name; re-running with the same name throws too (defect)", async (t) => {
+      const w = isolate("#iso-stream");
+      w.setSource("cfg.conn", "open");
+      await t.waitForSource("live.rows", { wrapper: w });
+      t.deepEqual(t.rows("live.rows", w), [{ id: 1, rownumber: 1 }]);
+      w.setSource("cfg.conn", "elsewhere");
+      const errors = await t.waitForError(/Source attribute can't change/);
+      t.equal(errors[0].message, "Source attribute can't change when socket is open . Valid connection is 'open'");
+      w.setSource("cfg.conn", "open");
+      await t.waitForError(/socket\.send is not a function/, { message: "StreamPromise.send calls send() on the stream reader" });
+    });
+
+    bcTest.test("Chart type X is not supported", async (t) => {
+      const w = isolate("#iso-chart");
+      w.setSource("chart.bad", [{ g: "a", y: 1 }]);
+      await t.waitForError(/^Chart type pie is not supported$/);
+    });
+
+    bcTest.test("'x' related repository setting not found: rejected onInitialized, TypeError on run, nothing in the console", async (t) => {
+      const w = isolate("#iso-repo");
+      await t.rejects(w.GetCommandListByCore("component.missing.widget")[0].onInitialized, /^'missing\.widget' related repository setting not found$/);
+      await t.waitForError(/reading 'runAsync'/);
+      t.equal(t.consoleMessages(/repository setting not found/).length, 0);
+    });
+
+    bcTest.test("@child place holder not found in layout template is a warning; the layout renders without rows", async (t) => {
+      await t.waitForConsole(/^@child place holder not found in layout template$/);
+      await t.waitFor(() => t.$("#layout-output ul.no-child"));
+      t.equal(t.$$("#layout-output .row").length, 0, "the rows are dropped");
+      t.equal(t.text("#layout-output"), "static");
+    });
+
+    bcTest.test("Invalid remain part of json <text>: a chunked stream that ends with unparsed bytes; onClose receives withError: true", async (t) => {
+      await t.waitForSource("chunk.rows");
+      t.deepEqual(t.rows("chunk.rows"), [{ id: 1, rownumber: 1 }], "the complete object was delivered");
+      const lines = await t.waitForConsole(/Invalid remain part of json/);
+      t.equal(lines[0].level, "error");
+      t.match(lines[0].text, /Invalid remain part of json\s*, \{"half":\s*$/, "the leftover text is logged after the message");
+      await t.waitFor(() => chunkCloses, (l) => l.length === 1);
+      t.deepEqual(chunkCloses, [{ withError: true, hasContext: true }]);
+    });
+
+    bcTest.test("errors thrown inside a stream message handler (member mismatch) are written with console.error and the page keeps running", async (t) => {
+      const lines = await t.waitForConsole(/Command 'cm' has 2 member\(s\) but 1 result\(s\) returned from source!/);
+      t.ok(lines.length >= 1);
+      t.equal(t.errors(/Command 'cm'/).length, 0, "not an uncaught error");
+      t.equal(t.source("cm.first"), undefined, "nothing was published");
+    });
+
+    bcTest.test("wait for x.y with no later x.y Added...: nothing publishes the id, the command never renders", async (t) => {
+      await t.waitForConsole(/^wait for typo\.member$/);
+      await t.sleep(100);
+      t.equal(t.consoleMessages(/^typo\.member Added/).length, 0);
+      t.equal(t.$$("#wait-output .row").length, 0);
+    });
+
+    bcTest.test("call: POST sends the extra attributes as the body; HTTP 404: ... when the file does not exist", async (t) => {
+      await t.waitFor(() => t.$("#call-post .called"));
+      const post = xhrLog.find((x) => x.method === "POST" && /called\.html/.test(x.url));
+      t.ok(post, "the fragment was requested with POST (default.call.verb)");
+      t.equal(post.url, "/tests/fixtures/troubleshooting/called.html", "<connection url><file>");
+      t.equal(post.body, "extra=1", "every attribute except core, run, file, method, pagesize");
+      t.equal(post.headers["Content-Type"], "application/x-www-form-urlencoded");
+      isolate("#iso-call404");
+      const errors = await t.waitForError(/HTTP 404/);
+      t.match(errors[0].message, /^HTTP 404: not found: \/tests\/fixtures\/troubleshooting\/missing\.html$/);
+    });
+
+    bcTest.defect("known defect: call with GET sends no parameters (fileNames, siteSize are discarded)", async (t) => {
+      await t.waitFor(() => t.$("#call-get .called"));
+      const get = xhrLog.find((x) => x.method === "GET" && /called\.html/.test(x.url));
+      t.ok(get, "GET request seen");
+      t.equal(get.url, "/tests/fixtures/troubleshooting/called.html", "no query string although fileNames and siteSize were computed");
+      t.equal(get.body, null);
+      t.equal(get.headers["Content-Type"], undefined, "no content type on GET");
+    });
+
+    bcTest.defect("known defect: a lower-case verb on a web connection sends a GET with a body and fetch rejects with a TypeError", async (t) => {
+      isolate("#iso-lower");
+      const errors = await t.waitForError(/Request with GET\/HEAD method cannot have body/);
+      t.match(errors[0].message, /^TypeError|Request with GET\/HEAD method cannot have body/);
+      t.equal(t.consoleMessages(/^lower\.list Added/).length, 0);
+    });
+
+    bcTest.test("the fix: verb \"GET\" in upper case sends the parameters as a query string", async (t) => {
+      await t.waitForSource("upper.list");
+      t.equal(getRequests.length, 1);
+      t.equal(getRequests[0].method, "GET");
+      t.match(getRequests[0].query.command, /core="dbsource"/, "the command text travels in the query string");
+      t.equal(getRequests[0].query.dmnid, "null");
+    });
+
+    bcTest.defect("known defect: an unset default.dmnid is sent as the text null", async (t) => {
+      await t.waitForSource("book.list");
+      const request = bookRequests.find((r) => /name="book"/.test(r.command));
+      t.ok(request, "the mock saw the dbsource POST");
+      t.equal(request.dmnid, "null");
+      t.equal($bc.global.basiscore.context.options.getDefault("dmnid"), null, "getSetting treats the empty default as missing");
+    });
+
+    bcTest.test("the fix: default.dmnid in settings is sent as given", async (t) => {
+      const w = isolate("#iso-dmnid", { settings: { "default.dmnid": 2668 } });
+      await t.waitForSource("book2.list", { wrapper: w });
+      const request = bookRequests.find((r) => /name="book2"/.test(r.command));
+      t.equal(request.dmnid, "2668");
+    });
+
+    bcTest.test("reading the console: cms.request, cms.cms, handler Added for book.list..., then book.list Added... 1 Row(s)", async (t) => {
+      const books = await t.waitFor(() => t.$$("#book-output .book"), (l) => l.length === 1);
+      t.equal(t.text(books[0]), "1 - A");
+      const all = t.consoleMessages();
+      const index = (re) => all.findIndex((m) => re.test(m));
+      const order = [index(/^cms\.request Added\.\.\. 1 Row\(s\)$/), index(/^cms\.cms Added\.\.\. 1 Row\(s\)$/), index(/^handler Added for book\.list\.\.\.$/), index(/^book\.list Added\.\.\. 1 Row\(s\)$/)];
+      t.ok(order.every((i) => i !== -1), "all four lines are logged: " + JSON.stringify(order));
+      t.ok(order[1] > order[0], "cms.cms Added... 1 Row(s) after cms.request");
+      t.ok(order[2] > order[1] && order[3] > order[1], "the handler registration and the book.list Added line both come after the built-in sources");
+      t.note("handler Added for book.list... and book.list Added... 1 Row(s) arrive in either order: the dbsource (high priority) can finish before the print (low priority) registers; here the order was " + (order[3] < order[2] ? "Added first" : "handler first"));
+      t.equal(all.filter((m) => /^wait for book\.list$/.test(m)).length, 0, "a print does not wait for its datamembername, so no 'wait for' line appears for it");
+    });
+
+    /* ------------------------------------------------------------------ */
+    /* Known defects                                                       */
+    /* ------------------------------------------------------------------ */
+
+    bcTest.defect("known defect: cms.cms dates use the zero-based month and the weekday (time and time2 are right)", async (t) => {
+      await t.waitForSource("cms.cms");
+      const cms = t.rows("cms.cms")[0];
+      const d = new Date();
+      const two = (x) => ("0" + x).slice(-2);
+      const wrongDate2 = `${d.getFullYear()}${two(d.getMonth())}${two(d.getDay())}`;
+      const rightDate2 = `${d.getFullYear()}${two(d.getMonth() + 1)}${two(d.getDate())}`;
+      t.equal(cms.date2, wrongDate2);
+      t.notEqual(cms.date2, rightDate2);
+      t.equal(cms.date, `${d.getFullYear()}/${two(d.getMonth())}/${two(d.getDay())}`);
+      t.equal(cms.date3, `${d.getFullYear()}.${two(d.getMonth())}.${two(d.getDay())}`);
+      t.match(cms.time, /^\d{2}:\d{2}$/);
+      t.match(cms.time2, /^\d{6}$/);
+    });
+
+    bcTest.defect("known defect: the console banner says version:2.39.7 while package.json is 2.39.6", async (t) => {
+      const bundle = await (await fetch("/dist/basiscore.js")).text();
+      t.match(bundle, /version:2\.39\.7/);
+      const pkg = await (await fetch("/package.json")).json();
+      t.equal(pkg.version, "2.39.6");
+      t.equal($bc.version, undefined, "no $bc property exposes the version");
+    });
+
+    bcTest.defect("known defect: the rest connection provider is declared but every method throws", async (t) => {
+      const context = $bc.global.basiscore.context;
+      const rest = context.connections.getConnection("restapi");
+      t.equal(rest.Url, "/rest", "the entry is parsed without error");
+      t.throws(() => rest.TestConnectionAsync(context), /^Method not implemented\.$/);
+      t.throws(() => rest.loadDataAsync(context, "x", {}, () => true), /^Method not implemented\.$/);
+      t.throws(() => rest.loadPageAsync(context, "p", {}), /^LoadPageAsync Method not Supported In REST API Provider\.$/);
+    });
+
+    bcTest.defect("known defect: streaming, local and push providers cannot be used by call (loadPageAsync throws)", async (t) => {
+      const context = $bc.global.basiscore.context;
+      const get = (n) => context.connections.getConnection(n);
+      t.throws(() => get("socket").loadPageAsync(context, "p", {}), /^WebSocket call not implemented\.$/);
+      t.throws(() => get("broken").loadPageAsync(context, "p", {}), /^WebSocket call not implemented\.$/);
+      t.throws(() => get("pushed").loadPageAsync(context, "p", {}), /^loadPage not support in PushConnectionOptions\.$/);
+      t.throws(() => get("loc").loadPageAsync(context, "p", {}), /^LoadPageAsync Method not Supported In LocalStorage Provider\.$/);
+    });
+
+    bcTest.defect("known defect: the events attribute writes each target type to the console", async (t) => {
+      await t.waitFor(() => t.$$("#events-output .row"), (l) => l.length === 2);
+      t.ok(t.consoleMessages(/^document$/).length >= 1, "console.log(type.toLowerCase()) for events=\"document.click\"");
+    });
+
+    bcTest.defect("known defect: events listeners are never removed on dispose and event-driven renders bypass the disposed check", async (t) => {
+      await t.waitFor(() => t.$$("#events-output .row"), (l) => l.length === 2);
+      const before = eventRenders.length;
+      t.click(document.body);
+      await t.waitFor(() => eventRenders, (l) => l.length === before + 1);
+      t.equal(eventRenders[eventRenders.length - 1], "document.click", "the event source id reaches OnRendered");
+      const command = $bc.global.GetCommandListByCore("print").find((c) => c.node.getAttribute("events") === "document.click");
+      await command.disposeAsync();
+      t.equal(command.disposed, true);
+      t.click(document.body);
+      await t.waitFor(() => eventRenders, (l) => l.length === before + 2, { message: "the disposed command still renders on the event" });
+    });
+
+    bcTest.defect("known defect: bc-key is not read; bc-keyField sets the key field", async (t) => {
+      t.setValue("#key-wrong", "1", ["change"]);
+      t.setValue("#key-right", "1", ["change"]);
+      await t.waitForSource("k.right");
+      t.equal(t.source("k.wrong").keyFieldName, undefined);
+      t.equal(t.source("k.right").keyFieldName, "id");
+    });
+
+    bcTest.defect("known defect: view never renders its level 2 faces", async (t) => {
+      const groups = await t.waitFor(() => t.$$("#view-output .group"), (l) => l.length === 2);
+      t.deepEqual(groups.map((g) => t.text(g)), ["FaName", "EnName"], "the level 1 face of every group is rendered");
+      t.equal(t.$$("#view-output .answer").length, 0, "no level 2 row appears");
+      t.ok(t.$$("#view-output .answers").every((ul) => ul.children.length === 0), "the @child slot stays empty");
+      t.equal(t.errors(/view/i).length, 0, "and nothing is thrown");
+    });
+
+    bcTest.defect("known defect: a text token re-rendered to an empty value throws TypeError ... (reading 'toString'); a fallback avoids it", async (t) => {
+      $bc.setSource("tt.v", "a");
+      await t.waitForText("#tok-bad", "a");
+      await t.waitForText("#tok-good", "a");
+      $bc.setSource("tt.v", "");
+      const errors = await t.waitForError(/Cannot read properties of null \(reading 'toString'\)/);
+      t.ok(errors.length >= 1);
+      await t.waitForText("#tok-good", "", { message: "the fallback renders the single space" });
+      t.equal(t.text("#tok-bad"), "", "the old value is already deleted when toString() throws, so the token shows nothing");
+    });
+
+    bcTest.defect("known defect: BCWrapper.setSource on a wrapper that has not run only runs it and drops the data", async (t) => {
+      const w = $bc.new().addFragment("#iso-plain-b");
+      w.setSource("dropped.data", { a: 1 });
+      t.ok(w.basiscore, "the wrapper was run");
+      await t.sleep(50);
+      t.equal(t.source("dropped.data", w), undefined, "the data was never published");
+      w.setSource("dropped.data", { a: 2 });
+      await t.waitForSource("dropped.data", { wrapper: w });
+      t.deepEqual(t.rows("dropped.data", w), [{ a: 2 }], "once run, setSource publishes");
+    });
+
+    bcTest.defect("known defect: level on a print face throws TypeError ... (reading 'some')", async (t) => {
+      const w = isolate("#iso-level");
+      w.setSource("lvl.rows", [{ name: "x" }]);
+      await t.waitForError(/Cannot read properties of undefined \(reading 'some'\)/);
+      t.equal(t.$$("#iso-level .row").length, 0);
+    });
+
+    bcTest.defect("known defect: Source.addRows leaves appended rows with undefined versions, which become NaN after a replace", async (t) => {
+      $bc.setSource("ver.rows", [{ a: 1 }]);
+      await t.waitForSource("ver.rows");
+      $bc.setSource("ver.rows", [{ a: 2 }], { mergeType: basiscore.MergeType.append });
+      await t.waitFor(() => t.rows("ver.rows"), (r) => r.length === 2);
+      t.deepEqual(t.source("ver.rows").versions, [0, undefined]);
+      $bc.setSource("ver.rows", [{ a: 3 }, { a: 4 }]);
+      await t.waitFor(() => t.rows("ver.rows"), (r) => r[0].a === 3);
+      const versions = t.source("ver.rows").versions;
+      t.equal(versions[0], 1);
+      t.ok(Number.isNaN(versions[1]), "undefined + 1 is NaN");
+    });
+
+    bcTest.defect("known defect: append with keyFieldName but no statusFieldName pushes a duplicate row; the renderer shows only one", async (t) => {
+      $bc.setSource("dup.rows", [{ id: 1, n: "a" }], { keyFieldName: "id" });
+      await t.waitForText("#dup-output", "a");
+      $bc.setSource("dup.rows", [{ id: 1, n: "b" }], { keyFieldName: "id", mergeType: basiscore.MergeType.append });
+      await t.waitFor(() => t.rows("dup.rows"), (r) => r.length === 2);
+      t.deepEqual(t.rows("dup.rows").map((r) => r.n), ["a", "b"], "two rows with the same key in the source");
+      await t.sleep(150);
+      t.equal(t.$$("#dup-output .dup-row").length, 1, "the cached render result of key 1 is reused for both rows");
+      t.equal(t.text("#dup-output"), "a");
+    });
+
+    bcTest.defect("known defect: a one-segment token throws while it is built; a token without member throws Method not implemented.", async (t) => {
+      isolate("#iso-token-one");
+      await t.waitForError(/reading 'toLowerCase'/);
+      isolate("#iso-token-nomember");
+      await t.waitForError(/^Method not implemented\.$/);
+    });
+
+    bcTest.defect("known defect: cms.cookie keeps the leading space of every cookie name after the first and cuts values at the first =", async (t) => {
+      await t.waitForSource("cms.cookie");
+      const cookie = t.rows("cms.cookie")[0];
+      t.equal(cookie.bcfirst, "1");
+      t.equal(cookie.bcsecond, undefined, "the second name is stored with its leading space");
+      t.equal(cookie[" bcsecond"], "a", "and its value is cut at the first =");
+      document.cookie = "bcfirst=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "bcsecond=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    });
+
+    bcTest.defect("known defect: HostOptions.getSetting treats falsy values as missing and two keys differing only in case cancel each other", async (t) => {
+      const options = $bc.global.basiscore.context.options;
+      t.equal(options.getSetting("x.zero", "fallback"), "fallback", "a 0 setting is reported as missing");
+      const w = isolate("#iso-plain-c", { settings: { "case.flag": "a", "Case.Flag": "b" } });
+      t.equal(w.basiscore.context.options.getSetting("case.flag", "none"), "none", "two case-variants match, so neither is returned");
+    });
+
+    bcTest.defect("known defect: a misspelled connection provider throws a TypeError at start-up; connection names are cut at the third dot", async (t) => {
+      t.throws(() => $bc.new().addFragment("#iso-plain-d").setOptions({ settings: { "connection.websockets.x": "ws://x" } }).run(), /Cannot read properties of undefined \(reading 'Name'\)/);
+      const connections = $bc.global.basiscore.context.connections;
+      t.equal(connections.getConnection("my").Url, "/api/books", "\"connection.web.my.api\" is registered as \"my\"");
+      t.throws(() => connections.getConnection("my.api"), /property 'my\.api' not configured!/);
+    });
+
+    bcTest.defect("known defect: array-valued host.sources entries are merged index by index into setOptions sources", async (t) => {
+      const w = isolate("#iso-plain-d", { sources: { "bleed.rows": [{ a: 9 }] } });
+      await t.waitForSource("bleed.rows", { wrapper: w });
+      t.deepEqual(t.rows("bleed.rows", w), [{ a: 9 }, { a: 2 }, { a: 3 }], "the host rows 2 and 3 bleed into the wrapper's one-row source");
+      t.deepEqual(t.rows("bleed.rows"), [{ a: 1 }, { a: 2 }, { a: 3 }], "the default runtime keeps the host rows");
+    });
+
+    bcTest.defect("known defect: the chart SVG is a child of body while it is drawn and every hover render adds a #tooltip div", async (t) => {
+      const seen = [];
+      const observer = new MutationObserver((records) => records.forEach((r) => r.addedNodes.forEach((n) => n.nodeName === "svg" && r.target === document.body && seen.push(n))));
+      observer.observe(document.body, { childList: true });
+      $bc.setSource("chart.rows", [{ label: "a", value: 1 }]);
+      await t.waitFor(() => t.$("#chart-output svg"));
+      $bc.setSource("chart.rows", [{ label: "a", value: 1 }, { label: "b", value: 2 }]);
+      await t.waitFor(() => t.$$("#chart-output path.bar"), (l) => l.length === 2);
+      await t.sleep(50);
+      observer.disconnect();
+      t.equal(seen.length, 2, "one body insertion per render");
+      t.equal(t.$$("body > div#tooltip").length, 2, "one tooltip div per render, never removed");
+    });
+
+    bcTest.skip("Request timeout from call", "the XMLHttpRequest timeout is fixed at 15 s, longer than a test is allowed to run");
+    bcTest.skip("push flow needs the permission dialog selectors", "needs a service worker registration and the notification permission prompt");
+    bcTest.skip("alert() on service worker and push failures", "a blocking dialog cannot be exercised headless");
+  </script>
+</body>
+</html>

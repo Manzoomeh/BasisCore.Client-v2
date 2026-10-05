@@ -88,7 +88,7 @@ source in place; keep the statement a `SELECT`.
 | --- | --- | --- | --- |
 | `lefttblcol` | string | | `source.member.column` of the left side: the first two parts are the source id, the third the join column. |
 | `righttblcol` | string | | Same for the right side. |
-| `jointype` | string | `innerjoin` | `innerjoin`, `leftjoin` or `rightjoin` (case-insensitive). Any other value produces a plain `JOIN`. |
+| `jointype` | string | | `innerjoin`, `leftjoin` or `rightjoin` (case-insensitive). Any other value produces a plain `JOIN`. Required in practice: the code falls back to `innerjoin` only when the attribute is present but resolves to nothing; an absent attribute throws `TypeError: Cannot read properties of undefined (reading 'getValueAsync')`. |
 
 Both column references are split with `split(".", 3)`. Fewer than three parts throws
 `InvalidPropertyValueException` (`LeftDataMember` or `RightTableColumn`); parts beyond the third
@@ -129,7 +129,7 @@ From `example/component/source/inlinesource/simple/index.html`.
 
   <basis core="print" datamembername="list.star" run="atclient">
     <layout><ul>@child</ul></layout>
-    <face><li>@db_data1_name@: @db_data2_mark|(no mark)@</li></face>
+    <face><li>@db_data1_name@: @(db_data2_mark??'no-mark')@</li></face>
   </basis>
 
   <basis core="callback" run="atclient" triggers="list.star"></basis>
@@ -152,7 +152,9 @@ From `example/component/source/inlinesource/simple/index.html`.
 ```
 
 The published rows have the columns `db_data1_id`, `db_data1_name`, `db_data2_studentid`,
-`db_data2_mark` and `rownumber`.
+`db_data2_mark` and `rownumber`. A left row without a match has no `db_data2_*` values, so the
+face uses a JavaScript expression as fallback; face expressions have no `|(default)` syntax and
+may not contain spaces (see [Binding and tokens](../binding-and-tokens.md)).
 
 ### SQL over several sources
 
@@ -220,6 +222,9 @@ again on every key press. Without `triggers` the statement would be evaluated on
   `"a.b, c.d"` waits for `" c.d"`, which never exists.
 - **Derived sources do not follow their inputs.** Publish `db.data1` again and `list.star` keeps
   its old rows unless `db.data1` is in `triggers`.
+- **`jointype` must be written.** A join member without the attribute throws a `TypeError`
+  (`Cannot read properties of undefined (reading 'getValueAsync')`) before it waits for anything,
+  and the rejection blocks the rendering wave like a missing `format` does.
 - **Join output columns are renamed** to `<source>_<member>_<field>`; templates written for the
   original names render empty values.
 - **Join columns come from the first row.** Sources whose first row lacks a property, or that are

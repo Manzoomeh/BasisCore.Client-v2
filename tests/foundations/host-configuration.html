@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>host configuration</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: only used to observe the body of the `dbsource` requests (dmnid, verb) -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // every request that reaches /db is recorded here so the tests can inspect its body
+    const dbRequests = [];
+    BasisCoreMock.route({
+      url: "/db",
+      method: "POST",
+      response: (ctx) => {
+        dbRequests.push({ method: ctx.method, body: ctx.body, fields: ctx.bodyJSON });
+        return {
+          sources: [
+            {
+              options: { tableName: "db.rows" },
+              data: [{ id: 1, name: "first" }, { id: 2, name: "second" }]
+            }
+          ]
+        };
+      }
+    });
+  </script>
+  <script>
+    // `host` must be defined before the library tag: it is read once and cached.
+    var host = {
+      debug: false,
+      autoRender: true,
+      serviceWorker: "/tests/fixtures/host-configuration/sw.js",
+      DbLibPath: "/ignored/because/of/the/wrong/case.js",
+      settings: {
+        "connection.web.shop": "/data/products.json",
+        "connection.web.callcommand": { url: "/pages/", verb: "GET", heartbeat: "/health", heartbeatverb: "GET" },
+        "connection.web.db": "/db",
+        "connection.web.my.api": "/my/",
+        "connection.websocket.live": "wss://example.com/stream",
+        "connection.chunkbased.feed": { Connection: "/chunk/feed", method: "POST", body: { topic: "news" } },
+        "connection.local.cache": "/js/cache-provider.js|loadFromCache",
+        "connection.push.alerts": "alerts",
+        "custom.flag": "from-host"
+      },
+      sources: {
+        "App.Config": [{ theme: "light", pageSize: 20 }],
+        "inlineSource.users": {
+          data: [{ id: 1, name: "Sara" }, { id: 2, name: "Reza" }],
+          options: { keyFieldName: "id" }
+        },
+        "app.list": [{ id: 1 }, { id: 2 }],
+        "app.scalar": "not an array and not { data }",
+        "view.props": [
+          { prpid: 10, value: "a" },
+          { prpid: 10, value: "b" },
+          { prpid: 20, value: "c" }
+        ]
+      },
+      repositories: {
+        "shop": "/tests/fixtures/host-configuration/shop.js",
+        "shop.reports": "/tests/fixtures/host-configuration/reports.js"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/host-configuration.md" class="[##app.config.theme##]">
+  <main>
+    <h1>host configuration</h1>
+    <p class="intro">
+      Checks <code>docs/host-configuration.md</code>: the three option layers and their precedence,
+      the built-in defaults, <code>getSetting</code> / <code>getDefault</code> resolution, the
+      <code>connection.*</code> string and object forms, <code>host.sources</code>, <code>repositories</code>,
+      <code>serviceWorker</code>, <code>$bc.setOptions</code> and the <code>options</code> attribute of
+      <code>group</code>.
+    </p>
+
+    <section class="case" id="case-sources">
+      <h2><code>host.sources</code> are published before any command runs</h2>
+      <p>Theme from <code>App.Config</code> (key lower-cased): <span id="theme">[##app.config.theme##]</span></p>
+      <div id="users">
+        <basis core="print" run="atclient" datamembername="inlinesource.users">
+          <layout><ul>@child</ul></layout>
+          <face><li>@id@: @name@</li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-dbsource">
+      <h2><code>dbsource</code> over a <code>web</code> connection: default verb and <code>dmnid</code></h2>
+      <basis core="dbsource" run="atclient" name="db" source="db">
+        <member name="rows"></member>
+      </basis>
+      <div id="db-rows">
+        <basis core="print" run="atclient" datamembername="db.rows">
+          <face><span class="row">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-view">
+      <h2><code>default.viewcommand.groupcolumn</code> is <code>prpid</code></h2>
+      <div id="view">
+        <basis core="view" run="atclient" datamembername="view.props">
+          <layout><ul>@child</ul></layout>
+          <face level="1"><li class="grp">group @prpid@<ul>@child</ul></li></face>
+          <face level="2"><li class="row">@value@</li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-repositories">
+      <h2><code>repositories</code>: component key prefixes</h2>
+      <div id="components">
+        <basis core="component.shop.cart" run="atclient" label="cart"></basis>
+        <basis core="component.shop.reports.summary" run="atclient"></basis>
+        <basis core="component.local.LocalBadge" run="atclient"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-group">
+      <h2>Per-region options with <code>group options="..."</code></h2>
+      <div id="group-global">
+        <basis core="group" run="atclient" options="reportOptions">
+          <p class="time">Updated at {cms.cms.time}</p>
+          <p class="inherited">Theme seen inside the group: {app.config.theme}</p>
+          <basis core="print" run="atclient" datamembername="report.rows">
+            <face><div class="title">@title@</div></face>
+          </basis>
+        </basis>
+      </div>
+      <div id="group-literal">
+        <basis core="group" run="atclient"
+               options="({ settings: { 'default.dmnid': 7 }, sources: { 'grp.data': [{ label: 'from literal' }] } })">
+          <p class="label">[##grp.data.label##]</p>
+          <basis core="dbsource" run="atclient" name="grpdb" source="db">
+            <member name="rows"></member>
+          </basis>
+          <p class="count">[##grpdb.rows.name##]</p>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-repeater">
+      <h2>Group options from a source row</h2>
+      <div id="rep">
+        <basis core="repeater" name="rep" datamembername="page.data" run="atclient" replace="false">
+          <basis core="group" run="atclient" options="[##rep.current.options##]">
+            <fieldset>
+              <legend>[##rep.current.title##]</legend>
+              <basis core="print" datamembername="data.test" run="atclient">
+                <layout><ul>@child</ul></layout>
+                <face><script type="text/template"><li>@id - @name@</li></script></face>
+              </basis>
+            </fieldset>
+          </basis>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-instances">
+      <h2>Per-instance options with <code>$bc.new().setOptions()</code></h2>
+      <!-- bc-ignore keeps the default instance away from these fragments; the tests run them with $bc.new() -->
+      <div bc-ignore>
+        <div id="inst-a">Hello [##user.name.value|(guest)##]</div>
+        <div id="inst-b">Hello {user.name.value|(guest)}</div>
+        <div id="inst-c">
+          <basis core="print" run="atclient" datamembername="app.list">
+            <face><span class="row">@id@</span></face>
+          </basis>
+        </div>
+        <div id="inst-broken"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // options of the first group (see "Per-region options: group" in the documentation)
+    const reportOptions = {
+      settings: {
+        "default.binding.regex": /\{([^\{\}]*)\}/,
+        "connection.web.reports": "/reports-api/"
+      },
+      sources: {
+        "report.rows": [{ title: "Q1" }, { title: "Q2" }]
+      }
+    };
+
+    // a component class in the page's global scope, reached with core="component.local.LocalBadge"
+    class LocalBadge {
+      constructor(owner) {
+        this.owner = owner;
+      }
+      async initializeAsync() {
+        this.owner.setContent(this.owner.toNode('<span class="badge">local badge</span>'));
+      }
+    }
+  </script>
+
+  <script>
+    const ctx = () => $bc.global.basiscore.context;
+
+    bcTest.test("host is merged over the built-in defaults; top-level keys are matched exactly", (t) => {
+      const d = basiscore.HostOptions.defaultSettings;
+      t.equal(d.autoRender, true);
+      t.equal(d.debug, false);
+      t.equal(d.serviceWorker, "/tests/fixtures/host-configuration/sw.js");
+      t.equal(d.dbLibPath, "/alasql.min.js", "DbLibPath (wrong case) does not override dbLibPath");
+      t.equal(d.DbLibPath, "/ignored/because/of/the/wrong/case.js", "unknown keys are kept but have no effect");
+      t.equal(d.settings["connection.web.shop"], "/data/products.json");
+      t.equal(d.settings["default.call.verb"], "POST");
+      t.equal(d.settings["default.source.verb"], "POST");
+      t.equal(d.settings["default.source.heartbeatverb"], "GET");
+      t.equal(d.settings["default.viewcommand.groupcolumn"], "prpid");
+      t.equal(d.settings["default.dmnid"], "");
+      t.ok(d.settings["default.binding.regex"] instanceof RegExp);
+      t.equal(d.settings["default.binding.regex"].source, "\\[##([^#]*)##\\]");
+      t.equal(d.settings["default.binding.codeblock-regex"].source, "{{((?:[^{}][{}]?)*)}}");
+      t.equal(d.settings["default.binding.face-regex"].source, "([^@]|^)@(?:([^@\\s]+)@|([^@\\s]+))");
+      t.deepEqual(d.repositories, {
+        shop: "/tests/fixtures/host-configuration/shop.js",
+        "shop.reports": "/tests/fixtures/host-configuration/reports.js"
+      });
+    });
+
+    bcTest.test("host is read once: later edits to the host object are not seen by new instances", (t) => {
+      host.settings["connection.web.late"] = "/late/";
+      const late = $bc.new().addFragment("#inst-broken").run();
+      t.throws(
+        () => late.basiscore.context.connections.getConnection("late"),
+        /In 'host.settings' object, property 'late' not configured!/
+      );
+      t.equal(late.basiscore.context.options.getSetting("connection.web.late", "missing"), "missing");
+    });
+
+    bcTest.test("getSetting / getDefault: case-insensitive keys, falsy values count as missing, exact error message", (t) => {
+      const options = ctx().options;
+      t.ok(options instanceof basiscore.HostOptions, "context.options is a HostOptions");
+      t.equal(options.getSetting("Default.Source.Verb", undefined), "POST", "keys are matched ignoring case");
+      t.equal(options.getDefault("source.verb"), "POST", "getDefault prefixes default.");
+      t.equal(options.getDefault("dmnid"), null, "the built-in default.dmnid of \"\" is falsy and resolves to null");
+      t.equal(options.getSetting("default.dmnid", "fallback"), "fallback");
+      t.equal(options.getDefault("does.not.exist"), null, "getDefault never throws");
+      t.equal(options.getSetting("does.not.exist", null), null, "an explicit null default is returned");
+      t.throws(
+        () => options.getSetting("does.not.exist", undefined),
+        /^In 'host.settings' object, property 'does.not.exist' not configured!$/
+      );
+      t.throws(() => ctx().connections.getConnection("nope"), /property 'nope' not configured!/);
+    });
+
+    bcTest.test("two settings keys that differ only in case cancel each other out", (t) => {
+      const w = $bc.new().addFragment("#inst-broken")
+        .setOptions({ settings: { "custom.flag": "a", "Custom.Flag": "b" } })
+        .run();
+      t.equal(w.basiscore.context.options.getSetting("custom.flag", "missing"), "missing");
+      t.equal(ctx().options.getSetting("custom.flag", "missing"), "from-host", "the single host key still resolves");
+    });
+
+    bcTest.test("connections: string and object forms, provider lower-cased, name kept and matched exactly", (t) => {
+      const c = ctx().connections;
+      const shop = c.getConnection("shop");
+      t.equal(shop.Name, "shop");
+      t.equal(shop.Url, "/data/products.json");
+      t.equal(shop.Verb, undefined, "a string value sets only the URL");
+      const call = c.getConnection("callcommand");
+      t.equal(call.Url, "/pages/");
+      t.equal(call.Verb, "GET");
+      t.equal(call.Heartbeat, "/health");
+      t.equal(call.HeartbeatVerb, "GET");
+      t.equal(c.getConnection("live").url, "wss://example.com/stream");
+      const feed = c.getConnection("feed");
+      t.equal(feed.url, "/chunk/feed");
+      t.equal(feed.method, "POST");
+      t.deepEqual(feed.body, { topic: "news" });
+      const cache = c.getConnection("cache");
+      t.equal(cache.Url, "/js/cache-provider.js");
+      t.equal(cache.FunctionName, "loadFromCache");
+      t.ok(c.getConnection("alerts"), "a push connection is declared by its message type");
+      t.equal(c.getConnection("my").Url, "/my/", "connection.web.my.api declares a connection named my");
+      t.throws(() => c.getConnection("my.api"), /not configured/);
+      t.throws(() => c.getConnection("Shop"), /property 'Shop' not configured!/, "names are case-sensitive");
+    });
+
+    bcTest.test("a misspelled provider or a malformed local connection breaks the instance while it starts", (t) => {
+      t.throws(
+        () => $bc.new().addFragment("#inst-broken").setOptions({ settings: { "connection.wbe.shop": "/x" } }).run(),
+        /Cannot read properties of undefined/,
+        "unknown provider: TypeError from the connection manager"
+      );
+      t.throws(
+        () => $bc.new().addFragment("#inst-broken").setOptions({ settings: { "connection.local.bad": "/a.js|f|g" } }).run(),
+        /For Local Storage Connection 'bad', Setting In Not Valid/
+      );
+    });
+
+    bcTest.test("host.sources: keys lower-cased, array form and { data, options } form, available to the first render", async (t) => {
+      t.deepEqual(t.rows("app.config"), [{ theme: "light", pageSize: 20 }]);
+      await t.waitForText("#theme", "light");
+      t.equal(document.body.className, "light", "an attribute bound to a start-up source is set");
+      const users = t.source("inlinesource.users");
+      t.equal(users.keyFieldName, "id");
+      t.equal(users.mergeType, basiscore.MergeType.replace);
+      const items = await t.waitFor(() => t.$$("#users li"), (l) => l.length === 2);
+      t.equal(t.text(items[0]), "1: Sara");
+      t.equal(t.text(items[1]), "2: Reza");
+      const scalar = t.rows("app.scalar");
+      t.equal(scalar.length, 1, "a value that is neither an array nor { data } publishes one row");
+      t.ok("value" in scalar[0] && scalar[0].value === undefined, "that row is { value: undefined }");
+    });
+
+    bcTest.test("dbsource posts command and dmnid with the built-in default.source.verb (POST)", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#db-rows .row"), (l) => l.length === 2);
+      t.equal(t.text(rows[0]), "first");
+      const req = await t.waitFor(() => dbRequests.find((r) => /name="db"/.test(r.fields.command)));
+      t.equal(req.method, "POST");
+      t.match(req.fields.command, /^<basis core="dbsource"/, "command is the outerHTML of the dbsource element");
+      t.match(req.body, /^command=/, "body is application/x-www-form-urlencoded");
+    });
+
+    bcTest.defect("known defect: an unset default.dmnid is sent to the server as the text null", async (t) => {
+      const req = await t.waitFor(() => dbRequests.find((r) => /name="db"/.test(r.fields.command)));
+      t.equal(req.fields.dmnid, "null");
+      t.match(req.body, /dmnid=null/);
+    });
+
+    bcTest.test("view without groupcol groups by the default.viewcommand.groupcolumn setting (prpid)", async (t) => {
+      const groups = await t.waitFor(() => t.$$("#view .grp"), (l) => l.length === 2);
+      t.match(t.text(groups[0]), /^group 10/);
+      t.match(t.text(groups[1]), /^group 20/);
+      t.note("level 2 faces are not asserted: view never renders them in 2.39.6 (documented defect)");
+    });
+
+    bcTest.test("repositories: local.<Name>, exact prefix, longest matching prefix, and the error for an unknown key", async (t) => {
+      await t.waitForText("#components .cart", "cart from shop.js", { timeout: 10000 });
+      await t.waitForText("#components .summary", "summary from reports.js", { timeout: 10000 });
+      await t.waitForText("#components .badge", "local badge");
+      t.ok(document.querySelector("script[src='/tests/fixtures/host-configuration/shop.js']"), "shop.js was loaded once by getLibAsync");
+      t.ok(document.querySelector("script[src='/tests/fixtures/host-configuration/reports.js']"));
+      await t.rejects(
+        $bc.util.getComponentAsync(ctx(), "unknown.thing"),
+        /^'unknown.thing' related repository setting not found$/
+      );
+    });
+
+    bcTest.test("serviceWorker: a string registers that script once; later wrappers warn", async (t) => {
+      await t.waitForConsole(/Service worker from '\/tests\/fixtures\/host-configuration\/sw\.js' register successfully!/, { timeout: 10000 });
+      $bc.new().addFragment("#inst-broken").run();
+      await t.waitForConsole(/Try add service worker more than one\./);
+    });
+
+    bcTest.test("$bc.setOptions and $bc.addFragment throw once the default instance has run", (t) => {
+      t.throws(() => $bc.setOptions({}), /^Can't set option for already builded bc object\.$/);
+      t.throws(() => $bc.addFragment("#inst-a"), /^Can't add fragment for already builded bc object\.$/);
+    });
+
+    bcTest.test("setOptions: instance settings win, host settings are inherited, originalOptions keeps layer 1 alone", async (t) => {
+      const a = $bc.new().addFragment("#inst-a").run();
+      const b = $bc.new().addFragment("#inst-b")
+        .setOptions({ settings: { "default.binding.regex": /\{([^\}]*)\}/, "connection.web.shop": "/reports-api/" } })
+        .run();
+      await t.waitForText("#inst-a", "Hello guest");
+      await t.waitForText("#inst-b", "Hello guest");
+      a.setSource("user.name", "Sara");
+      b.setSource("user.name", "Reza");
+      await t.waitForText("#inst-a", "Hello Sara");
+      await t.waitForText("#inst-b", "Hello Reza");
+
+      const o = b.basiscore.context.options;
+      t.equal(o.getSetting("connection.web.shop", undefined), "/reports-api/", "instance value wins");
+      t.equal(b.basiscore.context.connections.getConnection("callcommand").Url, "/pages/", "other connections are inherited from host");
+      t.equal(o.getDefault("source.verb"), "POST", "built-in defaults still apply");
+      t.equal(o.dbLibPath, "/alasql.min.js");
+      t.deepEqual(Object.keys(o.originalOptions), ["settings"]);
+      t.deepEqual(Object.keys(o.originalOptions.settings).sort(), ["connection.web.shop", "default.binding.regex"]);
+      t.equal(ctx().options.getSetting("connection.web.shop", undefined), "/data/products.json", "the default instance is untouched");
+    });
+
+    bcTest.test("defaultsDeep merges array-valued sources element by element (documented pitfall)", async (t) => {
+      const c = $bc.new().addFragment("#inst-c")
+        .setOptions({ sources: { "app.list": [{ id: "A" }] } })
+        .run();
+      const rows = await t.waitFor(() => t.$$("#inst-c .row"), (l) => l.length === 2);
+      t.deepEqual(rows.map((r) => t.text(r)), ["A", "2"], "[rowA] over [row1, row2] yields [rowA, row2]");
+      t.deepEqual(t.rows("app.list", c), [{ id: "A" }, { id: 2 }]);
+      t.deepEqual(t.rows("app.list"), [{ id: 1 }, { id: 2 }], "the host entry itself is not changed");
+    });
+
+    bcTest.test("group options from a global: own token syntax, own sources, inherited sources, forwarded updates", async (t) => {
+      await t.waitForText("#group-global .time", /^Updated at \d{2}:\d{2}$/);
+      const titles = await t.waitFor(() => t.$$("#group-global .title"), (l) => l.length === 2);
+      t.deepEqual(titles.map((x) => t.text(x)), ["Q1", "Q2"]);
+      await t.waitForText("#group-global .inherited", "Theme seen inside the group: light");
+      t.ok(t.source("report.rows") == null, "sources of the group are not visible to the page context");
+      $bc.setSource("app.config", { theme: "dark" });
+      await t.waitForText("#group-global .inherited", "Theme seen inside the group: dark");
+      await t.waitForText("#theme", "dark");
+      await t.waitForConsole(/app\.config Added from owner context/);
+    });
+
+    bcTest.test("group options as an object literal in parentheses: settings and sources of the region", async (t) => {
+      await t.waitForText("#group-literal .label", "from literal");
+      await t.waitForText("#group-literal .count", "first,second", { timeout: 10000 });
+      const req = await t.waitFor(() => dbRequests.find((r) => /name="grpdb"/.test(r.fields.command)));
+      t.equal(req.fields.dmnid, "7", "default.dmnid of the group is sent by the dbsource inside it");
+      t.ok(t.source("grp.data") == null);
+    });
+
+    bcTest.test("group options from a source row: every repeated group gets its own data.test source", async (t) => {
+      $bc.setSource("page.data", [
+        { title: "Group#1", options: { sources: { "data.test": [{ id: 1, name: "Data#1" }, { id: 2, name: "Data#2" }] } } },
+        { title: "Group#2", options: { sources: { "data.test": [{ id: 3, name: "Data#3" }, { id: 4, name: "Data#4" }] } } }
+      ]);
+      const sets = await t.waitFor(() => t.$$("#rep fieldset"), (l) => l.length === 2 && l.every((f) => f.querySelectorAll("li").length === 2));
+      t.equal(t.text(sets[0].querySelector("legend")), "Group#1");
+      t.deepEqual(t.$$("li", sets[0]).map((x) => t.text(x)), ["1 - Data#1", "2 - Data#2"]);
+      t.equal(t.text(sets[1].querySelector("legend")), "Group#2");
+      t.deepEqual(t.$$("li", sets[1]).map((x) => t.text(x)), ["3 - Data#3", "4 - Data#4"]);
+    });
+  </script>
+</body>
+</html>

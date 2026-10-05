@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>sources and reactivity</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // cms.query and cms.cookie are read when the runtime starts (on `load`), so the page gives
+    // itself a query string and two cookies before the library is loaded.
+    history.replaceState(null, "", location.pathname + "?id=42&name=Ali%20Reza&flag&id2=1&id2=2&a%20b=1");
+    document.cookie = "theme=dark";
+    document.cookie = "lang=en";
+  </script>
+  <script>
+    var host = {
+      sources: {
+        "inlineSource.append": [{ id: 1, name: "qamsari" }, { id: 2, name: "akaberi" }, { id: 3, name: "amir" }],
+        "inlineSource.replace": [{ id: 1, name: "qamsari" }, { id: 2, name: "akaberi" }, { id: 3, name: "amir" }],
+        "m.nokey": [{ id: 1, n: "a" }],
+        "local.tree": {
+          data: [
+            { id: 1, name: "ali", pid: null, status: 0 },
+            { id: 2, name: "amir", pid: 1, status: 0 },
+            { id: 4, name: "javad", pid: 2, status: 0 },
+            { id: 5, name: "reza", pid: 4, status: 0 }
+          ],
+          // 1 is MergeType.append; the basiscore global does not exist yet while host is defined
+          options: { keyFieldName: "id", statusFieldName: "status", mergeType: 1 }
+        }
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/sources-and-reactivity.md">
+  <main>
+    <h1>sources and reactivity</h1>
+    <p class="intro" bc-ignore>
+      Checks <code>docs/sources-and-reactivity.md</code>: row normalisation, <code>MergeType</code> and
+      <code>DataStatus</code> values, the merge algorithm (replace, append, keyed add / edit / delete),
+      versions, contexts and owner fallback, <code>setSourceFromOwner</code>, the built-in
+      <code>cms.*</code> sources, the handler API and the four ways a command is re-run.
+    </p>
+
+    <section class="case" id="case-replace-append">
+      <h2>Replace versus append from JavaScript</h2>
+      <button id="reset" onclick="ReSetSource()">Set Source</button>
+      <fieldset id="append">
+        <legend>Append</legend>
+        <basis core="print" datamembername="inlineSource.append" run="atclient">
+          <face>
+            <script type="text/template">
+              <br />
+              <span>@id ( name is:@name@ ) </span>
+            </script>
+          </face>
+        </basis>
+      </fieldset>
+      <fieldset id="replace">
+        <legend>Replace</legend>
+        <basis core="print" datamembername="inlineSource.replace" run="atclient">
+          <face>
+            <script type="text/template">
+              <br />
+              <span>@id ( name is:@name@ ) </span>
+            </script>
+          </face>
+        </basis>
+      </fieldset>
+      <basis core="callback" run="atclient" triggers="inlineSource.replace inlineSource.append"></basis>
+    </section>
+
+    <section class="case" id="case-keyed-form">
+      <h2>Keyed add / edit / delete from a form</h2>
+      <form id="keyed-form" bc-triggers="submit" name="page.form" bc-keyField="id" bc-statusField="status" bc-merge="append">
+        <label>Id <input name="id" /></label>
+        <label>Name <input name="name" /></label>
+        <label>Status
+          <select name="status" required>
+            <option value="0">Add</option>
+            <option value="1">Edit</option>
+            <option value="2">Delete</option>
+          </select>
+        </label>
+        <input type="submit" />
+      </form>
+      <div id="keyed-out">
+        <basis core="print" datamembername="page.form" run="atclient">
+          <face>
+            <script type="text/template">
+              <div class="row">
+                <span>@id ( name is:@name@ ) </span>
+                <button class="color" onclick="this.style['color'] = 'rgb(255, 0, 0)'">change color</button>
+              </div>
+            </script>
+          </face>
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="page.form"></basis>
+    </section>
+
+    <section class="case" id="case-tree">
+      <h2>Incremental tree updates</h2>
+      <basis core="callback" triggers="local.tree" run="atclient"></basis>
+      <div id="tree">
+        <basis core="tree" datamembername="local.tree" idcol="id" parentidcol="pid" nullvalue="null" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face level="end"><li>@id@ - @name@</li></face>
+          <face><li>@id@ - @name@<ul>@child</ul></li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-scope">
+      <h2>Scoped sources with group</h2>
+      <div id="scope">
+        <basis core="group" run="atclient">
+          <div class="outer-print">
+            <basis core="print" datamembername="local.name" run="atclient">
+              <face><li><span>@value </span></li></face>
+            </basis>
+          </div>
+
+          <basis core="group" run="atclient">
+            <span class="inner-text">[##local.name.value|(not set)##]</span>
+            <form class="inner-form" bc-triggers="submit" name="local.name">
+              <label>Name: <input type="text" name="value" value="[##local.name.value##]" /></label>
+              <input type="submit" />
+            </form>
+          </basis>
+
+          <label>Name: <input class="outer-input" type="text" name="local.name" bc-triggers="keyup" /></label>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-subscribe">
+      <h2>Subscribing from JavaScript</h2>
+      <basis core="callback" run="atclient" triggers="orders.list" method="onOrders"></basis>
+      <p>Orders: <span id="orders-count">[##orders.summary.count|(0)##]</span></p>
+    </section>
+
+    <section class="case" id="case-rerun">
+      <h2>The four ways a command is re-run</h2>
+      <input id="rerun-input" name="demo.input" bc-triggers="keyup change" />
+      <button id="evt-btn" type="button">event target</button>
+      <basis core="callback" run="atclient" events="#evt-btn.click timer.150" method="onEvt"></basis>
+      <div id="rerun-print">
+        <basis core="print" datamembername="demo.input" run="atclient" triggers="demo.refresh" OnRendering="countRender">
+          <face><span class="val">@value@</span></face>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // --- Replace versus append (documentation example) ---
+    let i = 4;
+    function ReSetSource() {
+      $bc.setSource("inlineSource.append", { id: i, name: `name-${i}` }, { mergeType: basiscore.MergeType.append });
+      $bc.setSource("inlineSource.replace", { id: i, name: `name-${i}` }, { mergeType: basiscore.MergeType.replace });
+      i += 1;
+    }
+
+    // --- Incremental tree updates (documentation example) ---
+    function rename() {
+      $bc.setSource("local.tree", [{ id: 4, name: "javad-2", pid: 2, status: 1 }],
+        { keyFieldName: "id", statusFieldName: "status", mergeType: basiscore.MergeType.append });
+    }
+    function remove() {
+      $bc.setSource("local.tree", [{ id: 5, status: 2 }],
+        { keyFieldName: "id", statusFieldName: "status", mergeType: basiscore.MergeType.append });
+    }
+
+    // --- Subscribing from JavaScript (documentation example) ---
+    const orderCalls = [];
+    async function onOrders(args) {
+      orderCalls.push(args);
+      // wait for another source published later
+      const customers = await args.context.waitToGetSourceAsync("customers.list");
+      // publish a derived source with the preview flag
+      args.context.setAsSource("orders.summary", { count: args.source.rows.length, customers: customers.rows.length }, undefined, true);
+    }
+
+    // --- The four ways a command is re-run ---
+    const eventCalls = [];
+    function onEvt(arg) {
+      eventCalls.push(arg);
+      if (arg.source.id.startsWith("timer.")) {
+        clearInterval(arg.source.rows[0].value);
+      }
+    }
+    const renderSources = [];
+    function countRender(args) {
+      renderSources.push(args.source ? args.source.id : null);
+    }
+  </script>
+
+  <script bc-ignore>
+    const ctx = () => $bc.global.basiscore.context;
+
+    bcTest.test("row normalisation: array as is, object -> [object], scalar -> [{ value }], id lower-cased, versions start at 0", (t) => {
+      const list = [{ id: 1 }, { id: 2 }];
+      const s = $bc.util.source.new("X.Y", list);
+      t.equal(s.id, "x.y");
+      t.ok(s.rows === list, "the array itself is the row array");
+      t.deepEqual(s.versions, [0, 0]);
+      t.equal(s.mergeType, basiscore.MergeType.replace);
+      t.equal(s.keyFieldName, undefined);
+      const obj = { a: 1 };
+      t.ok($bc.util.source.new("x.y", obj).rows[0] === obj, "an object becomes the single row");
+      t.deepEqual($bc.util.source.new("x.y", null).rows, [null], "null is an object for typeof");
+      t.deepEqual($bc.util.source.new("x.y", "default").rows, [{ value: "default" }]);
+      t.deepEqual($bc.util.source.new("x.y", 42).rows, [{ value: 42 }]);
+      t.deepEqual($bc.util.source.new("x.y", false).rows, [{ value: false }]);
+      const u = $bc.util.source.new("x.y", undefined).rows;
+      t.ok(u.length === 1 && "value" in u[0] && u[0].value === undefined);
+      const opts = { mergeType: 1, keyFieldName: "id", statusFieldName: "st", extra: { page: 2 } };
+      const keyed = $bc.util.source.new("x.y", list, opts);
+      t.deepEqual(keyed.cloneOptions(), opts);
+    });
+
+    bcTest.test("MergeType and DataStatus are numbers; only MergeType is exported", (t) => {
+      t.equal(basiscore.MergeType.replace, 0);
+      t.equal(basiscore.MergeType.append, 1);
+      t.equal(basiscore.MergeType[1], "append");
+      t.equal(basiscore.MergeType.push, undefined, "there is no push merge type");
+      t.equal(basiscore.DataStatus, undefined, "DataStatus is not exported: use 0 (added), 1 (edited), 2 (deleted)");
+    });
+
+    bcTest.test("Source.replace() keeps the object, bumps every position's version and copies the options", (t) => {
+      const s = $bc.util.source.new("v.test", [{ a: 1 }], { keyFieldName: "a" });
+      s.replace($bc.util.source.new("v.test", [{ a: 2 }, { a: 3 }]));
+      t.deepEqual(s.rows, [{ a: 2 }, { a: 3 }]);
+      t.deepEqual(s.versions, [1, 0], "existing position 0 -> 1, new position -> 0");
+      t.equal(s.keyFieldName, undefined, "keyFieldName is copied from the new source");
+      s.replace($bc.util.source.new("v.test", [{ a: 4 }], { keyFieldName: "a", mergeType: 1 }));
+      t.deepEqual(s.versions, [2]);
+      t.equal(s.keyFieldName, "a");
+      t.equal(s.mergeType, 1);
+      t.equal(s.getVersion(s.rows[0]), 2);
+      t.equal(s.getVersion({ a: 4 }), 0, "a row object that is not in rows has version 0");
+      s.addRows([{ a: 5 }]);
+      t.equal(s.rows.length, 2);
+      t.equal(s.versions.length, 2);
+      t.equal(s.versions[1], undefined, "addRows leaves an undefined version entry (documented pitfall)");
+      s.replace($bc.util.source.new("v.test", [{ a: 6 }, { a: 7 }]));
+      t.ok(Number.isNaN(s.versions[1]), "a later replace turns it into NaN");
+    });
+
+    bcTest.test("merge: first publication is stored as is, replace keeps the object, append without keys concatenates", async (t) => {
+      $bc.setSource("m.first", [{ id: 1 }], { mergeType: basiscore.MergeType.append, keyFieldName: "id" });
+      const first = await t.waitForSource("m.first");
+      t.deepEqual(first.rows, [{ id: 1 }]);
+      t.equal(first.keyFieldName, "id");
+      t.ok(t.consoleMessages(/^m\.first Added\.\.\. 1 Row\(s\)$/).length === 1);
+
+      $bc.setSource("m.first", [{ id: 9 }, { id: 10 }]);
+      await t.waitForSource("m.first", (s) => s.rows.length === 2);
+      t.ok(t.source("m.first") === first, "replace keeps the same Source object");
+      t.deepEqual(first.rows, [{ id: 9 }, { id: 10 }]);
+      t.deepEqual(first.versions, [1, 0]);
+      t.equal(first.keyFieldName, undefined, "the replacing source had no key field");
+      t.ok(t.consoleMessages(/^m\.first Updated\.\.\. 2 Row\(s\)$/).length === 1);
+
+      $bc.setSource("m.first", [{ id: 11 }], { mergeType: basiscore.MergeType.append, keyFieldName: "id" });
+      await t.waitForSource("m.first", (s) => s.rows.length === 3);
+      t.deepEqual(first.rows.map((r) => r.id), [9, 10, 11], "no key on the stored side: plain concatenation");
+      t.equal(first.keyFieldName, undefined, "options of the incoming source are not copied in this branch");
+      t.equal(first.versions[2], undefined);
+    });
+
+    bcTest.test("merge: append with keyFieldName and statusFieldName adds (0), edits (1) and deletes (2) by key, loosely compared", async (t) => {
+      const opts = { mergeType: basiscore.MergeType.append, keyFieldName: "id", statusFieldName: "status" };
+      $bc.setSource("m.keyed", [{ id: 1, n: "a" }, { id: 2, n: "b" }, { id: 3, n: "c" }], opts);
+      const s = await t.waitForSource("m.keyed");
+
+      $bc.setSource("m.keyed", [{ id: 2, n: "B", status: 1 }], opts);
+      await t.waitForSource("m.keyed", (x) => x.rows[1].n === "B");
+      t.deepEqual(s.rows[1], { id: 2, n: "B", status: 1 }, "the edited row replaces the old row object");
+      t.deepEqual(s.versions, [0, 1, 0], "only the edited row's version grows");
+
+      $bc.setSource("m.keyed", [{ id: 3, status: 2 }], opts);
+      await t.waitForSource("m.keyed", (x) => x.rows.length === 2);
+      t.deepEqual(s.rows.map((r) => r.id), [1, 2], "a deleted row is removed");
+
+      $bc.setSource("m.keyed", [{ id: 4, n: "d", status: 0 }], opts);
+      await t.waitForSource("m.keyed", (x) => x.rows.length === 3);
+      t.deepEqual(s.versions, [0, 1, 0]);
+
+      const before = t.consoleMessages(/^m\.keyed Updated/).length;
+      $bc.setSource("m.keyed", [{ id: 99, n: "ghost", status: 1 }], opts);
+      await t.waitFor(() => t.consoleMessages(/^m\.keyed Updated/), (l) => l.length === before + 1);
+      t.deepEqual(s.rows.map((r) => r.id), [1, 2, 4], "an edited row whose key is not found is dropped silently");
+
+      $bc.setSource("m.keyed", [{ id: "2", n: "B2", status: "1" }], opts);
+      await t.waitForSource("m.keyed", (x) => x.rows[1].n === "B2");
+      t.equal(s.rows[1].id, "2", "key \"2\" matched 2 and status \"1\" counted as edited (== comparison)");
+
+      $bc.setSource("m.keyed", [{ id: 1, n: "dup" }], { mergeType: basiscore.MergeType.append, keyFieldName: "id" });
+      await t.waitForSource("m.keyed", (x) => x.rows.length === 4);
+      t.deepEqual(s.rows.map((r) => r.id), [1, "2", 4, 1], "without statusFieldName every row is added, even a duplicate key");
+    });
+
+    bcTest.test("merge: append merges by key only when the stored source has a key field too", async (t) => {
+      $bc.setSource("m.nokey", [{ id: 1, n: "edited", status: 1 }],
+        { mergeType: basiscore.MergeType.append, keyFieldName: "id", statusFieldName: "status" });
+      const s = await t.waitForSource("m.nokey", (x) => x.rows.length === 2);
+      t.deepEqual(s.rows, [{ id: 1, n: "a" }, { id: 1, n: "edited", status: 1 }], "concatenation: the host.sources entry had no keyFieldName");
+    });
+
+    bcTest.test("handler API: handlers get the merged result source, run synchronously and in order, are deduplicated and removable", async (t) => {
+      const c = ctx();
+      const seen = [];
+      const h1 = (src) => seen.push(["h1", src]);
+      const h2 = (src) => seen.push(["h2", src]);
+      const bad = () => { throw new Error("handler failure"); };
+      c.addOnSourceSetHandler("h.test", bad);
+      c.addOnSourceSetHandler("h.test", h1);
+      c.addOnSourceSetHandler("h.test", h1);
+      c.addOnSourceSetHandler("H.Test", h2);
+      t.equal(t.consoleMessages(/^handler Added for h\.test\.\.\.$/).length, 3, "the duplicate registration logs nothing");
+
+      c.setAsSource("h.test", [{ v: 1 }]);
+      t.equal(seen.length, 2, "handlers ran before setAsSource returned; the duplicate ran once");
+      t.deepEqual(seen.map((x) => x[0]), ["h1", "h2"], "registration order");
+      t.ok(seen[0][1] === c.tryToGetSource("h.test"), "the argument is the stored source");
+      t.ok(t.consoleMessages(/handler failure/).length >= 1, "a throwing handler is logged with console.error and does not stop the others");
+
+      c.setAsSource("h.test", [{ v: 2 }], { mergeType: basiscore.MergeType.append });
+      t.ok(seen[2][1] === seen[0][1] && seen[2][1].rows.length === 2, "the merged stored source, not the incoming fragment");
+
+      c.removeOnSourceSetHandler("h.test", h1);
+      c.removeOnSourceSetHandler("h.test", bad);
+      c.setAsSource("h.test", [{ v: 3 }]);
+      t.deepEqual(seen.slice(4).map((x) => x[0]), ["h2"]);
+
+      const waiting = c.waitToGetSourceAsync("h.later");
+      t.equal(c.tryToGetSource("h.later"), undefined);
+      await t.waitForConsole(/^wait for h\.later$/);
+      c.setAsSource("h.later", "x");
+      const later = await waiting;
+      t.ok(later === c.tryToGetSource("h.later"));
+      t.ok((await c.waitToGetSourceAsync("h.later")) === later, "resolves immediately when the source exists");
+
+      c.setAsSource("h.preview", { value: "preview" }, undefined, true);
+      t.ok(t.consoleMessages(/"value": "preview"/).length >= 1, "preview dumps the rows with console.log(JSON.stringify(...))");
+    });
+
+    bcTest.test("built-in sources: cms.request, cms.query (decoded values, raw names, last duplicate wins), cms.cookie (names not trimmed)", async (t) => {
+      t.deepEqual(t.rows("cms.request"), [{ requestId: -1, hostip: location.hostname, hostport: location.port }]);
+      t.equal(t.rows("cms.request")[0].hostip, "127.0.0.1", "hostip is the host name");
+      t.deepEqual(t.rows("cms.query"), [{ id: "42", name: "Ali Reza", flag: "", id2: "2", "a%20b": "1" }]);
+      const cookie = t.rows("cms.cookie")[0];
+      t.equal(cookie.theme, "dark");
+      t.equal(cookie[" lang"], "en", "the second cookie name keeps its leading space");
+      t.equal(cookie.lang, undefined);
+      t.equal(t.source("cms.query").mergeType, basiscore.MergeType.replace);
+    });
+
+    bcTest.test("cms.cms: time and time2 are correct, the snapshot does not tick", async (t) => {
+      const cms = t.rows("cms.cms")[0];
+      t.match(cms.time, /^\d{2}:\d{2}$/);
+      t.match(cms.time2, /^\d{6}$/);
+      t.match(cms.date, /^\d{4}\/\d{2}\/\d{2}$/);
+      t.match(cms.date2, /^\d{8}$/);
+      t.match(cms.date3, /^\d{4}\.\d{2}\.\d{2}$/);
+      await t.sleep(1100);
+      t.equal(t.rows("cms.cms")[0].time2, cms.time2, "same object, same value: no ticking");
+    });
+
+    bcTest.defect("known defect: cms.cms date fields use the zero-based month and the weekday", (t) => {
+      const cms = t.rows("cms.cms")[0];
+      const d = new Date();
+      const pad = (x) => ("0" + x).slice(-2);
+      t.equal(cms.date2.slice(4, 6), pad(d.getMonth()), "month is getMonth(), one less than the calendar month");
+      t.equal(cms.date2.slice(6, 8), pad(d.getDay()), "day is getDay(), the weekday, not getDate()");
+      t.notEqual(cms.date2.slice(4, 6), pad(d.getMonth() + 1));
+    });
+
+    bcTest.test("cms.* tokens resolve to null at once when the source is missing; other missing sources make the token wait", async (t) => {
+      t.equal(await "[##cms.nothing.v##]".ToStringToken(ctx()).getValueAsync(true), null);
+      const pending = "[##other.nothing.v##]".ToStringToken(ctx()).getValueAsync(true).then(() => "resolved");
+      t.equal(await Promise.race([pending, t.sleep(200).then(() => "pending")]), "pending");
+    });
+
+    bcTest.test("replace versus append (documentation example): one click appends one row and replaces the other list", async (t) => {
+      await t.waitFor(() => t.$$("#append span"), (l) => l.length === 3);
+      t.click("#reset");
+      await t.waitFor(() => t.$$("#append span"), (l) => l.length === 4);
+      t.equal(t.text(t.$$("#append span")[3]), "4 ( name is:name-4 )");
+      await t.waitFor(() => t.$$("#replace span"), (l) => l.length === 1 && t.text(l[0]) === "4 ( name is:name-4 )");
+      t.click("#reset");
+      await t.waitFor(() => t.$$("#append span"), (l) => l.length === 5);
+      await t.waitFor(() => t.$$("#replace span"), (l) => l.length === 1 && t.text(l[0]) === "5 ( name is:name-5 )");
+      t.equal(t.rows("inlinesource.append").length, 5);
+      t.equal(t.rows("inlinesource.replace").length, 1);
+      t.ok(t.consoleMessages(/"name": "name-5"/).length >= 2, "the callback without method logged both merged sources");
+    });
+
+    bcTest.test("keyed add / edit / delete from a form: status 0 appends, 1 replaces only that row, 2 removes it", async (t) => {
+      const submit = (id, name, status) => {
+        t.$("#keyed-form input[name=id]").value = id;
+        t.$("#keyed-form input[name=name]").value = name;
+        t.$("#keyed-form select[name=status]").value = status;
+        t.fire("#keyed-form", "submit");
+      };
+      submit("1", "a", "0");
+      let rows = await t.waitFor(() => t.$$("#keyed-out .row"), (l) => l.length === 1);
+      const src = t.source("page.form");
+      t.equal(src.keyFieldName, "id");
+      t.equal(src.statusFieldName, "status");
+      t.equal(src.mergeType, basiscore.MergeType.append);
+      t.deepEqual(src.rows, [{ id: "1", name: "a", status: "0" }], "the form publishes one row built from its fields");
+
+      submit("2", "b", "0");
+      rows = await t.waitFor(() => t.$$("#keyed-out .row"), (l) => l.length === 2);
+      const firstNode = rows[0];
+      t.click(firstNode.querySelector("button.color"));
+
+      submit("2", "B", "1");
+      await t.waitFor(() => t.$$("#keyed-out .row"), (l) => l.length === 2 && t.text(l[1]).startsWith("2 ( name is:B )"));
+      rows = t.$$("#keyed-out .row");
+      t.ok(rows[0] === firstNode, "the untouched row keeps its node");
+      t.equal(rows[0].querySelector("button.color").style.color, "rgb(255, 0, 0)", "and its DOM state");
+      t.equal(src.rows.length, 2);
+
+      submit("1", "", "2");
+      rows = await t.waitFor(() => t.$$("#keyed-out .row"), (l) => l.length === 1);
+      t.match(t.text(rows[0]), /^2 \( name is:B \)/);
+      t.deepEqual(src.rows.map((r) => r.id), ["2"]);
+    });
+
+    bcTest.test("incremental tree updates: an edited row re-renders only its node, a deleted row disappears", async (t) => {
+      const text = () => t.$$("#tree li").map((li) => t.text(li).split(" ").slice(0, 3).join(" "));
+      await t.waitFor(() => t.$$("#tree li"), (l) => l.length === 4);
+      t.deepEqual(text(), ["1 - ali", "2 - amir", "4 - javad", "5 - reza"]);
+      const root = t.$$("#tree li")[0];
+      t.equal(t.$$("ul", root).length, 3, "nested lists: 1 > 2 > 4 > 5");
+
+      rename();
+      await t.waitFor(text, (l) => l[2] === "4 - javad-2");
+      t.ok(t.$$("#tree li")[0] === root, "the root node is reused");
+      t.deepEqual(t.rows("local.tree").map((r) => r.name), ["ali", "amir", "javad-2", "reza"]);
+
+      remove();
+      await t.waitFor(() => t.$$("#tree li"), (l) => l.length === 3);
+      t.deepEqual(text(), ["1 - ali", "2 - amir", "4 - javad-2"]);
+      t.deepEqual(t.source("local.tree").versions, [0, 0, 1]);
+    });
+
+    bcTest.test("scoped sources with group: owner fallback, publishing in a child stays in the child, owner publications propagate down", async (t) => {
+      $bc.setSource("local.name", "default");
+      await t.waitForText("#scope .outer-print", "default");
+      await t.waitForText("#scope .inner-text", "default");
+      await t.waitFor(() => t.$("#scope .inner-form input[name=value]").value, (v) => v === "default");
+
+      t.$("#scope .inner-form input[name=value]").value = "inner";
+      t.fire("#scope .inner-form", "submit");
+      await t.waitForText("#scope .inner-text", "inner");
+      await t.sleep(150);
+      t.equal(t.text("#scope .outer-print"), "default", "the outer print does not see the inner group's source");
+      t.equal(t.rows("local.name")[0].value, "default", "nothing flows upward to the root context");
+
+      t.setValue("#scope .outer-input", "outer", ["keyup"]);
+      await t.waitForText("#scope .outer-print", "outer");
+      await t.waitForText("#scope .inner-text", "outer", { message: "the owner's publication deleted the inner copy" });
+      await t.waitForConsole(/^local\.name Added from owner context\.\.\.$/);
+      t.equal(t.rows("local.name")[0].value, "default", "the root context is still untouched");
+    });
+
+    bcTest.test("subscribing from JavaScript: callback args, waitToGetSourceAsync for a later source, setAsSource with preview", async (t) => {
+      $bc.setSource("orders.list", [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const args = await t.waitFor(() => orderCalls[0]);
+      t.equal(args.source.id, "orders.list");
+      t.ok(args.source === t.source("orders.list"), "args.source is the merged stored source");
+      t.ok(args.context === ctx());
+      t.equal(args.node.tagName, "BASIS");
+      t.equal(document.contains(args.node), false, "args.node is the detached <basis> element");
+      await t.sleep(100);
+      t.equal(t.text("#orders-count"), "0", "the callback is still waiting for customers.list");
+      $bc.setSource("customers.list", [{ id: 7 }]);
+      await t.waitForText("#orders-count", "3");
+      t.deepEqual(t.rows("orders.summary"), [{ count: 3, customers: 1 }]);
+      t.ok(t.consoleMessages(/"count": 3/).length >= 1, "preview logged the rows");
+    });
+
+    bcTest.test("re-run 1 and 2: datamembername and triggers; the trigger source is only a signal for source-reading commands", async (t) => {
+      t.setValue("#rerun-input", "typed", ["keyup"]);
+      await t.waitForText("#rerun-print .val", "typed");
+      t.deepEqual(renderSources, [null, "demo.input"], "OnRendering: no source on the start-up pass, then the datamembername source");
+      $bc.setSource("demo.refresh", 1);
+      await t.waitFor(() => renderSources, (l) => l.length === 3);
+      t.equal(renderSources[2], "demo.refresh", "the trigger source is handed to the hooks");
+      t.equal(t.text("#rerun-print .val"), "typed", "but the command rendered its own datamembername source");
+    });
+
+    bcTest.test("re-run 3: an element with bc-triggers publishes [{ value }] on each DOM event and calls preventDefault", async (t) => {
+      const input = t.$("#rerun-input");
+      t.ok(input.hasAttribute("data-bc-init"), "the element is marked once its listeners are attached");
+      input.value = "changed";
+      const ev = t.fire(input, "change");
+      t.equal(ev.defaultPrevented, true);
+      await t.waitForSource("demo.input", (s) => s.rows[0].value === "changed");
+      t.deepEqual(t.rows("demo.input"), [{ value: "changed" }]);
+      t.equal(t.source("demo.input").mergeType, basiscore.MergeType.replace);
+    });
+
+    bcTest.test("re-run 4: events hand a synthetic source whose id is the entry and whose row is the Event or the timer id", async (t) => {
+      const timer = await t.waitFor(() => eventCalls.find((a) => a.source.id === "timer.150"));
+      t.equal(typeof timer.source.rows[0].value, "number", "rows[0].value is the interval id (cleared by the callback)");
+      const ticks = eventCalls.filter((a) => a.source.id === "timer.150").length;
+      t.click("#evt-btn");
+      const click = await t.waitFor(() => eventCalls.find((a) => a.source.id === "#evt-btn.click"));
+      t.ok(click.source.rows[0] instanceof MouseEvent, "rows[0] is the DOM event");
+      await t.sleep(400);
+      t.equal(eventCalls.filter((a) => a.source.id === "timer.150").length, ticks, "clearInterval stopped the timer");
+    });
+
+    bcTest.test("priorities: print is low (2), callback is none (3) and is not run by the start-up waves", (t) => {
+      const list = $bc.global.GetCommandList();
+      const print = list.find((c) => c.core === "print");
+      const callback = list.find((c) => c.core === "callback" && c.triggers && c.triggers.includes("orders.list"));
+      t.equal(print.priority, 2);
+      t.equal(callback.priority, 3);
+      t.equal(orderCalls.length, 1, "onOrders ran once, for the trigger, never for the start-up pass");
+    });
+  </script>
+</body>
+</html>

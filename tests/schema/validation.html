@@ -70,11 +70,13 @@
       url: "/validation/:culture", method: "POST",
       response: (ctx) => {
         validationRequests.push({ culture: ctx.params.culture, body: ctx.bodyJSON });
-        return [
+        const sentences = [
           { id: 111, title: "از سرور: الزامی" },
           { id: 444, title: "طول باید بین ${minLength} و ${maxLength} باشد" },
           { id: 999, title: "nested form is invalid" }
         ];
+        // answer only the requested ids (numeric), like a real sentence service would
+        return sentences.filter((s) => ctx.bodyJSON.sentenceId.some((id) => id == s.id));
       }
     });
     const undefinedRequests = [];
@@ -119,7 +121,7 @@
       <div id="sub2-form">
         <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/sub" displayMode="new"
                button="[data-btn-sub2]" resultSourceId="sub2.result" errorResultSourceId="sub2.error"
-               options="{ validationErrors: { 'sub-schema': 999 }, messagesApi: '/validation' }"></basis>
+               options="({ validationErrors: { 'sub-schema': 999 }, messagesApi: '/validation' })"></basis>
       </div>
     </section>
 
@@ -135,13 +137,13 @@
       <div id="strict-form">
         <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/strict" displayMode="new"
                button="[data-btn-strict]" resultSourceId="strict.result" errorResultSourceId="strict.error"
-               options="{ validationErrors: { required: '111' }, messagesApi: '/validation' }"></basis>
+               options="({ validationErrors: { required: '111' }, messagesApi: '/validation' })"></basis>
       </div>
       <button data-btn-nomsg>Save (no messagesApi)</button>
       <div id="nomsg-form">
         <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/nomsg" displayMode="new"
                button="[data-btn-nomsg]" resultSourceId="nomsg.result" errorResultSourceId="nomsg.error"
-               options="{ validationErrors: { required: 111 } }"></basis>
+               options="({ validationErrors: { required: 111 } })"></basis>
       </div>
     </section>
 
@@ -160,7 +162,6 @@
     const invalidNotifications = [];
     function onInvalid(args) {
       invalidNotifications.push(args.source.rows[0].value);
-      document.querticketSelector = null;
     }
     var optionsConfig = {
       validationErrors: { required: 111, length: 444 },
@@ -173,7 +174,7 @@
     const question = (rootSel, title) =>
       Array.from(document.querySelectorAll(rootSel + " [data-bc-question]")).find((e) => e.querySelector("[data-bc-question-title]").textContent.trim() === title);
     const partOf = (rootSel, title) => question(rootSel, title).querySelector("[data-bc-part]");
-    const messages = (el) => Array.from(el.querySelectorAll("[data-bc-validation-part] li")).map((li) => li.textContent.replace(/\s+/g, " ").trim());
+    const messages = (el) => Array.from(el.querySelectorAll(":scope > [data-bc-validation-part] > li")).map((li) => li.textContent.replace(/\s+/g, " ").trim());
     const waitForm = (t, rootSel) => t.waitFor(() => t.$(rootSel + " [data-bc-schema-main-container][data-bc-schema-direction]"));
     const setFiles = (t, input, files) => {
       const dt = new DataTransfer();
@@ -358,16 +359,19 @@
       t.equal(question("#dep-form", "City (select)").querySelectorAll("option").length, 0, "the list was never loaded");
       t.equal(fixDataRequests.length, 0, "no request was sent");
       await t.waitForError(/country is not defined/);
-      t.note("the aborted load surfaces as ReferenceError: country is not defined (see the documentation change)");
+      t.note("the aborted load surfaces as ReferenceError: country is not defined, not as Error(\"Has empty required part!\")");
 
-      // the autocomplete loads on demand: the marker is cleared once the referenced part has a value
+      // the autocomplete resolves its dependencies when its button is clicked
       const auto = question("#dep-form", "City (autocomplete)");
+      country.removeAttribute("data-bc-invalid");
       t.click(auto.querySelector("[data-bc-btn]"));
-      await t.sleep(100);
-      t.equal(t.$("[data-bc-autocomplete-popup-container]"), null, "the popup does not open while the dependency is empty");
+      let popup = await t.waitFor(() => t.$("[data-bc-autocomplete-popup-container]"));
+      t.note("the popup opens although the dependency is empty; the search itself would fail on the missing placeholder");
+      await t.waitFor(() => country, (p) => p.hasAttribute("data-bc-invalid"), { message: "Country marked again by the autocomplete" });
+      t.click(popup.querySelector("[data-bc-btn-close]"));
       t.setValue(country.querySelector("input"), "Iran");
       t.click(auto.querySelector("[data-bc-btn]"));
-      const popup = await t.waitFor(() => t.$("[data-bc-autocomplete-popup-container]"));
+      popup = await t.waitFor(() => t.$("[data-bc-autocomplete-popup-container]"));
       t.ok(!country.hasAttribute("data-bc-invalid"), "the marker is cleared when the dependent load finds a value");
       t.deepEqual(messages(country), []);
       t.click(popup.querySelector("[data-bc-btn-close]"));

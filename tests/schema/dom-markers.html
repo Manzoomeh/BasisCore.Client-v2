@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema DOM markers</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // --- question schemas (docs/schema/schema-json-contract.md) -------------------------------
+    const part = (part, viewType, extra) => Object.assign({ part, viewType }, extra || {});
+    const q = (prpId, title, parts, extra) => Object.assign({ prpId, title, parts }, extra || {});
+    const units = [
+      { id: 0, value: "please choose" },
+      { id: 4, value: "110", schema: { schemaId: "nested", paramUrl: "/nested", lid: 2, schemaVersion: 1 } },
+      { id: 5, value: "220" }
+    ];
+    const schemas = {
+      // default skin: one question per control family
+      "/markers": {
+        schemaId: "markers", schemaVersion: 1, paramUrl: "/markers", lid: 2,
+        sections: [{ id: 1, title: "Section" }],
+        questions: [
+          q(13057, "Emergency power", [
+            part(1, "select", { caption: "Unit", cssClass: "css_13057_1", fixValues: units }),
+            part(2, "text", { caption: "Speed (rpm)", cssClass: "css_13057_2", validations: { required: true } })
+          ], { typeId: 262, wordId: 7, multi: true, sectionId: 1, cssClass: "css_13057", help: "help data" }),
+          q(2, "Text", [part(1, "text")]),
+          q(3, "Textarea", [part(1, "textarea")]),
+          q(4, "Password", [part(1, "password")]),
+          q(5, "Checklist", [part(1, "checklist", { fixValues: units })]),
+          q(6, "Radio", [part(1, "radio", { fixValues: units })]),
+          q(7, "Upload", [part(1, "upload", { multiple: true })]),
+          q(8, "Html", [part(1, "html", { link: "/tests/fixtures/dom-markers/html-field.html" })]),
+          q(9, "Fancy", [part(1, "fancy")]),
+          q(10, "Autocomplete", [part(1, "autocomplete", { link: "/markers/autocomplete?term=${term}" })]),
+          q(11, "Simple autocomplete", [part(1, "simpleautocomplete", { link: "/markers/autocomplete?term=${term}" })]),
+          q(12, "Lookup", [part(1, "lookup", { link: "/markers/autocomplete?term=${term}" })]),
+          q(13, "Multi autocomplete", [part(1, "autocomplete", { link: "/markers/autocomplete?term=${term}" })], { multi: true })
+        ]
+      },
+      "/nested": {
+        schemaId: "nested", schemaVersion: 1, paramUrl: "/nested", lid: 2,
+        questions: [q(55, "Nested text", [part(1, "text")])]
+      },
+      // template2 skin
+      "/t2": {
+        schemaId: "t2", schemaVersion: 1, paramUrl: "/t2", lid: 2,
+        sections: [{ id: 1, title: "Grid section", gridColumns: 2 }],
+        questions: [
+          q(1, "Range", [part(1, "text", { caption: "From" }), part(2, "text", { caption: "To" })], { sectionId: 1, colSpan: 2 }),
+          q(2, "Phase", [part(1, "radio", { fixValues: [{ id: 1, value: "single" }, { id: 2, value: "three" }] })], { sectionId: 1 }),
+          q(3, "Unit", [part(1, "select", { fixValues: units })])
+        ]
+      },
+      // edit mode: a multi question with two saved rows
+      "/rows": {
+        schemaId: "rows", schemaVersion: 1, paramUrl: "/rows", lid: 2,
+        questions: [q(1, "Web site", [part(1, "text")], { multi: true })]
+      }
+    };
+    const answerRows = {
+      usedForId: 1, schemaId: "rows", paramUrl: "/rows", schemaVersion: 1, lid: 2,
+      properties: [{ prpId: 1, answers: [
+        { id: 10, parts: [{ part: 1, values: [{ id: 101, value: "http://a" }] }] },
+        { id: 11, parts: [{ part: 1, values: [{ id: 111, value: "http://b" }] }] }
+      ] }]
+    };
+    BasisCoreMock.route({ url: "/markers/autocomplete", method: "GET", response: () => [{ id: 1, value: "Tehran" }, { id: 2, value: "Tabriz" }] });
+  </script>
+  <script>
+    const host = { sources: { "markers.rows": [answerRows] } };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/dom-markers.md">
+  <main>
+    <h1>schema DOM markers</h1>
+    <p class="intro">
+      Checks <code>docs/schema/dom-markers.md</code>: every <code>data-bc-*</code> and
+      <code>data-sys-*</code> marker of the rendered form, the attributes without the
+      <code>data-bc-</code> prefix, the markers that exist only in CSS, and
+      <code>data-bc-init</code> on a bound element.
+    </p>
+
+    <section class="case" id="case-markers">
+      <h2>Default skin</h2>
+      <button data-btn-markers>Save</button>
+      <div id="markers-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/markers" displayMode="new"
+               button="[data-btn-markers]" resultSourceId="markers.result" errorResultSourceId="markers.error"
+               direction="ltr" filesPath="site/"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-t2">
+      <h2>template2 skin</h2>
+      <div id="t2-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/t2" displayMode="new"
+               skin="template2" direction="rtl"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-rows">
+      <h2>Answer rows of an edited multi question</h2>
+      <div id="rows-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" datamembername="markers.rows" displayMode="edit"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-init">
+      <h2>data-bc-init outside the schema runtime</h2>
+      <input id="bound" name="demo.bound" bc-triggers="keyup" />
+    </section>
+  </main>
+
+  <script>
+    async function loadSchema(context, paramUrl) {
+      return schemas[paramUrl];
+    }
+  </script>
+
+  <script>
+    const question = (rootSel, title) =>
+      Array.from(document.querySelectorAll(rootSel + " [data-bc-question]")).find((e) => e.querySelector("[data-bc-question-title]").textContent.trim() === title);
+    const waitForm = (t, rootSel) => t.waitFor(() => t.$(rootSel + " [data-bc-schema-main-container][data-bc-schema-direction]"));
+    const has = (t, el, selector, msg) => {
+      const found = el.querySelector(selector);
+      t.ok(found, (msg || selector) + " exists");
+      return found;
+    };
+
+    bcTest.test("form root and layout markers", async (t) => {
+      const root = await waitForm(t, "#markers-form");
+      t.equal(root.getAttribute("data-bc-schema-direction"), "ltr");
+      t.equal(root.getAttribute("data-bc-schema-skin"), "default");
+      const section = has(t, root, "fieldset[data-bc-section]");
+      t.equal(t.text(has(t, section, "legend[data-bc-section-title][data-sys-text]")), "Section");
+      t.ok(section.querySelector("[data-bc-schema-column] [data-bc-question]"), "a section holds its own column(s)");
+      t.ok(root.querySelector(":scope > [data-bc-schema-column]"), "unsectioned questions go into a column of the root");
+      t.equal(root.querySelector("[data-bc-schema-grid-container]"), null, "no grid container in the default skin");
+    });
+
+    bcTest.test("question block markers (QuestionContainer)", async (t) => {
+      const root = await waitForm(t, "#markers-form");
+      const qn = question("#markers-form", "Emergency power");
+      t.equal(qn.getAttribute("data-colspan"), "1", "data-colSpan is lower-cased to data-colspan");
+      t.ok(qn.classList.contains("css_13057"));
+      const titleContainer = has(t, qn, "[data-bc-title-container]");
+      const title = has(t, titleContainer, "span[data-bc-question-title][data-sys-text]");
+      t.equal(title.getAttribute("data-bc-schema-info-prpid"), "13057");
+      const help = has(t, titleContainer, "a[data-bc-help-btn] svg");
+      t.equal(help.parentElement.getAttribute("data-bc-help-tooltip"), "help data");
+      const answers = has(t, qn, "[data-bc-answer-container]");
+      t.equal(answers.getAttribute("data-bc-schema-info-multi"), "1");
+      t.equal(answers.getAttribute("data-bc-schema-info-type"), "262");
+      t.equal(answers.getAttribute("data-bc-schema-info-word"), "7");
+      t.equal(answers.getAttribute("data-bc-schema-info-part"), "2");
+      t.equal(answers.getAttribute("data-bc-schema-info-part-0-type"), "select");
+      t.equal(answers.getAttribute("data-bc-schema-info-part-1-type"), "text");
+      const captions = t.$$("[data-bc-answer-title-container] > div[data-bc-answer-title][data-bc-part-related-cell][data-sys-text] > span", answers);
+      t.deepEqual(captions.map((e) => t.text(e)), ["Unit", "Speed (rpm)"]);
+      has(t, answers, "[data-bc-answer-collection] > [data-bc-answer]");
+
+      const single = question("#markers-form", "Text");
+      t.equal(single.querySelector("[data-bc-answer-title-container]"), null, "caption row removed for a single part");
+      t.equal(single.querySelector("[data-bc-help-btn]"), null, "help icon removed without help");
+      t.equal(single.querySelector("[data-bc-answer-container]").getAttribute("data-bc-schema-info-multi"), "0");
+      t.ok(!single.querySelector("[data-bc-answer-container]").hasAttribute("data-bc-schema-info-type"));
+    });
+
+    bcTest.test("answer row markers (Question): new row of a multi question", async (t) => {
+      await waitForm(t, "#markers-form");
+      const rowEl = question("#markers-form", "Emergency power").querySelector("[data-bc-answer]");
+      const parts = has(t, rowEl, "[data-bc-part-container]");
+      t.equal(parts.querySelectorAll(":scope > [data-bc-part]").length, 2, "one [data-bc-part] per part");
+      const btnBlock = has(t, rowEl, ":scope > [data-bc-part][data-part-btn-container]", "the button block is itself a [data-bc-part]");
+      const pair = has(t, btnBlock, "[data-bc-pair-btn-container]");
+      t.equal(pair.style.display, "none", "the pair is hidden on a new row");
+      has(t, pair, "button[data-bc-btns][data-bc-btn-remove] path[data-sys-minus-icon]");
+      has(t, pair, "button[data-bc-btns][data-bc-btn-add] path[data-sys-plus-icon]");
+      const btn = has(t, btnBlock, ":scope > button[data-bc-btn]");
+      t.equal(btn.getAttribute("data-bc-btn"), "add");
+      t.ok(btn.hasAttribute("data-sys-plus"));
+      has(t, btn, "path[data-sys-plus-icon]");
+      t.equal(btn.style.display, "flex");
+      t.equal(question("#markers-form", "Text").querySelector("[data-bc-part][data-part-btn-container] button"), null, "a non-multi question has no buttons at all");
+    });
+
+    bcTest.test("answer row markers (Question): saved rows in edit mode", async (t) => {
+      await waitForm(t, "#rows-form");
+      const rows = t.$$("#rows-form [data-bc-answer]");
+      t.equal(rows.length, 2);
+      const first = rows[0].querySelector("button[data-bc-btn]");
+      t.equal(first.getAttribute("data-bc-btn"), "remove", "earlier rows: remove");
+      t.ok(first.hasAttribute("data-sys-minus"));
+      t.ok(!first.hasAttribute("data-sys-plus") || first.hasAttribute("data-sys-minus"), "data-sys-minus marks the remove state");
+      has(t, first, "path[data-sys-minus-icon]");
+      t.equal(rows[0].querySelector("[data-bc-pair-btn-container]").style.display, "none");
+      t.equal(rows[1].querySelector("[data-bc-pair-btn-container]").style.display, "block", "last pre-filled row: the pair is shown");
+      t.equal(rows[1].querySelector("button[data-bc-btn]").style.display, "none");
+    });
+
+    bcTest.test("part wrapper markers (QuestionPart) and data-bc-invalid after a submit", async (t) => {
+      await waitForm(t, "#markers-form");
+      const qn = question("#markers-form", "Emergency power");
+      const parts = t.$$("[data-bc-part-container] > [data-bc-part]", qn);
+      t.ok(parts.every((p) => p.hasAttribute("data-bc-part-related-cell")), "every part shares the per-part width marker");
+      t.ok(parts[0].classList.contains("css_13057_1") && parts[1].classList.contains("css_13057_2"), "part.cssClass on the wrapper");
+      t.equal(t.$$("#markers-form [data-bc-content]").length, 0, "data-bc-content never survives in the final DOM");
+      t.ok(parts.every((p) => p.querySelector(":scope > ul[data-bc-validation-part]")), "each part has its message list");
+      t.ok(parts.every((p) => !p.hasAttribute("data-bc-invalid")));
+      t.equal(getComputedStyle(parts[1].querySelector("[data-bc-validation-part]")).display, "none", "the list is hidden while the part is valid");
+
+      t.click("[data-btn-markers]");
+      await t.waitForSource("markers.error");
+      t.ok(parts[1].hasAttribute("data-bc-invalid"), "the required text part is marked");
+      t.equal(parts[1].getAttribute("data-bc-invalid"), "", "the marker is valueless");
+      t.equal(getComputedStyle(parts[1].querySelector("[data-bc-validation-part]")).display, "block", "the list is shown under an invalid part");
+      t.ok(!parts[1].querySelector("input").hasAttribute("data-bc-invalid"), "toggled on the wrapper, never on the input");
+      t.ok(!parts[0].hasAttribute("data-bc-invalid"));
+    });
+
+    bcTest.test("text control markers", async (t) => {
+      await waitForm(t, "#markers-form");
+      has(t, question("#markers-form", "Text"), "input[type=text][data-bc-text-input][data-sys-input-text]");
+      has(t, question("#markers-form", "Textarea"), "textarea[data-bc-text-input][data-sys-textarea]");
+      const pw = question("#markers-form", "Password");
+      has(t, pw, "input[type=password][data-bc-text-input][data-sys-input-text]");
+      const eye = has(t, pw, "span[data-bc-view-pass][data-sys-text]");
+      t.equal(eye.getAttribute("data-bc-view-pass-status"), "hide");
+    });
+
+    bcTest.test("list control markers and the sub-schema descriptor attributes of select options", async (t) => {
+      await waitForm(t, "#markers-form");
+      const sel = question("#markers-form", "Emergency power").querySelector("select[data-sys-select-option]");
+      t.ok(sel, "select carries data-sys-select-option");
+      has(t, sel.parentElement, "select + div[data-bc-sm-sub-schema-container]");
+      const opt = sel.querySelector("option[value='4']");
+      t.equal(opt.getAttribute("data-schema-id"), "nested");
+      t.equal(opt.getAttribute("data-lid"), "2");
+      t.equal(opt.getAttribute("data-param-url"), "/nested");
+      t.equal(opt.getAttribute("data-schema-version"), "1");
+      t.ok(!sel.querySelector("option[value='5']").hasAttribute("data-schema-id"), "only sub-schema options carry the descriptor");
+
+      const check = has(t, question("#markers-form", "Checklist"), "div[data-bc-part-checkbox][data-sys-part-checkbox]");
+      const items = t.$$("[data-bc-items] > div[data-sys-text]", check);
+      t.equal(items.length, 3);
+      t.ok(items.every((i) => i.querySelector("input[type=checkbox] + div[data-bc-sm-sub-schema-container]")), "a sub-schema container inside every checklist item");
+      const radio = has(t, question("#markers-form", "Radio"), "div[data-bc-part-radio][data-sys-part-checkbox]");
+      t.equal(t.$$("[data-bc-items] > div[data-sys-text] input[type=radio]", radio).length, 3);
+      has(t, radio, "[data-bc-items] + div[data-bc-sm-sub-schema-container]", "radio: single container after the items");
+      t.equal(radio.querySelectorAll("[data-bc-items] [data-bc-sm-sub-schema-container]").length, 0);
+
+      t.setValue(sel, "4", ["change"]);
+      await t.waitFor(() => sel.parentElement.querySelector("[data-bc-sm-sub-schema-container] [data-bc-schema-main-container] input"));
+      await t.waitForConsole(/handler Added for sub-schema\./);
+      t.note("the generated nested command uses datamembername=\"sub-schema.<random>\" (seen in the log line)");
+      t.setValue(sel, "5", ["change"]);
+    });
+
+    bcTest.test("autocomplete, reference and lookup markers, and the SearchPopup appended to body", async (t) => {
+      await waitForm(t, "#markers-form");
+      const single = has(t, question("#markers-form", "Autocomplete"), "div[data-bc-auto-complete-container]");
+      has(t, single, "label[data-bc-add-item][data-bc-auto-complete][data-bc-auto-complete-single-type][data-sys-auto-complete]");
+      const btn = has(t, single, "button[data-bc-auto-complete-single-type-btn][data-bc-btn='add'][data-sys-plus]");
+      has(t, question("#markers-form", "Multi autocomplete"), "label[data-bc-add-item][data-bc-auto-complete][data-sys-auto-complete]");
+      const simple = has(t, question("#markers-form", "Simple autocomplete"), "div[data-bc-fm-simple-autocomplete][data-bc-auto-complete]");
+      has(t, simple, "input[data-bc-search][data-sys-input-text]");
+      has(t, simple, "ul[data-bc-result][data-sys-search-result]");
+      const lookup = has(t, question("#markers-form", "Lookup"), "div[data-bc-fm-lookup]");
+      has(t, lookup, "span[data-bc-lookup-select-value][data-bc-auto-complete] > input[data-bc-text-input][data-sys-input-text]");
+      has(t, lookup, "span[data-bc-lookup-set-value][data-sys-select-lookup]");
+      has(t, lookup, "ul[data-bc-result][data-sys-search-result]");
+
+      t.click(btn);
+      const popup = await t.waitFor(() => t.$("body > [data-bc-autocomplete-popup-container]"));
+      t.equal(popup.getAttribute("data-bc-schema-direction"), "ltr", "the popup carries the direction");
+      t.equal(popup.getAttribute("data-bc-schema-skin"), "default", "and the skin");
+      t.equal(popup.closest("[data-bc-schema-main-container]"), null, "it lives under body, outside the form");
+      const box = has(t, popup, "div[data-bc-autocomplete-popup][data-sys-autocomplete-popup]");
+      has(t, box, "div[data-bc-title][data-sys-autocomplete-popup-header] > button[data-bc-btn-close][data-sys-text]");
+      const body = has(t, box, "div[data-bc-body][data-sys-autocomplete-popup-body]");
+      const search = has(t, body, "input[data-bc-search][data-sys-input-text]");
+      has(t, body, "ul[data-bc-result][data-sys-search-result]");
+      t.setValue(search, "T", ["keyup"]);
+      const li = await t.waitFor(() => t.$$("li", body), (l) => l.length === 2);
+      t.equal(li[0].getAttribute("data-bc-value"), "Tehran", "data-bc-value holds the item text");
+      t.ok(li[0].hasAttribute("data-sys-hover") && li[0].hasAttribute("data-sys-text"));
+      t.click(popup.querySelector("[data-bc-btn-close]"));
+      t.equal(t.$("[data-bc-autocomplete-popup-container]"), null, "the close button removes the popup");
+    });
+
+    bcTest.test("file control markers", async (t) => {
+      await waitForm(t, "#markers-form");
+      const up = question("#markers-form", "Upload");
+      const input = has(t, up, "div[data-bc-upload-file-select] > input[type=file][data-bc-file-input][data-sys-input-text]");
+      t.ok(input.hasAttribute("multiple"));
+      const list = has(t, up, "div[data-bc-upload-file-list]");
+      t.equal(list.children.length, 0);
+      const dt = new DataTransfer();
+      dt.items.add(new File(["abc"], "notes.txt", { type: "text/plain" }));
+      input.files = dt.files;
+      t.fire(input, "change");
+      const item = has(t, list, "div[data-bc-upload-file-item]");
+      has(t, item, "span[data-bc-item-btn-delete] path[data-sys-text-delete]");
+      const link = has(t, item, "a[data-bc-item-download][href][download]");
+      t.equal(link.getAttribute("download"), "notes.txt");
+      t.equal(link.getAttribute("href"), "site/null", "filesPath + url (a new file has no url)");
+      has(t, link, "div[data-bc-item-icon-frame] > img[data-bc-item-icon]");
+      t.equal(t.text(has(t, link, "span[data-bc-item-title][data-sys-text]")), "notes.txt");
+      t.click(item.querySelector("[data-bc-item-btn-delete]"));
+      t.equal(list.children.length, 0, "the delete icon removes the item");
+    });
+
+    bcTest.test("html field and dialog markers", async (t) => {
+      await waitForm(t, "#markers-form");
+      const qn = question("#markers-form", "Html");
+      const partEl = qn.querySelector("[data-bc-part]");
+      const rowEl = has(t, partEl, "div[data-bc-html-field-row]");
+      has(t, rowEl, "input[type=text][data-bc-text-input][disabled]");
+      has(t, rowEl, "div[data-bc-input-overlay]");
+      const dialog = has(t, qn, "[data-bc-part-container] > div[data-bc-html-container]", "the dialog is appended to the row's part container");
+      t.equal(getComputedStyle(dialog).display, "none", "closed by default");
+      const box = has(t, dialog, "div[data-bc-html][data-sys-html]");
+      has(t, box, "div[data-bc-title][data-sys-html-header] > button[data-bc-btn-close][data-sys-text]");
+      const body = has(t, box, "div[data-bc-body][data-sys-html-body]");
+      has(t, box, "div[data-bc-footer][data-sys-html-footer]");
+      t.equal(body.children.length, 0, "no iframe before the dialog opens");
+
+      t.click(partEl);
+      t.equal(dialog.style.display, "block", "clicking the part opens the dialog");
+      const iframe = has(t, body, "iframe[data-bc-iframe]");
+      t.equal(iframe.getAttribute("src"), "/tests/fixtures/dom-markers/html-field.html");
+      await t.waitFor(() => iframe.style.display, (d) => d === "block", { message: "the editor page reported isLoaded" });
+      t.click(dialog.querySelector("[data-bc-btn-close]"));
+      t.equal(dialog.style.display, "none");
+    });
+
+    bcTest.test("unknown viewType markers", async (t) => {
+      await waitForm(t, "#markers-form");
+      const label = has(t, question("#markers-form", "Fancy"), "label[data-bc-part-ctl][data-bc-schema-unknown-control]");
+      t.equal(t.text(label), "Unknown-control - fancy");
+    });
+
+    bcTest.test("template2 markers: grid container, section title div, caption titles, radio tab bar; nested forms use the default skin", async (t) => {
+      const root = await waitForm(t, "#t2-form");
+      t.equal(root.getAttribute("data-bc-schema-skin"), "template2");
+      const section = has(t, root, "fieldset[data-bc-section]");
+      has(t, section, "div[data-bc-section-title][data-sys-text]");
+      t.equal(section.querySelector("legend"), null);
+      has(t, section, "div[data-bc-schema-grid-container] > [data-bc-question]");
+      t.equal(root.querySelectorAll("[data-bc-schema-column]").length, 0);
+      const range = question("#t2-form", "Range");
+      t.equal(range.getAttribute("data-colspan"), "2");
+      t.deepEqual(t.$$("[data-bc-part] > div[data-bc-caption-title] > span", range).map((e) => t.text(e)), ["From", "To"]);
+      const phase = question("#t2-form", "Phase");
+      t.ok(phase.querySelector("[data-bc-caption-title]") && !phase.querySelector("[data-bc-caption-title] span"), "single part: the caption span is removed");
+      const radio = has(t, phase, "div[data-bc-part-radio][data-sys-part-checkbox]");
+      const rc = has(t, radio, "div[data-bc-part-radio-container]");
+      const tabs = has(t, rc, "div[data-bc-part-radio-tab-container]");
+      const buttons = t.$$("[data-bc-items] > div[data-bc-item][data-sys-text] > label[data-bc-part-radio-tab-button]", tabs);
+      t.equal(buttons.length, 2);
+      t.ok(buttons.every((b) => b.getAttribute("tab-button-status") === null || b.getAttribute("tab-button-status") === ""), "nothing selected: no active tab");
+      has(t, tabs, "span[data-bc-part-radio-tab-active]");
+      const cross = has(t, rc, "div[data-part-btn-container] > button[data-bc-btns][data-bc-btn-cross] path[data-sys-cross-icon]");
+      t.click(buttons[0]);
+      t.equal(buttons[0].getAttribute("tab-button-status"), "active");
+      has(t, radio, "[data-bc-part-radio-container] + div[data-bc-sm-sub-schema-container]");
+
+      const sel = question("#t2-form", "Unit").querySelector("select");
+      t.setValue(sel, "4", ["change"]);
+      const nestedRoot = await t.waitFor(() => t.$("#t2-form [data-bc-sm-sub-schema-container] [data-bc-schema-main-container][data-bc-schema-skin]"));
+      t.equal(nestedRoot.getAttribute("data-bc-schema-skin"), "default", "a nested form has its own root with the default skin");
+      t.equal(nestedRoot.getAttribute("data-bc-schema-direction"), "rtl", "and its own direction (the default, rtl)");
+    });
+
+    bcTest.test("markers that exist only in CSS are never rendered", async (t) => {
+      await waitForm(t, "#markers-form");
+      await waitForm(t, "#t2-form");
+      ["[data-bc-keyword-verification]", "[data-bc-btn-container]", "[data-bc-show-search-popup-btn]"].forEach((sel) => {
+        t.equal(t.$$(sel).length, 0, sel + " is not written by the runtime");
+      });
+    });
+
+    bcTest.test("data-bc-init is set on a bound element once its listeners are attached", async (t) => {
+      const el = await t.waitFor(() => t.$("#bound[data-bc-init]"));
+      t.equal(el.getAttribute("data-bc-init"), "");
+      t.equal(t.$$("#markers-form [data-bc-init]").length, 0, "the schema runtime does not use it");
+    });
+  </script>
+</body>
+</html>
