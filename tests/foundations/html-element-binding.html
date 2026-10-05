@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>html element binding</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // Sources that commands read in their attributes (the face `filter` below) must exist
+    // before the first render, otherwise the command waits for them. Seeding them here is
+    // what the live-filter example does with $bc.setSource.
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "filter.name": [{ value: "" }],
+        "filter.min-id": [{ value: 1000 }],
+        "filter.max-id": [{ value: 1500 }],
+        "filter.age": [{ value: 10 }],
+        "local.print": [
+          { id: 1000, age: 31, name: "amir" },
+          { id: 1001, age: 45, name: "ali" },
+          { id: 1002, age: 22, name: "reza" },
+          { id: 1003, age: 60, name: "sara" },
+          { id: 1004, age: 18, name: "maryam" },
+          { id: 1005, age: 35, name: "omid" }
+        ],
+        "inlineSource.withOutKey": [{ name: "first" }, { name: "second" }],
+        "ui.prefix": [{ value: "first" }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/html-element-binding.md">
+  <main>
+    <h1>html element binding</h1>
+    <p class="intro">
+      Checks <code>docs/html-element-binding.md</code>: how elements with <code>bc-triggers</code>
+      are discovered and mapped to <code>input</code>, <code>select</code>, <code>form</code> and
+      <code>unknown-html</code>, that nothing is published at page load, the attribute reference
+      (<code>bc-name</code>, <code>bc-value</code>, <code>bc-merge</code>, <code>bc-ignore</code>, hooks,
+      <code>triggers</code>), the shape of the published source, the <code>data-bc-init</code> guard
+      and the documented examples.
+    </p>
+
+    <section class="case" id="case-simple">
+      <h2>Buttons, a div and a span publishing to one source</h2>
+      <input id="btn-value" type="button" bc-triggers="click" value="with value attribute" />
+      <input id="btn-bc-value" type="button" bc-triggers="click" value="with bc-value attribute" bc-value="[##cms.cms.time2##]" />
+      <button id="button-value" name="cms.test" bc-triggers="click" value="button.value">with button tag</button>
+      <button id="button-bc-value" name="cms.test" bc-triggers="click" bc-value="button.bc-value = [##cms.cms.date##]">with button tag</button>
+      <div id="div-bc-value" name="cms.test" bc-triggers="click" bc-value="div.bc-value = [##cms.cms.date##]">div</div>
+      <span id="span-bc-value" name="cms.test" bc-triggers="click" bc-value="span.bc-value = [##cms.cms.date##]">span</span>
+      <br />
+      <span id="unknown-out">Without Name : [##cms.unknown.value|(not set)##]</span>
+      <br />
+      <span id="test-out">With Name : [##cms.test.value|(not set)##]</span>
+    </section>
+
+    <section class="case" id="case-discovery">
+      <h2>Discovery: <code>bc-ignore</code>, empty <code>bc-triggers</code>, nested publishers</h2>
+      <div bc-ignore id="ignored">
+        <button id="ignored-button" name="cms.ignored" bc-triggers="click" bc-value="never">never bound</button>
+        <span id="ignored-token">[##cms.test.value|(not set)##]</span>
+      </div>
+      <span id="empty-triggers" name="cms.empty" bc-triggers="">a component without listeners</span>
+      <form id="outer-form" bc-triggers="submit" name="nested.form">
+        <input id="inner-input" name="nested.inner" bc-triggers="change" value="inner" />
+      </form>
+      <select id="mapping-select" name="mapping.select" bc-triggers="change"><option value="a">a</option></select>
+    </section>
+
+    <section class="case" id="case-load">
+      <h2>Nothing is published at page load; a command attribute waits for the source</h2>
+      <div id="gated">
+        <basis core="print" datamembername="local.print" run="atclient" if="'[##ui.gate.value##]' == 'open'">
+          <face><li>@name@</li></face>
+        </basis>
+      </div>
+      <button id="open-gate" name="ui.gate" bc-value="open" bc-triggers="click">Open the gate</button>
+    </section>
+
+    <section class="case" id="case-attributes">
+      <h2>Attribute reference</h2>
+      <button id="attr-bcname" bc-name="attr.bcname" name="attr.name" bc-triggers="click" bc-value="x">bc-name wins over name</button>
+      <button id="attr-upper" name="Attr.Upper" bc-triggers="click" bc-value="x">id is lowercased</button>
+      <button id="attr-noname" bc-triggers="click" value="plain-value">no name: cms.unknown</button>
+      <button id="attr-empty-bcvalue" name="attr.emptybv" bc-triggers="click" bc-value="" value="own">empty bc-value</button>
+      <button id="attr-badmerge" name="attr.merge" bc-triggers="click" bc-value="1" bc-merge="push">bc-merge="push"</button>
+      <button id="attr-append" name="attr.append" bc-triggers="click" bc-value="1" bc-merge="append">bc-merge="append"</button>
+      <button id="attr-token" name="attr.token" bc-triggers="click" bc-value="[##ui.prefix.value##]-x">bc-value with a token</button>
+    </section>
+
+    <section class="case" id="case-hooks">
+      <h2>Lifecycle: <code>if</code>, <code>OnProcessing</code>, <code>OnRendering</code>, <code>OnRendered</code>, <code>OnProcessed</code></h2>
+      <button id="hooks" name="hooks.src" bc-triggers="click" bc-value="raw" if="window.hookGate"
+              OnProcessing="hookProcessing" OnRendering="hookRendering" OnRendered="hookRendered" OnProcessed="hookProcessed">
+        run the hooks
+      </button>
+    </section>
+
+    <section class="case" id="case-triggers">
+      <h2>Re-publishing through <code>triggers</code></h2>
+      <button id="echo" name="echo.src" bc-value="echo" bc-triggers="click" triggers="other.ping" OnRendered="echoRendered">echo</button>
+    </section>
+
+    <section class="case" id="case-init">
+      <h2><code>data-bc-init</code> guard</h2>
+      <div id="clone-mount"></div>
+    </section>
+
+    <section class="case" id="case-shape">
+      <h2>The published source shape</h2>
+      <input id="query" type="text" name="search.query" bc-triggers="keyup change" OnProcessing="normalizeQuery" />
+      <p id="query-out">Query: [##search.query.value|(empty)##] ([##search.query.length|(0)##] characters)</p>
+      <button id="array-btn" name="shape.array" bc-triggers="click" OnProcessing="makeArray">publish an array</button>
+      <p id="array-out">[##shape.array.name|(none)##]</p>
+    </section>
+
+    <section class="case" id="case-prevent">
+      <h2><code>preventDefault()</code> is unconditional</h2>
+      <a id="link" href="#followed" name="nav.link" bc-triggers="click" bc-value="clicked">a link that never navigates</a>
+      <label><input id="click-box" type="checkbox" name="cms.clickbox" bc-triggers="click" /> checkbox with bc-triggers="click"</label>
+    </section>
+
+    <section class="case" id="case-signal">
+      <h2>A button that only signals</h2>
+      <button id="refresh" bc-value=" " name="event.refresh" bc-triggers="click">Refresh Component</button>
+      <div id="signal">
+        <basis core="print" datamembername="inlineSource.withOutKey" run="atclient" triggers="event.refresh" OnRendered="countSignalRender">
+          <face>
+            <script type="text/template"><li>@name@</li></script>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-live-filter">
+      <h2>Client-side live filter</h2>
+      <fieldset>
+        <legend>Filter</legend>
+        <label>name: <input id="f-name" type="text" name="filter.name" bc-triggers="keyup change" /></label><br />
+        <label>min id: <input id="f-min" type="number" name="filter.min-id" bc-triggers="keyup change" min="1000" max="2000" /></label><br />
+        <label>max id: <input id="f-max" type="number" name="filter.max-id" bc-triggers="keyup change" min="1000" max="2000" /></label><br />
+        <label>min age: <input id="f-age" type="range" bc-triggers="change input" name="filter.age" min="10" max="90" /></label>
+      </fieldset>
+      <p id="filter-text">Name contains: [##filter.name.value|( )##], id between [##filter.min-id.value|(1000)##] and [##filter.max-id.value|(1500)##], age >= [##filter.age.value|(10)##]</p>
+      <div id="live-filter">
+        <basis core="print" datamembername="local.print" run="atclient"
+               triggers="filter.max-id filter.min-id filter.age filter.name">
+          <layout>
+            <script type="text/template">
+              <table>
+                <thead><tr><th>Id</th><th>Age</th><th>Name</th></tr></thead>
+                <tbody>@child</tbody>
+              </table>
+            </script>
+          </layout>
+          <face filter="name like '%[##filter.name.value##]%' and (id between [##filter.min-id.value|(1000)##] and [##filter.max-id.value|(1100)##]) and age >= [##filter.age.value##]">
+            <script type="text/template">
+              <tr><td>@id@</td><td>@age@</td><td>@name@</td></tr>
+            </script>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-merge-form">
+      <h2>Appending, editing and deleting rows from a form</h2>
+      <label>Merge Type
+        <select id="merge-select" name="form.status" bc-triggers="change">
+          <option value="append">Append</option>
+          <option value="replace">Replace</option>
+        </select>
+      </label>
+      <form id="merge-form" bc-triggers="submit" name="page.form" bc-keyField="id" bc-statusField="status"
+            bc-merge="[##form.status.value|(append)##]">
+        <label>Id : <input id="merge-id" name="id" /></label>
+        <label>Name : <input id="merge-name" name="name" /></label>
+        <label>Status
+          <select id="merge-status" name="status" required>
+            <option value="0">Add</option>
+            <option value="1">Edit</option>
+            <option value="2">Delete</option>
+          </select>
+        </label>
+        <input type="submit" />
+      </form>
+      <ul id="merge-list">
+        <basis core="print" datamembername="page.form" run="atclient">
+          <face>
+            <script type="text/template"><li>@id@ (@name@)</li></script>
+          </face>
+        </basis>
+      </ul>
+      <basis core="callback" run="atclient" triggers="page.form"></basis>
+    </section>
+
+    <section class="case" id="case-defect">
+      <h2>Known defect: a text token without fallback that becomes empty throws</h2>
+      <input id="defect-input" name="defect.text" bc-triggers="keyup" />
+      <span id="defect-out">[##defect.text.value##]</span>
+    </section>
+  </main>
+
+  <script>
+    // --- hooks used by the markup above -------------------------------------------------
+    window.hookGate = true;
+    window.hookPrevent = false;
+    window.hookNewId = undefined;
+    window.hookLog = [];
+    function hookProcessing(args) {
+      hookLog.push(["processing", { id: args.id, value: args.value, hasContext: !!args.context, node: args.node }]);
+      if (hookNewId !== undefined) args.id = hookNewId;
+      args.value = "cooked";
+    }
+    function hookRendering(args) {
+      hookLog.push(["rendering", { prevent: args.prevent, sourceId: args.source.id, node: args.node }]);
+      if (hookPrevent) args.prevent = true;
+    }
+    function hookRendered(args) {
+      hookLog.push(["rendered", { result: args.result, sourceId: args.source.id, node: args.node }]);
+    }
+    function hookProcessed(args) {
+      hookLog.push(["processed", { id: args.id, value: args.value, node: args.node }]);
+    }
+
+    window.echoResults = [];
+    function echoRendered(args) {
+      echoResults.push(args.result);
+    }
+
+    function normalizeQuery(args) {
+      // args: { context, node, id, value }
+      const text = String(args.value ?? "").trim().toLowerCase();
+      args.value = { value: text, length: text.length }; // an object becomes the single row
+    }
+
+    window.signalRenders = 0;
+    function countSignalRender() {
+      signalRenders++;
+    }
+
+    function makeArray(args) {
+      args.value = [{ name: "a" }, { name: "b" }]; // an array becomes the rows themselves
+    }
+
+    async function submitMergeForm(id, name, status) {
+      document.getElementById("merge-id").value = id;
+      document.getElementById("merge-name").value = name;
+      document.getElementById("merge-status").value = String(status);
+      document.getElementById("merge-form").requestSubmit();
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Cannot read properties of null \(reading 'toString'\)/);
+
+    const core = () => $bc.global.basiscore;
+    const componentsOf = (Class) => core().GetComponentList().filter((c) => c instanceof Class);
+
+    bcTest.test("nothing is published at page load: the sources do not exist and page-text tokens show their default", async (t) => {
+      await t.waitFor(() => t.$$("#signal li"), (l) => l.length === 2);
+      t.equal(t.source("cms.test"), undefined, "cms.test does not exist before the first click");
+      t.equal(t.source("cms.unknown"), undefined, "cms.unknown does not exist before the first click");
+      t.equal(t.text("#test-out"), "With Name : not set");
+      t.equal(t.text("#unknown-out"), "Without Name : not set");
+      t.equal(t.text("#query-out"), "Query: empty (0 characters)");
+    });
+
+    bcTest.test("the tag name selects the component: input, select, form, everything else unknown-html", async (t) => {
+      await t.waitFor(() => t.$("#outer-form").hasAttribute("data-bc-init"));
+      const inputs = componentsOf(basiscore.HTMLInputComponent);
+      const selects = componentsOf(basiscore.HTMLSelectComponent);
+      const forms = componentsOf(basiscore.HTMLFormComponent);
+      const unknown = componentsOf(basiscore.HTMLIUnknownComponent);
+      t.ok(inputs.every((c) => c.node.tagName === "INPUT"), "every HTMLInputComponent wraps an <input>");
+      t.ok(selects.every((c) => c.node.tagName === "SELECT"), "every HTMLSelectComponent wraps a <select>");
+      t.ok(forms.every((c) => c.node.tagName === "FORM"), "every HTMLFormComponent wraps a <form>");
+      t.ok(unknown.length > 0 && unknown.every((c) => !["INPUT", "SELECT", "FORM"].includes(c.node.tagName)), "unknown-html gets the other tags");
+      t.ok(unknown.some((c) => c.node.tagName === "BUTTON") && unknown.some((c) => c.node.tagName === "DIV") && unknown.some((c) => c.node.tagName === "SPAN") && unknown.some((c) => c.node.tagName === "A"));
+      t.ok(forms.some((c) => c.node === t.$("#outer-form")), "the form carrying bc-triggers is a component");
+      t.ok(inputs.some((c) => c.node === t.$("#inner-input")), "its child input with bc-triggers is bound too");
+      t.ok(selects.some((c) => c.node === t.$("#mapping-select")));
+    });
+
+    bcTest.test("bc-triggers=\"\" still makes the element a component but attaches no listener", async (t) => {
+      const el = t.$("#empty-triggers");
+      t.ok(componentsOf(basiscore.HTMLIUnknownComponent).some((c) => c.node === el), "the span is in the component list");
+      t.equal(el.hasAttribute("data-bc-init"), false, "no listener was attached, so no data-bc-init marker");
+      t.click(el);
+      await t.sleep(150);
+      t.equal(t.source("cms.empty"), undefined);
+    });
+
+    bcTest.test("a bc-ignore subtree is skipped: neither its publisher nor its tokens are processed", async (t) => {
+      const btn = t.$("#ignored-button");
+      t.equal(btn.hasAttribute("data-bc-init"), false);
+      t.ok(!componentsOf(basiscore.HTMLIUnknownComponent).some((c) => c.node === btn), "not in the component list");
+      t.click(btn);
+      await t.sleep(150);
+      t.equal(t.source("cms.ignored"), undefined, "clicking publishes nothing");
+      t.equal(t.text("#ignored-token"), "[##cms.test.value|(not set)##]", "the token text is left untouched");
+    });
+
+    bcTest.test("example: buttons, a div and a span publish to cms.unknown (no name) and cms.test", async (t) => {
+      t.click("#btn-value");
+      await t.waitForText("#unknown-out", "Without Name : with value attribute");
+      t.deepEqual(t.rows("cms.unknown"), [{ value: "with value attribute" }]);
+
+      t.click("#btn-bc-value");
+      await t.waitForText("#unknown-out", /^Without Name : \d{6}$/);
+      t.match(t.rows("cms.unknown")[0].value, /^\d{6}$/, "bc-value with [##cms.cms.time2##] publishes HHMMSS");
+
+      t.click("#button-value");
+      await t.waitForText("#test-out", "With Name : button.value");
+      t.click("#button-bc-value");
+      await t.waitForText("#test-out", /^With Name : button\.bc-value = \d{4}\/\d{2}\/\d{2}$/);
+      t.click("#div-bc-value");
+      await t.waitForText("#test-out", /^With Name : div\.bc-value = \d{4}\/\d{2}\/\d{2}$/);
+      t.click("#span-bc-value");
+      await t.waitForText("#test-out", /^With Name : span\.bc-value = \d{4}\/\d{2}\/\d{2}$/);
+      t.equal(t.rows("cms.test").length, 1, "elements sharing a source id replace each other's row");
+    });
+
+    bcTest.test("a token in a command attribute (if) waits for the element's source; the command renders after the first event", async (t) => {
+      await t.sleep(300);
+      t.equal(t.$$("#gated li").length, 0, "the print did not render while ui.gate does not exist");
+      t.click("#open-gate");
+      await t.waitFor(() => t.$$("#gated li"), (l) => l.length === 6);
+      t.deepEqual(t.rows("ui.gate"), [{ value: "open" }]);
+    });
+
+    bcTest.test("source id: bc-name wins over name, ids are lowercased, no name means cms.unknown", async (t) => {
+      t.click("#attr-bcname");
+      await t.waitForSource("attr.bcname");
+      t.equal(t.source("attr.name"), undefined, "name is only the fallback");
+
+      t.click("#attr-upper");
+      const upper = await t.waitForSource("attr.upper");
+      t.equal(upper.id, "attr.upper");
+
+      t.click("#attr-noname");
+      await t.waitForSource("cms.unknown", (s) => s.rows[0].value === "plain-value");
+    });
+
+    bcTest.test("an empty bc-value falls through to the element's own value", async (t) => {
+      t.click("#attr-empty-bcvalue");
+      const src = await t.waitForSource("attr.emptybv");
+      t.deepEqual(src.rows, [{ value: "own" }]);
+    });
+
+    bcTest.test("bc-merge: an unknown word means replace, append adds rows", async (t) => {
+      t.click("#attr-badmerge");
+      await t.waitForSource("attr.merge");
+      t.click("#attr-badmerge");
+      await t.waitForConsole(/attr\.merge Updated/);
+      t.equal(t.rows("attr.merge").length, 1, "replace keeps one row");
+      t.equal(t.source("attr.merge").mergeType, basiscore.MergeType.replace);
+
+      t.click("#attr-append");
+      await t.waitForSource("attr.append");
+      t.click("#attr-append");
+      await t.waitForSource("attr.append", (s) => s.rows.length === 2);
+      t.deepEqual(t.rows("attr.append"), [{ value: "1" }, { value: "1" }]);
+    });
+
+    bcTest.test("bc-value is evaluated again on every event, so a token inside it publishes the current value", async (t) => {
+      t.click("#attr-token");
+      await t.waitForSource("attr.token", (s) => s.rows[0].value === "first-x");
+      $bc.setSource("ui.prefix", "second");
+      await t.waitForSource("ui.prefix", (s) => s.rows[0].value === "second");
+      t.click("#attr-token");
+      await t.waitForSource("attr.token", (s) => s.rows[0].value === "second-x");
+    });
+
+    bcTest.test("if falsy: the source is not set but OnProcessing and OnProcessed still run with { context, node, id, value }", async (t) => {
+      hookLog.length = 0;
+      hookGate = false;
+      t.click("#hooks");
+      await t.waitFor(() => hookLog, (l) => l.some((e) => e[0] === "processed"));
+      t.deepEqual(hookLog.map((e) => e[0]), ["processing", "processed"]);
+      const processing = hookLog[0][1];
+      t.equal(processing.id, "hooks.src");
+      t.equal(processing.value, "raw");
+      t.ok(processing.hasContext && processing.node === t.$("#hooks"), "callback argument carries context and node");
+      t.equal(hookLog[1][1].value, "cooked", "OnProcessed sees the value changed by OnProcessing");
+      t.equal(t.source("hooks.src"), undefined);
+      hookGate = true;
+    });
+
+    bcTest.test("OnRendering receives { prevent: false, source } and prevent = true cancels publishing", async (t) => {
+      hookLog.length = 0;
+      hookPrevent = true;
+      t.click("#hooks");
+      await t.waitFor(() => hookLog, (l) => l.some((e) => e[0] === "processed"));
+      t.deepEqual(hookLog.map((e) => e[0]), ["processing", "rendering", "processed"]);
+      t.equal(hookLog[1][1].prevent, false);
+      t.equal(hookLog[1][1].sourceId, "hooks.src");
+      t.equal(t.source("hooks.src"), undefined, "nothing was published");
+      hookPrevent = false;
+    });
+
+    bcTest.test("OnProcessing may replace id and value; OnRendered gets { result: null, source }; OnProcessed gets the new id", async (t) => {
+      hookLog.length = 0;
+      hookNewId = "hooks.other";
+      t.click("#hooks");
+      await t.waitFor(() => hookLog, (l) => l.some((e) => e[0] === "processed"));
+      t.deepEqual(hookLog.map((e) => e[0]), ["processing", "rendering", "rendered", "processed"]);
+      t.deepEqual(t.rows("hooks.other"), [{ value: "cooked" }]);
+      t.equal(t.source("hooks.src"), undefined);
+      t.equal(hookLog[2][1].result, null);
+      t.equal(hookLog[2][1].sourceId, "hooks.other");
+      t.equal(hookLog[3][1].id, "hooks.other");
+      t.equal(hookLog[3][1].value, "cooked");
+      hookNewId = undefined;
+    });
+
+    bcTest.test("OnProcessing setting id to null publishes to cms.unknown", async (t) => {
+      hookNewId = null;
+      t.click("#hooks");
+      await t.waitForSource("cms.unknown", (s) => s.rows[0].value === "cooked");
+      hookNewId = undefined;
+    });
+
+    bcTest.test("triggers: setting the listed source re-publishes the element's value and runs OnRendered twice (null, then undefined)", async (t) => {
+      echoResults.length = 0;
+      $bc.setSource("other.ping", 1);
+      const src = await t.waitForSource("echo.src");
+      t.deepEqual(src.rows, [{ value: "echo" }]);
+      await t.waitFor(() => echoResults, (r) => r.length === 2);
+      t.deepEqual(echoResults, [null, undefined]);
+    });
+
+    bcTest.test("data-bc-init marks wired elements; a copy that already carries it is never wired", async (t) => {
+      const original = t.$("#attr-upper");
+      t.equal(original.getAttribute("data-bc-init"), "", "a bound element has data-bc-init=\"\"");
+      const mount = t.$("#clone-mount");
+      mount.innerHTML =
+        original.outerHTML.replace('id="attr-upper"', 'id="clone-copy"').replace('name="Attr.Upper"', 'name="clone.copy"') +
+        '<button id="clone-fresh" name="clone.fresh" bc-triggers="click" bc-value="y">fresh</button>';
+      t.ok(t.$("#clone-copy").hasAttribute("data-bc-init"), "the copy carries the marker");
+      const wrapper = $bc.new().addFragment("#clone-mount").run();
+      await t.waitFor(() => t.$("#clone-fresh").hasAttribute("data-bc-init"), { message: "the fresh button was never wired" });
+      t.click("#clone-fresh");
+      await t.waitForSource("clone.fresh", { wrapper });
+      t.click("#clone-copy");
+      await t.sleep(150);
+      t.equal(t.source("clone.copy", wrapper), undefined, "the copy never publishes");
+    });
+
+    bcTest.test("source shape: a scalar becomes [{ value }], an object becomes the single row (OnProcessing example)", async (t) => {
+      t.setValue("#query", "  Hello World ", ["keyup"]);
+      await t.waitForText("#query-out", "Query: hello world (11 characters)");
+      t.deepEqual(t.rows("search.query"), [{ value: "hello world", length: 11 }]);
+      t.deepEqual(t.rows("echo.src"), [{ value: "echo" }], "a string value is wrapped in { value }");
+    });
+
+    bcTest.test("source shape: an array from OnProcessing is the row set and a column token yields the column of every row", async (t) => {
+      t.click("#array-btn");
+      await t.waitForText("#array-out", "a,b");
+      t.deepEqual(t.rows("shape.array"), [{ name: "a" }, { name: "b" }]);
+    });
+
+    bcTest.test("preventDefault: a link with bc-triggers=\"click\" publishes but does not navigate; click on a checkbox cancels the toggle", async (t) => {
+      t.click("#link");
+      await t.waitForSource("nav.link", (s) => s.rows[0].value === "clicked");
+      t.equal(location.hash, "", "the href was not followed");
+      t.click("#click-box");
+      await t.waitForSource("cms.clickbox");
+      t.equal(t.$("#click-box").checked, false, "the toggle was cancelled");
+      t.deepEqual(t.rows("cms.clickbox"), [{ value: "off" }], "the value read after the event is the unchecked one");
+    });
+
+    bcTest.test("example: a button with bc-value=\" \" only signals; the print listing it in triggers re-renders", async (t) => {
+      t.equal(t.$$("#signal li").length, 2);
+      const rendersBefore = signalRenders;
+      t.ok(rendersBefore >= 1, "the print rendered once at load");
+      t.click("#refresh");
+      await t.waitForSource("event.refresh");
+      t.deepEqual(t.rows("event.refresh"), [{ value: " " }]);
+      await t.waitFor(() => signalRenders, (n) => n === rendersBefore + 1, { message: "the print did not re-render" });
+      t.deepEqual(t.$$("#signal li").map((li) => t.text(li)), ["first", "second"], "the rows are unchanged, so the output is the same");
+    });
+
+    bcTest.test("example: client-side live filter re-renders on each listed trigger with the inputs' values", async (t) => {
+      const names = () => t.$$("#live-filter tbody tr td:nth-child(3)").map((td) => t.text(td));
+      await t.waitFor(names, (n) => n.length === 6, { timeout: 10000 });
+      t.equal(t.text("#filter-text"), "Name contains: , id between 1000 and 1500, age >= 10");
+
+      t.setValue("#f-name", "am", ["keyup"]);
+      await t.waitFor(names, (n) => n.join() === "amir,maryam", { timeout: 10000 });
+      t.equal(t.text("#filter-text"), "Name contains: am, id between 1000 and 1500, age >= 10");
+
+      t.setValue("#f-name", "", ["keyup"]);
+      t.setValue("#f-min", "1003", ["keyup"]);
+      await t.waitFor(names, (n) => n.join() === "sara,maryam,omid", { timeout: 10000 });
+
+      t.setValue("#f-age", "40", ["input", "change"]);
+      await t.waitFor(names, (n) => n.join() === "sara", { timeout: 10000 });
+      t.deepEqual(t.rows("filter.age"), [{ value: "40" }], "range values are strings");
+    });
+
+    bcTest.test("example: a form with bc-keyField/bc-statusField appends, edits and deletes rows; the merge type comes from a select", async (t) => {
+      const items = () => t.$$("#merge-list li").map((li) => t.text(li));
+      submitMergeForm("1", "a", 0);
+      await t.waitFor(items, (l) => l.join() === "1 (a)");
+      submitMergeForm("2", "b", 0);
+      await t.waitFor(items, (l) => l.join() === "1 (a),2 (b)");
+      submitMergeForm("1", "z", 1);
+      await t.waitFor(items, (l) => l.join() === "1 (z),2 (b)");
+      submitMergeForm("2", "b", 2);
+      await t.waitFor(items, (l) => l.join() === "1 (z)");
+      t.deepEqual(t.rows("page.form"), [{ id: "1", name: "z", status: "1" }]);
+
+      t.$("#merge-select").value = "replace";
+      t.fire("#merge-select", "change");
+      await t.waitForSource("form.status", (s) => s.rows[0].value === "replace");
+      submitMergeForm("9", "n", 0);
+      await t.waitFor(items, (l) => l.join() === "9 (n)");
+      t.equal(t.rows("page.form").length, 1, "replace discards the previous rows");
+    });
+
+    bcTest.defect("known defect: a text token without fallback throws TypeError when the bound input is cleared", async (t) => {
+      t.setValue("#defect-input", "abc", ["keyup"]);
+      await t.waitForText("#defect-out", "abc");
+      t.setValue("#defect-input", "", ["keyup"]);
+      await t.waitForError(/Cannot read properties of null \(reading 'toString'\)/);
+      t.deepEqual(t.rows("defect.text"), [{ value: "" }], "the source itself was updated");
+    });
+  </script>
+</body>
+</html>

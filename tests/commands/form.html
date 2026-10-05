@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>form</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- demo back end for the dbsource of the server-side filter example -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    const schoolRequests = [];
+    BasisCoreMock.route({
+      url: "/data/schoolapi",
+      method: "POST",
+      response: (ctx) => {
+        schoolRequests.push(ctx.bodyJSON);
+        return {
+          sources: [
+            {
+              options: { tableName: "book.list" },
+              data: [{ id: 1, title: "Learning BasisCore", filter: ctx.bodyJSON.command }]
+            }
+          ]
+        };
+      }
+    });
+  </script>
+  <script>
+    // The `call` command uses XMLHttpRequest, which the mock does not intercept: the fragment is
+    // served from tests/fixtures/form/ and a tiny spy records the bodies that were sent.
+    const sentBodies = [];
+    const originalSend = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function (body) {
+      sentBodies.push(body);
+      return originalSend.call(this, body);
+    };
+  </script>
+  <script>
+    const host = {
+      settings: {
+        "connection.web.schoolapi": "/data/schoolapi",
+        "connection.web.callcommand": "/tests/fixtures/form/",
+        "default.dmnid": 2668
+      },
+      sources: {
+        // the dbsource reads data.filter in its attributes, so the source must exist before the first render
+        "data.filter": [{ name: "", "min-id": 1000, "max-id": 1500, age: 10 }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/form.md">
+  <main>
+    <h1>form</h1>
+    <p class="intro">
+      Checks <code>docs/commands/form.md</code>: a <code>&lt;form bc-triggers="submit"&gt;</code> publishes all its
+      fields as one object row, the native submission is cancelled, <code>_root.path.field</code> and
+      <code>name__index</code> build nested objects and arrays, compaction of arrays under <code>_</code> roots,
+      the merge attributes, the server-side filter and <code>call</code> examples, HTML5 validation and the
+      documented pitfalls.
+    </p>
+
+    <section class="case" id="case-simple">
+      <h2>Simple form</h2>
+      <form id="simple" bc-triggers="submit" name="cms.form">
+        <label>fname : <input id="simple-fname" name="fname" /></label><br />
+        <label>lname : <input id="simple-lname" name="lname" /></label><br />
+        <label>range : <input id="simple-range" type="range" name="range" /></label><br />
+        <label>number : <input id="simple-number" type="number" name="number" /></label>
+        <input type="submit" />
+      </form>
+      <fieldset id="simple-result">
+        <legend>Result</legend>
+        fname: <span id="simple-out-fname">[##cms.form.fname##]</span><br />
+        lname: <span id="simple-out-lname">[##cms.form.lname##]</span><br />
+        range: <span id="simple-out-range">[##cms.form.range##]</span><br />
+        number: <span id="simple-out-number">[##cms.form.number##]</span>
+      </fieldset>
+    </section>
+
+    <section class="case" id="case-worked">
+      <h2>Worked example: plain keys, <code>_info</code>, <code>_root</code>, <code>phones__index</code> and repeated names</h2>
+      <form id="worked" bc-triggers="submit" name="worked.form">
+        <input name="id" value="7" />
+        <input name="_info.fname" value="Ada" />
+        <input name="_info.lname" value="Lovelace" />
+        <input type="range" name="_root.range" value="40" />
+        <input name="_root.phones__1.code" value="+44" />
+        <input name="_root.phones__1.number" value="1234" />
+        <input name="_root.phones__2.code" value="" />
+        <input name="_root.phones__2.number" value="5678" />
+        <input type="checkbox" name="tags" value="a" checked />
+        <input type="checkbox" name="tags" value="b" checked />
+        <input type="submit" />
+      </form>
+      <p id="worked-out">
+        [##worked.form.id##] /
+        [##worked.form._info.fname##] /
+        [##worked.form._root.range##] /
+        [##worked.form._root.phones[0]?.code##] /
+        [##worked.form._root.phones[1]?.number##]
+      </p>
+    </section>
+
+    <section class="case" id="case-root">
+      <h2>Nested object and dynamic array items</h2>
+      <form id="root-form" bc-triggers="submit" name="root.form">
+        <label>id : <input id="root-id" name="id" /></label>
+        <fieldset>
+          <legend>root.form._root</legend>
+          <label>fname : <input id="root-fname" name="_root.fname" /></label>
+          <label>lname : <input id="root-lname" name="_root.lname" /></label>
+          <label>range : <input type="range" name="_root.range" /></label>
+          <fieldset id="phone-holder"><legend>root.form._root.phones</legend></fieldset>
+          <template id="phone-template">
+            <div>
+              <label>Code : <input name="_root.phones__[x].code" /></label>
+              <label>Phone : <input name="_root.phones__[x].number" /></label>
+            </div>
+          </template>
+          <button id="add-phone" type="button" onclick="addPhone()">Add Phone</button>
+        </fieldset>
+        <input type="submit" />
+      </form>
+      <fieldset>
+        <legend>Result</legend>
+        root.form._root.fname: <span id="root-out-fname">[##root.form._root.fname##]</span><br />
+        root.form._root.phones[0]?.code: <span id="root-out-code">[##root.form._root.phones[0]?.code##]</span><br />
+        root.form._root.phones[1]?.number: <span id="root-out-number">[##root.form._root.phones[1]?.number##]</span>
+      </fieldset>
+      <basis core="callback" run="atclient" triggers="root.form"></basis>
+    </section>
+
+    <section class="case" id="case-server-filter">
+      <h2>Server-side filter</h2>
+      <form id="filter-form" name="data.filter" bc-triggers="submit">
+        <label>name: <input id="filter-name" type="text" name="name" /></label>
+        <label>min id: <input id="filter-min" type="number" name="min-id" min="1000" max="2000" value="1000" /></label>
+        <label>max id: <input id="filter-max" type="number" name="max-id" min="1000" max="2000" value="1500" /></label>
+        <label>min age: <input id="filter-age" type="range" name="age" min="10" max="90" value="10" /></label>
+        <input type="submit" />
+      </form>
+      <basis core="dbsource" source="schoolapi" name="book" run="atclient"
+             filter-name="[##data.filter.name##]" filter-min-id="[##data.filter.min-id##]"
+             filter-max-id="[##data.filter.max-id##]" filter-age="[##data.filter.age##]"
+             triggers="data.filter">
+        <member name="list" type="list" request="print" preview="true"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-merge">
+      <h2>Appending, editing and deleting rows</h2>
+      <form id="merge-form" bc-triggers="submit" name="page.form" bc-keyField="id" bc-statusField="status" bc-merge="append">
+        <label>Id : <input id="merge-id" name="id" /></label>
+        <label>Name : <input id="merge-name" name="name" /></label>
+        <label>Status
+          <select id="merge-status" name="status" required>
+            <option value="0">Add</option>
+            <option value="1">Edit</option>
+            <option value="2">Delete</option>
+          </select>
+        </label>
+        <input type="submit" />
+      </form>
+      <ul id="merge-list">
+        <basis core="print" datamembername="page.form" run="atclient">
+          <face>
+            <script type="text/template"><li>@id@ (@name@)</li></script>
+          </face>
+        </basis>
+      </ul>
+    </section>
+
+    <section class="case" id="case-call">
+      <h2>Sending the form object to the server with <code>call</code></h2>
+      <div id="call-out">
+        <basis core="call" file="called.html" run="atclient" method="post" if="[##cms.form##]" triggers="cms.form"
+               app-json="{{ return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0]); }}">
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls</h2>
+      <form id="pitfalls" bc-triggers="submit" name="pit.form">
+        <input name="_tags" value="lost" />
+        <input name="_root.phones__0" value="dropped" />
+        <input name="_root.list__1.v" value="one" />
+        <input name="_root.list__3.v" value="three" />
+        <input name="_root.odd__a.v" value="bad" />
+        <input name="_root.tags" value="" />
+        <input name="_root.tags" value="x" />
+        <input name="top" value="" />
+        <input name="top" value="x" />
+        <input type="checkbox" name="one" value="single" checked />
+        <input type="checkbox" name="none" value="unchecked" />
+        <input name="off" value="disabled" disabled />
+        <input type="number" name="num" value="5" />
+        <input type="submit" />
+      </form>
+      <span id="pit-none">[##pit.form.none|(absent)##]</span>
+      <form id="invalid" bc-triggers="submit" name="pit.invalid">
+        <input id="invalid-req" name="req" required />
+        <input type="submit" />
+      </form>
+      <basis id="basis-form" core="form" run="atclient" bc-triggers="click" name="odd.form">not a form element</basis>
+      <br />
+      hyphenated column with a global named <code>id</code>: <span id="hy-out">[##hy.row.min-id|(fallback)##]</span>
+    </section>
+  </main>
+
+  <script>
+    let phoneIndex = 1;
+    function addPhone() {
+      const template = document.getElementById("phone-template");
+      const copy = document.importNode(template.content, true);
+      copy.querySelectorAll("[name]").forEach((element) => {
+        element.attributes["name"].value = element.attributes["name"].value.replace("[x]", phoneIndex.toString());
+      });
+      phoneIndex++;
+      document.getElementById("phone-holder").append(copy);
+    }
+    function fill(selector, value) {
+      document.querySelector(selector).value = value;
+    }
+    function submit(selector) {
+      document.querySelector(selector).requestSubmit();
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Failed to construct 'FormData'/);
+
+    bcTest.test("nothing is published at page load; the result tokens are empty", async (t) => {
+      await t.waitFor(() => t.$("#simple").hasAttribute("data-bc-init"));
+      t.equal(t.source("cms.form"), undefined);
+      t.equal(t.text("#simple-out-fname"), "");
+      t.equal(t.$$("#call-out #called").length, 0, "the call command with if=\"[##cms.form##]\" has not run");
+    });
+
+    bcTest.test("example: a simple form publishes its fields as one object row on submit and never navigates", async (t) => {
+      const before = location.href;
+      let submits = 0;
+      t.$("#simple").addEventListener("submit", (e) => {
+        submits++;
+        t.ok(e.defaultPrevented, "preventDefault() was called by the binding");
+      });
+      fill("#simple-fname", "Ada");
+      fill("#simple-lname", "Lovelace");
+      fill("#simple-range", "40");
+      fill("#simple-number", "7");
+      submit("#simple");
+      await t.waitForText("#simple-out-fname", "Ada");
+      t.equal(t.text("#simple-out-lname"), "Lovelace");
+      t.equal(t.text("#simple-out-range"), "40");
+      t.equal(t.text("#simple-out-number"), "7");
+      t.deepEqual(t.rows("cms.form"), [{ fname: "Ada", lname: "Lovelace", range: "40", number: "7" }], "every value is a string");
+      t.equal(submits, 1);
+      t.equal(location.href, before, "the page did not navigate");
+    });
+
+    bcTest.test("worked example: plain keys, _ roots, indexed segments and compaction produce the documented object", async (t) => {
+      submit("#worked");
+      const src = await t.waitForSource("worked.form");
+      t.deepEqual(src.rows, [
+        {
+          id: "7",
+          tags: ["a", "b"],
+          _info: { fname: "Ada", lname: "Lovelace" },
+          _root: { range: "40", phones: [{ code: "+44", number: "1234" }, { code: "", number: "5678" }] }
+        }
+      ]);
+      await t.waitForText("#worked-out", "7 / Ada / 40 / +44 / 5678");
+    });
+
+    bcTest.test("example: phone rows stamped from a template become _root.phones[n]; the callback logs the row", async (t) => {
+      t.click("#add-phone");
+      t.click("#add-phone");
+      const codes = t.$$("#phone-holder input[name$='.code']");
+      t.deepEqual(codes.map((i) => i.name), ["_root.phones__1.code", "_root.phones__2.code"]);
+      fill("#root-id", "3");
+      fill("#root-fname", "Grace");
+      fill("#root-lname", "Hopper");
+      codes[0].value = "+1";
+      t.$("#phone-holder input[name='_root.phones__1.number']").value = "111";
+      codes[1].value = "+33";
+      t.$("#phone-holder input[name='_root.phones__2.number']").value = "222";
+      submit("#root-form");
+      await t.waitForText("#root-out-fname", "Grace");
+      t.equal(t.text("#root-out-code"), "+1");
+      t.equal(t.text("#root-out-number"), "222");
+      const row = t.rows("root.form")[0];
+      t.deepEqual(row._root.phones, [{ code: "+1", number: "111" }, { code: "+33", number: "222" }], "indexes 1 and 2 are compacted to 0 and 1");
+      t.equal(row._root.range, "50", "a range without value contributes its default");
+      await t.waitForConsole(/"fname": "Grace"/);
+    });
+
+    bcTest.test("example: the server-side filter form re-runs the dbsource that lists data.filter in triggers", async (t) => {
+      await t.waitForSource("book.list");
+      t.equal(schoolRequests.length, 1, "one request at load with the seeded filter");
+      t.equal(schoolRequests[0].dmnid, "2668");
+      t.includes(schoolRequests[0].command, 'filter-name=""', "the seeded empty name");
+      t.includes(schoolRequests[0].command, 'filter-min-id="1000"');
+
+      fill("#filter-name", "Ada");
+      fill("#filter-age", "30");
+      submit("#filter-form");
+      await t.waitForSource("data.filter", (s) => s.rows[0].name === "Ada");
+      await t.waitFor(() => schoolRequests, (r) => r.length === 2);
+      t.includes(schoolRequests[1].command, 'filter-name="Ada"');
+      t.includes(schoolRequests[1].command, 'filter-age="30"');
+      t.includes(schoolRequests[1].command, 'filter-max-id="1500"');
+      t.deepEqual(t.rows("data.filter"), [{ name: "Ada", "min-id": "1000", "max-id": "1500", age: "30" }], "hyphenated field names are plain keys");
+    });
+
+    bcTest.test("example: bc-merge=\"append\" with bc-keyField and bc-statusField adds, edits and deletes the row with the same id", async (t) => {
+      const items = () => t.$$("#merge-list li").map((li) => t.text(li));
+      const send = (id, name, status) => {
+        fill("#merge-id", id);
+        fill("#merge-name", name);
+        fill("#merge-status", String(status));
+        submit("#merge-form");
+      };
+      send("1", "a", 0);
+      await t.waitFor(items, (l) => l.join() === "1 (a)");
+      send("2", "b", 0);
+      await t.waitFor(items, (l) => l.join() === "1 (a),2 (b)");
+      send("2", "B", 1);
+      await t.waitFor(items, (l) => l.join() === "1 (a),2 (B)");
+      send("1", "", 2);
+      await t.waitFor(items, (l) => l.join() === "2 (B)");
+      t.deepEqual(t.rows("page.form"), [{ id: "2", name: "B", status: "1" }], "the string status \"1\" matched loosely");
+    });
+
+    bcTest.test("example: call posts the form row as JSON (app-json attribute) and inserts the returned fragment", async (t) => {
+      await t.waitForText("#call-out", "Server fragment received fname Ada", { timeout: 10000 });
+      const body = sentBodies.find((b) => typeof b === "string" && b.indexOf("app-json=") !== -1);
+      t.ok(body, "the request body was captured");
+      const params = new URLSearchParams(body);
+      t.deepEqual(JSON.parse(params.get("app-json")), t.rows("cms.form")[0]);
+      t.equal(params.get("if"), "true", "the other attributes travel as parameters too");
+      t.equal(params.get("triggers"), "cms.form");
+    });
+
+    bcTest.test("pitfalls: _ root without segment, trailing index, compaction, non-numeric index, empty strings, repeated and absent fields", async (t) => {
+      submit("#pitfalls");
+      const src = await t.waitForSource("pit.form");
+      const row = src.rows[0];
+      t.deepEqual(row._tags, {}, "_tags alone creates an empty object and the value is lost");
+      t.deepEqual(row._root.phones, [{}], "_root.phones__0 creates an empty object in the array and drops the value");
+      t.deepEqual(row._root.list, [{ v: "one" }, { v: "three" }], "indexes 1 and 3 are compacted to 0 and 1");
+      t.deepEqual(row._root.odd, [], "a non-numeric index is dropped by the compaction");
+      t.ok(!("a" in row._root.odd));
+      t.deepEqual(row._root.tags, ["x"], "empty strings that are array elements under a _ root are removed");
+      t.deepEqual(row.top, ["", "x"], "top-level arrays are not compacted");
+      t.equal(row.one, "single", "one checked box of a group gives a string, not an array");
+      t.ok(!("none" in row), "an unchecked checkbox is absent");
+      t.ok(!("off" in row), "a disabled field is absent");
+      t.equal(row.num, "5", "numbers are strings");
+      t.equal(t.text("#pit-none"), "absent");
+    });
+
+    bcTest.test("pitfall: HTML5 validation blocks the submit event, so an invalid form publishes nothing", async (t) => {
+      submit("#invalid");
+      await t.sleep(200);
+      t.equal(t.source("pit.invalid"), undefined);
+      fill("#invalid-req", "filled");
+      submit("#invalid");
+      const src = await t.waitForSource("pit.invalid");
+      t.deepEqual(src.rows, [{ req: "filled" }]);
+    });
+
+    bcTest.defect("undocumented defect: a hyphenated column token (min-id) is evaluated as a subtraction when a global named like its right-hand part exists, and yields NaN instead of row['min-id']", async (t) => {
+      // The column part of a token is a JavaScript member expression: `row.min-id` is `row.min - id`.
+      // The bracket fallback documented for hyphenated names is only taken when that expression throws;
+      // with a global `id` (a script variable, or any element with id="id") it does not throw.
+      window.id = 1;
+      $bc.setSource("hy.row", { "min-id": 1000 });
+      await t.waitForText("#hy-out", "NaN");
+      delete window.id;
+    });
+
+    bcTest.test("pitfall: <basis core=\"form\" run=\"atclient\"> is bound to the <basis> node and the first event throws (FormData needs a form)", async (t) => {
+      const el = t.$("#basis-form");
+      t.ok(el.hasAttribute("data-bc-init"), "the component was created from the <basis> element");
+      t.click(el);
+      await t.waitForError(/Failed to construct 'FormData'/);
+      t.equal(t.source("odd.form"), undefined);
+    });
+  </script>
+</body>
+</html>

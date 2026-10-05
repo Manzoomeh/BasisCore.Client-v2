@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>input</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      sources: {
+        "replace.data": [{ id: 1, name: "data 1" }, { id: 2, name: "data 2" }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/input.md">
+  <main>
+    <h1>input</h1>
+    <p class="intro">
+      Checks <code>docs/commands/input.md</code>: an <code>&lt;input bc-triggers="…"&gt;</code> publishes
+      <code>[{ value }]</code> on each listed DOM event, the per-type value resolution (text, number,
+      range, date, time, color, checkbox, radio, file, button), <code>bc-value</code> and
+      <code>bc-off-value</code>, <code>OnProcessing</code> reshaping, and the documented pitfalls.
+    </p>
+
+    <section class="case" id="case-text">
+      <h2>Text inputs with different events</h2>
+      <input id="text-change" bc-triggers="change" name="cms.text" />
+      <span id="text-change-out">[##cms.text.value|(not set)##]</span>
+      <br />
+      <input id="text-keyup" bc-triggers="keyup" name="cms.text1" />
+      <span id="text-keyup-out">[##cms.text1.value|(not set)##]</span>
+      <br />
+      <input id="text-both" bc-triggers="change keyup" name="cms.text2" OnProcessed="countText2" />
+      <span id="text-both-out">[##cms.text2.value|(not set)##]</span>
+      <basis core="callback" run="atclient" triggers="cms.text cms.text1 cms.text2"></basis>
+    </section>
+
+    <section class="case" id="case-typed">
+      <h2>Number, range, date, time and color</h2>
+      <label>Number <input id="number" type="number" bc-triggers="change input" name="cms.number" /></label>
+      <span id="number-out">[##cms.number.value|(not set)##]</span>
+      <br />
+      <label>Range <input id="range" type="range" bc-triggers="change input" name="cms.range" min="0" max="100" OnProcessed="countRange" /></label>
+      <span id="range-out">[##cms.range.value|(not set)##]</span>
+      <br />
+      <label>Date <input id="date" type="date" bc-triggers="change input" name="cms.date" /></label>
+      <span id="date-out">[##cms.date.value|(not set)##]</span>
+      <br />
+      <label>Time <input id="time" type="time" bc-triggers="change input" name="cms.time" /></label>
+      <span id="time-out">[##cms.time.value|(not set)##]</span>
+      <br />
+      <label>Color <input id="color" type="color" bc-triggers="change input" name="cms.color" /></label>
+      <span id="color-out">[##cms.color.value|(not set)##]</span>
+      <br />
+      <label>Zoom <input id="zoom" type="range" name="ui.zoom" bc-triggers="input" min="50" max="200" OnProcessing="toNumber" /></label>
+    </section>
+
+    <section class="case" id="case-checkbox">
+      <h2>Checkbox variants</h2>
+      <fieldset>
+        <legend>Items</legend>
+        <label><input id="cb1" type="checkbox" bc-triggers="change" name="cms.cbox" />on / off (defaults)</label><br />
+        <label><input id="cb2" type="checkbox" bc-triggers="change" name="cms.cbox" value="val2" />val2 / off (value attribute)</label><br />
+        <label><input id="cb3" type="checkbox" bc-triggers="change" name="cms.cbox" bc-value="val3" />val3 / off (bc-value)</label><br />
+        <label><input id="cb4" type="checkbox" bc-triggers="change" name="cms.cbox" bc-off-value="val4" />on / val4 (bc-off-value)</label><br />
+        <label><input id="cb5" type="checkbox" bc-triggers="change" name="cms.cbox" bc-value="val5" bc-off-value="val6" />val5 / val6</label><br />
+        <span id="cbox-out">[##cms.cbox.value|(not set)##]</span>
+      </fieldset>
+      <label>
+        <input id="mode" type="checkbox" bc-triggers="change" name="cms.form" bc-value="view" bc-off-value="edit" checked />
+        In View Mode
+      </label>
+      <p id="mode-out">Mode: [##cms.form.value|(view)##]</p>
+      <label><input id="cb-empty" type="checkbox" bc-triggers="change" name="cms.cbempty" value="" />checked with value=""</label>
+      <label><input id="cb-click" type="checkbox" bc-triggers="click" name="cms.cbclick" />bound to click (pitfall)</label>
+    </section>
+
+    <section class="case" id="case-radio">
+      <h2>Radio group</h2>
+      <input id="r1" type="radio" bc-triggers="change" name="cms.g1" value="item-1" bc-off-value="never" />
+      <input id="r2" type="radio" bc-triggers="change" name="cms.g1" value="item-2" />
+      <input id="r3" type="radio" bc-triggers="change" name="cms.g1" value="item-3" />
+      <span id="radio-out">[##cms.g1.value|(not set)##]</span>
+    </section>
+
+    <section class="case" id="case-file">
+      <h2>File input</h2>
+      <input id="file" type="file" bc-triggers="change" name="cms.file" />
+      <span id="file-out">[##cms.file.value|(not set)##]</span>
+      <br />
+      <input id="files" type="file" multiple bc-triggers="change" name="upload.files" OnProcessing="collectFiles" />
+      <p id="files-out">Selected: [##upload.files.names|(none)##]</p>
+    </section>
+
+    <section class="case" id="case-button">
+      <h2>Button input that only triggers a command</h2>
+      <input id="trigger" type="button" value="trigger" name="event.render" bc-triggers="click" bc-value="0" />
+      <ul id="rep">
+        <basis core="repeater" name="rep" datamembername="replace.data" run="atclient" triggers="event.render" OnRendered="countRepeater">
+          <li>hi [##rep.current.id|(not found!)##] [##rep.current.name|('')##]</li>
+        </basis>
+      </ul>
+      <input id="caption" type="button" value="the caption" name="cms.caption" bc-triggers="click" />
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls</h2>
+      <input id="one-segment" name="query" bc-triggers="keyup" />
+      <span id="one-segment-out">[##query.value##]</span>
+      <br />
+      <input id="defect-input" name="defect.text" bc-triggers="keyup" />
+      <span id="defect-out">[##defect.text.value##]</span>
+    </section>
+  </main>
+
+  <script>
+    window.text2Count = 0;
+    function countText2() {
+      text2Count++;
+    }
+    window.rangeCount = 0;
+    function countRange() {
+      rangeCount++;
+    }
+    function toNumber(args) {
+      args.value = Number(args.value);
+    }
+    function collectFiles(args) {
+      const files = Array.from(args.node.files);
+      args.value = {
+        files: files,
+        names: files.map((f) => f.name).join(", "),
+        size: files.reduce((sum, f) => sum + f.size, 0)
+      };
+    }
+    window.repeaterRenders = 0;
+    function countRepeater() {
+      repeaterRenders++;
+    }
+
+    // Puts real File objects into a file input, as a user selection would.
+    function selectFiles(input, files) {
+      const transfer = new DataTransfer();
+      files.forEach((f) => transfer.items.add(f));
+      input.files = transfer.files;
+    }
+    function check(selector, checked) {
+      const el = document.querySelector(selector);
+      el.checked = checked;
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Cannot read properties of null \(reading 'toString'\)/);
+
+    bcTest.test("nothing is published at page load; every token shows its default", async (t) => {
+      await t.waitFor(() => t.$("#text-change").hasAttribute("data-bc-init"));
+      t.equal(t.source("cms.text"), undefined);
+      t.equal(t.source("cms.cbox"), undefined);
+      t.equal(t.text("#text-change-out"), "not set");
+      t.equal(t.text("#cbox-out"), "not set");
+      t.equal(t.text("#mode-out"), "Mode: view", "the default is shown although the box is checked");
+    });
+
+    bcTest.test("example: text inputs publish [{ value }] on change, on keyup, or on both", async (t) => {
+      t.setValue("#text-change", "a", ["keyup"]);
+      await t.sleep(150);
+      t.equal(t.source("cms.text"), undefined, "keyup is not listed on the first input");
+      t.fire("#text-change", "change");
+      await t.waitForText("#text-change-out", "a");
+      t.deepEqual(t.rows("cms.text"), [{ value: "a" }]);
+
+      t.setValue("#text-keyup", "b", ["keyup"]);
+      await t.waitForText("#text-keyup-out", "b");
+
+      text2Count = 0;
+      t.setValue("#text-both", "c", ["keyup", "change"]);
+      await t.waitForText("#text-both-out", "c");
+      await t.waitFor(() => text2Count, (n) => n === 2);
+      t.equal(text2Count, 2, "two listed events for one interaction publish twice");
+      await t.waitForConsole(/"value": "c"/);
+      t.note("the callback command logged the source rows to the console");
+    });
+
+    bcTest.test("example: number, range, date, time and color publish strings in the normalized DOM format", async (t) => {
+      t.setValue("#number", "42", ["change"]);
+      await t.waitForText("#number-out", "42");
+      t.equal(t.rows("cms.number")[0].value, "42", "a string, not a number");
+
+      rangeCount = 0;
+      t.setValue("#range", "60", ["input", "change"]);
+      await t.waitForText("#range-out", "60");
+      await t.waitFor(() => rangeCount, (n) => n === 2);
+      t.equal(typeof t.rows("cms.range")[0].value, "string");
+
+      t.setValue("#date", "2024-03-05", ["change"]);
+      await t.waitForText("#date-out", "2024-03-05");
+      t.setValue("#date", "", ["change"]);
+      await t.waitForSource("cms.date", (s) => s.rows[0].value === "");
+      t.equal(t.text("#date-out"), "not set", "an empty value does not satisfy the token, the default is shown");
+
+      t.setValue("#time", "14:30", ["change"]);
+      await t.waitForText("#time-out", "14:30");
+
+      t.setValue("#color", "#00ff00", ["change"]);
+      await t.waitForText("#color-out", "#00ff00");
+    });
+
+    bcTest.test("OnProcessing converts the string to a number (toNumber example)", async (t) => {
+      t.setValue("#zoom", "120", ["input"]);
+      const src = await t.waitForSource("ui.zoom");
+      t.deepEqual(src.rows, [{ value: 120 }]);
+      t.equal(typeof src.rows[0].value, "number");
+    });
+
+    bcTest.test("example: checkbox variants publish value/bc-value when checked and bc-off-value or \"off\" when unchecked", async (t) => {
+      const expect = async (selector, checked, value) => {
+        check(selector, checked);
+        await t.waitForText("#cbox-out", value);
+        t.deepEqual(t.rows("cms.cbox"), [{ value: value }], selector + " checked=" + checked);
+      };
+      await expect("#cb1", true, "on");
+      await expect("#cb1", false, "off");
+      await expect("#cb2", true, "val2");
+      await expect("#cb2", false, "off");
+      await expect("#cb3", true, "val3");
+      await expect("#cb3", false, "off");
+      await expect("#cb4", true, "on");
+      await expect("#cb4", false, "val4");
+      await expect("#cb5", true, "val5");
+      await expect("#cb5", false, "val6");
+      t.equal(t.rows("cms.cbox").length, 1, "five boxes share one source; the last toggled wins");
+    });
+
+    bcTest.test("example: a checked checkbox as a mode switch publishes view / edit", async (t) => {
+      check("#mode", false);
+      await t.waitForText("#mode-out", "Mode: edit");
+      check("#mode", true);
+      await t.waitForText("#mode-out", "Mode: view");
+      t.deepEqual(t.rows("cms.form"), [{ value: "view" }]);
+    });
+
+    bcTest.test("a checked checkbox written with value=\"\" publishes the boolean true", async (t) => {
+      check("#cb-empty", true);
+      const src = await t.waitForSource("cms.cbempty");
+      t.deepEqual(src.rows, [{ value: true }]);
+      t.equal(typeof src.rows[0].value, "boolean");
+    });
+
+    bcTest.test("pitfall: bc-triggers=\"click\" on a checkbox cancels the toggle", async (t) => {
+      t.click("#cb-click");
+      await t.waitForSource("cms.cbclick");
+      t.equal(t.$("#cb-click").checked, false);
+      t.deepEqual(t.rows("cms.cbclick"), [{ value: "off" }]);
+    });
+
+    bcTest.test("example: a radio group publishes the value of the radio that changed; bc-off-value is ignored for radios", async (t) => {
+      check("#r2", true);
+      await t.waitForText("#radio-out", "item-2");
+      check("#r1", true);
+      await t.waitForText("#radio-out", "item-1");
+      t.deepEqual(t.rows("cms.g1"), [{ value: "item-1" }]);
+      t.equal(t.$("#r2").checked, false, "checking another radio unchecks the previous one without publishing");
+      // an unchecked radio that fires change still publishes its value attribute, never bc-off-value
+      t.$("#r1").checked = false;
+      t.fire("#r1", "change");
+      await t.sleep(150);
+      t.deepEqual(t.rows("cms.g1"), [{ value: "item-1" }]);
+    });
+
+    bcTest.test("example: a file input publishes the fakepath string once a file is selected", async (t) => {
+      const input = t.$("#file");
+      selectFiles(input, [new File(["hello"], "a.txt", { type: "text/plain" })]);
+      t.equal(input.value, "C:\\fakepath\\a.txt");
+      t.fire(input, "change");
+      await t.waitForText("#file-out", "C:\\fakepath\\a.txt");
+      t.deepEqual(t.rows("cms.file"), [{ value: "C:\\fakepath\\a.txt" }]);
+    });
+
+    bcTest.test("a file input with an empty selection publishes { value: FileList }", async (t) => {
+      const input = t.$("#file");
+      selectFiles(input, []);
+      t.equal(input.value, "");
+      t.fire(input, "change");
+      await t.waitForSource("cms.file", (s) => s.rows[0].value instanceof FileList);
+      t.equal(t.rows("cms.file")[0].value.length, 0);
+      t.equal(t.text("#file-out"), "[object FileList]", "the token writes the string form of the FileList");
+    });
+
+    bcTest.test("example: OnProcessing reads node.files to publish the real File objects", async (t) => {
+      const input = t.$("#files");
+      selectFiles(input, [new File(["12345"], "one.txt"), new File(["123"], "two.txt")]);
+      t.fire(input, "change");
+      await t.waitForText("#files-out", "Selected: one.txt, two.txt");
+      const row = t.rows("upload.files")[0];
+      t.equal(row.size, 8);
+      t.equal(row.files.length, 2);
+      t.ok(row.files[0] instanceof File);
+    });
+
+    bcTest.test("example: a button input with bc-value re-runs the repeater listed in triggers", async (t) => {
+      await t.waitFor(() => t.$$("#rep li"), (l) => l.length === 2);
+      t.deepEqual(t.$$("#rep li").map((li) => t.text(li)), ["hi 1 data 1", "hi 2 data 2"]);
+      const before = repeaterRenders;
+      t.click("#trigger");
+      await t.waitForSource("event.render");
+      t.deepEqual(t.rows("event.render"), [{ value: "0" }]);
+      await t.waitFor(() => repeaterRenders, (n) => n === before + 1);
+      t.equal(t.$$("#rep li").length, 2);
+    });
+
+    bcTest.test("a button input without bc-value publishes its caption (the value attribute)", async (t) => {
+      t.click("#caption");
+      const src = await t.waitForSource("cms.caption");
+      t.deepEqual(src.rows, [{ value: "the caption" }]);
+    });
+
+    bcTest.test("pitfall: a one-segment name cannot be read with [##query.value##] (it is an existence check of a source called query.value)", async (t) => {
+      t.equal(t.text("#one-segment-out"), "false");
+      t.setValue("#one-segment", "x", ["keyup"]);
+      const src = await t.waitForSource("query");
+      t.deepEqual(src.rows, [{ value: "x" }]);
+      await t.sleep(150);
+      t.equal(t.text("#one-segment-out"), "false", "the token still looks for a source named query.value");
+    });
+
+    bcTest.defect("known defect: a text token without fallback throws TypeError when the input is cleared", async (t) => {
+      t.setValue("#defect-input", "abc", ["keyup"]);
+      await t.waitForText("#defect-out", "abc");
+      t.setValue("#defect-input", "", ["keyup"]);
+      await t.waitForError(/Cannot read properties of null \(reading 'toString'\)/);
+      t.deepEqual(t.rows("defect.text"), [{ value: "" }]);
+    });
+  </script>
+</body>
+</html>

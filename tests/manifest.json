@@ -44,6 +44,36 @@
       "file": "foundations/service-worker-and-push-repost.html",
       "doc": "docs/service-worker-and-push.md",
       "title": "service worker and push - existing subscription"
+    },
+    {
+      "file": "foundations/html-element-binding.html",
+      "doc": "docs/html-element-binding.md",
+      "title": "html element binding"
+    },
+    {
+      "file": "commands/input.html",
+      "doc": "docs/commands/input.md",
+      "title": "input"
+    },
+    {
+      "file": "commands/select.html",
+      "doc": "docs/commands/select.md",
+      "title": "select"
+    },
+    {
+      "file": "commands/form.html",
+      "doc": "docs/commands/form.md",
+      "title": "form"
+    },
+    {
+      "file": "commands/form-codeblock.html",
+      "doc": "docs/commands/form.md",
+      "title": "form - code block result"
+    },
+    {
+      "file": "commands/unknown-html.html",
+      "doc": "docs/commands/unknown-html.md",
+      "title": "unknown-html"
     }
   ]
 }
