@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema file fields</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: question schemas and the saved answer with files -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    var schemas = {
+      // schema 1166 from docs/schema/file-upload.md: an upload part and a blob part
+      "1166": {
+        schemaId: 1161, schemaVersion: "1.1", lid: 1, paramUrl: "/1166",
+        questions: [
+          { prpId: 1, typeId: 1, title: "File", multi: false, parts: [{ part: 1, viewType: "upload", validations: { required: false } }] },
+          { prpId: 2, typeId: 1, title: "Blob", multi: false, parts: [{ part: 1, viewType: "blob", multiple: true, uploadToken: "upload-token-value", validations: { required: false } }] }
+        ]
+      },
+      // the validation example of schema 1165, with a small total size limit; lid 2 = English messages
+      "1165": {
+        schemaId: 1165, schemaVersion: "1.0", lid: 2, paramUrl: "/1165",
+        questions: [
+          {
+            prpId: 33333, typeId: 123, title: "Images", multi: false,
+            parts: [{
+              part: 1, viewType: "upload", multiple: true,
+              validations: {
+                mimes: [{ mime: "image/jpeg", minSize: 10, maxSize: 10000 }, { mime: "image/png", minSize: 10, maxSize: 10000 }],
+                size: 20
+              }
+            }]
+          }
+        ]
+      },
+      // the schema of the saved answer used by the edit and view forms
+      "1169": {
+        schemaId: 1169, schemaVersion: "1.1", lid: 2, paramUrl: "/1169",
+        questions: [
+          { prpId: 22222, typeId: 123, title: "Files", multi: false, parts: [{ part: 1, viewType: "upload", multiple: true }] }
+        ]
+      },
+      // saved single files: one with a minSize rule and no saved size, one without rules
+      "1170": {
+        schemaId: 1170, schemaVersion: "1.0", lid: 2, paramUrl: "/1170",
+        questions: [
+          { prpId: 22223, typeId: 123, title: "Logo", multi: false, parts: [{ part: 1, viewType: "upload", validations: { mimes: [{ mime: "image/png", minSize: 10, maxSize: 10000 }] } }] },
+          { prpId: 22224, typeId: 123, title: "Avatar", multi: false, parts: [{ part: 1, viewType: "upload" }] }
+        ]
+      }
+    };
+
+    // Saved answer with two files (shape of server/schemas/answers/1423330.json, property 22222)
+    var answerFiles = {
+      usedForId: 1423330, schemaId: 1169, paramUrl: "/1169", schemaVersion: "1.1", lid: 2, lastUpdate: "",
+      properties: [{
+        prpId: 22222,
+        answers: [{
+          id: 1785,
+          parts: [{
+            part: 1,
+            values: [
+              { id: 222, value: { name: "readme.txt", url: "/files/readme.txt", type: "text/plain" } },
+              { id: 555, value: { name: "sample.jpg", image: "files/sample.jpg", url: "/files/sample.jpg", type: "image/jpg" } }
+            ]
+          }]
+        }]
+      }]
+    };
+    var answerSingle = {
+      usedForId: 1423340, schemaId: 1170, paramUrl: "/1170", schemaVersion: "1.0", lid: 2, lastUpdate: "",
+      properties: [
+        { prpId: 22223, answers: [{ id: 1786, parts: [{ part: 1, values: [{ id: 556, value: { name: "logo.png", url: "/files/logo.png", type: "image/png" } }] }] }] },
+        { prpId: 22224, answers: [{ id: 1787, parts: [{ part: 1, values: [{ id: 557, value: { name: "avatar.png", url: "/files/avatar.png", type: "image/png", size: 100 } }] }] }] }
+      ]
+    };
+
+    BasisCoreMock.route({
+      url: "/schema/questions/:id",
+      method: "GET",
+      response: (ctx) => ({ sources: [{ options: { tableName: "schema.data" }, data: [schemas[ctx.params.id]] }] })
+    });
+    BasisCoreMock.route({
+      url: "/schema/answers",
+      method: "GET",
+      response: (ctx) => ({
+        sources: [{ options: { tableName: "answer.data", keyFieldName: null, statusFieldName: null, mergeType: 0 }, data: [answerFiles] }]
+      })
+    });
+  </script>
+  <script>
+    const host = {
+      sources: {
+        "inline.object": [{ id: 1423330 }],
+        "answer.single": [answerSingle]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/file-upload.md">
+  <main>
+    <h1>schema file fields</h1>
+    <p class="intro">
+      Checks <code>docs/schema/file-upload.md</code>: the editable <code>upload</code>/<code>blob</code>
+      UI, single and multiple selection, deletion, the produced values (data URL for
+      <code>upload</code>, <code>File</code> plus <code>uploadToken</code> for <code>blob</code>),
+      the <code>size</code>/<code>mimes</code> rules, saved files in <code>edit</code> and
+      <code>view</code> mode and the <code>filesPath</code> prefix.
+    </p>
+
+    <section class="case" id="case-new">
+      <h2>New answer with an <code>upload</code> and a <code>blob</code> part (schema 1166)</h2>
+      <button data-btn-add>Save</button>
+      <div id="new">
+        <Basis core="schema" run="atclient"
+               schemaUrl="/schema/questions/1166"
+               displayMode="new"
+               button="[data-btn-add]"
+               resultSourceId="demo.data"
+               errorResultSourceId="demo.error">
+        </Basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="demo.data" method="onUpload"></basis>
+    </section>
+
+    <section class="case" id="case-validation">
+      <h2>Validation: <code>mimes</code> and <code>size</code> (schema 1165)</h2>
+      <button data-btn-valid>Save</button>
+      <div id="valid">
+        <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1165" displayMode="new"
+               button="[data-btn-valid]" resultSourceId="valid.data" errorResultSourceId="valid.error">
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Editing saved files</h2>
+      <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient"></Basis>
+      <button data-btn-edit>Save</button>
+      <div id="edit">
+        <Basis core="schema" datamembername="answer.data" run="atclient"
+               schemaUrl="/schema/questions" displayMode="edit"
+               button="[data-btn-edit]" resultSourceId="edit.data"
+               filesPath="siteName/">
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-single">
+      <h2>Saved single files: <code>minSize</code> without a saved size, replacement without deletion</h2>
+      <button data-btn-single>Save</button>
+      <div id="single">
+        <Basis core="schema" datamembername="answer.single" run="atclient"
+               schemaUrl="/schema/questions" displayMode="edit"
+               button="[data-btn-single]" resultSourceId="single.data" errorResultSourceId="single.error">
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-view">
+      <h2>Read-only rendering with <code>filesPath</code></h2>
+      <div id="view">
+        <Basis core="schema" datamembername="answer.data" run="atclient"
+               schemaUrl="/schema/questions" displayMode="view" filesPath="siteName/">
+        </Basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function onUpload(args) {
+      console.log(args.source.id, args.source.rows[0]);
+    }
+
+    /* test helpers */
+    function pick(input, files) {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const part = (root, prpId) => document.querySelector(`${root} [data-bc-schema-info-prpid="${prpId}"]`).closest("[data-bc-question]").querySelector("[data-bc-part]");
+    const items = (p) => Array.from(p.querySelectorAll("[data-bc-upload-file-item]"));
+    const titles = (p) => items(p).map((i) => i.querySelector("[data-bc-item-title]").textContent.trim());
+    const errorText = (p) => Array.from(p.querySelectorAll("[data-bc-validation-part] li")).map((li) => li.textContent.replace(/\s+/g, " ").trim());
+    const ICONS = "https://basispanel.ir/asset/component/filemanager/images/";
+    const plain = (v) => JSON.parse(JSON.stringify(v));
+    const ready = (t, root, prpId) => t.waitFor(() => document.querySelector(`${root} [data-bc-schema-info-prpid="${prpId}"]`), { timeout: 10000 });
+
+    bcTest.test("editable UI: the file input follows part.multiple; picked files become items with name, download link, icon, and the input is reset", async (t) => {
+      await ready(t, "#new", 2);
+      const upload = part("#new", 1);
+      const blob = part("#new", 2);
+      t.ok(!upload.querySelector("[data-bc-file-input]").hasAttribute("multiple"), "upload part: single");
+      t.ok(blob.querySelector("[data-bc-file-input]").hasAttribute("multiple"), "blob part: multiple");
+      t.equal(items(upload).length, 0);
+
+      pick(upload.querySelector("[data-bc-file-input]"), [new File(["some notes"], "notes.txt", { type: "text/plain" })]);
+      t.deepEqual(titles(upload), ["notes.txt"]);
+      const item = items(upload)[0];
+      const link = item.querySelector("[data-bc-item-download]");
+      t.equal(link.getAttribute("href"), "null", "a new file has url null, so the link is filesPath + \"null\"");
+      t.equal(link.getAttribute("download"), "notes.txt");
+      t.equal(item.querySelector("[data-bc-item-icon]").getAttribute("src"), ICONS + "file-txt-64.png", "MIME icon from ExtensionList");
+      t.ok(item.querySelector("[data-bc-item-btn-delete]"), "editable items have a delete icon");
+      t.equal(upload.querySelector("[data-bc-file-input]").value, "", "the input is reset so the same file can be picked again");
+
+      pick(blob.querySelector("[data-bc-file-input]"), [new File(["jpegdata"], "photo.jpg", { type: "image/jpeg" }), new File(["??"], "blob.bin", { type: "" })]);
+      t.deepEqual(titles(blob), ["photo.jpg", "blob.bin"]);
+      t.equal(items(blob)[0].querySelector("[data-bc-item-icon]").getAttribute("src"), ICONS + "file-jpg-64.png", "no thumbnail for a new image, only the MIME icon");
+      t.equal(items(blob)[1].querySelector("[data-bc-item-icon]").getAttribute("src"), ICONS + "file-unknown-64.png", "unknown type uses the ??? icon");
+    });
+
+    bcTest.test("when multiple is false a new file replaces the displayed one; the delete icon removes a new file for good", async (t) => {
+      const upload = part("#new", 1);
+      pick(upload.querySelector("[data-bc-file-input]"), [new File(["hello"], "readme.txt", { type: "text/plain" })]);
+      t.deepEqual(titles(upload), ["readme.txt"], "single mode: the previous item is gone");
+
+      const blob = part("#new", 2);
+      t.click(items(blob)[1].querySelector("[data-bc-item-btn-delete]"));
+      t.deepEqual(titles(blob), ["photo.jpg"]);
+    });
+
+    bcTest.test("the published result: upload values are data URLs, blob values keep the File and add uploadToken", async (t) => {
+      t.click("[data-btn-add]");
+      const src = await t.waitForSource("demo.data");
+      const result = src.rows[0];
+      t.deepEqual(plain({ lid: result.lid, schemaId: result.schemaId, schemaVersion: result.schemaVersion, paramUrl: result.paramUrl }),
+        { lid: 1, schemaId: 1161, schemaVersion: "1.1", paramUrl: "/1166" });
+      t.deepEqual(result.properties.map((p) => [p.propId, p.multi, Object.keys(p).sort().join()]), [[1, false, "added,multi,propId"], [2, false, "added,multi,propId"]]);
+      const uploadValue = result.properties[0].added[0].parts[0].values[0].value;
+      t.deepEqual(uploadValue, { content: "data:text/plain;base64,aGVsbG8=", name: "readme.txt", size: 5, type: "text/plain" });
+      t.equal(result.properties[1].added[0].parts[0].values.length, 1, "the deleted new file is not reported");
+      const blobValue = result.properties[1].added[0].parts[0].values[0].value;
+      t.ok(blobValue.content instanceof File, "blob content is the File object");
+      t.equal(blobValue.content.name, "photo.jpg");
+      t.deepEqual([blobValue.name, blobValue.size, blobValue.type, blobValue.uploadToken], ["photo.jpg", 8, "image/jpeg", "upload-token-value"]);
+      t.deepEqual(plain(blobValue).content, {}, "pitfall: JSON.stringify turns the File into {}");
+      t.equal(t.consoleMessages(/^demo\.data \{/).length, 1, "the callback saw the result");
+    });
+
+    bcTest.test("validation: a file whose type is not listed fails the mime rule and blocks the publish", async (t) => {
+      await ready(t, "#valid", 33333);
+      const p = part("#valid", 33333);
+      pick(p.querySelector("[data-bc-file-input]"), [new File(["0123456789abcde"], "notes.txt", { type: "text/plain" })]);
+      t.click("[data-btn-valid]");
+      await t.waitForSource("valid.error");
+      t.deepEqual(t.rows("valid.error"), [{ value: true }]);
+      t.ok(p.hasAttribute("data-bc-invalid"));
+      t.deepEqual(errorText(p), ["* the file mime is not in valid mimes (image/jpeg,image/png)"]);
+      t.ok(t.source("valid.data") == null);
+    });
+
+    bcTest.test("validation: a listed type outside its [minSize, maxSize] fails mime-size; a total above size fails the size rule", async (t) => {
+      const p = part("#valid", 33333);
+      t.click(items(p)[0].querySelector("[data-bc-item-btn-delete]"));
+      pick(p.querySelector("[data-bc-file-input]"), [new File(["12345"], "tiny.png", { type: "image/png" })]);
+      t.click("[data-btn-valid]");
+      await t.waitFor(() => errorText(p), (e) => e.length === 1 && /mime size array/.test(e[0]));
+      t.match(errorText(p)[0], /^\* the file size are not in valid mime size array \( image\/jpeg : 10 Bytes - 9\.77 KB , image\/png : 10 Bytes - 9\.77 KB \)$/);
+
+      t.click(items(p)[0].querySelector("[data-bc-item-btn-delete]"));
+      pick(p.querySelector("[data-bc-file-input]"), [new File(["123456789012345678901234567890"], "big.png", { type: "image/png" })]);
+      t.click("[data-btn-valid]");
+      await t.waitFor(() => errorText(p), (e) => e.length === 1 && /more than valid size/.test(e[0]));
+      t.equal(errorText(p)[0], "* the file size is more than valid size (20 Bytes)");
+      t.ok(t.source("valid.data") == null, "still nothing published");
+    });
+
+    bcTest.test("validation: a file that satisfies size and mimes is published; the error markers are cleared", async (t) => {
+      const p = part("#valid", 33333);
+      t.click(items(p)[0].querySelector("[data-bc-item-btn-delete]"));
+      pick(p.querySelector("[data-bc-file-input]"), [new File(["123456789012345"], "ok.png", { type: "image/png" })]);
+      t.click("[data-btn-valid]");
+      const src = await t.waitForSource("valid.data");
+      t.ok(!p.hasAttribute("data-bc-invalid"));
+      t.deepEqual(errorText(p), []);
+      const v = src.rows[0].properties[0].added[0].parts[0].values[0].value;
+      t.deepEqual([v.name, v.size, v.type], ["ok.png", 15, "image/png"]);
+      t.match(v.content, /^data:image\/png;base64,/);
+    });
+
+    bcTest.test("edit mode: saved files are listed with filesPath + url as link, the saved name as download name and image as thumbnail", async (t) => {
+      await ready(t, "#edit", 22222);
+      const p = part("#edit", 22222);
+      t.deepEqual(titles(p), ["readme.txt", "sample.jpg"]);
+      const [readme, sample] = items(p);
+      t.equal(readme.querySelector("[data-bc-item-download]").getAttribute("href"), "siteName//files/readme.txt", "filesPath is concatenated as is");
+      t.equal(readme.querySelector("[data-bc-item-download]").getAttribute("download"), "readme.txt");
+      t.equal(readme.querySelector("[data-bc-item-icon]").getAttribute("src"), ICONS + "file-txt-64.png");
+      t.equal(sample.querySelector("[data-bc-item-icon]").getAttribute("src"), "/files/sample.jpg", "\"/\" + value.image when image is set");
+      t.equal(sample.querySelector("[data-bc-item-download]").getAttribute("href"), "siteName//files/sample.jpg");
+    });
+
+    bcTest.test("edit mode: removing a saved file and adding a new one reports deleted { id, value: { name, type } } and edited without id", async (t) => {
+      const p = part("#edit", 22222);
+      t.click(items(p)[0].querySelector("[data-bc-item-btn-delete]"));
+      t.deepEqual(titles(p), ["sample.jpg"]);
+      pick(p.querySelector("[data-bc-file-input]"), [new File(["new content"], "new.txt", { type: "text/plain" })]);
+      t.deepEqual(titles(p), ["sample.jpg", "new.txt"]);
+
+      t.click("[data-btn-edit]");
+      const src = await t.waitForSource("edit.data");
+      const result = plain(src.rows[0]);
+      t.equal(result.usedForId, 1423330);
+      t.deepEqual(result.properties, [{
+        propId: 22222,
+        multi: false,
+        edited: [{ id: 1785, parts: [{ part: 1, values: [{ value: { content: "data:text/plain;base64,bmV3IGNvbnRlbnQ=", name: "new.txt", size: 11, type: "text/plain" } }] }] }],
+        deleted: [{ id: 1785, parts: [{ part: 1, values: [{ id: 222, value: { name: "readme.txt", type: "text/plain" } }] }] }]
+      }]);
+    });
+
+    bcTest.test("pitfall: a saved file without size counts as 0 bytes, so a mimes minSize rule fails on every submit until the file is removed", async (t) => {
+      await ready(t, "#single", 22224);
+      const logo = part("#single", 22223);
+      t.deepEqual(titles(logo), ["logo.png"]);
+      t.click("[data-btn-single]");
+      await t.waitForSource("single.error");
+      t.ok(logo.hasAttribute("data-bc-invalid"));
+      t.match(errorText(logo)[0], /^\* the file size are not in valid mime size array/);
+      t.ok(t.source("single.data") == null);
+    });
+
+    bcTest.test("pitfall: in single-file mode a new file replaces a saved one without reporting it as deleted", async (t) => {
+      const logo = part("#single", 22223);
+      t.click(items(logo)[0].querySelector("[data-bc-item-btn-delete]"), "remove the saved logo so the form validates");
+      const avatar = part("#single", 22224);
+      pick(avatar.querySelector("[data-bc-file-input]"), [new File(["0123456789"], "me.png", { type: "image/png" })]);
+      t.deepEqual(titles(avatar), ["me.png"], "the saved avatar.png is no longer displayed");
+
+      t.click("[data-btn-single]");
+      const src = await t.waitForSource("single.data");
+      const result = plain(src.rows[0]);
+      t.deepEqual(result.properties.find((p) => p.propId === 22223), {
+        propId: 22223, multi: false,
+        deleted: [{ id: 1786 }]
+      }, "the removed logo is the only value of its row, so the row collapses to { id }");
+      const avatarProp = result.properties.find((p) => p.propId === 22224);
+      t.deepEqual(Object.keys(avatarProp).sort(), ["edited", "multi", "propId"], "no deleted entry for the replaced file");
+      t.deepEqual(avatarProp.edited, [{ id: 1787, parts: [{ part: 1, values: [{ value: { content: "data:image/png;base64,MDEyMzQ1Njc4OQ==", name: "me.png", size: 10, type: "image/png" } }] }] }]);
+    });
+
+    bcTest.test("view mode: only the file list is rendered, as download links with filesPath + url and no delete icon", async (t) => {
+      await ready(t, "#view", 22222);
+      const p = part("#view", 22222);
+      t.ok(p.querySelector("[data-bc-upload-file-list]"), "the list element exists");
+      t.ok(!p.querySelector("[data-bc-file-input]") && !p.querySelector("[data-bc-upload-file-select]"), "no file picker");
+      t.deepEqual(titles(p), ["readme.txt", "sample.jpg"]);
+      t.equal(p.querySelectorAll("[data-bc-item-btn-delete]").length, 0);
+      t.deepEqual(items(p).map((i) => i.querySelector("[data-bc-item-download]").getAttribute("href")), ["siteName//files/readme.txt", "siteName//files/sample.jpg"]);
+      t.deepEqual(items(p).map((i) => i.querySelector("[data-bc-item-download]").getAttribute("download")), ["readme.txt", "sample.jpg"]);
+    });
+  </script>
+</body>
+</html>

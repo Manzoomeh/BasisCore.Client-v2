@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema answers and submission</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: question schemas and one saved answer, in the server envelope -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // Question schemas, built from docs/schema/schema-json-contract.md. 1161 is a trimmed
+    // version of the reference schema with inline fix values; 1164 is the sub-schema that
+    // option 4 of question 2 points at.
+    var schemas = {
+      "1161": {
+        schemaId: 1161,
+        paramUrl: "/1161",
+        schemaVersion: 1.1,
+        lid: 1,
+        questions: [
+          {
+            prpId: 55, typeId: 150, title: "Web site", multi: true,
+            parts: [{ part: 1, viewType: "text", validations: { required: true, regex: "^https?:\\/\\/[-a-zA-Z0-9.]+(\\/.*)?$" } }]
+          },
+          {
+            prpId: 13057, typeId: 262, title: "Emergency power", multi: true, cssClass: "css_13057",
+            parts: [
+              {
+                part: 1, viewType: "select", caption: "Unit",
+                validations: { required: true },
+                fixValues: [
+                  { id: 0, value: "Please choose" },
+                  { id: 3, value: "ampere" },
+                  { id: 5247, value: "kilovolt-ampere" },
+                  { id: 5248, value: "kilowatt" }
+                ]
+              },
+              { part: 2, viewType: "text", caption: "Speed (rpm)", validations: { required: true, min: 200, max: 4000, dataType: "int" } },
+              { part: 3, viewType: "text", caption: "Power" }
+            ]
+          },
+          {
+            prpId: 130601, typeId: 128, title: "Voltage", multi: true,
+            parts: [{
+              part: 1, viewType: "checklist", validations: { required: true, maxLength: 10 },
+              fixValues: [{ id: 4, value: "110" }, { id: 5, value: "220" }, { id: 6, value: "R1", selected: true }]
+            }]
+          },
+          {
+            prpId: 2, typeId: 128, title: "Voltage with sub-schema", multi: true,
+            parts: [{
+              part: 1, viewType: "select",
+              fixValues: [
+                { id: 0, value: "Please choose" },
+                { id: 4, value: "110", schema: { schemaId: 1164, paramUrl: "/1164", lid: 1, schemaVersion: 1.1 } },
+                { id: 5, value: "220" },
+                { id: 6, value: "R1", selected: true }
+              ]
+            }]
+          },
+          {
+            prpId: 13058, typeId: 1, title: "Notes", multi: true,
+            parts: [
+              { part: 1, viewType: "text", caption: "Note" },
+              { part: 2, viewType: "text", caption: "Author" }
+            ]
+          },
+          { prpId: 9001, typeId: 1, title: "Count", multi: false, parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 9002, typeId: 1, title: "Unanswered", multi: false, parts: [{ part: 1, viewType: "text" }] }
+        ]
+      },
+      "1164": {
+        schemaId: 1164,
+        paramUrl: "/1164",
+        schemaVersion: 1.1,
+        lid: 1,
+        questions: [
+          { prpId: 55, typeId: 150, title: "Web site", multi: true, parts: [{ part: 1, viewType: "text" }] }
+        ]
+      }
+    };
+
+    // The saved answer (IAnswerSchema) that the edit and view forms load.
+    var answer1423330 = {
+      usedForId: 1423330,
+      schemaId: 1161,
+      paramUrl: "/1161",
+      schemaVersion: 1.1,
+      lastUpdate: "",
+      lid: 1,
+      properties: [
+        { prpId: 55, answers: [{ id: 12361, parts: [{ part: 1, values: [{ id: 33, value: "http://www.basiscore.com" }] }] }] },
+        {
+          prpId: 13057,
+          answers: [
+            { id: 45615, parts: [{ part: 1, values: [{ id: 59757, value: 5248 }] }, { part: 2, values: [{ id: 85257, value: "1000" }] }] },
+            {
+              id: 156852,
+              parts: [
+                { part: 1, values: [{ id: 78517, value: 5247 }] },
+                { part: 2, values: [{ id: 79457, value: "1500" }] },
+                { part: 3, values: [{ id: 78737, value: "250" }] }
+              ]
+            }
+          ]
+        },
+        { prpId: 130601, answers: [{ id: 8456215, parts: [{ part: 1, values: [{ id: 78854, value: 5 }, { id: 78855, value: 6 }] }] }] },
+        {
+          prpId: 2,
+          answers: [{
+            id: 8456251,
+            parts: [{
+              part: 1,
+              values: [{
+                id: 78854,
+                value: 4,
+                answer: {
+                  usedForId: 1423332, schemaId: 1164, paramUrl: "/1164", schemaVersion: 1.1, lid: 1,
+                  properties: [{ prpId: 55, answers: [{ id: 123152, parts: [{ part: 1, values: [{ id: 56987, value: "nested text" }] }] }] }]
+                }
+              }]
+            }]
+          }]
+        },
+        {
+          prpId: 13058,
+          answers: [
+            { id: 777, parts: [{ part: 1, values: [{ id: 7001, value: "a" }] }, { part: 2, values: [{ id: 7002, value: "b" }] }] },
+            { id: 778, parts: [{ part: 1, values: [{ id: 7003, value: "c" }] }, { part: 2, values: [{ id: 7004, value: "d" }] }] }
+          ]
+        },
+        { prpId: 9001, answers: [{ id: 901, parts: [{ part: 1, values: [{ id: 9010, value: 33 }] }] }] }
+      ]
+    };
+
+    BasisCoreMock.route({
+      url: "/schema/questions/:id",
+      method: "GET",
+      response: (ctx) => ({ sources: [{ options: { tableName: "schema.data" }, data: [schemas[ctx.params.id]] }] })
+    });
+    BasisCoreMock.route({
+      url: "/schema/answers",
+      method: "GET",
+      response: () => ({
+        sources: [{ options: { tableName: "answer.data", keyFieldName: null, statusFieldName: null, mergeType: 0 }, data: [answer1423330] }]
+      })
+    });
+  </script>
+  <script>
+    const host = { sources: { "inline.object": [{ id: 1423330 }] } };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/answers-and-submission.md">
+  <main>
+    <h1>schema answers and submission</h1>
+    <p class="intro">
+      Checks <code>docs/schema/answers-and-submission.md</code>: how a saved answer pre-fills an
+      <code>edit</code> form, the exact <code>IUserActionResult</code> published to
+      <code>resultSourceId</code> in <code>new</code> and <code>edit</code> mode (added, edited and
+      deleted parts, row ids, collapsed rows, nested sub-schema answers), validation blocking the
+      publish, <code>errorResultSourceId</code>, the submit <code>button</code> wiring and
+      re-submission.
+    </p>
+
+    <section class="case" id="case-new">
+      <h2>New form: validation blocks the publish, then the change set is published</h2>
+      <button data-btn-new>Save</button>
+      <div id="new">
+        <basis core="schema" run="atclient"
+               schemaUrl="/schema/questions" paramUrl="/1161"
+               displayMode="new"
+               button="[data-btn-new]"
+               resultSourceId="new.data"
+               errorResultSourceId="new.error"></basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="new.data" method="onChanges"></basis>
+      <basis core="callback" run="atclient" triggers="new.error" method="onInvalid"></basis>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Edit page that posts the change set (answer loaded by <code>api</code>)</h2>
+      <basis core="api" run="atclient" method="get" url="/schema/answers?id=[##inline.object.id##]"></basis>
+
+      <button data-btn-edit>Save changes</button>
+      <div id="edit">
+        <basis core="schema" run="atclient"
+               datamembername="answer.data"
+               schemaUrl="/schema/questions"
+               displayMode="edit"
+               button="[data-btn-edit]"
+               resultSourceId="edit.data"
+               errorResultSourceId="edit.error"
+               qs_rkey="123"></basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="edit.data" method="onChanges"></basis>
+      <basis core="callback" run="atclient" triggers="edit.error" method="onInvalid"></basis>
+      <p id="edit-log"></p>
+    </section>
+
+    <section class="case" id="case-edit2">
+      <h2>Edit form: clearing a whole row collapses it to <code>{ id }</code></h2>
+      <button data-btn-edit2>Save changes</button>
+      <div id="edit2">
+        <basis core="schema" run="atclient"
+               datamembername="answer.data"
+               schemaUrl="/schema/questions"
+               displayMode="edit"
+               button="[data-btn-edit2]"
+               resultSourceId="edit2.data"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-view">
+      <h2>View mode never submits</h2>
+      <button data-btn-view>Save (does nothing)</button>
+      <div id="view">
+        <basis core="schema" run="atclient"
+               datamembername="answer.data"
+               schemaUrl="/schema/questions"
+               displayMode="view"
+               button="[data-btn-view]"
+               resultSourceId="view.data"></basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function onChanges(args) {
+      const result = args.source.rows[0];
+      for (const p of result.properties) {
+        console.log(p.propId, "added", p.added?.length ?? 0, "edited", p.edited?.length ?? 0, "deleted", p.deleted?.length ?? 0);
+      }
+    }
+    function onInvalid(args) {
+      document.getElementById("edit-log").textContent = "Please fix the highlighted fields. (" + args.source.id + ")";
+    }
+  </script>
+
+  <script>
+    /* helpers to find a question, its rows and its parts inside one form */
+    const question = (root, prpId) => t_root(root).querySelector(`[data-bc-schema-info-prpid="${prpId}"]`).closest("[data-bc-question]");
+    const t_root = (root) => (typeof root === "string" ? document.querySelector(root) : root);
+    const rows = (q) => Array.from(q.querySelector(":scope > [data-bc-answer-container] > [data-bc-answer-collection]").children);
+    const parts = (row) => Array.from(row.querySelector("[data-bc-part-container]").children).filter((p) => p.hasAttribute("data-bc-part"));
+    const plain = (v) => JSON.parse(JSON.stringify(v));
+    const prop = (result, prpId) => result.properties.find((p) => p.propId === prpId);
+    function setSelect(select, value) {
+      select.value = value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    function setChecked(input, checked) {
+      input.checked = checked;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const formReady = (root, prpId) => (t) => t.waitFor(() => t.$(`${root} [data-bc-schema-info-prpid="${prpId}"]`), { timeout: 10000 });
+
+    bcTest.test("new mode: invalid fields block the publish, errorResultSourceId receives { value: true } and parts get data-bc-invalid", async (t) => {
+      await formReady("#new", 9002)(t);
+      t.ok(t.source("new.data") == null);
+      t.click("[data-btn-new]");
+      await t.waitForSource("new.error");
+      t.deepEqual(t.rows("new.error"), [{ value: true }], "a primitive is published as one row { value }");
+      t.ok(t.source("new.data") == null, "nothing is published to resultSourceId");
+
+      const site = parts(rows(question("#new", 55))[0])[0];
+      t.ok(site.hasAttribute("data-bc-invalid"), "the required Web site part is marked invalid");
+      t.equal(site.querySelectorAll("[data-bc-validation-part] li").length, 1, "one message (required; regex is skipped for empty values)");
+      const power = parts(rows(question("#new", 13057))[0]);
+      t.ok(power[0].hasAttribute("data-bc-invalid"), "the select shows option id 0, which counts as no value for its required rule");
+      t.ok(power[1].hasAttribute("data-bc-invalid"), "the required Speed part is invalid");
+      t.ok(!power[2].hasAttribute("data-bc-invalid"), "the optional Power part is valid");
+    });
+
+    bcTest.test("new mode: the published IUserActionResult lists every non-empty value under added, with the schema header", async (t) => {
+      t.setValue(parts(rows(question("#new", 55))[0])[0].querySelector("input"), "http://example.com");
+      const power = parts(rows(question("#new", 13057))[0]);
+      setSelect(power[0].querySelector("select"), "5248");
+      t.setValue(power[1].querySelector("input"), "1500");
+      const voltage = parts(rows(question("#new", 130601))[0])[0];
+      setChecked(voltage.querySelector("input[value='4']"), true);
+
+      t.click("[data-btn-new]");
+      const src = await t.waitForSource("new.data");
+      const result = src.rows[0];
+      t.equal(src.rows.length, 1, "the object becomes a single row");
+      t.ok(Object.prototype.hasOwnProperty.call(result, "usedForId") && result.usedForId === undefined, "usedForId is present as undefined in new mode");
+      t.ok(Object.prototype.hasOwnProperty.call(result, "ownerid") && result.ownerid === undefined, "ownerid is present as undefined in new mode");
+      t.deepEqual(plain(result), {
+        lid: 1,
+        paramUrl: "/1161",
+        schemaId: 1161,
+        schemaVersion: 1.1,
+        properties: [
+          { propId: 55, multi: true, added: [{ parts: [{ part: 1, values: [{ value: "http://example.com" }] }] }] },
+          {
+            propId: 13057, multi: true,
+            added: [{ parts: [{ part: 1, values: [{ value: "5248" }] }, { part: 2, values: [{ value: "1500" }] }] }]
+          },
+          { propId: 130601, multi: true, added: [{ parts: [{ part: 1, values: [{ value: 4 }, { value: 6 }] }] }] },
+          { propId: 2, multi: true, added: [{ parts: [{ part: 1, values: [{ value: "6" }] }] }] }
+        ]
+      }, "select values are strings, checklist values are numbers, untouched questions are absent");
+      t.ok(!parts(rows(question("#new", 55))[0])[0].hasAttribute("data-bc-invalid"), "the invalid marker is cleared on the next submit");
+      const logged = t.consoleMessages(/^13057 added 1 edited 0 deleted 0$/);
+      t.equal(logged.length, 1, "the callback command received the result");
+    });
+
+    bcTest.test("re-submission publishes the new change set; errorResultSourceId is not reset by a valid submit", async (t) => {
+      const power = parts(rows(question("#new", 13057))[0]);
+      t.setValue(power[1].querySelector("input"), "1600");
+      t.click("[data-btn-new]");
+      await t.waitForSource("new.data", (s) => prop(s.rows[0], 13057).added[0].parts[1].values[0].value === "1600");
+      t.deepEqual(t.rows("new.error"), [{ value: true }], "the earlier error flag is still there");
+    });
+
+    bcTest.test("sub-schema: selecting an option with a schema renders a nested schema command and its result is attached as value.answer", async (t) => {
+      const select = parts(rows(question("#new", 2))[0])[0].querySelector("select");
+      const option4 = select.querySelector("option[value='4']");
+      t.equal(option4.getAttribute("data-param-url"), "/1164");
+      t.equal(option4.getAttribute("data-schema-id"), "1164");
+      setSelect(select, "4");
+      const container = parts(rows(question("#new", 2))[0])[0].querySelector("[data-bc-sm-sub-schema-container]");
+      const nested = await t.waitFor(() => container.querySelector("[data-bc-schema-main-container] [data-bc-schema-info-prpid='55']"), { timeout: 10000 });
+      // the generated <basis core="schema"> is replaced by its output once processed; its
+      // datamembername shows up in the library log and its paramUrl in the schema request
+      t.ok(t.consoleMessages(/handler Added for sub-schema\./).length >= 1, "the nested command listens to a sub-schema.<random> source");
+      const call = BasisCoreMock.state().log.find((e) => e.url === "/schema/questions/1164");
+      t.ok(call, "the nested schema is fetched from the parent schemaUrl plus the option's paramUrl");
+
+      t.setValue(nested.closest("[data-bc-question]").querySelector("input[data-bc-text-input]"), "nested");
+      t.click("[data-btn-new]");
+      const src = await t.waitForSource("new.data", (s) => !!prop(s.rows[0], 2).added[0].parts[0].values[0].answer);
+      t.deepEqual(plain(prop(src.rows[0], 2)), {
+        propId: 2, multi: true,
+        added: [{
+          parts: [{
+            part: 1,
+            values: [{
+              value: "4",
+              answer: {
+                lid: 1, paramUrl: "/1164", schemaId: 1164, schemaVersion: 1.1,
+                properties: [{ propId: 55, multi: true, added: [{ parts: [{ part: 1, values: [{ value: "nested" }] }] }] }]
+              }
+            }]
+          }]
+        }]
+      }, "the nested result is a complete IUserActionResult");
+
+      setSelect(select, "6");
+      await t.waitFor(() => container.innerHTML === "", (v) => v === true);
+      t.equal(container.innerHTML, "", "deselecting the option empties the sub-schema container");
+    });
+
+    bcTest.test("multi questions in new mode: an added row appears under added without id; removing a session row reports nothing", async (t) => {
+      const q = question("#new", 13057);
+      t.click(rows(q)[0].querySelector("[data-bc-btn='add']"));
+      await t.waitFor(() => rows(q), (r) => r.length === 2);
+      const second = parts(rows(q)[1]);
+      setSelect(second[0].querySelector("select"), "3");
+      t.setValue(second[1].querySelector("input"), "900");
+      t.click("[data-btn-new]");
+      let src = await t.waitForSource("new.data", (s) => prop(s.rows[0], 13057).added.length === 2);
+      t.deepEqual(plain(prop(src.rows[0], 13057).added), [
+        { parts: [{ part: 1, values: [{ value: "5248" }] }, { part: 2, values: [{ value: "1600" }] }] },
+        { parts: [{ part: 1, values: [{ value: "3" }] }, { part: 2, values: [{ value: "900" }] }] }
+      ]);
+
+      const firstButton = rows(q)[0].querySelector("[data-bc-btn]");
+      t.equal(firstButton.getAttribute("data-bc-btn"), "remove", "rows that are not last show the remove button");
+      t.equal(rows(q)[1].querySelector("[data-bc-btn]").getAttribute("data-bc-btn"), "add", "the last row shows the add button");
+      t.click(firstButton);
+      await t.waitFor(() => rows(q), (r) => r.length === 1);
+      t.click("[data-btn-new]");
+      src = await t.waitForSource("new.data", (s) => prop(s.rows[0], 13057).added.length === 1);
+      const p = plain(prop(src.rows[0], 13057));
+      t.deepEqual(p.added, [{ parts: [{ part: 1, values: [{ value: "3" }] }, { part: 2, values: [{ value: "900" }] }] }]);
+      t.ok(!("deleted" in p), "a row added in this session is not reported when removed");
+    });
+
+    bcTest.test("edit mode: the answer pre-fills every control, one row per saved answer, and the row buttons follow the documentation", async (t) => {
+      await formReady("#edit", 9002)(t);
+      t.equal(parts(rows(question("#edit", 55))[0])[0].querySelector("input").value, "http://www.basiscore.com");
+
+      const power = rows(question("#edit", 13057));
+      t.equal(power.length, 2, "two saved rows");
+      t.equal(parts(power[0])[0].querySelector("select").value, "5248");
+      t.equal(parts(power[0])[1].querySelector("input").value, "1000");
+      t.equal(parts(power[0])[2].querySelector("input").value, "", "a part without a saved value is empty");
+      t.equal(parts(power[1])[0].querySelector("select").value, "5247");
+      t.equal(parts(power[1])[1].querySelector("input").value, "1500");
+      t.equal(parts(power[1])[2].querySelector("input").value, "250");
+      t.equal(power[0].querySelector("[data-bc-btn]").getAttribute("data-bc-btn"), "remove", "earlier rows show a remove button");
+      t.equal(power[1].querySelector("[data-bc-pair-btn-container]").style.display, "block", "the last pre-filled row shows the remove/add pair");
+      t.equal(power[1].querySelector("[data-bc-btn]").style.display, "none");
+
+      const voltage = parts(rows(question("#edit", 130601))[0])[0];
+      t.deepEqual(Array.from(voltage.querySelectorAll("input")).map((i) => [i.value, i.checked]), [["4", false], ["5", true], ["6", true]]);
+
+      const sub = parts(rows(question("#edit", 2))[0])[0];
+      t.equal(sub.querySelector("select").value, "4");
+      const nestedInput = await t.waitFor(() => sub.querySelector("[data-bc-sm-sub-schema-container] input[data-bc-text-input]"), { timeout: 10000 });
+      t.equal(nestedInput.value, "nested text", "a saved sub-answer opens the nested form in the parent's mode, pre-filled");
+
+      t.equal(parts(rows(question("#edit", 9001))[0])[0].querySelector("input").value, "33");
+      t.equal(rows(question("#edit", 9002)).length, 1, "a question without a saved property gets one empty row");
+      t.equal(parts(rows(question("#edit", 9002))[0])[0].querySelector("input").value, "");
+    });
+
+    bcTest.test("edit mode: an untouched form publishes nothing (text values compare with != so a saved number equals the typed string)", async (t) => {
+      t.setValue(parts(rows(question("#edit", 9001))[0])[0].querySelector("input"), "33");
+      t.click("[data-btn-edit]");
+      await t.sleep(400);
+      t.ok(t.source("edit.data") == null, "no result is published");
+      t.ok(t.source("edit.error") == null, "and there is no validation error");
+    });
+
+    bcTest.test("edit mode: the documented change set (edited value, removed row, new row, checklist added plus deleted)", async (t) => {
+      const q = question("#edit", 13057);
+      t.setValue(parts(rows(q)[0])[1].querySelector("input"), "1200");
+      t.click(rows(q)[1].querySelector("[data-bc-btn-remove]"));
+      await t.waitFor(() => rows(q), (r) => r.length === 2 && parts(r[1])[1].querySelector("input").value === "");
+      const fresh = parts(rows(q)[1]);
+      setSelect(fresh[0].querySelector("select"), "3");
+      t.setValue(fresh[1].querySelector("input"), "900");
+      const voltage = parts(rows(question("#edit", 130601))[0])[0];
+      setChecked(voltage.querySelector("input[value='6']"), false);
+      setChecked(voltage.querySelector("input[value='4']"), true);
+
+      t.click("[data-btn-edit]");
+      const src = await t.waitForSource("edit.data");
+      t.deepEqual(plain(src.rows[0]), {
+        lid: 1,
+        paramUrl: "/1161",
+        schemaId: 1161,
+        schemaVersion: 1.1,
+        usedForId: 1423330,
+        properties: [
+          {
+            propId: 13057,
+            multi: true,
+            added: [{ parts: [{ part: 1, values: [{ value: "3" }] }, { part: 2, values: [{ value: "900" }] }] }],
+            edited: [{ id: 45615, parts: [{ part: 2, values: [{ id: 85257, value: "1200" }] }] }],
+            deleted: [{ id: 156852 }]
+          },
+          {
+            propId: 130601,
+            multi: true,
+            added: [{ id: 8456215, parts: [{ part: 1, values: [{ value: 4 }] }] }],
+            deleted: [{ id: 8456215, parts: [{ part: 1, values: [{ id: 78855, value: 6 }] }] }]
+          }
+        ]
+      });
+      t.equal(t.consoleMessages(/^13057 added 1 edited 1 deleted 1$/).length, 1, "onChanges logged the counts");
+      t.equal(t.consoleMessages(/^130601 added 1 edited 0 deleted 1$/).length, 1);
+    });
+
+    bcTest.test("edit mode: a fully cleared row collapses to { id } only while the question has no added or edited entries; a new value in an existing row carries the row id", async (t) => {
+      await formReady("#edit2", 9002)(t);
+      const notes = question("#edit2", 13058);
+      const second = parts(rows(notes)[1]);
+      t.setValue(second[0].querySelector("input"), "");
+      t.setValue(second[1].querySelector("input"), "");
+      t.setValue(parts(rows(question("#edit2", 13057))[0])[2].querySelector("input"), "250");
+
+      t.click("[data-btn-edit2]");
+      let src = await t.waitForSource("edit2.data");
+      t.deepEqual(plain(prop(src.rows[0], 13058)), { propId: 13058, multi: true, deleted: [{ id: 778 }] }, "the cleared row collapses to its id");
+      t.deepEqual(plain(prop(src.rows[0], 13057)), {
+        propId: 13057, multi: true,
+        added: [{ id: 45615, parts: [{ part: 3, values: [{ value: "250" }] }] }]
+      }, "a part that had no saved value is added with the id of its row");
+
+      t.setValue(parts(rows(notes)[0])[0].querySelector("input"), "a2");
+      t.click("[data-btn-edit2]");
+      src = await t.waitForSource("edit2.data", (s) => !!prop(s.rows[0], 13058).edited);
+      t.deepEqual(plain(prop(src.rows[0], 13058)), {
+        propId: 13058, multi: true,
+        edited: [{ id: 777, parts: [{ part: 1, values: [{ id: 7001, value: "a2" }] }] }],
+        deleted: [{ id: 778, parts: [{ part: 1, values: [{ id: 7003, value: "" }] }, { part: 2, values: [{ id: 7004, value: "" }] }] }]
+      }, "with an edited entry in the same question the deletions are listed per value, with value \"\" for text parts");
+    });
+
+    bcTest.test("view mode: questions without a saved property are skipped, no row buttons, and the button publishes nothing", async (t) => {
+      await formReady("#view", 9001)(t);
+      t.ok(t.$("#view [data-bc-schema-info-prpid='9002']") == null, "the unanswered question is not rendered");
+      t.equal(t.$$("#view [data-bc-btn], #view [data-bc-btn-remove]").length, 0, "no add/remove buttons in view mode");
+      t.equal(t.text(parts(rows(question("#view", 55))[0])[0].querySelector("[data-bc-text-input]")), "http://www.basiscore.com", "text parts render as read-only labels");
+      t.click("[data-btn-view]");
+      await t.sleep(300);
+      t.ok(t.source("view.data") == null, "getAnswersAsync is not wired in view mode");
+    });
+
+    bcTest.test("getAnswersAsync(true) from script throws Error(\"invalid\") on a view form (read-only parts are not validated)", async (t) => {
+      await formReady("#view", 9001)(t);
+      const viewCommand = $bc.global.GetCommandListByCore("schema").find((c) => c.node.getAttribute("resultsourceid") === "view.data");
+      t.ok(viewCommand, "the component is reachable through GetCommandListByCore");
+      await t.rejects(viewCommand.getAnswersAsync(true), /^invalid$/);
+    });
+  </script>
+</body>
+</html>

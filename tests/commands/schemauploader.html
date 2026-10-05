@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schemauploader</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: the question schemas, the answer endpoint and the blob endpoint -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // What the two endpoints received, in request order. ctx.url is a URL object, so the
+    // path and query string are stored as one string.
+    var uploaderLog = { json: [], blob: [] };
+    // request headers as a plain lower-cased object, read from the Request the mock exposes
+    function headersOf(ctx) {
+      var out = {};
+      var req = ctx.request;
+      if (req && req.headers) req.headers.forEach((v, k) => (out[k.toLowerCase()] = v));
+      return out;
+    }
+
+    var schemas = {
+      // schema 1166 from docs/schema/file-upload.md: an upload part and a blob part
+      "1166": {
+        schemaId: 1161, schemaVersion: "1.1", lid: 1, paramUrl: "/1166",
+        questions: [
+          { prpId: 1, typeId: 1, title: "File", multi: false, parts: [{ part: 1, viewType: "upload", validations: { required: false } }] },
+          { prpId: 2, typeId: 1, title: "Blob", multi: false, parts: [{ part: 1, viewType: "blob", multiple: true, uploadToken: "upload-token-value", validations: { required: false } }] }
+        ]
+      },
+      // a schema with an upload part only (no File objects in the answer)
+      "1168": {
+        schemaId: 1168, schemaVersion: "1.0", lid: 1, paramUrl: "/1168",
+        questions: [
+          { prpId: 1, typeId: 1, title: "File", multi: false, parts: [{ part: 1, viewType: "upload", validations: { required: false } }] }
+        ]
+      }
+    };
+
+    BasisCoreMock.route({
+      url: "/schema/questions/:id",
+      method: "GET",
+      response: (ctx) => ({ sources: [{ options: { tableName: "schema.data" }, data: [schemas[ctx.params.id]] }] })
+    });
+
+    // POST /blob/answer-json: the answer JSON; answers with usedforid (reference server shape)
+    BasisCoreMock.route({
+      url: "/blob/answer-json",
+      method: "POST",
+      response: (ctx) => {
+        uploaderLog.json.push({ url: ctx.url.pathname + ctx.url.search, method: ctx.method, headers: headersOf(ctx), body: ctx.bodyJSON });
+        return { errorid: 4, message: "successful", usedforid: "sample-returnObject" };
+      }
+    });
+    // POST /blob/answer-json-no-id: a server that forgets usedforid
+    BasisCoreMock.route({
+      url: "/blob/answer-json-no-id",
+      method: "POST",
+      response: (ctx) => {
+        uploaderLog.json.push({ url: ctx.url.pathname + ctx.url.search, method: ctx.method, headers: headersOf(ctx), body: ctx.bodyJSON });
+        return { errorid: 1, message: "stored without an id" };
+      }
+    });
+    // POST /blob/answer-blob: one multipart request per file. The mock flattens the string
+    // fields of the FormData into ctx.bodyJSON and drops the binary part.
+    BasisCoreMock.route({
+      url: "/blob/answer-blob",
+      method: "POST",
+      response: (ctx) => {
+        uploaderLog.blob.push({ url: ctx.url.pathname + ctx.url.search, method: ctx.method, query: ctx.query, form: ctx.bodyJSON });
+        return { status: "ok", blobid: ctx.query.blobid };
+      }
+    });
+  </script>
+  <script>
+    const host = {};
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/schemauploader.md">
+  <main>
+    <h1>schemauploader</h1>
+    <p class="intro">
+      Checks <code>docs/commands/schemauploader.md</code>: a <code>schema</code> form with an
+      <code>upload</code> and a <code>blob</code> part publishes its answer; the uploader posts the
+      JSON (with every <code>File</code> replaced by a <code>blobid</code>) to <code>url</code>, reads
+      <code>usedforid</code>, uploads each file to <code>blob</code> as <code>multipart/form-data</code>
+      and publishes <code>&lt;name&gt;.uploading</code> and <code>&lt;name&gt;.uploaded</code>.
+    </p>
+
+    <section class="case" id="case-simple">
+      <h2>Simple: answer JSON, then one request per <code>File</code></h2>
+      <button data-btn-add>Add</button>
+      <div id="simple">
+        <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1166" displayMode="new"
+               button="[data-btn-add]" resultSourceId="demo.data" qs_rKey="www" qs_name="haha">
+        </Basis>
+      </div>
+      <Basis core="schemauploader" run="atclient"
+             datamembername="demo.data" name="uploader"
+             url="/blob/answer-json" blob="/blob/answer-blob">
+      </Basis>
+      <basis core="callback" run="atclient" triggers="demo.data uploader.uploading uploader.uploaded"></basis>
+    </section>
+
+    <section class="case" id="case-qs">
+      <h2>Blob endpoint with a query string</h2>
+      <button data-btn-add-qs>Add</button>
+      <div id="qs">
+        <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1166" displayMode="new"
+               button="[data-btn-add-qs]" resultSourceId="demo.data-qs">
+        </Basis>
+      </div>
+      <Basis core="schemauploader" run="atclient" datamembername="demo.data-qs" name="uploader-qs"
+             url="/blob/answer-json" blob="/blob/answer-blob?key1=hi&key2=12">
+      </Basis>
+    </section>
+
+    <section class="case" id="case-complex">
+      <h2>Wrapper object with extra data</h2>
+      <button data-btn-add-complex>Add</button>
+      <div id="complex">
+        <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1166" displayMode="new"
+               button="[data-btn-add-complex]" resultSourceId="demo.data-c">
+        </Basis>
+      </div>
+      <Basis core="schemauploader" run="atclient" datamembername="demo.data-ex" name="uploader-ex"
+             url="/blob/answer-json" blob="/blob/answer-blob">
+      </Basis>
+      <basis core="callback" run="atclient" triggers="demo.data-c" method="onSource"></basis>
+    </section>
+
+    <section class="case" id="case-intercept">
+      <h2>Intercepting the JSON request with <code>OnProcessing</code></h2>
+      <button data-btn-add-intercept>Add</button>
+      <div id="intercept">
+        <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1166" displayMode="new"
+               button="[data-btn-add-intercept]" resultSourceId="demo.data-i">
+        </Basis>
+      </div>
+      <Basis core="schemauploader" run="atclient" datamembername="demo.data-i" name="uploader-i"
+             url="/blob/answer-json" blob="/blob/answer-blob" OnProcessing="beforePost" OnProcessed="afterPost">
+      </Basis>
+    </section>
+
+    <section class="case" id="case-no-id">
+      <h2>A response without <code>usedforid</code></h2>
+      <button data-btn-add-noid>Add</button>
+      <div id="noid">
+        <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1166" displayMode="new"
+               button="[data-btn-add-noid]" resultSourceId="demo.data-noid">
+        </Basis>
+      </div>
+      <Basis core="schemauploader" run="atclient" datamembername="demo.data-noid" name="uploader-noid"
+             url="/blob/answer-json-no-id" blob="/blob/answer-blob">
+      </Basis>
+    </section>
+
+    <section class="case" id="case-upload-only">
+      <h2>An answer without <code>File</code> objects (only an <code>upload</code> part)</h2>
+      <button data-btn-add-upload>Add</button>
+      <div id="upload-only">
+        <Basis core="schema" run="atclient" schemaUrl="/schema/questions/1168" displayMode="new"
+               button="[data-btn-add-upload]" resultSourceId="demo.data-u">
+        </Basis>
+      </div>
+      <Basis core="schemauploader" run="atclient" datamembername="demo.data-u" name="uploader-u"
+             url="/blob/answer-json" blob="/blob/answer-blob">
+      </Basis>
+    </section>
+
+    <section class="case" id="case-nocache">
+      <h2>Pitfall: <code>noCache="true"</code></h2>
+      <Basis core="schemauploader" run="atclient" datamembername="demo.data-nocache" name="uploader-nc"
+             url="/blob/answer-json" blob="/blob/answer-blob" noCache="true">
+      </Basis>
+    </section>
+  </main>
+
+  <script>
+    // ComplexObject example: wrap the answer before handing it to the uploader
+    function onSource(arg) {
+      arg.context.setAsSource("demo.data-ex", { data: arg.source.rows[0], extraData: "extra value" });
+    }
+
+    // Intercepting example: add a header to the JSON request. The same function is called
+    // once with { source } by the base class and once with { request } by the uploader.
+    var processingCalls = [];
+    var processedCalls = [];
+    async function beforePost(args) {
+      processingCalls.push(Object.keys(args).filter((k) => ["source", "request", "response"].indexOf(k) !== -1));
+      if (args.request) {
+        const headers = new Headers(args.request.headers);
+        headers.set("Authorization", "Bearer token-123");
+        args.response = fetch(new Request(args.request, { headers }));
+      }
+    }
+    function afterPost(args) {
+      processedCalls.push(args);
+    }
+
+    /* test helpers */
+    function makeFiles(input, files) {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const fileInputs = (root) => Array.from(document.querySelectorAll(`${root} [data-bc-file-input]`));
+    const formReady = (t, root) => t.waitFor(() => fileInputs(root), (l) => l.length === (root === "#upload-only" ? 1 : 2), { timeout: 10000 });
+    const blobIdPattern = /^blob_\d+_[a-z0-9]+_$/;
+  </script>
+
+  <script>
+    // noCache="true" calls .append on a plain header object (see the known-defect test below)
+    bcTest.allowError(/append is not a function/);
+
+    bcTest.test("the answer JSON is posted to url with application/json and every File replaced by a blobid; upload parts travel inline as data URLs", async (t) => {
+      await formReady(t, "#simple");
+      const [uploadInput, blobInput] = fileInputs("#simple");
+      t.ok(blobInput.hasAttribute("multiple") && !uploadInput.hasAttribute("multiple"));
+      makeFiles(uploadInput, [new File(["hello"], "readme.txt", { type: "text/plain" })]);
+      makeFiles(blobInput, [new File(["jpegdata"], "photo.jpg", { type: "image/jpeg" }), new File(["%PDF-1.4"], "doc.pdf", { type: "application/pdf" })]);
+
+      t.click("[data-btn-add]");
+      await t.waitForSource("demo.data");
+      await t.waitFor(() => uploaderLog.json.filter((r) => r.body && r.body.paramUrl === "/1166" && !r.body.data));
+      const post = uploaderLog.json.find((r) => r.body && r.body.paramUrl === "/1166" && !r.body.data);
+      t.equal(post.method, "POST");
+      t.equal(post.url, "/blob/answer-json");
+      t.match(post.headers["content-type"], /^application\/json/);
+      const body = post.body;
+      t.equal(body.lid, 1);
+      t.equal(body.schemaId, 1161);
+      t.equal(body.schemaVersion, "1.1");
+      const upload = body.properties.find((p) => p.propId === 1).added[0].parts[0].values[0].value;
+      t.deepEqual(upload, { content: "data:text/plain;base64,aGVsbG8=", name: "readme.txt", size: 5, type: "text/plain" }, "the upload part is a data URL inside the JSON");
+      const blobs = body.properties.find((p) => p.propId === 2).added[0].parts[0].values.map((v) => v.value);
+      t.equal(blobs.length, 2);
+      blobs.forEach((b) => t.match(b.content, blobIdPattern, "File replaced by a generated blobid"));
+      t.deepEqual(blobs.map((b) => [b.name, b.type, b.uploadToken]), [["photo.jpg", "image/jpeg", "upload-token-value"], ["doc.pdf", "application/pdf", "upload-token-value"]]);
+    });
+
+    bcTest.test("<name>.uploading is published after the JSON post with { answer, postAnswerResult, fileList }", async (t) => {
+      const src = await t.waitForSource("uploader.uploading");
+      t.equal(src.rows.length, 1);
+      const row = src.rows[0];
+      t.deepEqual(Object.keys(row).sort(), ["answer", "fileList", "postAnswerResult"]);
+      t.deepEqual(row.postAnswerResult, { errorid: 4, message: "successful", usedforid: "sample-returnObject" });
+      t.equal(row.fileList.length, 2);
+      row.fileList.forEach((f) => {
+        t.match(f.blobid, blobIdPattern);
+        t.ok(f.file instanceof File, "fileList keeps the File object");
+        t.equal(f.uploadtoken, "upload-token-value");
+        t.equal(f.part, 1);
+        t.equal(f.prpid, 2);
+      });
+      t.deepEqual(row.fileList.map((f) => f.file.name), ["photo.jpg", "doc.pdf"]);
+      t.ok(row.answer === t.rows("demo.data")[0], "answer is the very object published by schema (mutated in place)");
+      t.equal(row.answer.properties[1].added[0].parts[0].values[0].value.content, row.fileList[0].blobid, "the schema result now holds the blobid instead of the File");
+    });
+
+    bcTest.test("each file is posted to blob with the identifiers in the query string and in the form body; <name>.uploaded collects the responses in fileList order", async (t) => {
+      const uploaded = await t.waitForSource("uploader.uploaded");
+      const row = uploaded.rows[0];
+      t.deepEqual(Object.keys(row).sort(), ["answer", "fileList", "postAnswerResult", "uploadFileResult"]);
+      t.deepEqual(row.uploadFileResult, row.fileList.map((f) => ({ status: "ok", blobid: f.blobid })), "one parsed response per file, in fileList order");
+
+      const requests = row.fileList.map((f) => uploaderLog.blob.find((b) => b.query.blobid === f.blobid));
+      requests.forEach((req, i) => {
+        const f = row.fileList[i];
+        t.ok(req, "a blob request was made for " + f.file.name);
+        t.equal(req.method, "POST");
+        t.equal(req.url, `/blob/answer-blob?uploadtoken=upload-token-value&blobid=${f.blobid}&prpid=2&part=1&usedforid=sample-returnObject&lid=1`);
+        t.deepEqual(req.form, { blobid: f.blobid, uploadtoken: "upload-token-value", usedforid: "sample-returnObject", lid: "1", prpid: "2", part: "1" }, "form fields (the binary part is not visible to the mock)");
+      });
+    });
+
+    bcTest.test("a blob endpoint that already has a query string gets the parameters appended with &", async (t) => {
+      await formReady(t, "#qs");
+      const [, blobInput] = fileInputs("#qs");
+      makeFiles(blobInput, [new File(["x"], "one.txt", { type: "text/plain" })]);
+      t.click("[data-btn-add-qs]");
+      const uploaded = await t.waitForSource("uploader-qs.uploaded");
+      const blobid = uploaded.rows[0].fileList[0].blobid;
+      const req = uploaderLog.blob.find((b) => b.query.blobid === blobid);
+      t.equal(req.url, `/blob/answer-blob?key1=hi&key2=12&uploadtoken=upload-token-value&blobid=${blobid}&prpid=2&part=1&usedforid=sample-returnObject&lid=1`);
+      t.deepEqual(req.query, { key1: "hi", key2: "12", uploadtoken: "upload-token-value", blobid: blobid, prpid: "2", part: "1", usedforid: "sample-returnObject", lid: "1" });
+    });
+
+    bcTest.test("a wrapper row { data, extraData } is posted whole and the files are extracted from data", async (t) => {
+      await formReady(t, "#complex");
+      const [, blobInput] = fileInputs("#complex");
+      makeFiles(blobInput, [new File(["y"], "two.txt", { type: "text/plain" })]);
+      t.click("[data-btn-add-complex]");
+      const uploaded = await t.waitForSource("uploader-ex.uploaded");
+      const blobid = uploaded.rows[0].fileList[0].blobid;
+      const post = uploaderLog.json.find((r) => r.body && r.body.extraData === "extra value");
+      t.ok(post, "the JSON body is the wrapper object");
+      t.deepEqual(Object.keys(post.body).sort(), ["data", "extraData"]);
+      t.equal(post.body.data.properties.find((p) => p.propId === 2).added[0].parts[0].values[0].value.content, blobid, "the File inside data was replaced by the blobid");
+      t.ok(uploaded.rows[0].answer === t.rows("demo.data-ex")[0].data, "answer is the inner data object");
+      t.ok(uploaderLog.blob.some((b) => b.query.blobid === blobid), "the file was uploaded");
+    });
+
+    bcTest.test("OnProcessing runs twice per publish (source, then request) and may replace the response; OnProcessed is never called", async (t) => {
+      await formReady(t, "#intercept");
+      const [, blobInput] = fileInputs("#intercept");
+      makeFiles(blobInput, [new File(["z"], "three.txt", { type: "text/plain" })]);
+      t.click("[data-btn-add-intercept]");
+      await t.waitForSource("uploader-i.uploaded");
+      t.deepEqual(processingCalls, [["source"], ["request"]], "first call carries source, second carries request");
+      const post = uploaderLog.json.filter((r) => r.headers["authorization"] === "Bearer token-123");
+      t.equal(post.length, 1, "the request built by OnProcessing reached the endpoint with the extra header");
+      await t.sleep(200);
+      t.equal(processedCalls.length, 0, "OnProcessed is accepted but never invoked");
+    });
+
+    bcTest.test("without usedforid in the response nothing is uploaded: an error is logged, <name>.uploading is published, <name>.uploaded is not", async (t) => {
+      await formReady(t, "#noid");
+      const [, blobInput] = fileInputs("#noid");
+      const before = uploaderLog.blob.length;
+      makeFiles(blobInput, [new File(["w"], "four.txt", { type: "text/plain" })]);
+      t.click("[data-btn-add-noid]");
+      const uploading = await t.waitForSource("uploader-noid.uploading");
+      t.deepEqual(uploading.rows[0].postAnswerResult, { errorid: 1, message: "stored without an id" });
+      t.equal(uploading.rows[0].fileList.length, 1, "the file list is still reported");
+      const logged = await t.waitForConsole(/^The 'usedforid' property not set in result returned from \/blob\/answer-json-no-id/);
+      t.equal(logged.length, 1);
+      await t.sleep(300);
+      t.ok(t.source("uploader-noid.uploaded") == null, "<name>.uploaded is never published");
+      t.equal(uploaderLog.blob.length, before, "no blob request was sent");
+    });
+
+    bcTest.test("an answer without File objects posts the JSON but publishes no <name>.uploaded and sends no blob request", async (t) => {
+      await formReady(t, "#upload-only");
+      const [uploadInput] = fileInputs("#upload-only");
+      const before = uploaderLog.blob.length;
+      makeFiles(uploadInput, [new File(["only"], "five.txt", { type: "text/plain" })]);
+      t.click("[data-btn-add-upload]");
+      const uploading = await t.waitForSource("uploader-u.uploading");
+      t.deepEqual(uploading.rows[0].fileList, [], "fileList is empty");
+      t.equal(uploading.rows[0].postAnswerResult.usedforid, "sample-returnObject");
+      const post = uploaderLog.json.find((r) => r.body && r.body.paramUrl === "/1168");
+      t.match(post.body.properties[0].added[0].parts[0].values[0].value.content, /^data:text\/plain;base64,/);
+      await t.sleep(300);
+      t.ok(t.source("uploader-u.uploaded") == null);
+      t.equal(uploaderLog.blob.length, before);
+    });
+
+    bcTest.test("only rows[0] is processed, each time the source is published", async (t) => {
+      const before = uploaderLog.json.length;
+      const answer = (lid) => ({ lid: lid, schemaId: 1168, schemaVersion: "1.0", paramUrl: "/1168", properties: [] });
+      $bc.setSource("demo.data-u", [answer(5), answer(6)]);
+      await t.waitFor(() => uploaderLog.json.length, (n) => n === before + 1);
+      t.equal(uploaderLog.json[before].body.lid, 5, "only the first row was posted");
+      await t.sleep(200);
+      t.equal(uploaderLog.json.length, before + 1, "the second row is ignored");
+      t.equal(t.rows("uploader-u.uploading")[0].answer.lid, 5);
+    });
+
+    bcTest.defect("known defect: noCache=\"true\" throws before the JSON post because the header object is not a Headers instance", async (t) => {
+      const before = uploaderLog.json.length;
+      $bc.setSource("demo.data-nocache", { lid: 1, schemaId: 1168, schemaVersion: "1.0", paramUrl: "/1168", properties: [] });
+      const errors = await t.waitForError(/append is not a function/);
+      t.ok(errors.length >= 1);
+      await t.sleep(200);
+      t.equal(uploaderLog.json.length, before, "no request was sent");
+      t.ok(t.source("uploader-nc.uploading") == null, "nothing is published");
+    });
+  </script>
+</body>
+</html>

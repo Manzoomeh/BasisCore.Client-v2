@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema search controls</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: question schemas, the search endpoints and the fix-data endpoint -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // every search/fix-data request, as "path?query" strings in request order
+    var searchLog = [];
+    var COUNTRIES = [{ id: 42, value: "Kabul" }, { id: 43, value: "Zabol" }, { id: 44, value: "Tabriz" }, { id: 45, value: "Baku" }];
+    var PEOPLE = [{ id: 7, value: "kaveh" }, { id: 8, value: "karim" }, { id: 9, value: "sara" }];
+
+    // reference implementation of the search endpoints (server/schema-server.js)
+    function searchRoute(path, items) {
+      BasisCoreMock.route({
+        url: path,
+        method: "GET",
+        response: (ctx) => {
+          searchLog.push(ctx.url.pathname + ctx.url.search);
+          if (ctx.query.term !== undefined) {
+            return items.filter((x) => x.value.indexOf(ctx.query.term) > -1).slice(0, 10);
+          } else if (ctx.query.fixid) {
+            return items.find((x) => x.id == ctx.query.fixid);
+          }
+          return [];
+        }
+      });
+    }
+    searchRoute("/schema/autocomplete", COUNTRIES);
+    searchRoute("/schema/lookup", PEOPLE);
+    BasisCoreMock.route({
+      url: "/schema/fix-data/:prpId/:part",
+      method: "GET",
+      response: (ctx) => {
+        searchLog.push(ctx.url.pathname + ctx.url.search);
+        return [{ id: 0, value: "Please choose" }, { id: 1, value: "Audio" }, { id: 2, value: "Video" }];
+      }
+    });
+
+    var schemas = {
+      // the parts of the "Schema parts" example, plus a few extra questions for the pitfalls
+      "2001": {
+        schemaId: 2001, paramUrl: "/2001", schemaVersion: "1.0", lid: 2,
+        questions: [
+          { prpId: 130602, typeId: 128, title: "Country", multi: false,
+            parts: [{ part: 1, viewType: "autocomplete", link: "/schema/autocomplete?term=${term}", validations: { required: true } }] },
+          { prpId: 130631, typeId: 128, title: "Cities", multi: true,
+            parts: [{ part: 1, viewType: "autocomplete", caption: "City",
+                      link: "/schema/autocomplete?term=${term}&rkey=${rkey}&d1=${data1}&d2=${data2}",
+                      dependency: [
+                        { name: "data1", prpId: 130602, part: 1, required: false },
+                        { name: "data2", prpId: 1355, part: 1, required: false }
+                      ] }] },
+          { prpId: 1355, typeId: 128, title: "Lookup", multi: true,
+            parts: [{ part: 1, viewType: "lookup", link: "/schema/lookup?term=${term}" }] },
+          { prpId: 3544, typeId: 128, title: "Product", multi: true,
+            parts: [
+              { part: 1, viewType: "select", caption: "Category", link: "/schema/fix-data/${prpId}/${part}?rkey=${rkey}", validations: { required: true } },
+              { part: 2, viewType: "simpleautocomplete", caption: "Product name",
+                link: "/schema/autocomplete?term=${term}&data=${data}",
+                dependency: [{ name: "data", prpId: 3544, part: 1, required: true }] }
+            ] },
+          { prpId: 7001, typeId: 128, title: "Simple reference", multi: false,
+            parts: [{ part: 1, viewType: "simplereference", link: "/schema/autocomplete?term=${term}" }] },
+          { prpId: 7003, typeId: 128, title: "Reference", multi: false,
+            parts: [{ part: 1, viewType: "reference", link: "/schema/autocomplete?term=${term}" }] },
+          { prpId: 1356, typeId: 128, title: "Required lookup", multi: false,
+            parts: [{ part: 1, viewType: "lookup", link: "/schema/lookup?term=${term}", validations: { required: true } }] },
+          { prpId: 7002, typeId: 128, title: "Broken link", multi: false,
+            parts: [{ part: 1, viewType: "simpleautocomplete", link: "/schema/autocomplete?term=${term}&x=${missing}" }] }
+        ]
+      },
+      // the schema of the saved answer: one control of each family with a saved id
+      "2002": {
+        schemaId: 2002, paramUrl: "/2002", schemaVersion: "1.0", lid: 2,
+        questions: [
+          { prpId: 130602, typeId: 128, title: "Country", multi: false,
+            parts: [{ part: 1, viewType: "autocomplete", link: "/schema/autocomplete?term=${term}&rkey=${rkey}" }] },
+          { prpId: 1355, typeId: 128, title: "Person", multi: false,
+            parts: [{ part: 1, viewType: "lookup", link: "/schema/lookup?term=${term}" }] },
+          { prpId: 7001, typeId: 128, title: "Second country", multi: false,
+            parts: [{ part: 1, viewType: "simpleautocomplete", link: "/schema/autocomplete?term=${term}" }] }
+        ]
+      }
+    };
+    var answer2002 = {
+      usedForId: 9001, schemaId: 2002, paramUrl: "/2002", schemaVersion: "1.0", lid: 2, lastUpdate: "",
+      properties: [
+        { prpId: 130602, answers: [{ id: 100, parts: [{ part: 1, values: [{ id: 101, value: 42 }] }] }] },
+        { prpId: 1355, answers: [{ id: 200, parts: [{ part: 1, values: [{ id: 201, value: 7 }] }] }] },
+        { prpId: 7001, answers: [{ id: 300, parts: [{ part: 1, values: [{ id: 301, value: 43 }] }] }] }
+      ]
+    };
+    BasisCoreMock.route({
+      url: "/schema/questions/:id",
+      method: "GET",
+      response: (ctx) => ({ sources: [{ options: { tableName: "schema.data" }, data: [schemas[ctx.params.id]] }] })
+    });
+  </script>
+  <script>
+    const host = { sources: { "answer.search": [answer2002] } };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/lookup-and-autocomplete.md">
+  <main>
+    <h1>schema search controls</h1>
+    <p class="intro">
+      Checks <code>docs/schema/lookup-and-autocomplete.md</code>: the <code>autocomplete</code>,
+      <code>reference</code>, <code>simpleautocomplete</code>, <code>simplereference</code> and
+      <code>lookup</code> controls, the exact request built from <code>part.link</code> with
+      <code>${term}</code>, <code>qs_*</code> and <code>dependency</code> placeholders, the
+      <code>SearchPopup</code>, how a pick becomes an answer value, how saved ids are resolved with
+      <code>?fixid=</code>, and lists loaded from <code>link</code>.
+    </p>
+
+    <section class="case" id="case-new">
+      <h2>New form with the documented schema parts (<code>qs_rKey="123"</code>)</h2>
+      <button data-btn-new>Save</button>
+      <div id="new">
+        <Basis core="schema" run="atclient"
+               schemaUrl="/schema/questions/2001"
+               displayMode="new"
+               button="[data-btn-new]"
+               resultSourceId="ac.data"
+               errorResultSourceId="ac.error"
+               callback="onPick"
+               qs_rKey="123">
+        </Basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="ac.data"></basis>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Edit form: saved ids are resolved through <code>?fixid=</code></h2>
+      <button data-btn-edit>Save</button>
+      <div id="edit">
+        <Basis core="schema" run="atclient" datamembername="answer.search"
+               schemaUrl="/schema/questions" displayMode="edit"
+               button="[data-btn-edit]" resultSourceId="edit.data" qs_rKey="123">
+        </Basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // the `callback` option: called whenever a search control changes its selection
+    var picks = [];
+    function onPick(params) {
+      picks.push(params);
+    }
+
+    /* test helpers */
+    const questionOf = (root, prpId) => document.querySelector(`${root} [data-bc-schema-info-prpid="${prpId}"]`).closest("[data-bc-question]");
+    const rowsOf = (q) => Array.from(q.querySelector(":scope > [data-bc-answer-container] > [data-bc-answer-collection]").children);
+    const partsOf = (row) => Array.from(row.querySelector("[data-bc-part-container]").children);
+    const partOf = (root, prpId, index = 0, row = 0) => partsOf(rowsOf(questionOf(root, prpId))[row])[index];
+    const popup = () => document.querySelector("body > [data-bc-autocomplete-popup-container]");
+    const dblclick = (el) => el.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true }));
+    const liTexts = (ul) => Array.from(ul.querySelectorAll("li")).map((li) => li.textContent);
+    const plain = (v) => JSON.parse(JSON.stringify(v));
+    const ready = (t, root, prpId) => t.waitFor(() => document.querySelector(`${root} [data-bc-schema-info-prpid="${prpId}"]`), { timeout: 10000 });
+    // sends a keyup with `text` in a search box and waits for the next request to the search endpoint
+    async function search(t, input, text, pathRe) {
+      const before = searchLog.length;
+      t.setValue(input, text, ["keyup"]);
+      await t.waitFor(() => searchLog.slice(before).filter((u) => pathRe.test(u)));
+      return searchLog.slice(before).find((u) => pathRe.test(u));
+    }
+
+    // the Broken link question has a ${missing} placeholder that nothing supplies
+    bcTest.allowError(/missing is not defined/);
+    // an empty required same-question dependency: the simple variant formats the URL before the
+    // dependency loop has set ${data}, so the search throws (see the simpleautocomplete test)
+    bcTest.allowError(/data is not defined/);
+
+    bcTest.test("autocomplete (single): the button opens a SearchPopup, keyup requests link with ${term}, a double-click selects and calls the callback", async (t) => {
+      await ready(t, "#new", 7002);
+      const part = partOf("#new", 130602);
+      const label = part.querySelector("[data-bc-auto-complete-container] > label[data-bc-add-item][data-bc-auto-complete-single-type][data-bc-auto-complete]");
+      const btn = part.querySelector("button[data-bc-auto-complete-single-type-btn]");
+      t.ok(label && btn, "label plus button layout");
+      t.equal(btn.getAttribute("data-bc-btn"), "add");
+      t.ok(popup() == null, "no popup yet");
+
+      t.click(btn);
+      const p = await t.waitFor(popup);
+      t.equal(p.getAttribute("data-bc-schema-direction"), "rtl", "direction copied from the form (default rtl)");
+      t.equal(p.getAttribute("data-bc-schema-skin"), "default", "skin copied from the form");
+      t.ok(p.querySelector("[data-bc-autocomplete-popup] > [data-bc-title] > [data-bc-btn-close]"), "popup header with close button");
+      const searchBox = p.querySelector("[data-bc-body] > input[data-bc-search]");
+      const ul = p.querySelector("[data-bc-body] > ul[data-bc-result]");
+      t.ok(searchBox && ul, "search box and result list");
+
+      const url = await search(t, searchBox, "ab", /^\/schema\/autocomplete\?term=/);
+      t.equal(url, "/schema/autocomplete?term=ab", "the term is inserted verbatim");
+      await t.waitFor(() => ul.querySelectorAll("li"), (l) => l.length === 3);
+      t.deepEqual(liTexts(ul), ["Kabul", "Zabol", "Tabriz"]);
+      t.deepEqual(Array.from(ul.querySelectorAll("li")).map((li) => li.getAttribute("data-bc-value")), ["Kabul", "Zabol", "Tabriz"], "each result carries data-bc-value");
+
+      t.click(ul.querySelector("li"));
+      t.ok(popup(), "a single click does nothing");
+      dblclick(ul.querySelector("li"));
+      t.equal(t.text(label), "Kabul", "the label shows item.value");
+      t.equal(btn.getAttribute("data-bc-btn"), "remove", "the button switches to remove");
+      t.ok(btn.hasAttribute("data-sys-minus") && !btn.hasAttribute("data-sys-plus"));
+      t.ok(popup() == null, "in single mode the popup is removed after the pick");
+      t.equal(picks.length, 1, "callback called once");
+      t.deepEqual(picks[0].value, { id: 42, value: "Kabul" });
+      t.equal(picks[0].prpId, 130602);
+      t.equal(picks[0].typeId, 128);
+      t.ok(picks[0].element === part, "element is the [data-bc-part]");
+    });
+
+    bcTest.test("autocomplete (single): the button in remove state clears the selection and goes back to add", async (t) => {
+      const part = partOf("#new", 130602);
+      const btn = part.querySelector("button[data-bc-btn]");
+      t.click(btn);
+      await t.waitFor(() => btn.getAttribute("data-bc-btn"), (v) => v === "add", { message: "the button never went back to add" });
+      t.equal(t.text(part.querySelector("label")), "", "the label is emptied");
+      t.ok(popup() == null, "clearing does not open the popup");
+      // select Kabul again for the later tests
+      t.click(btn);
+      const p = await t.waitFor(popup);
+      await search(t, p.querySelector("[data-bc-search]"), "Kab", /term=Kab/);
+      const li = await t.waitFor(() => p.querySelector("li"));
+      dblclick(li);
+      t.equal(t.text(part.querySelector("label")), "Kabul");
+    });
+
+    bcTest.test("reference renders the same control as autocomplete", async (t) => {
+      const part = partOf("#new", 7003);
+      t.ok(part.querySelector("[data-bc-auto-complete-container] > label[data-bc-add-item]"), "same label");
+      t.equal(part.querySelector("button[data-bc-auto-complete-single-type-btn]").getAttribute("data-bc-btn"), "add", "same button");
+      t.equal(questionOf("#new", 7003).querySelector("[data-bc-answer-container]").getAttribute("data-bc-schema-info-part-0-type"), "reference");
+    });
+
+    bcTest.test("lookup: keyup requests link with term only, a double-click writes the id into the id box and the title into the text box", async (t) => {
+      const part = partOf("#new", 1355);
+      const root = part.querySelector("[data-bc-fm-lookup]");
+      const input = root.querySelector("[data-bc-lookup-select-value][data-bc-auto-complete] > input[data-bc-text-input]");
+      const idBox = root.querySelector("[data-bc-lookup-set-value]");
+      const ul = root.querySelector("ul[data-bc-result]");
+      t.ok(input && idBox && ul, "lookup layout");
+
+      const url = await search(t, input, "ka", /^\/schema\/lookup/);
+      t.equal(url, "/schema/lookup?term=ka");
+      await t.waitFor(() => ul.querySelectorAll("li"), (l) => l.length === 2);
+      t.deepEqual(liTexts(ul), ["kaveh", "karim"]);
+      t.click(ul.querySelector("li"));
+      t.equal(idBox.textContent, "", "single click does nothing");
+      dblclick(ul.querySelector("li"));
+      t.equal(idBox.textContent, "7", "the id is displayed");
+      t.equal(input.value, "kaveh", "the title replaces the typed text");
+      t.equal(ul.children.length, 0, "the list is cleared");
+    });
+
+    bcTest.test("autocomplete (multi): the row's + button opens the popup in multi mode; dependencies fill ${data1}/${data2}; each pick fills the row or adds one", async (t) => {
+      const q = questionOf("#new", 130631);
+      t.equal(rowsOf(q).length, 1);
+      const addBtn = rowsOf(q)[0].querySelector("[data-bc-btn='add']");
+      t.ok(!partOf("#new", 130631).querySelector("button"), "the multi variant renders only the label");
+      t.click(addBtn);
+      const p = await t.waitFor(popup);
+      const url = await search(t, p.querySelector("[data-bc-search]"), "ab", /d1=/);
+      t.equal(url, "/schema/autocomplete?term=ab&rkey=123&d1=42&d2=7", "term, qs_rkey (lower-cased) and the two dependency values, raw");
+      const ul = p.querySelector("[data-bc-result]");
+      await t.waitFor(() => ul.querySelectorAll("li"), (l) => l.length === 3);
+
+      dblclick(ul.querySelector("li"));
+      t.equal(t.text(partOf("#new", 130631).querySelector("label[data-bc-add-item]")), "Kabul", "the first pick fills the current row");
+      t.equal(rowsOf(q).length, 1, "no new row yet");
+      t.ok(popup() === p, "the popup stays open in multi mode");
+      t.deepEqual(liTexts(ul), ["Zabol", "Tabriz"], "the picked item is removed from the list");
+
+      const before = searchLog.length;
+      dblclick(ul.querySelector("li"));
+      await t.waitFor(() => rowsOf(q), (r) => r.length === 2);
+      await t.waitFor(() => searchLog.slice(before).filter((u) => u === "/schema/autocomplete?fixid=43"));
+      await t.waitFor(() => t.text(partOf("#new", 130631, 0, 1).querySelector("label")), (s) => s === "Zabol");
+      t.equal(rowsOf(q)[0].querySelector("[data-bc-btn]").getAttribute("data-bc-btn"), "remove", "the first row now shows the remove button");
+
+      t.click(p.querySelector("[data-bc-btn-close]"));
+      t.ok(popup() == null, "the close button removes the popup");
+    });
+
+    bcTest.test("simpleautocomplete with a same-question required dependency: an empty category shows the required error on it; a chosen one is sent raw as ${data}", async (t) => {
+      const q = questionOf("#new", 3544);
+      await t.waitFor(() => partOf("#new", 3544, 0).querySelectorAll("option"), (l) => l.length === 3, { timeout: 10000 });
+      const fixData = searchLog.filter((u) => u.indexOf("/schema/fix-data/") === 0);
+      t.deepEqual(fixData, ["/schema/fix-data/3544/1?rkey=123"], "the select loaded its list once, with ${prpId}, ${part} and ${rkey}");
+      const select = partOf("#new", 3544, 0).querySelector("select");
+      const simple = partOf("#new", 3544, 1);
+      const input = simple.querySelector("[data-bc-fm-simple-autocomplete][data-bc-auto-complete] > input[data-bc-search]");
+      const ul = simple.querySelector("ul[data-bc-result]");
+      t.ok(input && ul, "simple layout");
+      t.equal(select.value, "0", "no category chosen yet");
+
+      const before = searchLog.length;
+      t.setValue(input, "ab", ["keyup"]);
+      await t.waitFor(() => partOf("#new", 3544, 0).hasAttribute("data-bc-invalid"), (v) => v === true);
+      t.deepEqual(Array.from(partOf("#new", 3544, 0).querySelectorAll("[data-bc-validation-part] li")).map((li) => li.textContent.trim()), ["* this field is required."]);
+      await t.waitForError(/data is not defined/);
+      await t.sleep(100);
+      t.equal(searchLog.slice(before).filter((u) => /data=/.test(u)).length, 0, "the URL is formatted before the loop sets ${data}, so the search throws and no request is sent");
+
+      select.value = "2";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      const url = await search(t, input, "ab", /data=2/);
+      t.equal(url, "/schema/autocomplete?term=ab&data=2", "same-question dependency values are inserted raw, not JSON-encoded");
+      t.ok(!partOf("#new", 3544, 0).hasAttribute("data-bc-invalid"), "the required marker is cleared once the dependency has a value");
+      await t.waitFor(() => ul.querySelectorAll("li"), (l) => l.length === 3);
+
+      input.dispatchEvent(new Event("focus"));
+      t.equal(ul.style.display, "block", "focusing the input shows the list");
+      const count = picks.length;
+      t.click(ul.querySelector("li[data-bc-value='Zabol']"));
+      t.equal(input.value, "Zabol", "a single click selects");
+      t.equal(ul.querySelectorAll("li").length, 2, "the clicked item is removed");
+      t.equal(picks.length, count + 1, "the callback is invoked");
+      t.deepEqual(picks[picks.length - 1].value, { id: 43, value: "Zabol" });
+    });
+
+    bcTest.test("pitfall: text typed after a selection does not change the stored id (simpleautocomplete)", async (t) => {
+      const input = partOf("#new", 3544, 1).querySelector("input[data-bc-search]");
+      t.setValue(input, "Zabol (edited)", ["input"]);
+      t.equal(input.value, "Zabol (edited)");
+      // the stored id is checked on submit below (value 43)
+    });
+
+    bcTest.test("pitfall: a ${name} placeholder without a qs_ attribute or dependency throws a ReferenceError and no request is made", async (t) => {
+      const input = partOf("#new", 7002).querySelector("input[data-bc-search]");
+      const before = searchLog.length;
+      t.setValue(input, "ab", ["keyup"]);
+      await t.waitForError(/missing is not defined/);
+      await t.sleep(100);
+      t.equal(searchLog.slice(before).filter((u) => /x=/.test(u)).length, 0, "nothing was requested for that link");
+    });
+
+    bcTest.test("pitfall: lookup validates the typed text, so a required lookup passes with text that was never double-clicked; the published values", async (t) => {
+      const required = partOf("#new", 1356);
+      const input = required.querySelector("input[data-bc-text-input]");
+      t.click("[data-btn-new]");
+      await t.waitForSource("ac.error");
+      t.ok(required.hasAttribute("data-bc-invalid"), "empty required lookup fails");
+      t.ok(t.source("ac.data") == null);
+
+      await search(t, input, "zz", /^\/schema\/lookup\?term=zz/);
+      t.equal(required.querySelector("ul").children.length, 0, "no match for zz");
+      t.click("[data-btn-new]");
+      const src = await t.waitForSource("ac.data");
+      t.ok(!required.hasAttribute("data-bc-invalid"), "typed text satisfies required");
+      t.deepEqual(plain(src.rows[0].properties), [
+        { propId: 130602, multi: false, added: [{ parts: [{ part: 1, values: [{ value: 42 }] }] }] },
+        { propId: 130631, multi: true, added: [{ parts: [{ part: 1, values: [{ value: 42 }] }] }, { parts: [{ part: 1, values: [{ value: 43 }] }] }] },
+        { propId: 1355, multi: true, added: [{ parts: [{ part: 1, values: [{ value: 7, title: "kaveh" }] }] }] },
+        { propId: 3544, multi: true, added: [{ parts: [{ part: 1, values: [{ value: "2" }] }, { part: 2, values: [{ value: 43 }] }] }] }
+      ], "autocomplete values are the ids (numbers), lookup adds title, the select value is a string; the required lookup without a pick reports nothing");
+    });
+
+    bcTest.test("edit mode: saved ids are resolved with GET <link without query>?fixid=<id> and shown as text", async (t) => {
+      await ready(t, "#edit", 7001);
+      const country = partOf("#edit", 130602);
+      await t.waitForText(country.querySelector("label"), "Kabul", { timeout: 10000 });
+      t.equal(country.querySelector("button").getAttribute("data-bc-btn"), "remove", "a resolved value puts the button in remove state");
+      const person = partOf("#edit", 1355);
+      await t.waitFor(() => person.querySelector("[data-bc-lookup-set-value]").textContent, (s) => s === "7");
+      t.equal(person.querySelector("input[data-bc-text-input]").value, "kaveh");
+      const second = partOf("#edit", 7001);
+      await t.waitFor(() => second.querySelector("input[data-bc-search]").value, (s) => s === "Zabol");
+      t.ok(searchLog.indexOf("/schema/autocomplete?fixid=42") !== -1, "the rkey parameter of the link is dropped from the fixid request");
+      t.ok(searchLog.indexOf("/schema/lookup?fixid=7") !== -1);
+      t.ok(searchLog.indexOf("/schema/autocomplete?fixid=43") !== -1);
+    });
+
+    bcTest.test("edit mode: a cleared selection is reported as deleted with the saved id, a new pick as edited with the saved value id", async (t) => {
+      const country = partOf("#edit", 130602);
+      t.click(country.querySelector("button[data-bc-btn]"));
+      await t.waitFor(() => t.text(country.querySelector("label")), (s) => s === "", { message: "the label was never cleared" });
+
+      const person = partOf("#edit", 1355);
+      await search(t, person.querySelector("input[data-bc-text-input]"), "sa", /^\/schema\/lookup\?term=sa/);
+      const li = await t.waitFor(() => person.querySelector("li[data-bc-value='sara']"));
+      dblclick(li);
+      t.equal(person.querySelector("[data-bc-lookup-set-value]").textContent, "9");
+
+      const second = partOf("#edit", 7001);
+      await search(t, second.querySelector("input[data-bc-search]"), "Tab", /term=Tab/);
+      const li2 = await t.waitFor(() => second.querySelector("li[data-bc-value='Tabriz']"));
+      t.click(li2);
+
+      t.click("[data-btn-edit]");
+      const src = await t.waitForSource("edit.data");
+      t.equal(src.rows[0].usedForId, 9001);
+      t.deepEqual(plain(src.rows[0].properties), [
+        { propId: 130602, multi: false, deleted: [{ id: 100 }] },
+        { propId: 1355, multi: false, edited: [{ id: 200, parts: [{ part: 1, values: [{ id: 201, value: 9, title: "sara" }] }] }] },
+        { propId: 7001, multi: false, edited: [{ id: 300, parts: [{ part: 1, values: [{ id: 301, value: 44 }] }] }] }
+      ], "the cleared autocomplete hands back its saved IPartCollection; as it is the only value of the row the entry collapses to { id } (see answers-and-submission)");
+    });
+  </script>
+</body>
+</html>

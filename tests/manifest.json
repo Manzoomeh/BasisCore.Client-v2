@@ -74,6 +74,36 @@
       "file": "commands/unknown-html.html",
       "doc": "docs/commands/unknown-html.md",
       "title": "unknown-html"
+    },
+    {
+      "file": "commands/schemalist.html",
+      "doc": "docs/commands/schemalist.md",
+      "title": "schemalist"
+    },
+    {
+      "file": "commands/schemauploader.html",
+      "doc": "docs/commands/schemauploader.md",
+      "title": "schemauploader"
+    },
+    {
+      "file": "schema/lookup-and-autocomplete.html",
+      "doc": "docs/schema/lookup-and-autocomplete.md",
+      "title": "schema search controls"
+    },
+    {
+      "file": "schema/file-upload.html",
+      "doc": "docs/schema/file-upload.md",
+      "title": "schema file fields"
+    },
+    {
+      "file": "schema/html-field-and-dialogs.html",
+      "doc": "docs/schema/html-field-and-dialogs.md",
+      "title": "schema html field and dialogs"
+    },
+    {
+      "file": "schema/answers-and-submission.html",
+      "doc": "docs/schema/answers-and-submission.md",
+      "title": "schema answers and submission"
     }
   ]
 }

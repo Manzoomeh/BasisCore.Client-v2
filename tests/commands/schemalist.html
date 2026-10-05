@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schemalist</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: the answer record endpoint and the question-schema endpoint -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // Every request the question-schema endpoint receives, newest last, so that
+    // the tests can check the query string the command builds.
+    var schemaRequests = [];
+
+    var schemas = {
+      1161: {
+        schemaId: 1161,
+        paramUrl: "/1161",
+        schemaVersion: "1.1",
+        lid: 1,
+        questions: [
+          { prpId: 13050, typeId: 1, title: "Generator name", multi: false, parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 13057, typeId: 262, title: "Emergency power", multi: true, parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 130601, typeId: 128, title: "Voltage", multi: true, parts: [{ part: 1, viewType: "checklist", fixValues: [{ id: 4, value: "110" }, { id: 5, value: "220" }] }] }
+        ]
+      },
+      1162: {
+        schemaId: 1162,
+        paramUrl: "/1162",
+        schemaVersion: "2.0",
+        lid: 2,
+        questions: [
+          { prpId: 21, typeId: 1, title: "Owner", multi: false, parts: [{ part: 1, viewType: "text" }] },
+          { prpId: 22, typeId: 1, title: "Phone", multi: false, parts: [{ part: 1, viewType: "text" }] }
+        ]
+      }
+    };
+
+    // Saved answers in the IAnswerSchema shape (see docs/schema/schema-json-contract.md).
+    var answers = {
+      1423330: {
+        usedForId: 1423330,
+        schemaId: 1161,
+        paramUrl: "/1161",
+        schemaVersion: "1.1",
+        lid: 1,
+        lastUpdate: "",
+        properties: [
+          { prpId: 13050, answers: [{ id: 1, parts: [{ part: 1, values: [{ id: 10, value: "Generator A" }] }] }] },
+          { prpId: 13057, answers: [{ id: 2, parts: [{ part: 1, values: [{ id: 11, value: "1000" }] }] }, { id: 3, parts: [{ part: 1, values: [{ id: 12, value: "1500" }] }] }] },
+          { prpId: 130601, answers: [{ id: 4, parts: [{ part: 1, values: [{ id: 13, value: 4 }, { id: 14, value: 5 }] }] }] }
+        ]
+      },
+      1423331: {
+        usedForId: 1423331,
+        schemaId: 1162,
+        paramUrl: "/1162",
+        schemaVersion: "2.0",
+        lid: 2,
+        lastUpdate: "",
+        properties: [
+          { prpId: 21, answers: [{ id: 5, parts: [{ part: 1, values: [{ id: 15, value: "Sara" }] }] }] },
+          { prpId: 22, answers: [{ id: 6, parts: [{ part: 1, values: [{ id: 16, value: "555-0100" }] }] }] }
+        ]
+      }
+    };
+
+    // GET /schema/answers?id=<usedForId> -> the answer inside the server envelope, table "answer.data"
+    BasisCoreMock.route({
+      url: "/schema/answers",
+      method: "GET",
+      response: (ctx) => ({
+        sources: [{ options: { tableName: "answer.data", keyFieldName: null, statusFieldName: null, mergeType: 0 }, data: [answers[ctx.query.id]] }]
+      })
+    });
+
+    // GET /schema/questions?id=&ver=&lid= -> the question schema inside the envelope
+    BasisCoreMock.route({
+      url: "/schema/questions",
+      method: "GET",
+      response: (ctx) => {
+        // ctx.url is a URL object; keep the path and query string as one string
+        schemaRequests.push({ url: ctx.url.pathname + ctx.url.search, method: ctx.method, query: ctx.query });
+        return { sources: [{ options: { tableName: "schema.data" }, data: [schemas[ctx.query.id] || schemas[1161]] }] };
+      }
+    });
+  </script>
+  <script>
+    const host = {
+      sources: {
+        "inline.object": [{ id: 1423330 }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/schemalist.md">
+  <main>
+    <h1>schemalist</h1>
+    <p class="intro">
+      Checks <code>docs/commands/schemalist.md</code>: an <code>api</code> command publishes a saved
+      answer record, <code>schemalist</code> fetches the question schema with
+      <code>?id=&amp;ver=&amp;lid=</code> taken from the record and renders one <code>&lt;div&gt;</code>
+      per question title. The <code>&lt;face&gt;</code> template and <code>viewMode</code> have no
+      effect in this version.
+    </p>
+
+    <section class="case" id="case-shipped">
+      <h2>Shipped example: answer loaded by <code>api</code>, titles rendered by <code>schemalist</code></h2>
+      <Basis core="api" url="/schema/answers?id=[##inline.object.id##]" method="get" run="atclient">
+      </Basis>
+      <div id="shipped">
+        <Basis core="schemalist" datamembername="answer.data" run="atclient" schemaUrl="/schema/questions" viewMode="true">
+          <face schemaIds="e">
+            <div>
+              @prp[12].title @type[151].title @prp[40].value() @type[34].value(",")
+            </div>
+          </face>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-many">
+      <h2>Several answer records in one source</h2>
+      <div id="many">
+        <Basis core="schemalist" run="atclient" datamembername="list.answers" schemaUrl="/schema/questions"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-processing">
+      <h2><code>OnProcessing</code> receives the source and may replace it</h2>
+      <div id="processing">
+        <Basis core="schemalist" run="atclient" datamembername="list.filtered" schemaUrl="/schema/questions" OnProcessing="keepFirstRecord"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-query">
+      <h2>Pitfall: <code>schemaUrl</code> that already has a query string</h2>
+      <div id="query">
+        <Basis core="schemalist" run="atclient" datamembername="list.query" schemaUrl="/schema/questions?rkey=1"></Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-missing">
+      <h2>Pitfall: a question without a saved property aborts the record</h2>
+      <div id="missing">
+        <Basis core="schemalist" run="atclient" datamembername="list.missing" schemaUrl="/schema/questions"></Basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    var processingCalls = [];
+    function keepFirstRecord(args) {
+      processingCalls.push(args);
+      // renderSourceAsync only reads `rows`, so a plain object with the first row is enough
+      args.source = { id: args.source.id, rows: args.source.rows.slice(0, 1) };
+    }
+  </script>
+
+  <script>
+    // The schema request rejects while parsing when the answer record lacks a property for
+    // one of the questions (SourceMaker dereferences `answer.answers` without a null check).
+    bcTest.allowError(/reading 'answers'/);
+
+    bcTest.test("renders one <div> per question with the question title, in schema order", async (t) => {
+      const divs = await t.waitFor(() => t.$$("#shipped > div"), (l) => l.length === 3);
+      t.deepEqual(divs.map((d) => t.text(d)), ["Generator name", "Emergency power", "Voltage"]);
+      t.equal(t.$$("#shipped basis").length, 0, "the <basis> element is replaced by the output");
+      t.notMatch(t.text("#shipped"), /@prp|@type/, "the <face> body is not applied");
+      t.equal(t.$$("#shipped face").length, 0, "the <face> element is not kept in the output");
+    });
+
+    bcTest.test("requests GET <schemaUrl>?id=<schemaId>&ver=<schemaVersion>&lid=<lid> for the record", async (t) => {
+      await t.waitFor(() => schemaRequests.filter((r) => /^\/schema\/questions\?id=1161/.test(r.url)));
+      const req = schemaRequests.find((r) => /^\/schema\/questions\?id=1161/.test(r.url));
+      t.equal(req.method, "GET");
+      t.equal(req.url, "/schema/questions?id=1161&ver=1.1&lid=1", "the three parameters are appended after a single ?");
+      t.deepEqual(req.query, { id: "1161", ver: "1.1", lid: "1" });
+      const answerCall = BasisCoreMock.state().log.find((e) => e.url === "/schema/answers");
+      t.ok(answerCall, "the api command fetched the answer record first");
+      t.equal(answerCall.method, "GET");
+    });
+
+    bcTest.test("every row of the source is an answer record; each one fetches its own schema and appends its titles", async (t) => {
+      const before = schemaRequests.length;
+      $bc.setSource("list.answers", [answers[1423330], answers[1423331]]);
+      const divs = await t.waitFor(() => t.$$("#many > div"), (l) => l.length === 5);
+      t.deepEqual(divs.map((d) => t.text(d)), ["Generator name", "Emergency power", "Voltage", "Owner", "Phone"]);
+      const urls = schemaRequests.slice(before).map((r) => r.url).sort();
+      t.deepEqual(urls, ["/schema/questions?id=1161&ver=1.1&lid=1", "/schema/questions?id=1162&ver=2.0&lid=2"]);
+    });
+
+    bcTest.test("OnProcessing is called with the source before rendering and its replacement is rendered", async (t) => {
+      $bc.setSource("list.filtered", [answers[1423331], answers[1423330]]);
+      const divs = await t.waitFor(() => t.$$("#processing > div"), (l) => l.length === 2);
+      t.deepEqual(divs.map((d) => t.text(d)), ["Owner", "Phone"], "only the record kept by OnProcessing is rendered");
+      await t.sleep(200);
+      t.equal(t.$$("#processing > div").length, 2, "the dropped record never renders");
+      t.equal(processingCalls.length, 1);
+      t.equal(processingCalls[0].source.id, "list.filtered");
+      t.ok(processingCalls[0].context, "args.context is the command context");
+    });
+
+    bcTest.test("pitfall: a schemaUrl with a query string gets a second ? appended", async (t) => {
+      $bc.setSource("list.query", [answers[1423330]]);
+      await t.waitFor(() => t.$$("#query > div"), (l) => l.length === 3);
+      const req = schemaRequests.find((r) => r.url.indexOf("?rkey=1?") !== -1);
+      t.ok(req, "the request keeps both question marks");
+      t.equal(req.url, "/schema/questions?rkey=1?id=1161&ver=1.1&lid=1");
+    });
+
+    bcTest.test("pitfall: a question without a matching property throws a TypeError and nothing is rendered for that record", async (t) => {
+      const record = JSON.parse(JSON.stringify(answers[1423330]));
+      record.properties = record.properties.filter((p) => p.prpId !== 13057);
+      $bc.setSource("list.missing", [record]);
+      const errors = await t.waitForError(/Cannot read properties of undefined \(reading 'answers'\)/);
+      t.ok(errors.length >= 1);
+      await t.sleep(200);
+      t.equal(t.$$("#missing > div").length, 0, "no title of that record reaches the page");
+    });
+
+    bcTest.test("the command only renders: it publishes no source of its own", async (t) => {
+      await t.waitFor(() => t.$$("#shipped > div"), (l) => l.length === 3);
+      t.ok(t.source("schemalist.data") == null && t.source("schema.data") == null, "no derived source exists");
+      t.equal(t.consoleMessages(/schema\.data Added|schemalist.* Added/).length, 0, "no 'Added' log line for a schemalist source");
+    });
+  </script>
+</body>
+</html>

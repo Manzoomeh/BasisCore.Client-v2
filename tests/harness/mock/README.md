@@ -29,6 +29,11 @@ stringified too, so it cannot be used to serve HTML or a chunked stream. Unmatch
 to the real network. The full reference is `runtime/BasisCore_Mock_1.md` in the kit repository
 (its note that a route may return a `Response` as-is does not hold for this version).
 
+Details of this mock version that matter when asserting requests: `ctx.url` is a `URL` object
+(use `ctx.url.pathname` and `ctx.url.search`), request headers are read from
+`ctx.request.headers` (there is no `ctx.headers`), and `BasisCoreMock.state().log[].url` holds the
+path name only.
+
 For a non-JSON answer (an HTML fragment, a streamed `chunkbased` body) a test page either serves
 a static file from `tests/fixtures/` or wraps `window.fetch` itself before the library loads.
 
