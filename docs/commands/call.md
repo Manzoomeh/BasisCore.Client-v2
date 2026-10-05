@@ -15,7 +15,7 @@ and further `call` commands.
 | `file` | string (token) | none | Page name appended to the connection URL. Resolved through the token system, so it may contain bindings such as `[##local.call.filename##]`. |
 | `url` | string (token) | none | Base URL of an ad-hoc `web` connection. When present, the `callcommand` connection is not consulted. `file` is still appended to it. |
 | `method` | `get` or `post` (token) | setting `default.call.verb` (`POST`) | HTTP verb. The value is upper-cased, so `method="post"` and `method="POST"` are the same. |
-| `pagesize` | string (token) | `"0"` | Sent as the `siteSize` parameter of a GET request. Not used for POST. |
+| `pagesize` | string (token) | `"0"` | Becomes the `siteSize` parameter of a non-POST request, which the `web` provider drops for GET (see below). Not used for POST. |
 | `if`, `triggers`, `events`, `OnRendering`, `OnRendered`, `ignoreNullSource` | common | | See [Command attributes and lifecycle](../command-attributes-and-lifecycle.md). |
 | any other attribute | string (token) | | For POST only: sent as a request parameter (see below). |
 

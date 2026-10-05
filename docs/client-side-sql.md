@@ -340,7 +340,8 @@ calls `loadNotes` again and republishes `notes.list`.
   `name.member` (or `source.id`); any other bracketed table name reaches AlaSQL unchanged.
 - **`rownumber` does not exist yet** inside `sort`, `postsql`, `sql` members or `filterAsync`; it
   is added to the published source afterwards. Face filters run on published sources, so they can
-  use it.
+  use it when the source was published by a member (`dbsource`, `inlinesource`). Sources set from
+  JavaScript (`$bc.setSource`, `host.sources`) are published as they are and have no `rownumber`.
 - **Filter and sort values are spliced into SQL text.** Bound values containing quotes break the
   statement; sanitise them before publishing the source.
 - **Sorting streaming data is repeated** on every envelope of a websocket or chunk-based

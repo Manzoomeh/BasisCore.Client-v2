@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>client-side SQL</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    BasisCoreMock.route({
+      url: "/data/book.json",
+      method: "GET",
+      response: () => ({
+        sources: [
+          {
+            options: { tableName: "book.list", mergeType: 0 },
+            data: [
+              { id: 1, BookName: "Web Design", Price: 14000 },
+              { id: 2, BookName: "Pocket Guide", Price: 5000 },
+              { id: 3, BookName: "Patterns", Price: 20000 }
+            ]
+          },
+          { options: { tableName: "book.type", mergeType: 0 }, data: [{ id: 1, Name: "site" }, { id: 2, Name: "design" }] }
+        ]
+      })
+    });
+    // a `local` connection function that already exists: the column-array table format
+    function getTables(parameters) {
+      return {
+        _: { any: "settings, ignored by the loader" },
+        list: [
+          ["id", "name", "age"],
+          [1, "ali", 30],
+          [2, "reza", 25]
+        ],
+        summary: [["count"], [2]]
+      };
+    }
+  </script>
+  <script>
+    var host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      settings: {
+        "connection.web.bookapi": "/data/book.json",
+        "default.source.verb": "GET",
+        "connection.local.tables": { Url: "/not/loaded.js", Function: "getTables" }
+      },
+      sources: {
+        "local.print": [
+          { id: 1, name: "ali" },
+          { id: 2, name: "reza" },
+          { id: 3, name: "mohamad" }
+        ],
+        "db.data1": [
+          { id: 1, name: "ali" },
+          { id: 2, name: "reza" },
+          { id: 3, name: "sara" }
+        ],
+        "db.data2": [
+          { studentid: 1, mark: "18" },
+          { studentid: 1, mark: "20" },
+          { studentid: 2, mark: "15" }
+        ],
+        "user.list": [
+          { name: "a", age: 31 },
+          { name: "b", age: 45 },
+          { name: "c", age: 22 },
+          { name: "d", age: 60 },
+          { name: "e", age: 19 },
+          { name: "f", age: 50 },
+          { name: "g", age: 40 }
+        ],
+        "shop.items": {
+          options: { keyFieldName: "id" },
+          data: [{ id: 1, Price: 10 }, { id: 2, Price: 30 }, { id: 3, Price: 20 }]
+        }
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/client-side-sql.md">
+  <main>
+    <h1>client-side SQL</h1>
+    <p class="intro">
+      Checks <code>docs/client-side-sql.md</code>: AlaSQL loaded on demand from <code>host.dbLibPath</code>,
+      face <code>filter</code>, member <code>sort</code> and <code>postsql</code>, the <code>sql</code> and
+      <code>join</code> members of <code>inlinesource</code>, the <code>$bc.util.source</code> helpers, the
+      column-array format of a <code>local</code> connection, and the dialect pitfalls.
+    </p>
+
+    <section class="case" id="case-filter">
+      <h2>Face filter with a bound value</h2>
+      <input id="filter-name" name="demo.filter-name" bc-triggers="keyup" />
+      <div id="filtered">
+        <basis core="list" datamembername="local.print" run="atclient" triggers="demo.filter-name">
+          <layout><div>@child</div></layout>
+          <face filter="name like '%[##demo.filter-name.value|()##]%'">
+            <span class="item">@id@ (@name@)</span>
+          </face>
+          <else-layout>empty</else-layout>
+        </basis>
+      </div>
+      <div id="rownumber-filter">
+        <!-- tbl.people is published by a dbsource member (see below), so its rows carry rownumber -->
+        <basis core="print" datamembername="tbl.people" run="atclient">
+          <face filter="rownumber <= 1"><span class="item">@name@</span></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-member">
+      <h2><code>sort</code> and <code>postsql</code> on a dbsource member</h2>
+      <basis core="dbsource" source="bookapi" name="book" run="atclient">
+        <member name="list" postsql="SELECT * FROM [book.list] WHERE [Price] > 10000" sort="[Price] desc"></member>
+        <member name="type" sort="Name"></member>
+      </basis>
+      <div id="books">
+        <basis core="print" datamembername="book.list" run="atclient">
+          <face><div class="book">@rownumber@. @BookName@ @Price@</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-inline">
+      <h2>SQL over published sources</h2>
+      <basis core="inlinesource" name="report" run="atclient">
+        <member name="avg" format="sql">
+          SELECT s.name, AVG(CAST(m.mark AS INT)) AS average
+          FROM [db.data1] AS s JOIN [db.data2] AS m ON m.studentid = s.id
+          GROUP BY s.name
+        </member>
+        <member name="star" format="join" jointype="leftjoin" lefttblcol="db.data1.id" righttblcol="db.data2.studentid"></member>
+      </basis>
+      <div id="averages">
+        <basis core="print" datamembername="report.avg" run="atclient">
+          <face><div class="avg">@name@: @average@</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-hook">
+      <h2>Running SQL from a hook</h2>
+      <div id="top-five">
+        <basis core="print" datamembername="user.list" run="atclient" OnProcessing="topFive">
+          <face><div class="user">@name@ (@age@)</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-local">
+      <h2>The column-array table format through a <code>local</code> connection</h2>
+      <basis core="dbsource" source="tables" name="tbl" run="atclient">
+        <member name="people"></member>
+        <member name="summary"></member>
+      </basis>
+      <p id="local-summary">[##tbl.summary.count|(?)##] people: [##tbl.people.name|(?)##]</p>
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls</h2>
+      <div id="case-sensitive">
+        <basis core="print" datamembername="shop.items" run="atclient">
+          <face filter="price > 0"><span class="item">@id@</span></face>
+          <else-layout><span class="none">no rows: [price] is not [Price]</span></else-layout>
+        </basis>
+      </div>
+      <template id="tpl-bad-postsql">
+        <basis core="dbsource" source="bookapi" name="bad" run="atclient">
+          <member name="list" postsql="SELECT * FROM [book.other]"></member>
+          <member name="type"></member>
+        </basis>
+      </template>
+      <div id="mount-bad-postsql"></div>
+    </section>
+  </main>
+
+  <script>
+    async function topFive(args) {
+      args.source = await $bc.util.source.runSqlAsync(
+        args.source,
+        "SELECT * FROM [user.list] ORDER BY age DESC LIMIT 5",
+        args.context
+      );
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Table does not exist: book\.other/);
+
+    bcTest.test("AlaSQL is loaded once from dbLibPath with a <script> appended to <head>", async (t) => {
+      await t.waitFor(() => t.$$("#filtered .item"), (l) => l.length === 3, { timeout: 10000 });
+      const scripts = t.$$('head script[src="/node_modules/alasql/dist/alasql.min.js"]');
+      t.equal(scripts.length, 1, "one script element, shared by every feature that asked for the library");
+      t.equal(typeof alasql, "function", "the global is the alasql function");
+      t.ok(t.consoleMessages(/loaded from %s alasql \/node_modules\/alasql\/dist\/alasql\.min\.js/).length >= 1);
+      t.equal(await $bc.global.basiscore.context.getOrLoadDbLibAsync(), alasql, "getOrLoadDbLibAsync resolves with the global");
+    });
+
+    bcTest.test("a face filter is a WHERE clause over the rows; a bound value is re-evaluated on its trigger; the else-layout shows when nothing matches", async (t) => {
+      const names = () => t.$$("#filtered .item").map((i) => t.text(i));
+      t.deepEqual(names(), ["1 (ali)", "2 (reza)", "3 (mohamad)"], "the empty fallback matches every row");
+      t.setValue("#filter-name", "re", ["keyup"]);
+      await t.waitFor(names, (n) => n.join() === "2 (reza)", { timeout: 10000 });
+      t.setValue("#filter-name", "zzz", ["keyup"]);
+      await t.waitForText("#filtered", "empty", { timeout: 10000 });
+      t.setValue("#filter-name", "a", ["keyup"]);
+      await t.waitFor(names, (n) => n.join() === "1 (ali),2 (reza),3 (mohamad)", { timeout: 10000 });
+    });
+
+    bcTest.test("rownumber exists on member-published sources, so a face filter can use it (sources set from JavaScript have none)", async (t) => {
+      const items = await t.waitFor(() => t.$$("#rownumber-filter .item"), (l) => l.length === 1, { timeout: 10000 });
+      t.deepEqual(items.map((i) => t.text(i)), ["ali"]);
+      t.equal(t.rows("tbl.people")[1].rownumber, 2);
+      t.equal(t.rows("local.print")[0].rownumber, undefined, "host.sources rows are published as they are");
+    });
+
+    bcTest.test("member postsql runs before sort, rownumber is added afterwards, and a second member sorts independently", async (t) => {
+      const books = await t.waitFor(() => t.$$("#books .book"), (l) => l.length === 2, { timeout: 10000 });
+      t.deepEqual(books.map((b) => t.text(b)), ["1. Patterns 20000", "2. Web Design 14000"]);
+      t.deepEqual(t.rows("book.type").map((r) => r.Name), ["design", "site"]);
+    });
+
+    bcTest.test("inlinesource sql member: bracketed source ids become tables of a fresh database; join member prefixes the columns", async (t) => {
+      const avgs = await t.waitFor(() => t.$$("#averages .avg"), (l) => l.length === 2, { timeout: 10000 });
+      t.deepEqual(avgs.map((a) => t.text(a)), ["ali: 19", "reza: 15"]);
+      t.deepEqual(t.rows("report.avg").map((r) => r.rownumber), [1, 2]);
+      await t.waitForSource("report.star");
+      const star = t.rows("report.star");
+      t.equal(star.length, 4, "left join: ali twice, reza once, sara with no mark");
+      t.deepEqual(Object.keys(star[0]).filter((k) => k !== "rownumber"), ["db_data1_id", "db_data1_name", "db_data2_studentid", "db_data2_mark"]);
+      t.equal(star.find((r) => r.db_data1_name === "sara").db_data2_mark, undefined);
+    });
+
+    bcTest.test("runSqlAsync in an OnProcessing hook replaces the rendered source: top five by age", async (t) => {
+      const users = await t.waitFor(() => t.$$("#top-five .user"), (l) => l.length === 5, { timeout: 10000 });
+      t.deepEqual(users.map((u) => t.text(u)), ["d (60)", "f (50)", "b (45)", "g (40)", "a (31)"]);
+      t.equal(t.rows("user.list").length, 7, "the published source is untouched");
+    });
+
+    bcTest.test("$bc.util.source helpers: sortAsync and runSqlAsync keep id and cloned options, filterAsync returns rows (the same array when the filter is empty)", async (t) => {
+      const context = $bc.global.basiscore.context;
+      const source = t.source("shop.items");
+      t.equal(source.keyFieldName, "id");
+
+      const sorted = await $bc.util.source.sortAsync(source, "Price desc", context);
+      t.equal(sorted.id, "shop.items");
+      t.deepEqual(sorted.rows.map((r) => r.id), [2, 3, 1]);
+      t.equal(sorted.keyFieldName, "id", "options are cloned");
+      t.ok(sorted !== source && sorted.rows !== source.rows, "a new source with new rows");
+
+      const rows = await $bc.util.source.filterAsync(source, "Price >= 20", context);
+      t.deepEqual(rows.map((r) => r.id), [2, 3]);
+      t.ok((await $bc.util.source.filterAsync(source, "", context)) === source.rows, "an empty filter returns source.rows itself");
+      t.ok((await $bc.util.source.filterAsync(source, null, context)) === source.rows);
+
+      const ran = await $bc.util.source.runSqlAsync(source, "SELECT id FROM [SHOP.Items] WHERE Price > 10 ORDER BY id", context);
+      t.deepEqual(ran.rows, [{ id: 2 }, { id: 3 }], "[<id>] is replaced case-insensitively by the ? parameter");
+      t.equal(ran.id, "shop.items");
+      t.equal(ran.mergeType, 0);
+      const data = $bc.util.source.data("x.y", { a: 1 }, { mergeType: 1 });
+      t.deepEqual(data.rows, [{ a: 1 }]);
+      t.equal(data.id, "x.y");
+      t.equal(data.options.mergeType, 1);
+      t.equal($bc.util.source.isNullOrEmpty(""), true);
+      t.equal($bc.util.source.isNullOrEmpty("x"), false);
+    });
+
+    bcTest.test("a local connection returns the column-array format: _ is ignored, tables are mapped by position and column names keep their case", async (t) => {
+      await t.waitForText("#local-summary", "2 people: ali,reza");
+      t.deepEqual(t.rows("tbl.people"), [{ id: 1, name: "ali", age: 30, rownumber: 1 }, { id: 2, name: "reza", age: 25, rownumber: 2 }]);
+      t.deepEqual(t.rows("tbl.summary"), [{ count: 2, rownumber: 1 }]);
+      t.equal(t.source("tbl.people").mergeType, 0, "no options: replace");
+    });
+
+    bcTest.test("column names are case-sensitive: [price] does not read Price", async (t) => {
+      await t.waitForText("#case-sensitive", "no rows: [price] is not [Price]", { timeout: 10000 });
+      t.equal(t.$$("#case-sensitive .item").length, 0);
+    });
+
+    bcTest.test("postsql replaces only the exact [name.member]; another bracketed table reaches AlaSQL and the member fails with an unhandled rejection", async (t) => {
+      const mount = t.$("#mount-bad-postsql");
+      mount.innerHTML = t.$("#tpl-bad-postsql").innerHTML;
+      const wrapper = $bc.new().addFragment(mount).run();
+      const errors = await t.waitForError(/book\.other/i, { timeout: 10000 });
+      t.match(errors[0].message, /Table does not exist: book\.other/);
+      await t.waitForSource("bad.type", { wrapper: wrapper });
+      t.equal(t.source("bad.list", wrapper), undefined, "the failing member published nothing, the other one did");
+    });
+  </script>
+</body>
+</html>

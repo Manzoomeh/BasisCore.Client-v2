@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>connections - web</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- the mock back end answers every fetch made by the web connections of this page -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // Every route stores the request context it saw so the tests can inspect method, query,
+    // body and headers (the mock log keeps only the path, the method and the status).
+    const seen = {};
+    let feedCalls = 0;
+
+    BasisCoreMock.route({
+      url: "/data/book.json",
+      method: "GET",
+      response: (ctx) => {
+        seen.book = ctx;
+        return {
+          setting: { keepalive: true },
+          sources: [
+            {
+              options: { tableName: "book.list", mergeType: 0, keyFieldName: null, statusFieldName: null },
+              data: [{ id: 1, BookName: "Web Design", Price: 14000, Count: 1 }]
+            },
+            {
+              options: { tableName: "book.Type", mergeType: 0 },
+              data: [{ id: 1, Name: "site" }, { id: 2, Name: "design" }]
+            }
+          ]
+        };
+      }
+    });
+
+    BasisCoreMock.route({
+      url: "/db/posted",
+      method: "POST",
+      response: (ctx) => {
+        seen.posted = ctx;
+        return BasisCoreMock.bc.api([{ id: 1, name: "ali" }], { tableName: "student.list" });
+      }
+    });
+
+    BasisCoreMock.route({
+      url: "/db/dotted",
+      method: "GET",
+      response: () => BasisCoreMock.bc.api([{ id: 7 }], { tableName: "dotted.rows" })
+    });
+
+    // first call: a replace with key and status fields; second call (after a trigger): an append
+    // that edits id 2, adds id 3, deletes id 1 and names an unknown key (ignored)
+    BasisCoreMock.route({
+      url: "/db/feed",
+      method: "GET",
+      response: () => {
+        feedCalls += 1;
+        return feedCalls === 1
+          ? {
+              sources: [
+                {
+                  options: { tableName: "feed.list", mergeType: 0, keyFieldName: "id", statusFieldName: "status", extra: { page: 1 } },
+                  data: [{ id: 1, name: "a" }, { id: 2, name: "b" }]
+                }
+              ]
+            }
+          : {
+              sources: [
+                {
+                  options: { tableName: "feed.list", mergeType: 1, keyFieldName: "id", statusFieldName: "status", extra: { page: 2 } },
+                  data: [
+                    { id: 2, name: "b2", status: 1 },
+                    { id: 3, name: "c", status: 0 },
+                    { id: 1, status: 2 },
+                    { id: 9, name: "ghost", status: 1 }
+                  ]
+                }
+              ]
+            };
+      }
+    });
+
+    BasisCoreMock.route({
+      url: "/db/strmerge",
+      method: "GET",
+      response: () => ({
+        sources: [{ options: { tableName: "str.list", mergeType: "append" }, data: [{ id: 1 }, { id: 2 }] }]
+      })
+    });
+
+    BasisCoreMock.route({
+      url: "/db/shapes",
+      method: "GET",
+      response: () => ({
+        sources: [
+          { options: { tableName: "shape.obj" }, data: { id: 5, name: "single" } },
+          { options: { tableName: "shape.scalar" }, data: 42 }
+        ]
+      })
+    });
+
+    BasisCoreMock.route({
+      url: "/db/mismatch",
+      method: "GET",
+      response: () => BasisCoreMock.bc.api([{ id: 1 }], { tableName: "mis.list" })
+    });
+
+    BasisCoreMock.route({
+      url: "/db/nooptions",
+      method: "GET",
+      response: () => ({ sources: [{ data: [{ id: 1 }] }] })
+    });
+
+    BasisCoreMock.route({
+      url: "/db/failing",
+      method: "GET",
+      status: 500,
+      response: () => ({ error: "boom" })
+    });
+  </script>
+  <script>
+    const host = {
+      settings: {
+        // the first key part is compared case-insensitively ...
+        "Connection.web.bookapi": "/data/book.json",
+        // ... the provider is trimmed and lowercased ...
+        "connection.WEB.posted": { url: "/db/posted", verb: "POST" },
+        // ... and the name is cut at the third dot: this registers a connection named "a"
+        "connection.web.a.b": "/db/dotted",
+        "connection.web.feed": "/db/feed",
+        "connection.web.strmerge": "/db/strmerge",
+        "connection.web.shapes": "/db/shapes",
+        "connection.web.mismatch": "/db/mismatch",
+        "connection.web.nooptions": "/db/nooptions",
+        "connection.web.failing": "/db/failing",
+        "connection.web.callcommand": "/tests/fixtures/connections/",
+        "connection.web.probe": { url: "/db/unused", heartbeat: "/tests/fixtures/connections/heartbeat.txt" },
+        "connection.web.probe-missing": { url: "/db/unused", heartbeat: "/tests/fixtures/connections/missing.txt", heartbeatverb: "GET" },
+        "connection.rest.restapi": "/db/rest",
+        "default.source.verb": "GET",
+        "default.dmnid": 2668
+      },
+      sources: {
+        "demo.filter": [{ name: "ali" }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/connections.md">
+  <main>
+    <h1>connections - web</h1>
+    <p class="intro">
+      Checks <code>docs/connections.md</code> for the <code>web</code> provider: how
+      <code>connection.&lt;provider&gt;.&lt;name&gt;</code> keys are parsed, what <code>dbsource</code>
+      sends with <code>GET</code> and <code>POST</code>, the server response envelope and how its
+      <code>options</code> drive merging, <code>TestConnectionAsync</code>, <code>loadPageAsync</code>
+      for <code>call</code>, and the <code>rest</code> provider that only throws.
+    </p>
+
+    <section class="case" id="case-get">
+      <h2><code>web</code> GET: static JSON file with two members</h2>
+      <basis core="dbsource" source="bookapi" name="book" run="atclient">
+        <member name="list" preview="true"></member>
+        <member name="type" preview="true"></member>
+      </basis>
+      <basis core="callback" run="atclient" triggers="book.list book.type" method="onSource"></basis>
+      <div id="books">
+        <basis core="print" datamembername="book.list" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face><li>@BookName@ (@Price@)</li></face>
+        </basis>
+      </div>
+      <div id="types">
+        <basis core="print" datamembername="book.type" run="atclient">
+          <layout><ol>@child</ol></layout>
+          <face><li>@Name@</li></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-post">
+      <h2><code>web</code> POST: form-encoded body with the resolved command</h2>
+      <basis core="dbsource" source="posted" name="student" run="atclient" filter-name="[##demo.filter.name##]">
+        <member name="list"></member>
+      </basis>
+      <p id="student">first student: [##student.list.name|(none)##]</p>
+    </section>
+
+    <section class="case" id="case-dotted">
+      <h2>A key with a dot in the name registers the part before the dot</h2>
+      <basis core="dbsource" source="a" name="dotted" run="atclient">
+        <member name="rows"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-merge">
+      <h2>How response <code>options</code> drive merging</h2>
+      <button id="reload" name="feed.reload" bc-triggers="click" bc-value="1">Reload</button>
+      <basis core="dbsource" source="feed" name="feed" run="atclient" triggers="feed.reload">
+        <member name="list"></member>
+      </basis>
+      <div id="feed">
+        <basis core="print" datamembername="feed.list" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face><li>@id@:@name@</li></face>
+        </basis>
+      </div>
+      <basis core="dbsource" source="strmerge" name="str" run="atclient">
+        <member name="list"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-shapes">
+      <h2>Envelope <code>data</code>: object and scalar</h2>
+      <basis core="dbsource" source="shapes" name="shape" run="atclient">
+        <member name="obj"></member>
+        <member name="scalar"></member>
+      </basis>
+      <p id="shape">object row: [##shape.obj.name|(?)##], scalar row: [##shape.scalar.value|(?)##]</p>
+    </section>
+
+    <section class="case" id="case-call">
+      <h2><code>loadPageAsync</code>: <code>call</code> through <code>callcommand</code> and through <code>url</code></h2>
+      <div id="call-connection">
+        <basis core="call" file="fragment.html" method="get" run="atclient"></basis>
+      </div>
+      <div id="call-url">
+        <basis core="call" url="/tests/fixtures/connections/" file="fragment.html" method="get" run="atclient"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-errors">
+      <h2>Failures of a <code>web</code> load reject the command</h2>
+      <p>
+        These commands are started by the tests in their own <code>$bc.new()</code> runtime, because a
+        rejected <code>dbsource</code> blocks the rendering wave of the runtime it belongs to.
+      </p>
+      <template id="tpl-mismatch">
+        <basis core="dbsource" source="mismatch" name="mis" run="atclient">
+          <member name="list"></member>
+          <member name="type"></member>
+        </basis>
+      </template>
+      <template id="tpl-nooptions">
+        <basis core="dbsource" source="nooptions" name="noopt" run="atclient">
+          <member name="list"></member>
+        </basis>
+      </template>
+      <template id="tpl-failing">
+        <basis core="dbsource" source="failing" name="fail" run="atclient">
+          <member name="list"></member>
+        </basis>
+      </template>
+      <div id="mount-mismatch"></div>
+      <div id="mount-nooptions"></div>
+      <div id="mount-failing"></div>
+      <div id="mount-typo"></div>
+    </section>
+  </main>
+
+  <script>
+    const callbackIds = [];
+    function onSource(args) {
+      callbackIds.push(args.source.id);
+    }
+
+    // starts the content of a <template> in an isolated runtime and returns the wrapper
+    function startIsolated(templateId, mountId) {
+      const mount = document.getElementById(mountId);
+      mount.innerHTML = document.getElementById(templateId).innerHTML;
+      return $bc.new().addFragment(mount).run();
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Command 'mis' has 2 member\(s\) but 1 result\(s\) returned from source!/);
+    bcTest.allowError(/reading 'tableName'/);
+    bcTest.allowError(/HTTP error! status: 500/);
+
+    bcTest.test("connection keys: 'connection' is case-insensitive, the provider is lowercased, the name keeps its case and is cut at the third dot", (t) => {
+      const connections = $bc.global.basiscore.context.connections;
+      t.equal(connections.getConnection("bookapi").Url, "/data/book.json", "Connection.web.bookapi is registered");
+      const posted = connections.getConnection("posted");
+      t.equal(posted.Url, "/db/posted", "connection.WEB.posted is a web connection");
+      t.equal(posted.Verb, "POST", "the object form carries verb");
+      t.equal(connections.getConnection("a").Url, "/db/dotted", "connection.web.a.b registers the name 'a'");
+      t.throws(() => connections.getConnection("b"), /In 'host.settings' object, property 'b' not configured!/);
+      t.throws(() => connections.getConnection("BookApi"), /In 'host.settings' object, property 'BookApi' not configured!/, "lookup is by exact name");
+      t.throws(() => connections.getConnection("nothere"), /In 'host.settings' object, property 'nothere' not configured!/);
+    });
+
+    bcTest.test("web GET: command and dmnid travel as a query string, both members are published lower-cased and the callback sees them", async (t) => {
+      await t.waitForSource("book.type");
+      await t.waitFor(() => seen.book);
+      t.equal(seen.book.method, "GET");
+      t.equal(seen.book.body, "", "no body on GET");
+      t.match(seen.book.query.command, /^<basis core="dbsource" source="bookapi" name="book" run="atclient">/, "command is the serialized dbsource markup");
+      t.includes(seen.book.query.command, '<member name="type" preview="true">');
+      t.equal(seen.book.query.dmnid, "2668", "default.dmnid is sent");
+      t.equal(seen.book.request.credentials, "omit", "fetch is called with credentials: omit");
+
+      t.equal(t.rows("book.list").length, 1);
+      t.equal(t.rows("book.type").length, 2, "tableName book.Type is published as book.type (name.member, lower-cased)");
+      t.equal(t.source("book.type").mergeType, 0);
+      t.equal(t.source("book.list").keyFieldName, null, "response options are stored as sent");
+      const items = await t.waitFor(() => t.$$("#books li"), (l) => l.length === 1);
+      t.equal(t.text(items[0]), "Web Design (14000)");
+      t.deepEqual(t.$$("#types li").map((li) => t.text(li)), ["site", "design"]);
+      t.ok(callbackIds.includes("book.list") && callbackIds.includes("book.type"), "callback was triggered for both ids");
+      t.ok(t.consoleMessages(/"_id":"book\.list"/).length > 0, "preview=\"true\" dumps the source to the console");
+    });
+
+    bcTest.test("web POST: the parameters are an application/x-www-form-urlencoded body and tokens inside the command are resolved first", async (t) => {
+      await t.waitForSource("student.list");
+      t.equal(seen.posted.method, "POST");
+      t.equal(seen.posted.url.search, "", "nothing in the query string");
+      t.equal(seen.posted.request.headers.get("content-type"), "application/x-www-form-urlencoded");
+      t.includes(seen.posted.bodyJSON.command, 'filter-name="ali"', "[##demo.filter.name##] was resolved before sending");
+      t.equal(seen.posted.bodyJSON.dmnid, "2668");
+      t.match(seen.posted.body, /^command=.*&dmnid=2668$/, "command first, then dmnid");
+      await t.waitForText("#student", "first student: ali");
+    });
+
+    bcTest.test("a connection declared as connection.web.a.b is used with source=\"a\"", async (t) => {
+      await t.waitForSource("dotted.rows");
+      t.deepEqual(t.rows("dotted.rows").map((r) => r.id), [7]);
+    });
+
+    bcTest.test("response options drive merging: replace stores the rows, a later append with key and status fields edits, adds and deletes", async (t) => {
+      await t.waitForSource("feed.list");
+      let items = await t.waitFor(() => t.$$("#feed li"), (l) => l.length === 2);
+      t.deepEqual(items.map((li) => t.text(li)), ["1:a", "2:b"]);
+      const src = t.source("feed.list");
+      t.equal(src.mergeType, 0);
+      t.equal(src.keyFieldName, "id");
+      t.equal(src.statusFieldName, "status");
+      t.deepEqual(src.extra, { page: 1 }, "options.extra is stored on Source.extra");
+
+      t.click("#reload");
+      items = await t.waitFor(() => t.$$("#feed li"), (l) => l.map((li) => li.textContent.trim()).join() === "2:b2,3:c");
+      t.equal(feedCalls, 2, "a web dbsource awaits a plain Promise, so every trigger sends a new request");
+      t.ok(t.source("feed.list") === src, "the published source object is kept and updated in place");
+      t.deepEqual(src.rows.map((r) => r.id), [2, 3], "id 2 edited, id 3 added, id 1 deleted, unknown id 9 ignored");
+      t.equal(src.rows[0].name, "b2");
+      t.ok(t.consoleMessages(/feed\.list Updated\.\.\. 2 Row\(s\)/).length >= 1, "the repository logs an Updated line");
+    });
+
+    bcTest.test("a string mergeType matches neither branch: the Added line is logged but the source is never stored", async (t) => {
+      await t.waitForConsole(/str\.list Added\.\.\. 2 Row\(s\)/);
+      t.equal(t.source("str.list"), undefined, "tryToGetSource finds nothing");
+    });
+
+    bcTest.test("envelope data: an object becomes one row and a scalar becomes [{ value }]", async (t) => {
+      await t.waitForText("#shape", "object row: single, scalar row: 42");
+      t.deepEqual(t.rows("shape.obj"), [{ id: 5, name: "single", rownumber: 1 }]);
+      t.deepEqual(t.rows("shape.scalar"), [{ value: 42, rownumber: 1 }]);
+    });
+
+    bcTest.test("loadPageAsync: call loads the fragment through callcommand and through an ad-hoc url, with no slash inserted", async (t) => {
+      await t.waitForText("#call-connection", "fragment loaded through the web connection");
+      await t.waitForText("#call-url", "fragment loaded through the web connection");
+      t.equal(t.$$("#case-call basis").length, 0, "both call elements were replaced by the fragment");
+      const connections = $bc.global.basiscore.context.connections;
+      t.equal(connections.getConnection("callcommand").Url, "/tests/fixtures/connections/");
+    });
+
+    bcTest.test("TestConnectionAsync resolves true without heartbeat, probes the heartbeat URL otherwise, and nothing in the library calls it", async (t) => {
+      const context = $bc.global.basiscore.context;
+      const connections = context.connections;
+      t.equal(await connections.getConnection("bookapi").TestConnectionAsync(context), true, "no heartbeat configured");
+      t.equal(await connections.getConnection("probe").TestConnectionAsync(context), true, "heartbeat answered 200");
+      t.equal(await connections.getConnection("probe-missing").TestConnectionAsync(context), false, "heartbeat answered 404");
+      t.throws(() => context.checkSourceHeartbeatAsync("bookapi"), /Method not implemented\./, "the only heartbeat entry point of IContext is not implemented");
+    });
+
+    bcTest.test("member count mismatch: the load rejects with the documented message and nothing is published", async (t) => {
+      const wrapper = startIsolated("tpl-mismatch", "mount-mismatch");
+      const errors = await t.waitForError(/Command 'mis' has 2 member\(s\) but 1 result\(s\) returned from source!/);
+      t.equal(errors[0].message, "Command 'mis' has 2 member(s) but 1 result(s) returned from source!");
+      t.equal(t.source("mis.list", wrapper), undefined);
+      t.equal(t.source("mis.type", wrapper), undefined);
+    });
+
+    bcTest.test("an envelope entry without options throws while mapping (tableName is read without a null check)", async (t) => {
+      const wrapper = startIsolated("tpl-nooptions", "mount-nooptions");
+      await t.waitForError(/Cannot read properties of undefined \(reading 'tableName'\)/);
+      t.equal(t.source("noopt.list", wrapper), undefined);
+    });
+
+    bcTest.test("a non-2xx answer rejects with HTTP error! status: <n>", async (t) => {
+      startIsolated("tpl-failing", "mount-failing");
+      const errors = await t.waitForError(/HTTP error! status: 500/);
+      t.equal(errors[0].message, "HTTP error! status: 500");
+    });
+
+    bcTest.test("a misspelled provider segment breaks the whole runtime at startup with a TypeError", (t) => {
+      t.throws(
+        () =>
+          $bc
+            .new()
+            .addFragment("#mount-typo")
+            .setOptions({ settings: { "connection.websockets.x": "ws://localhost:8080/x" } })
+            .run(),
+        /Cannot read properties of undefined \(reading 'Name'\)/
+      );
+    });
+
+    bcTest.defect("known defect: the rest provider is declared but every method throws", (t) => {
+      const context = $bc.global.basiscore.context;
+      const rest = context.connections.getConnection("restapi");
+      t.equal(rest.Url, "/db/rest", "the setting is parsed like a web connection");
+      t.throws(() => rest.loadDataAsync(context, "x", {}, () => true), /^Method not implemented\.$/);
+      t.throws(() => rest.TestConnectionAsync(context), /^Method not implemented\.$/);
+      t.throws(() => rest.loadPageAsync(context, "p.html", {}), /^LoadPageAsync Method not Supported In REST API Provider\.$/);
+    });
+  </script>
+</body>
+</html>

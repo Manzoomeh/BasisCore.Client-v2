@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>dbsource</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end for the web connections -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // every route keeps the request contexts it saw, so the tests can read the command that was sent
+    const seen = { book: [], school: [], hooks: [], feed: [], slow: [], nested: [] };
+    const books = [
+      { id: 1, BookName: "Web Design", Price: 14000, Count: 1 },
+      { id: 2, BookName: "Pocket Guide", Price: 5000, Count: 3 },
+      { id: 3, BookName: "Patterns", Price: 20000, Count: 2 }
+    ];
+    const types = [{ id: 1, Name: "site" }, { id: 2, Name: "design" }];
+    const students = [
+      { id: 1, name: "sara" },
+      { id: 2, name: "ali" },
+      { id: 3, name: "alex" }
+    ];
+
+    BasisCoreMock.route({
+      url: "/data/book.json",
+      method: "GET",
+      response: (ctx) => {
+        seen.book.push(ctx);
+        return {
+          setting: { keepalive: true },
+          sources: [
+            { options: { tableName: "book.list", mergeType: 0, keyFieldName: null, statusFieldName: null, extra: null }, data: [books[0]] },
+            { options: { tableName: "book.Type", mergeType: 0 }, data: types }
+          ]
+        };
+      }
+    });
+    BasisCoreMock.route({
+      url: "/data/books-many.json",
+      method: "GET",
+      response: () => ({
+        sources: [
+          { options: { tableName: "book.expensive" }, data: books },
+          { options: { tableName: "book.type" }, data: types }
+        ]
+      })
+    });
+    // the server reads the filter out of the command markup and answers unsorted
+    BasisCoreMock.route({
+      url: "/db/school",
+      method: "POST",
+      response: (ctx) => {
+        seen.school.push(ctx);
+        const match = /filter-name="([^"]*)"/.exec(ctx.bodyJSON.command);
+        const filter = match ? match[1] : "";
+        return BasisCoreMock.bc.api(students.filter((s) => s.name.includes(filter)), { tableName: "student.list" });
+      }
+    });
+    // tableNames in the "wrong" order: the member position decides, not the name
+    BasisCoreMock.route({
+      url: "/db/positional",
+      method: "GET",
+      response: () => ({
+        sources: [
+          { options: { tableName: "pos.second" }, data: [{ which: "first data set" }] },
+          { options: { tableName: "pos.first" }, data: [{ which: "second data set" }] }
+        ]
+      })
+    });
+    BasisCoreMock.route({
+      url: "/db/mismatch",
+      method: "GET",
+      response: () => BasisCoreMock.bc.api([{ id: 1 }], { tableName: "mis.list" })
+    });
+    BasisCoreMock.route({
+      url: "/db/hooks",
+      method: "GET",
+      response: (ctx) => {
+        seen.hooks.push(ctx);
+        return BasisCoreMock.bc.api([{ id: seen.hooks.length }], { tableName: "hooks.rows" });
+      }
+    });
+    BasisCoreMock.route({
+      url: "/db/nested",
+      method: "GET",
+      response: (ctx) => {
+        seen.nested.push(ctx);
+        return { sources: [{ options: { tableName: "n.a" }, data: [{ id: 1 }] }, { options: { tableName: "n.b" }, data: [{ id: 2 }] }] };
+      }
+    });
+    BasisCoreMock.route({
+      url: "/db/feed",
+      method: "GET",
+      response: (ctx) => {
+        seen.feed.push(ctx);
+        return seen.feed.length === 1
+          ? { sources: [{ options: { tableName: "feed.list", mergeType: 0, keyFieldName: "id", statusFieldName: "status", extra: "page 1" }, data: { id: 1, name: "a" } }] }
+          : {
+              sources: [
+                {
+                  options: { tableName: "feed.list", mergeType: 1, keyFieldName: "id", statusFieldName: "status", extra: "page 2" },
+                  data: [{ id: 1, name: "a2", status: 1 }, { id: 2, name: "b", status: 0 }]
+                }
+              ]
+            };
+      }
+    });
+    BasisCoreMock.route({
+      url: "/db/slow",
+      method: "GET",
+      response: (ctx) => {
+        seen.slow.push(ctx);
+        return new Promise((resolve) => setTimeout(() => resolve(BasisCoreMock.bc.api([{ n: seen.slow.length }], { tableName: "slow.rows" })), 300));
+      }
+    });
+  </script>
+  <script>
+    /* A fake WebSocket for the streaming examples; see tests/foundations/connections-websocket.html. */
+    window.__sockets = [];
+    class FakeWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        this.closeCalls = 0;
+        window.__sockets.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {
+        this.closeCalls += 1;
+        if (this.readyState >= 2) return;
+        this.readyState = 2;
+        setTimeout(() => {
+          this.readyState = 3;
+          if (this.onclose) this.onclose(new CloseEvent("close", { code: 1000, wasClean: true }));
+        }, 0);
+      }
+      serverOpen() {
+        this.readyState = 1;
+        if (this.onopen) this.onopen(new Event("open"));
+      }
+      serverMessage(envelope) {
+        if (this.onmessage) this.onmessage(new MessageEvent("message", { data: JSON.stringify(envelope) }));
+      }
+    }
+    window.WebSocket = FakeWebSocket;
+
+    /* A streaming route for the chunkbased example, layered over the mock's fetch. */
+    window.__chunk = { requests: [], controller: null, closes: [] };
+    const mockedFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      const url = input instanceof Request ? input.url : String(input);
+      if (new URL(url, location.href).pathname !== "/chunk/chunk-stream") return mockedFetch(input, init);
+      const request = input instanceof Request ? input : new Request(input, init);
+      window.__chunk.requests.push({ method: request.method });
+      const stream = new ReadableStream({ start: (controller) => (window.__chunk.controller = controller) });
+      return Promise.resolve(new Response(stream, { headers: { "Content-Type": "application/json" } }));
+    };
+    function pushChunk(text) {
+      window.__chunk.controller.enqueue(new TextEncoder().encode(text));
+    }
+    function onCloseConnection(param) {
+      window.__chunk.closes.push({ withError: param.withError, context: param.context });
+    }
+  </script>
+  <script>
+    var host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      settings: {
+        "connection.web.bookapi": "/data/book.json",
+        "connection.web.booksmany": "/data/books-many.json",
+        "connection.web.schoolapi": { url: "/db/school", verb: "POST" },
+        "connection.web.positional": "/db/positional",
+        "connection.web.mismatch": "/db/mismatch",
+        "connection.web.hooks": "/db/hooks",
+        "connection.web.nested": "/db/nested",
+        "connection.web.feed": "/db/feed",
+        "connection.web.slow": "/db/slow",
+        "connection.web.empty": "/db/empty",
+        // no route answers this URL, so the request reaches the real fetch (see the known defect)
+        "connection.web.badverb": { url: "/no-route/badverb", verb: "get" },
+        "connection.websocket.simple": "ws://fake.test/time-remain",
+        "connection.websocket.other": "ws://fake.test/other",
+        "connection.chunkBased.chunk": { Connection: "/chunk/chunk-stream", onClose: onCloseConnection },
+        "default.source.verb": "GET"
+        // "default.dmnid" is deliberately not set: see the known defect about dmnid=null
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/dbsource.md">
+  <main>
+    <h1>dbsource</h1>
+    <p class="intro">
+      Checks <code>docs/commands/dbsource.md</code>: the <code>{ command, dmnid }</code> request, the
+      positional mapping of the <code>sources</code> envelope onto <code>&lt;member&gt;</code> elements,
+      lower-cased <code>name.member</code> ids, <code>sort</code> and <code>postsql</code>, parameters
+      re-sent on a trigger, the lifecycle attributes, streaming connections and the known defects.
+    </p>
+
+    <section class="case" id="case-simple">
+      <h2>One request, two published sources</h2>
+      <basis core="dbsource" source="bookapi" name="book" run="atclient">
+        <member name="list" preview="true"></member>
+        <member name="type" preview="true"></member>
+      </basis>
+      <div id="book-list">
+        <basis core="print" datamembername="book.list" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face><li>@BookName@ (@Price@)</li></face>
+        </basis>
+      </div>
+      <div id="book-type">
+        <basis core="print" datamembername="book.type" run="atclient">
+          <layout><ol>@child</ol></layout>
+          <face><li>@Name@</li></face>
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="book.list book.type" method="onSource"></basis>
+    </section>
+
+    <section class="case" id="case-positional">
+      <h2>Mapping is positional, not by <code>tableName</code></h2>
+      <basis core="dbsource" source="positional" name="Pos" run="atclient">
+        <member name="First"></member>
+        <member name="second"></member>
+      </basis>
+      <p id="positional">first member: [##pos.first.which|(?)##]; second member: [##pos.second.which|(?)##]</p>
+    </section>
+
+    <section class="case" id="case-filter">
+      <h2>Parameters resolved from another source, re-sent on change</h2>
+      <form id="filter-form" name="data.filter" bc-triggers="submit">
+        <input id="filter-input" type="text" name="name" />
+        <input type="submit" value="filter" />
+      </form>
+      <basis core="dbsource" source="schoolapi" name="student" run="atclient"
+             filter-name="[##data.filter.name|()##]" triggers="data.filter">
+        <member name="list" sort="name asc"></member>
+      </basis>
+      <div id="students">
+        <basis core="print" datamembername="student.list" run="atclient">
+          <face><div class="student">@rownumber@. @name@</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-postsql">
+      <h2>Refining the received rows with <code>postsql</code></h2>
+      <basis core="dbsource" source="booksmany" name="book2" run="atclient">
+        <member name="expensive"
+                postsql="SELECT [id], [BookName], [Price] FROM [Book2.Expensive] WHERE [Price] > 10000"
+                sort="[Price] desc"></member>
+        <member name="type" sort="Name"></member>
+      </basis>
+      <div id="expensive">
+        <basis core="print" datamembername="book2.expensive" run="atclient">
+          <face><div class="expensive">@rownumber@. @BookName@ @Price@</div></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-options">
+      <h2>Response <code>options</code>: object rows, merge type, key and status fields, extra</h2>
+      <button id="feed-reload" name="feed.reload" bc-triggers="click" bc-value="1">reload</button>
+      <basis core="dbsource" source="feed" name="feed" run="atclient" triggers="feed.reload">
+        <member name="list"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-lifecycle">
+      <h2>Lifecycle attributes</h2>
+      <basis core="dbsource" source="hooks" name="skipped" run="atclient" if="false" tag="if">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="hooks" name="lazy" run="atclient" ignoreNullSource="true" triggers="lazy.go" tag="ignoreNullSource">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="hooks" name="hooked" run="atclient" tag="hooks"
+             OnRendering="dbRendering" OnRendered="dbRendered" OnProcessing="dbProcessing" OnProcessed="dbProcessed">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="hooks" name="prevented" run="atclient" tag="prevented" OnRendering="dbPrevent">
+        <member name="rows"></member>
+      </basis>
+      <basis core="dbsource" source="empty" name="nomember" run="atclient"></basis>
+      <basis core="dbsource" source="nested" name="n" run="atclient">
+        <member name="a" /><member name="b" />
+      </basis>
+      <basis core="dbsource" source="slow" name="slow" run="atclient" ignoreNullSource="true" triggers="slow.go">
+        <member name="rows"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-websocket">
+      <h2>Live clock over a websocket, sending new parameters over the open socket</h2>
+      <form id="counter-form" name="test.counter" bc-triggers="submit">
+        <input id="counter-input" type="number" name="value" min="5" max="30" value="10" />
+        <input type="submit" value="send" />
+      </form>
+      <basis core="dbsource" source="simple" name="stream" run="atclient"
+             counter="[##test.counter.value|(10)##]" triggers="test.counter">
+        <member name="time"></member>
+      </basis>
+      <div id="clock">remaining <span id="remain">[##stream.time.remain|(?)##]</span>, time
+        <span id="time">[##stream.time.hh|(00)##]:[##stream.time.mm|(00)##]:[##stream.time.ss|(00)##]</span></div>
+      <basis core="dbsource" source="[##cfg.conn.name|(simple)##]" name="switcher" run="atclient" triggers="cfg.conn">
+        <member name="rows"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-chunk">
+      <h2>Appending rows from a chunked HTTP stream</h2>
+      <basis core="dbsource" source="chunk" name="user" run="atclient" triggers="chunk.again">
+        <member name="list"></member>
+      </basis>
+      <div id="users">
+        <basis core="print" datamembername="user.list" run="atclient">
+          <layout><script type="text/template"><table><tbody>@child</tbody></table></script></layout>
+          <face><script type="text/template"><tr><td>@id@</td><td>@name@</td><td>@age@</td></tr></script></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-defects">
+      <h2>Known defects</h2>
+      <template id="tpl-mismatch">
+        <basis core="dbsource" source="mismatch" name="mis" run="atclient">
+          <member name="list"></member>
+          <member name="type"></member>
+        </basis>
+      </template>
+      <template id="tpl-badverb">
+        <basis core="dbsource" source="badverb" name="bad" run="atclient">
+          <member name="rows"></member>
+        </basis>
+      </template>
+      <div id="mount-mismatch"></div>
+      <div id="mount-badverb"></div>
+    </section>
+  </main>
+
+  <script>
+    const callbackIds = [];
+    function onSource(args) {
+      callbackIds.push(args.source.id + ":" + args.source.rows.length);
+    }
+    const hookCalls = [];
+    function dbRendering(args) {
+      hookCalls.push({ hook: "rendering", prevent: args.prevent, source: args.source });
+    }
+    function dbRendered(args) {
+      hookCalls.push({ hook: "rendered", result: args.result, source: args.source });
+    }
+    function dbProcessing() {
+      hookCalls.push({ hook: "processing" });
+    }
+    function dbProcessed() {
+      hookCalls.push({ hook: "processed" });
+    }
+    function dbPrevent(args) {
+      args.prevent = true;
+    }
+    function dbsourceCommand(name) {
+      return $bc.global.basiscore.GetCommandListByCore("dbsource").find((x) => x.id === name);
+    }
+    function startIsolated(templateId, mountId) {
+      const mount = document.getElementById(mountId);
+      mount.innerHTML = document.getElementById(templateId).innerHTML;
+      return $bc.new().addFragment(mount).run();
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Command 'mis' has 2 member\(s\) but 1 result\(s\) returned from source!/);
+    bcTest.allowError(/Request with GET\/HEAD method cannot have body/);
+    bcTest.allowError(/Source attribute can't change when socket is open/);
+    bcTest.allowError(/send is not a function/);
+
+    bcTest.test("one request publishes one source per member as <name>.<member> in lower case; the response options are carried", async (t) => {
+      await t.waitForSource("book.type");
+      t.equal(seen.book.length, 1, "one request for two members");
+      t.equal(seen.book[0].method, "GET", "default.source.verb GET");
+      t.match(seen.book[0].query.command, /^<basis core="dbsource" source="bookapi" name="book" run="atclient">\s*<member name="list" preview="true"><\/member>\s*<member name="type" preview="true"><\/member>\s*<\/basis>$/, "command is the outerHTML of the element");
+      t.equal(t.rows("book.list").length, 1);
+      t.equal(t.rows("book.type").length, 2, "tableName book.Type is published as book.type");
+      t.equal(t.source("book.type").id, "book.type");
+      t.equal(t.source("book.list").mergeType, 0);
+      t.equal(t.source("book.list").extra, null);
+      t.deepEqual(t.rows("book.type").map((r) => r.rownumber), [1, 2], "rownumber is 1-based");
+      const items = await t.waitFor(() => t.$$("#book-list li"), (l) => l.length === 1);
+      t.equal(t.text(items[0]), "Web Design (14000)");
+      t.deepEqual(t.$$("#book-type li").map((li) => t.text(li)), ["site", "design"]);
+      t.ok(callbackIds.includes("book.list:1") && callbackIds.includes("book.type:2"), "a callback on both ids sees the published sources");
+      t.ok(t.consoleMessages(/"_id":"book\.type"/).length === 1, "preview=\"true\" logs the source");
+    });
+
+    bcTest.test("data sets are mapped onto members by position; name and member names are lower-cased in the published id", async (t) => {
+      await t.waitForText("#positional", "first member: first data set; second member: second data set");
+      t.ok(t.source("pos.first") && t.source("Pos.First") === t.source("pos.first"), "lookups are case-insensitive, the stored id is pos.first");
+      t.equal(t.rows("pos.second")[0].which, "second data set", "tableName pos.first went to the second member because it was second");
+    });
+
+    bcTest.test("a form submit re-runs the command: the new command carries the resolved filter-name and sort is applied on the client", async (t) => {
+      let students = await t.waitFor(() => t.$$("#students .student"), (l) => l.length === 3);
+      t.deepEqual(students.map((s) => t.text(s)), ["1. alex", "2. ali", "3. sara"], "sort=\"name asc\" ordered the unsorted answer; rownumber follows");
+      t.includes(seen.school[0].bodyJSON.command, 'filter-name=""', "the empty fallback is sent before any submit");
+      t.equal(seen.school[0].method, "POST");
+
+      t.$("#filter-input").value = "al";
+      t.fire("#filter-form", "submit");
+      students = await t.waitFor(() => t.$$("#students .student"), (l) => l.length === 2);
+      t.equal(seen.school.length, 2, "every submit sends the command again");
+      t.includes(seen.school[1].bodyJSON.command, 'filter-name="al"');
+      t.deepEqual(students.map((s) => t.text(s)), ["1. alex", "2. ali"]);
+    });
+
+    bcTest.test("postsql runs first with [name.member] replaced case-insensitively by ?, sort second, rownumber last", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#expensive .expensive"), (l) => l.length === 2);
+      t.deepEqual(rows.map((r) => t.text(r)), ["1. Patterns 20000", "2. Web Design 14000"]);
+      t.deepEqual(Object.keys(t.rows("book2.expensive")[0]), ["id", "BookName", "Price", "rownumber"], "postsql projected three columns, Count is gone");
+      t.deepEqual(t.rows("book2.type").map((r) => r.Name), ["design", "site"], "sort=\"Name\" on the second member");
+    });
+
+    bcTest.test("response options: an object is one row; a later mergeType 1 with key and status fields edits and adds rows and keeps the stored options", async (t) => {
+      await t.waitForSource("feed.list");
+      const src = t.source("feed.list");
+      t.deepEqual(src.rows, [{ id: 1, name: "a", rownumber: 1 }]);
+      t.equal(src.extra, "page 1");
+      t.click("#feed-reload");
+      await t.waitFor(() => src.rows, (r) => r.length === 2);
+      t.deepEqual(src.rows.map((r) => r.name), ["a2", "b"]);
+      t.equal(src.extra, "page 1", "an append keeps the options of the stored source; only a replace overwrites them");
+      t.equal(src.mergeType, 0);
+    });
+
+    bcTest.test("lifecycle: if=\"false\" skips the run, ignoreNullSource skips the initial run, OnRendering/OnRendered fire, OnProcessing/OnProcessed never do", async (t) => {
+      await t.waitForSource("hooked.rows");
+      await t.sleep(100);
+      const tags = () => seen.hooks.map((c) => /tag="([^"]*)"/.exec(c.query.command)[1]);
+      t.deepEqual(tags(), ["hooks"], "only the hooked command sent a request so far");
+      t.equal(t.source("skipped.rows"), undefined);
+      t.equal(t.source("lazy.rows"), undefined);
+      t.equal(t.source("prevented.rows"), undefined, "args.prevent = true in OnRendering skips the request");
+
+      t.deepEqual(hookCalls.map((h) => h.hook), ["rendering", "rendered"], "OnProcessing and OnProcessed are read but never called");
+      t.equal(hookCalls[0].prevent, false);
+      t.equal(hookCalls[0].source, undefined, "the initial run has no incoming source");
+      t.equal(hookCalls[1].result, undefined, "runAsync returns nothing");
+
+      $bc.setSource("lazy.go", 1);
+      await t.waitForSource("lazy.rows");
+      t.deepEqual(tags(), ["hooks", "ignoreNullSource"], "the trigger ran the lazy command");
+    });
+
+    bcTest.test("a dbsource without members does nothing; self-closing members nest and the nested markup is what the server receives", async (t) => {
+      await t.waitForSource("n.b");
+      t.equal(BasisCoreMock.state().log.filter((e) => e.url === "/db/empty").length, 0, "no request for a command without <member>");
+      t.equal(dbsourceCommand("nomember").members.length, 0);
+      t.equal(dbsourceCommand("n").members.length, 2, "querySelectorAll still finds both members");
+      t.match(seen.nested[0].query.command, /<member name="a"><member name="b">\s*<\/member><\/member>/, "the HTML parser nested b inside a");
+      t.deepEqual(t.rows("n.a").map((r) => r.id), [1]);
+    });
+
+    bcTest.test("allowMultiProcess: a trigger that arrives while a load is in flight starts a second load", async (t) => {
+      $bc.setSource("slow.go", 1);
+      await t.sleep(50);
+      $bc.setSource("slow.go", 2);
+      await t.waitFor(() => seen.slow, (l) => l.length === 2, { message: "two requests were sent" });
+      await t.waitForSource("slow.rows", (s) => s.rows[0].n === 2);
+    });
+
+    bcTest.test("websocket: the first frame is { command, dmnid }, every message replaces the clock, a trigger sends new parameters on the open socket", async (t) => {
+      const socket = window.__sockets.find((s) => s.url === "ws://fake.test/time-remain");
+      t.ok(socket, "a socket was opened for the stream command");
+      const socketCount = window.__sockets.length;
+      t.equal(t.text("#time"), "00:00:00", "the page rendered without waiting for stream data");
+      socket.serverOpen();
+      await t.waitFor(() => socket.sent, (s) => s.length === 1);
+      const first = JSON.parse(socket.sent[0]);
+      t.includes(first.command, 'counter="10"');
+      t.equal(first.dmnid, null, "dmnid is JSON null when default.dmnid is not set");
+
+      socket.serverMessage({ sources: [{ options: { tableName: "stream.time", mergeType: 0 }, data: [{ hh: 10, mm: 20, ss: 30, remain: 9 }] }] });
+      await t.waitForText("#time", "10:20:30");
+      t.equal(t.text("#remain"), "9");
+
+      t.$("#counter-input").value = "20";
+      t.fire("#counter-form", "submit");
+      await t.waitFor(() => socket.sent, (s) => s.length === 2);
+      t.includes(JSON.parse(socket.sent[1]).command, 'counter="20"');
+      t.equal(window.__sockets.length, socketCount, "no new socket was opened");
+
+      socket.serverMessage({ setting: { keepalive: false }, sources: [{ options: { tableName: "stream.time", mergeType: 0 }, data: [{ hh: 10, mm: 20, ss: 40, remain: 0 }] }] });
+      await t.waitForText("#remain", "0");
+      t.equal(socket.closeCalls, 1, "keepalive false closes the socket");
+    });
+
+    bcTest.test("the source attribute cannot change while a stream is open", async (t) => {
+      const socket = window.__sockets.find((s) => s.url === "ws://fake.test/time-remain" && s.sent.length === 0);
+      socket.serverOpen();
+      await t.waitFor(() => socket.sent, (s) => s.length === 1);
+      $bc.setSource("cfg.conn", { name: "other" });
+      const errors = await t.waitForError(/Source attribute can't change when socket is open/);
+      t.equal(errors[0].message, "Source attribute can't change when socket is open . Valid connection is 'simple'");
+    });
+
+    bcTest.test("chunked stream: every envelope appends a row and the print re-renders; the end of the stream calls onClose", async (t) => {
+      await t.waitFor(() => window.__chunk.controller);
+      t.equal(window.__chunk.requests[0].method, "GET", "string-like object form without method uses GET");
+      pushChunk("[");
+      pushChunk(JSON.stringify({ sources: [{ options: { tableName: "user.list", mergeType: 1 }, data: [{ id: 1, name: "ali", age: 30 }] }] }) + ",");
+      let rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 1);
+      pushChunk(JSON.stringify({ sources: [{ options: { tableName: "user.list", mergeType: 1 }, data: [{ id: 2, name: "sara", age: 25 }] }] }) + ",");
+      rows = await t.waitFor(() => t.$$("#users tbody tr"), (l) => l.length === 2);
+      t.deepEqual(rows.map((r) => t.$$("td", r).map((td) => t.text(td)).join(" ")), ["1 ali 30", "2 sara 25"]);
+      t.equal(dbsourceCommand("user").connection.isOpen, true);
+    });
+
+    bcTest.defect("known defect: re-triggering a dbsource while its chunk stream is open throws a TypeError", async (t) => {
+      $bc.setSource("chunk.again", 1);
+      await t.waitForError(/send is not a function/);
+      t.equal(window.__chunk.requests.length, 1);
+      pushChunk("null]");
+      window.__chunk.controller.close();
+      await t.waitForConsole(/End of chunked data/);
+      const close = await t.waitFor(() => window.__chunk.closes[0]);
+      t.equal(close.withError, false);
+    });
+
+    bcTest.test("member count mismatch rejects the load with the documented message", async (t) => {
+      const wrapper = startIsolated("tpl-mismatch", "mount-mismatch");
+      const errors = await t.waitForError(/Command 'mis' has 2 member\(s\) but 1 result\(s\) returned from source!/);
+      t.equal(errors[0].message, "Command 'mis' has 2 member(s) but 1 result(s) returned from source!");
+      t.equal(t.source("mis.list", wrapper), undefined, "nothing is published for that answer");
+    });
+
+    bcTest.defect("known defect: dmnid is sent as the text null when default.dmnid is not configured", (t) => {
+      t.equal(seen.book[0].query.dmnid, "null");
+      t.match(seen.book[0].url.search, /&dmnid=null$/);
+      t.equal(seen.school[0].bodyJSON.dmnid, "null", "the POST body carries the same text");
+    });
+
+    bcTest.defect("known defect: a lower-case verb on a web connection attaches a body to a GET request and fetch rejects with a TypeError", async (t) => {
+      startIsolated("tpl-badverb", "mount-badverb");
+      const errors = await t.waitForError(/Request with GET\/HEAD method cannot have body/);
+      t.match(errors[0].message, /^Failed to execute 'fetch' on 'Window': Request with GET\/HEAD method cannot have body\.?$/);
+      t.equal(BasisCoreMock.state().log.filter((e) => e.url === "/no-route/badverb").length, 0, "the request never left the browser");
+    });
+  </script>
+</body>
+</html>

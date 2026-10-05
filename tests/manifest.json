@@ -184,6 +184,61 @@
       "file": "schema/dom-markers.html",
       "doc": "docs/schema/dom-markers.md",
       "title": "schema DOM markers"
+    },
+    {
+      "file": "foundations/connections-web.html",
+      "doc": "docs/connections.md",
+      "title": "connections - web"
+    },
+    {
+      "file": "foundations/connections-websocket.html",
+      "doc": "docs/connections.md",
+      "title": "connections - websocket"
+    },
+    {
+      "file": "foundations/connections-chunkbased.html",
+      "doc": "docs/connections.md",
+      "title": "connections - chunkbased"
+    },
+    {
+      "file": "foundations/connections-local.html",
+      "doc": "docs/connections.md",
+      "title": "connections - local"
+    },
+    {
+      "file": "foundations/connections-push.html",
+      "doc": "docs/connections.md",
+      "title": "connections - push"
+    },
+    {
+      "file": "commands/dbsource.html",
+      "doc": "docs/commands/dbsource.md",
+      "title": "dbsource"
+    },
+    {
+      "file": "commands/api.html",
+      "doc": "docs/commands/api.md",
+      "title": "api"
+    },
+    {
+      "file": "commands/call.html",
+      "doc": "docs/commands/call.md",
+      "title": "call"
+    },
+    {
+      "file": "foundations/client-side-sql.html",
+      "doc": "docs/client-side-sql.md",
+      "title": "client-side SQL"
+    },
+    {
+      "file": "foundations/client-side-sql-localdb.html",
+      "doc": "docs/client-side-sql.md",
+      "title": "client-side SQL - LocalDataBase"
+    },
+    {
+      "file": "foundations/client-side-sql-no-dblib.html",
+      "doc": "docs/client-side-sql.md",
+      "title": "client-side SQL - dbLibPath not configured"
     }
   ]
 }

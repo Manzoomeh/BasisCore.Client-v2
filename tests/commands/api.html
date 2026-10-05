@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>api</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // routes keep the request contexts they saw (method, query, body, headers through ctx.request)
+    const seen = { book: [], headers: [], echo: [], poll: [], slow: [], trig: [] };
+    const bookEnvelope = () => ({
+      setting: { keepalive: true },
+      sources: [
+        { options: { tableName: "book.list", mergeType: 0 }, data: [{ id: 1, BookName: "Web Design", Price: 14000 }] },
+        { options: { tableName: "book.type", mergeType: 1 }, data: [{ id: 1, Name: "site" }, { id: 2, Name: "design" }] }
+      ]
+    });
+    const users = {
+      page: 1,
+      data: [
+        { id: 1, first_name: "George", last_name: "Bluth" },
+        { id: 2, first_name: "Janet", last_name: "Weaver" }
+      ]
+    };
+
+    BasisCoreMock.route({ url: "/data/book.json", method: "GET", response: (ctx) => { seen.book.push(ctx); return bookEnvelope(); } });
+    BasisCoreMock.route({ url: "/api/users", method: "GET", response: () => users });
+    BasisCoreMock.route({ url: "/api/scalar", method: "GET", response: () => "hello" });
+    BasisCoreMock.route({ url: "/api/array", method: "GET", response: () => [1, 2, 3] });
+    BasisCoreMock.route({ url: "/api/missing", method: "GET", status: 404, response: () => ({ error: "not found" }) });
+    BasisCoreMock.route({ url: "/api/no-tablename", method: "GET", response: () => ({ sources: [{ options: { mergeType: 0 }, data: [{ id: 1 }] }] }) });
+    BasisCoreMock.route({ url: "/api/headers", method: "GET", response: (ctx) => { seen.headers.push(ctx); return { ok: true }; } });
+    BasisCoreMock.route({ url: "/api/trigger", method: "GET", response: (ctx) => { seen.trig.push(ctx); return { n: seen.trig.length }; } });
+    BasisCoreMock.route({
+      url: "/api/token-result",
+      method: "POST",
+      response: (ctx) => {
+        seen.echo.push(ctx);
+        return { received: ctx.body, contentType: ctx.request.headers.get("content-type") };
+      }
+    });
+    BasisCoreMock.route({ url: "/api/poll", method: "POST", response: (ctx) => { seen.poll.push(ctx); return { tick: seen.poll.length, body: ctx.bodyJSON }; } });
+    BasisCoreMock.route({
+      url: "/api/slow",
+      method: "GET",
+      response: (ctx) => {
+        seen.slow.push(ctx);
+        return new Promise((resolve) => setTimeout(() => resolve({ n: seen.slow.length }), 300));
+      }
+    });
+  </script>
+  <script>
+    var host = {};
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/api.md">
+  <main>
+    <h1>api</h1>
+    <p class="intro">
+      Checks <code>docs/commands/api.md</code>: the request built from <code>url</code>, <code>method</code>,
+      <code>body</code>, <code>Content-Type</code> and <code>noCache</code>; the <code>sources</code> envelope
+      published under <code>options.tableName</code> versus plain JSON under <code>name</code>; the
+      <code>OnProcessing</code> and <code>OnProcessed</code> hooks; <code>triggers</code>, <code>events</code>,
+      <code>ignoreNullSource</code>; and the documented failure modes.
+    </p>
+
+    <section class="case" id="case-envelope">
+      <h2>Envelope response, two sources (<code>name</code> is ignored)</h2>
+      <basis core="api" url="/data/book.json" method="get" name="ignored.name" run="atclient"></basis>
+      <div id="books">
+        <basis core="print" datamembername="book.list" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face><li>@BookName@: @Price@</li></face>
+        </basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="book.list book.type" method="onSource"></basis>
+    </section>
+
+    <section class="case" id="case-plain">
+      <h2>Plain JSON under an explicit name, under the default <code>cms.api</code>, and a scalar</h2>
+      <basis core="api" name="api.users" url="/api/users" method="get" run="atclient"></basis>
+      <basis core="api" url="/api/array" method="GET" run="atclient"></basis>
+      <basis core="api" name="api.scalar" url="/api/scalar" method="get" run="atclient"></basis>
+      <p id="users-page">page [##api.users.page|(?)##]</p>
+    </section>
+
+    <section class="case" id="case-processed">
+      <h2><code>OnProcessed</code>: projecting, checking <code>response.ok</code>, renaming envelope sources, assigning nothing</h2>
+      <basis core="api" url="/api/users" method="get" run="atclient" OnProcessed="projectUsers"></basis>
+      <div id="projected">
+        <basis core="print" datamembername="api.projected" run="atclient">
+          <face><div class="user">@first_name@ @last_name@</div></face>
+        </basis>
+      </div>
+      <basis core="api" url="/api/missing" method="get" run="atclient" OnProcessed="projectUsers" name="unused"></basis>
+      <basis core="api" url="/data/book.json" method="get" run="atclient" OnProcessed="renameSources"></basis>
+      <basis core="api" url="/api/headers" method="get" run="atclient" OnProcessed="noResults" name="nothing.here"></basis>
+    </section>
+
+    <section class="case" id="case-processing">
+      <h2><code>OnProcessing</code>: replacing the request</h2>
+      <basis core="api" url="/data/book.json" method="get" run="atclient" OnProcessing="customFetch" OnProcessed="keepUrl"></basis>
+    </section>
+
+    <section class="case" id="case-triggers">
+      <h2>Re-running on a button click and polling with a timer</h2>
+      <button id="fetch" name="events.fetch" bc-triggers="click" bc-value="null">Fetch</button>
+      <basis core="api" url="/api/trigger" method="get" name="trig.result" run="atclient" triggers="events.fetch"></basis>
+      <basis core="api" url="/api/trigger" method="get" name="lazy.result" run="atclient" triggers="events.fetch" ignoreNullSource="true"></basis>
+      <basis core="api" url="/api/poll" method="post" run="atclient"
+             body='{"check":"[##cms.cms.time2##]"}' name="poll.result" events="timer.250"></basis>
+      <basis core="api" url="/api/slow" method="get" name="slow.result" run="atclient" triggers="slow.go" ignoreNullSource="true"></basis>
+    </section>
+
+    <section class="case" id="case-request">
+      <h2>Body, <code>Content-Type</code> and <code>noCache</code> headers</h2>
+      <basis core="api" url="/api/token-result" method="post" run="atclient" Content-Type="text/plain" body="hello" name="echo"></basis>
+      <basis core="api" url="/api/headers" method="get" run="atclient" noCache="true" name="headers.default"></basis>
+      <basis core="api" url="/api/headers" method="get" run="atclient" Content-Type="[##cfg.api.contenttype|()##]" name="headers.none"></basis>
+      <basis core="api" url="/api/headers" method="get" run="atclient" Content-Type="" name="headers.literal"></basis>
+      <basis core="api" url="/api/missing" method="get" run="atclient" name="api.notfound">
+        <member name="ignored"></member>
+      </basis>
+    </section>
+
+    <section class="case" id="case-failures">
+      <h2>Rejections abort the initial rendering wave of their runtime</h2>
+      <p>Each of these runs in its own <code>$bc.new()</code> runtime started by the test.</p>
+      <template id="tpl-get-body">
+        <basis core="api" url="/api/headers" method="get" body="x=1" name="bad.body" run="atclient"></basis>
+        <basis core="print" datamembername="cms.cms" run="atclient">
+          <face><span class="wave">rendered</span></face>
+        </basis>
+        <p class="token">time [##cms.cms.time2##]</p>
+      </template>
+      <template id="tpl-not-json">
+        <basis core="api" url="/api/headers" method="get" run="atclient" OnProcessing="htmlAnswer" name="bad.json"></basis>
+      </template>
+      <template id="tpl-no-tablename">
+        <basis core="api" url="/api/no-tablename" method="get" run="atclient"></basis>
+      </template>
+      <div id="mount-get-body"></div>
+      <div id="mount-not-json"></div>
+      <div id="mount-no-tablename"></div>
+    </section>
+  </main>
+
+  <script>
+    const callbackIds = [];
+    function onSource(args) {
+      callbackIds.push(args.source.id);
+    }
+    async function projectUsers(args) {
+      if (!args.response.ok) {
+        args.results = [$bc.util.source.data("api.error", [{ status: args.response.status }])];
+        return;
+      }
+      const json = await args.response.json();
+      args.results = [$bc.util.source.data("api.projected", json.data)];
+    }
+    async function renameSources(args) {
+      const json = await args.response.json();
+      args.results = json.sources.map((x) => $bc.util.source.data(`my-${x.options.tableName}`, x.data, x.options));
+    }
+    function noResults(args) {
+      window.__noResultsArgs = args;
+    }
+    let customRequest = null;
+    function customFetch(args) {
+      const request = args.request;
+      customRequest = request;
+      const fresh = new Request(`${request.url}?q=${Date.now()}`, {
+        method: request.method,
+        headers: request.headers,
+        credentials: "include"
+      });
+      args.response = fetch(fresh);
+    }
+    async function keepUrl(args) {
+      const json = await args.response.json();
+      args.results = [$bc.util.source.data("custom.answer", [{ sources: json.sources.length }])];
+    }
+    function htmlAnswer(args) {
+      args.response = new Response("<p>not json</p>", { headers: { "Content-Type": "text/html" } });
+    }
+    function startIsolated(templateId, mountId) {
+      const mount = document.getElementById(mountId);
+      mount.innerHTML = document.getElementById(templateId).innerHTML;
+      return $bc.new().addFragment(mount).run();
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Request with GET\/HEAD method cannot have body/);
+    bcTest.allowError(/not valid JSON|Unexpected token/);
+    bcTest.allowError(/reading 'toLowerCase'/);
+
+    bcTest.test("an envelope publishes every entry under options.tableName with the entry's options; name is ignored", async (t) => {
+      await t.waitForSource("book.type");
+      t.equal(seen.book.length >= 1, true);
+      t.equal(seen.book[0].method, "GET", "method=\"get\" is upper-cased");
+      t.equal(seen.book[0].request.headers.get("content-type"), "application/json", "the default Content-Type is sent even without a body");
+      t.equal(t.source("book.list").mergeType, 0);
+      t.equal(t.source("book.type").mergeType, 1);
+      t.equal(t.rows("book.type").length, 2);
+      t.equal(t.source("ignored.name"), undefined, "name is only used for non-envelope answers");
+      const items = await t.waitFor(() => t.$$("#books li"), (l) => l.length === 1);
+      t.equal(t.text(items[0]), "Web Design: 14000");
+      t.ok(callbackIds.includes("book.list") && callbackIds.includes("book.type"));
+      t.deepEqual(t.rows("book.list")[0], { id: 1, BookName: "Web Design", Price: 14000 }, "api adds no rownumber");
+    });
+
+    bcTest.test("plain JSON: an object is one row under name, an array is the rows under the default cms.api, a scalar becomes { value }", async (t) => {
+      await t.waitForText("#users-page", "page 1");
+      const rows = t.rows("api.users");
+      t.equal(rows.length, 1);
+      t.equal(rows[0].page, 1);
+      t.equal(rows[0].data.length, 2, "the array is a property of the single row");
+      await t.waitForSource("cms.api");
+      t.deepEqual(t.rows("cms.api"), [1, 2, 3]);
+      await t.waitForSource("api.scalar");
+      t.deepEqual(t.rows("api.scalar"), [{ value: "hello" }]);
+    });
+
+    bcTest.test("OnProcessed replaces the parsing: project a third-party answer, publish an error row for a 404, rename envelope sources, or publish nothing", async (t) => {
+      const users = await t.waitFor(() => t.$$("#projected .user"), (l) => l.length === 2);
+      t.deepEqual(users.map((u) => t.text(u)), ["George Bluth", "Janet Weaver"]);
+      await t.waitForSource("api.error");
+      t.deepEqual(t.rows("api.error"), [{ status: 404 }]);
+      t.equal(t.source("unused"), undefined);
+      await t.waitForSource("my-book.type");
+      t.equal(t.rows("my-book.type").length, 2);
+      t.equal(t.source("my-book.type").mergeType, 1, "the options passed to $bc.util.source.data are kept");
+      await t.waitFor(() => window.__noResultsArgs);
+      t.ok(window.__noResultsArgs.response instanceof Response);
+      t.ok(window.__noResultsArgs.request instanceof Request);
+      await t.sleep(100);
+      t.equal(t.source("nothing.here"), undefined, "no results assigned: nothing published");
+      t.equal(t.errors().length, 0, "and no error raised");
+    });
+
+    bcTest.test("OnProcessing receives the built Request and may replace the response with its own fetch", async (t) => {
+      await t.waitForSource("custom.answer");
+      t.ok(customRequest instanceof Request);
+      t.match(customRequest.url, /\/data\/book\.json$/);
+      t.equal(customRequest.method, "GET");
+      t.equal(t.rows("custom.answer")[0].sources, 2, "OnProcessed read the body of the replaced response");
+      const custom = seen.book.find((ctx) => ctx.url.search.startsWith("?q="));
+      t.ok(custom, "the mock saw the cache-busting query string");
+      t.equal(custom.request.credentials, "include");
+    });
+
+    bcTest.test("triggers re-run the request; ignoreNullSource skips the initial run; a trigger during a pending request is dropped", async (t) => {
+      await t.waitForSource("trig.result");
+      t.equal(seen.trig.length, 1, "lazy.result did not request on load");
+      t.equal(t.source("lazy.result"), undefined);
+      t.click("#fetch");
+      await t.waitForSource("lazy.result");
+      await t.waitFor(() => seen.trig, (l) => l.length === 3, { message: "both commands requested on the click" });
+      t.equal(t.rows("trig.result")[0].n > 1, true, "trig.result was replaced");
+
+      $bc.setSource("slow.go", 1);
+      await t.sleep(50);
+      $bc.setSource("slow.go", 2);
+      await t.waitForSource("slow.result");
+      await t.sleep(100);
+      t.equal(seen.slow.length, 1, "the second trigger arrived while the command was busy and was ignored");
+    });
+
+    bcTest.test("events=\"timer.<ms>\" repeats the request and the body token is resolved every time", async (t) => {
+      await t.waitFor(() => seen.poll, (l) => l.length >= 3, { timeout: 4000 });
+      t.match(seen.poll[0].body, /^\{"check":"\d{6}"\}$/, "body is sent verbatim, the token resolved");
+      t.equal(seen.poll[0].request.headers.get("content-type"), "application/json");
+      t.equal(t.rows("poll.result").length, 1, "poll.result is replaced on every tick");
+      t.ok(t.rows("poll.result")[0].tick >= 1);
+    });
+
+    bcTest.test("Content-Type and body are passed through; noCache adds pragma and cache-control; an empty token removes the header, a literal empty attribute does not", async (t) => {
+      await t.waitForSource("echo");
+      t.deepEqual(t.rows("echo"), [{ received: "hello", contentType: "text/plain" }]);
+      await t.waitForSource("headers.default");
+      await t.waitForSource("headers.none");
+      await t.waitForSource("headers.literal");
+      const contexts = seen.headers.filter((ctx) => ctx.url.pathname === "/api/headers");
+      const noCache = contexts.find((ctx) => ctx.request.headers.get("pragma") === "no-cache");
+      t.ok(noCache, "noCache=\"true\" adds pragma: no-cache");
+      t.equal(noCache.request.headers.get("cache-control"), "no-cache");
+      t.equal(noCache.request.headers.get("content-type"), "application/json", "default Content-Type");
+      const withoutType = contexts.filter((ctx) => ctx.request.headers.get("content-type") === null);
+      t.equal(withoutType.length, 1, "exactly one request had no Content-Type: the one whose token resolved to an empty string");
+      const literal = contexts.filter((ctx) => ctx.request.headers.get("content-type") === "application/json" && ctx.request.headers.get("pragma") === null);
+      t.ok(literal.length >= 1, "Content-Type=\"\" is treated as absent and the default applies");
+    });
+
+    bcTest.test("a non-2xx JSON answer is published like any other; <member> children are ignored", async (t) => {
+      await t.waitForSource("api.notfound");
+      t.deepEqual(t.rows("api.notfound"), [{ error: "not found" }]);
+      t.equal(t.source("api.notfound.ignored"), undefined);
+    });
+
+    bcTest.test("a body on GET makes the Request constructor throw a TypeError; the rejection stops the rendering wave of that runtime", async (t) => {
+      startIsolated("tpl-get-body", "mount-get-body");
+      const errors = await t.waitForError(/Request with GET\/HEAD method cannot have body/);
+      t.match(errors[0].message, /^Failed to construct 'Request': Request with GET\/HEAD method cannot have body\.?$/);
+      await t.sleep(300);
+      t.equal(t.$$("#mount-get-body .wave").length, 0, "the print command (low priority wave) of the same runtime never ran");
+      t.match(t.text("#mount-get-body .token"), /^time \d{6}$/, "text tokens are not commands and are not part of the waves");
+    });
+
+    bcTest.test("a response that is not JSON rejects with a SyntaxError", async (t) => {
+      const wrapper = startIsolated("tpl-not-json", "mount-not-json");
+      const errors = await t.waitForError(/not valid JSON|Unexpected token/);
+      t.match(errors[0].message, /Unexpected token '<'/);
+      t.equal(t.source("bad.json", wrapper), undefined);
+    });
+
+    bcTest.test("an envelope entry without options.tableName throws when the Source is created", async (t) => {
+      startIsolated("tpl-no-tablename", "mount-no-tablename");
+      const errors = await t.waitForError(/reading 'toLowerCase'/);
+      t.match(errors[0].message, /Cannot read properties of undefined \(reading 'toLowerCase'\)/);
+    });
+  </script>
+</body>
+</html>

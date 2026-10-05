@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>client-side SQL - LocalDataBase</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // every run starts from an empty localStorage so the notes table is created fresh
+    try { localStorage.clear(); } catch (e) { /* ignore */ }
+  </script>
+  <!-- LocalDataBase needs the alasql global before any command runs, so the script is loaded here -->
+  <script src="/node_modules/alasql/dist/alasql.min.js"></script>
+  <script>
+    var host = {
+      // dbLibPath keeps its default (/alasql.min.js, which this server does not have): the global is used instead
+      settings: {
+        "connection.local.localdb": "/tests/fixtures/client-side-sql/notes-provider.js|loadNotes"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/client-side-sql.md">
+  <main>
+    <h1>client-side SQL - LocalDataBase</h1>
+    <p class="intro">
+      Checks the <code>LocalDataBase</code> section of <code>docs/client-side-sql.md</code>: a
+      <code>localStorage</code>-backed AlaSQL database used directly and as the store behind a
+      <code>local</code> connection, with the <code>alasql</code> global loaded by a script tag.
+    </p>
+
+    <section class="case" id="case-notes">
+      <h2>A <code>LocalDataBase</code> behind a <code>local</code> connection</h2>
+      <basis core="dbsource" source="localdb" name="notes" run="atclient" triggers="notes.changed">
+        <member name="list"></member>
+      </basis>
+      <div id="notes">
+        <basis core="print" datamembername="notes.list" run="atclient">
+          <layout><ul>@child</ul></layout>
+          <face><li>@rownumber@. @text@</li></face>
+        </basis>
+      </div>
+      <button id="add-note" name="notes.changed" bc-triggers="click" bc-value="1">Add note</button>
+    </section>
+  </main>
+
+  <script>
+    bcTest.test("the dbsource calls loadNotes, which inserts a note and returns the table in the column-array format", async (t) => {
+      let items = await t.waitFor(() => t.$$("#notes li"), (l) => l.length === 1);
+      t.equal(t.text(items[0]), "1. note 1");
+      t.equal(window.__notesProviderCalls.length, 1);
+      t.match(window.__notesProviderCalls[0].command, /^<basis core="dbsource" source="localdb" name="notes"/);
+      t.equal(window.__notesProviderCalls[0].dmnid, null, "default.dmnid is not set");
+      t.equal(t.$$('head script[src="/alasql.min.js"]').length, 0, "dbLibPath was never read: the alasql global was used");
+
+      t.click("#add-note");
+      items = await t.waitFor(() => t.$$("#notes li"), (l) => l.length === 2);
+      t.deepEqual(items.map((li) => t.text(li)), ["1. note 1", "2. note 2"]);
+      t.equal(window.__notesProviderCalls.length, 2, "every click re-runs the dbsource and calls the function again");
+      t.equal(t.source("notes.list").mergeType, 0, "republished with replace semantics");
+    });
+
+    bcTest.test("executeAsync creates the database and its tables lazily; executeAsTableAsync returns a header row and one array per row, [[]] when empty", async (t) => {
+      const db = new basiscore.LocalDataBase("testdb", () => {
+        const schemas = new Map();
+        schemas.set("people", { id: "INT", name: "STRING" });
+        return schemas;
+      });
+      t.deepEqual(await db.executeAsTableAsync("SELECT id, name FROM people"), [[]], "no rows yet");
+      t.equal(await db.executeAsync("INSERT INTO people VALUES (?, ?)", [1, "ali"]), 1, "writes resolve with the affected count");
+      await db.executeAsync("INSERT INTO people VALUES (?, ?)", [2, "sara"]);
+      t.deepEqual(await db.executeAsync("SELECT * FROM people ORDER BY id"), [{ id: 1, name: "ali" }, { id: 2, name: "sara" }]);
+      t.deepEqual(await db.executeAsTableAsync("SELECT id, name FROM people ORDER BY id"), [["id", "name"], [1, "ali"], [2, "sara"]]);
+      t.ok(alasql.databases.testdb, "the database is attached under its name");
+      t.ok(Object.keys(localStorage).some((k) => /testdb/.test(k)), "the data lives in localStorage");
+    });
+
+    bcTest.test("a schema change is ignored for an existing database; dropAsync removes it and returns true", async (t) => {
+      const changed = new basiscore.LocalDataBase("testdb", () => {
+        const schemas = new Map();
+        schemas.set("other", { id: "INT" });
+        return schemas;
+      });
+      await t.rejects(changed.executeAsync("SELECT * FROM other"), /Table does not exist: other/, "the new schema was not applied");
+      t.deepEqual((await changed.executeAsync("SELECT COUNT(*) AS c FROM people"))[0].c, 2, "the old table is still there");
+      t.equal(await changed.dropAsync(), true);
+      t.equal(Object.keys(localStorage).some((k) => /testdb/.test(k)), false, "the localStorage entries are gone");
+
+      const fresh = new basiscore.LocalDataBase("testdb", () => {
+        const schemas = new Map();
+        schemas.set("other", { id: "INT" });
+        return schemas;
+      });
+      t.deepEqual(await fresh.executeAsTableAsync("SELECT * FROM other"), [[]], "after the drop the new schema is applied");
+      t.equal(await fresh.dropAsync(), true);
+    });
+
+    bcTest.test("getOrLoadDbLibAsync returns the existing global without touching dbLibPath, so every SQL helper works", async (t) => {
+      const context = $bc.global.basiscore.context;
+      t.equal(context.options.dbLibPath, "/alasql.min.js", "the default path, which this server does not serve");
+      t.ok((await context.getOrLoadDbLibAsync()) === alasql);
+      const sorted = await $bc.util.source.sortAsync(t.source("notes.list"), "id desc", context);
+      t.deepEqual(sorted.rows.map((r) => r.id), [2, 1]);
+    });
+  </script>
+</body>
+</html>
