@@ -168,7 +168,7 @@ Three controls implement this, with differences you need to know:
 
 The same-question form is what the reference schema `1161` uses for its "product" question: part 1 is a `select` loaded from `/schema/fix-data/${prpId}/${part}?rkey=${rkey}` and part 2 is a `simpleautocomplete` with `link: "/schema/autocomplete?term=${term}&data=${data}"` and `dependency: [{ "name": "data", "prpId": 3544, "part": 1, "required": true }]`, so each row searches products within the category chosen in that row.
 
-The dependency loop is asynchronous and the required-error path is awaited inside it, so an empty required dependency does not cancel the request: the `required` error is shown on the source part, but the popup still opens and the request is still sent with an empty parameter (for list controls, which format the URL immediately, the parameter may not be defined yet and the URL formatting fails). Treat `required` as a visual hint rather than a gate.
+The dependency loop is asynchronous and the required-error path is awaited inside it, so an empty required dependency does not cancel the search: the `required` error is shown on the source part regardless. For `autocomplete` and `reference` the popup still opens and, when the user types, the request is sent with an empty parameter. For `simpleautocomplete`, `simplereference` and the list controls the URL is formatted as soon as the loop returns, before the awaited branch has set the parameter, so `formatString` throws a `ReferenceError` (`<name> is not defined`) and no request is sent. Treat `required` as a visual hint rather than a gate.
 
 A dependency on a `prpId` that does not exist in the schema leaves its `name` undefined, which makes the URL formatting throw and the search return nothing.
 
@@ -302,7 +302,7 @@ router.get("/autocomplete", (req, res) => {
 - Selection in `SearchPopup` and `lookup` is by double-click; a single click does nothing. The simple variants select on a single click.
 - `lookup` validates the typed text, not the selected id, and ignores `dependency`.
 - `simpleautocomplete`/`simplereference` keep the previously selected id when the user edits the text afterwards.
-- A `required` dependency does not block the search; it only displays the error on the source part.
+- A `required` dependency does not block the search in the popup controls; it only displays the error on the source part. In the simple variants and the list controls an empty required dependency makes the URL formatting throw a `ReferenceError`, so that search is lost.
 - `select`/`checklist`/`radio` request their list once at creation; changing a dependency later does not reload them.
 - Multi-value `autocomplete`/`reference` hijack the question's `+` button; rows added through the popup are reported as added values without `id`.
 - Nested sub-schemas always render with the default skin, and only `select` propagates nested validation errors to the parent part.

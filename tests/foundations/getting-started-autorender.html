@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>getting started - autoRender false</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    var host = { autoRender: false };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/getting-started.md">
+  <main>
+    <h1>getting started - manual start</h1>
+    <p class="intro">
+      With <code>host.autoRender = false</code> nothing runs on <code>load</code>; the page starts the
+      runtime itself with <code>$bc.addFragment("#app").run()</code>.
+    </p>
+
+    <section class="case">
+      <h2>Manual start with <code>autoRender: false</code></h2>
+      <p id="outside">outside the fragment: [##app.flag.value|(untouched)##]</p>
+      <div id="app">
+        <basis core="print" run="atclient" datamembername="app.items">
+          <face><div class="item">@title@</div></face>
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    bcTest.test("nothing is processed on load when autoRender is false", async (t) => {
+      await t.sleep(300);
+      t.equal($bc.all.length, 0, "no wrapper was created");
+      t.ok(t.$("#app basis"), "the <basis> element is still in the page");
+    });
+
+    bcTest.test("addFragment(...).run() processes only the fragment", async (t) => {
+      $bc.addFragment("#app").run();
+      $bc.setSource("app.items", [{ title: "First" }, { title: "Second" }]);
+      const items = await t.waitFor(() => t.$$("#app .item"), (l) => l.length === 2);
+      t.equal(t.text(items[0]), "First");
+      t.equal(t.text(items[1]), "Second");
+      $bc.setSource("app.flag", "changed");
+      await t.sleep(200);
+      t.equal(t.text("#outside"), "outside the fragment: [##app.flag.value|(untouched)##]", "markup outside the fragment is never scanned");
+    });
+  </script>
+</body>
+</html>

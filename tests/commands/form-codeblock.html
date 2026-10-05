@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>form - code block result</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      sources: {
+        "demo.rows": [{ name: "one" }, { name: "two" }]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/form.md">
+  <main>
+    <h1>form - code block result</h1>
+    <p class="intro">
+      Checks the <code>{{ }}</code> code block of the "Nested object and dynamic array items" example in
+      <code>docs/commands/form.md</code>, which prints the submitted row as JSON. The block awaits
+      <code>$bc.waitToGetSourceAsync('cms.form')</code>, so it is kept on its own page: a text token that
+      awaits a missing source delays the run of every other command in the same collection until the
+      form is first submitted, which is what the last test records.
+    </p>
+
+    <section class="case" id="case-root">
+      <h2>The documented example with the JSON code block</h2>
+      <form id="root-form" bc-triggers="submit" name="cms.form">
+        <label>id : <input id="root-id" name="id" /></label>
+        <fieldset>
+          <legend>cms.form._root</legend>
+          <label>fname : <input id="root-fname" name="_root.fname" /></label>
+          <label>lname : <input id="root-lname" name="_root.lname" /></label>
+          <label>range : <input type="range" name="_root.range" /></label>
+          <fieldset id="phone-holder"><legend>cms.form._root.phones</legend></fieldset>
+          <template id="phone-template">
+            <div>
+              <label>Code : <input name="_root.phones__[x].code" /></label>
+              <label>Phone : <input name="_root.phones__[x].number" /></label>
+            </div>
+          </template>
+          <button id="add-phone" type="button" onclick="addPhone()">Add Phone</button>
+        </fieldset>
+        <input type="submit" />
+      </form>
+
+      <fieldset>
+        <legend>Result</legend>
+        cms.form._root.fname: <span id="out-fname">[##cms.form._root.fname##]</span><br />
+        cms.form._root.phones[0]?.code: <span id="out-code">[##cms.form._root.phones[0]?.code##]</span><br />
+        cms.form._root.phones[1]?.number: <span id="out-number">[##cms.form._root.phones[1]?.number##]</span><br />
+        <span id="out-json">{{ return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0]); }}</span>
+        <br />
+        <span id="out-json-untracked">{{ return JSON.stringify((await $bc.waitToGetSourceAsync("cms.form")).rows[0]); }}</span>
+      </fieldset>
+
+      <basis core="callback" run="atclient" triggers="cms.form"></basis>
+    </section>
+
+    <section class="case" id="case-blocked">
+      <h2>A command on the same page</h2>
+      <ul id="rows">
+        <basis core="print" datamembername="demo.rows" run="atclient">
+          <face><li>@name@</li></face>
+        </basis>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    let phoneIndex = 1;
+    function addPhone() {
+      const template = document.getElementById("phone-template");
+      const copy = document.importNode(template.content, true);
+      copy.querySelectorAll("[name]").forEach((element) => {
+        element.attributes["name"].value = element.attributes["name"].value.replace("[x]", phoneIndex.toString());
+      });
+      phoneIndex++;
+      document.getElementById("phone-holder").append(copy);
+    }
+    function fill(selector, value) {
+      document.querySelector(selector).value = value;
+    }
+    function submitRoot(rowId, fname, lname, phones) {
+      fill("#root-id", rowId);
+      fill("#root-fname", fname);
+      fill("#root-lname", lname);
+      phones.forEach((phone, i) => {
+        fill("input[name='_root.phones__" + (i + 1) + ".code']", phone.code);
+        fill("input[name='_root.phones__" + (i + 1) + ".number']", phone.number);
+      });
+      document.getElementById("root-form").requestSubmit();
+    }
+  </script>
+
+  <script>
+    bcTest.allowError(/Cannot read properties of null \(reading 'toString'\)/);
+
+    bcTest.defect("undocumented defect: a text code block awaiting a missing source delays every command of the collection (and $bc.setSource) until the source exists", async (t) => {
+      // The form itself is wired (HTML element bindings are initialized, not run) ...
+      await t.waitFor(() => t.$("#root-form").hasAttribute("data-bc-init"));
+      $bc.setSource("late.source", 1);
+      await t.sleep(400);
+      // ... but the print of the other section has not rendered and the published source is still pending.
+      t.equal(t.$$("#rows li").length, 0, "the print did not render although demo.rows exists");
+      t.equal(t.source("late.source"), undefined, "$bc.setSource waits for the collection's initialization");
+      t.click("#add-phone");
+      t.click("#add-phone");
+      submitRoot("1", "Ada", "Lovelace", [{ code: "+44", number: "1234" }, { code: "+33", number: "5678" }]);
+      await t.waitForText("#out-fname", "Ada");
+      await t.waitFor(() => t.$$("#rows li"), (l) => l.length === 2);
+      await t.waitForSource("late.source");
+    });
+
+    bcTest.test("example: the code block prints the submitted row as JSON and the tokens read the nested fields", async (t) => {
+      const row = t.rows("cms.form")[0];
+      t.deepEqual(row, {
+        id: "1",
+        _root: { fname: "Ada", lname: "Lovelace", range: "50", phones: [{ code: "+44", number: "1234" }, { code: "+33", number: "5678" }] }
+      });
+      t.equal(t.text("#out-code"), "+44");
+      t.equal(t.text("#out-number"), "5678");
+      await t.waitForText("#out-json", JSON.stringify(row));
+      t.equal(t.text("#out-json-untracked"), JSON.stringify(row));
+    });
+
+    bcTest.test("a block using $bc.waitToGetSourceAsync('cms.form') with single quotes is re-evaluated on the next submit; the double-quoted form is not", async (t) => {
+      submitRoot("2", "Grace", "Hopper", [{ code: "+1", number: "111" }, { code: "+2", number: "222" }]);
+      await t.waitForText("#out-fname", "Grace");
+      const row = t.rows("cms.form")[0];
+      t.equal(row.id, "2");
+      await t.waitForText("#out-json", JSON.stringify(row));
+      await t.sleep(200);
+      t.notEqual(t.text("#out-json-untracked"), JSON.stringify(row), "no dependency was recorded for the double-quoted id");
+      t.includes(t.text("#out-json-untracked"), '"id":"1"', "it still shows the first submission");
+    });
+
+    bcTest.defect("known defect: the result tokens of this example have no fallback, so a submission with fewer than two phone rows throws TypeError", async (t) => {
+      t.$$("#phone-holder > div")[1].remove();
+      submitRoot("3", "Mary", "Jackson", [{ code: "+7", number: "777" }]);
+      await t.waitForSource("cms.form", (s) => s.rows[0].id === "3");
+      t.deepEqual(t.rows("cms.form")[0]._root.phones, [{ code: "+7", number: "777" }]);
+      // [##cms.form._root.phones[1]?.number##] now resolves to nothing and the re-render throws
+      await t.waitForError(/Cannot read properties of null \(reading 'toString'\)/);
+    });
+  </script>
+</body>
+</html>

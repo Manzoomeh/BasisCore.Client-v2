@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>unknown-html</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- demo back end for the api example -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    let bookRequests = 0;
+    BasisCoreMock.route({
+      url: "/data/book.json",
+      method: "GET",
+      response: () => {
+        bookRequests++;
+        return [{ id: 1, title: "Learning BasisCore", fetched: bookRequests }];
+      }
+    });
+  </script>
+  <script>
+    const host = {
+      sources: {
+        "demo.list": [
+          { id: 2, name: "b", age: 31 },
+          { id: 1, name: "a", age: 45 },
+          { id: 3, name: "c", age: 27 }
+        ]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/unknown-html.md">
+  <main>
+    <h1>unknown-html</h1>
+    <p class="intro">
+      Checks <code>docs/commands/unknown-html.md</code>: any element with <code>bc-triggers</code> that is not an
+      <code>input</code>, <code>select</code> or <code>form</code> publishes <code>bc-value</code> or its own
+      <code>value</code> property on each listed event; elements without a value publish
+      <code>{ value: undefined }</code> and still fire handlers; <code>preventDefault()</code> is always called;
+      header cells rendered inside a <code>print</code> layout are bound again after every render; and the
+      documented examples (sort headers, <code>api</code> trigger, user-defined component, textarea, clickable rows).
+    </p>
+
+    <section class="case" id="case-buttons">
+      <h2>Action buttons and other tags</h2>
+      <button id="button-value" name="cms.test" bc-triggers="click" value="button.value">with button tag</button>
+      <button id="button-token" name="cms.test" bc-triggers="click" bc-value="button.bc-value = [##cms.cms.date##]">with token</button>
+      <div id="div-token" name="cms.test" bc-triggers="click" bc-value="div.bc-value = [##cms.cms.date##]" style="border: 1px solid black; display: inline; padding: 3px;">div</div>
+      <span id="span-token" name="cms.test" bc-triggers="click" bc-value="span.bc-value = [##cms.cms.date##]" style="border: 1px solid black; display: inline; padding: 3px;">span</span>
+      <br />
+      <span id="test-out">With Name : [##cms.test.value|(not set)##]</span>
+    </section>
+
+    <section class="case" id="case-sort">
+      <h2>Sortable table headers inside a <code>print</code> layout</h2>
+      <div id="sortable">
+        <basis core="print" datamembername="demo.list" run="atclient" triggers="demo.sort-by" OnProcessing="sortRows">
+          <layout>
+            <script type="text/template">
+              <table>
+                <thead>
+                  <tr>
+                    <td class="sort-id" name="demo.sort-by" bc-triggers="click" bc-value="id">Id</td>
+                    <td class="sort-name" name="demo.sort-by" bc-triggers="click" bc-value="name">Name</td>
+                    <td class="sort-age" name="demo.sort-by" bc-triggers="click" bc-value="age">Age</td>
+                  </tr>
+                </thead>
+                <tbody>@child</tbody>
+              </table>
+            </script>
+          </layout>
+          <face>
+            <script type="text/template">
+              <tr><td>@id@</td><td>@name@</td><td>@age@</td></tr>
+            </script>
+          </face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-api">
+      <h2>A button that re-runs an <code>api</code> command</h2>
+      <button id="fetch" name="events.fetch" bc-triggers="click" bc-value="null">Fetch API</button>
+      <basis core="api" url="/data/book.json" method="get" run="atclient" triggers="events.fetch"></basis>
+    </section>
+
+    <section class="case" id="case-component">
+      <h2>Refreshing a user-defined component</h2>
+      <button id="refresh" bc-value="0" bc-triggers="click" name="event.click">Click to refresh</button>
+      <div id="component-out">
+        <basis core="component.local.DemoComponent" run="atclient" triggers="event.click"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-textarea">
+      <h2><code>textarea</code></h2>
+      <textarea id="note" name="note.text" bc-triggers="keyup change" rows="4"></textarea>
+      <p id="note-out">[##note.text.value|(empty)##]</p>
+    </section>
+
+    <section class="case" id="case-rows">
+      <h2>Publishing structured data from a clickable row</h2>
+      <ul>
+        <li id="row-1" name="ui.selected" bc-triggers="click" bc-value="1" OnProcessing="selectItem">First</li>
+        <li id="row-2" name="ui.selected" bc-triggers="click" bc-value="2" OnProcessing="selectItem">Second</li>
+      </ul>
+      <p id="selected-out">Selected id [##ui.selected.id|(none)##], label [##ui.selected.label|(none)##]</p>
+    </section>
+
+    <section class="case" id="case-values">
+      <h2>Value resolution and <code>preventDefault()</code></h2>
+      <div id="div-plain" name="val.div" bc-triggers="click">div without bc-value</div>
+      <span id="div-plain-out">[##val.div.value|(nothing)##]</span>
+      <button id="btn-plain" name="val.btnplain" bc-triggers="click">caption only</button>
+      <button id="btn-value" name="val.btn" bc-triggers="click" value="attribute">caption</button>
+      <button id="btn-noname" bc-triggers="click" value="shared">no name</button>
+      <a id="link" href="#went" name="val.link" bc-triggers="click" bc-value="link">link</a>
+      <form id="host-form">
+        <button id="in-form" type="submit" name="val.inform" bc-triggers="click" bc-value="pressed">submit button with bc-triggers</button>
+      </form>
+      <basis id="basis-unknown" core="unknown-html" run="atclient" bc-triggers="click" name="odd.basis">basis element</basis>
+      <basis core="callback" run="atclient" triggers="val.div" method="divHandler"></basis>
+    </section>
+  </main>
+
+  <script>
+    function sortRows(args) {
+      const col = args.context.tryToGetSource("demo.sort-by")?.rows[0].value ?? "id";
+      args.source.rows.sort((a, b) => (a[col] > b[col] ? 1 : a[col] < b[col] ? -1 : 0));
+    }
+
+    class DemoComponent {
+      constructor(owner) {
+        this.owner = owner;
+        this.runs = 0;
+      }
+      async initializeAsync() {
+        console.log("initializeAsync");
+      }
+      async runAsync(source) {
+        this.runs++;
+        const node = this.owner.toNode(`<div class="demo">run ${this.runs}, source: ${source ? source.id : "none"}</div>`);
+        this.owner.setContent(node);
+      }
+    }
+
+    function selectItem(args) {
+      args.value = { id: Number(args.value), label: args.node.textContent };
+    }
+
+    window.divHandlerCalls = [];
+    function divHandler(args) {
+      divHandlerCalls.push(args.source.rows[0]);
+    }
+  </script>
+
+  <script>
+    bcTest.test("nothing is published at page load; the api command fetched once", async (t) => {
+      await t.waitForSource("cms.api");
+      t.equal(t.source("cms.test"), undefined);
+      t.equal(t.text("#test-out"), "With Name : not set");
+      t.equal(bookRequests, 1);
+    });
+
+    bcTest.test("example: button, div and span publish bc-value (with tokens resolved on every click) or the value attribute", async (t) => {
+      t.click("#button-value");
+      await t.waitForText("#test-out", "With Name : button.value");
+      t.deepEqual(t.rows("cms.test"), [{ value: "button.value" }], "<button> publishes its value attribute, not its caption");
+      t.click("#button-token");
+      await t.waitForText("#test-out", /^With Name : button\.bc-value = \d{4}\/\d{2}\/\d{2}$/);
+      t.click("#div-token");
+      await t.waitForText("#test-out", /^With Name : div\.bc-value = \d{4}\/\d{2}\/\d{2}$/);
+      t.click("#span-token");
+      await t.waitForText("#test-out", /^With Name : span\.bc-value = \d{4}\/\d{2}\/\d{2}$/);
+    });
+
+    bcTest.test("example: header cells rendered by the print layout are bound after every render and sort the rows through OnProcessing", async (t) => {
+      const ids = () => t.$$("#sortable tbody tr td:first-child").map((td) => t.text(td));
+      await t.waitFor(ids, (l) => l.join() === "1,2,3");
+      const ageHeader = t.$("#sortable td.sort-age");
+      t.equal(ageHeader.getAttribute("data-bc-init"), "", "the rendered header cell was wired");
+      t.click(ageHeader);
+      await t.waitFor(ids, (l) => l.join() === "3,2,1");
+      t.deepEqual(t.rows("demo.sort-by"), [{ value: "age" }]);
+
+      const nameHeader = t.$("#sortable td.sort-name");
+      t.ok(nameHeader !== null && nameHeader.getAttribute("data-bc-init") === "", "the re-rendered header is wired again");
+      t.click(nameHeader);
+      await t.waitFor(ids, (l) => l.join() === "1,2,3");
+      t.deepEqual(t.rows("demo.sort-by"), [{ value: "name" }]);
+    });
+
+    bcTest.test("example: a button publishes the string \"null\" and the api command listing it in triggers fetches again", async (t) => {
+      t.equal(t.rows("cms.api")[0].fetched, 1);
+      t.click("#fetch");
+      await t.waitForSource("events.fetch");
+      t.deepEqual(t.rows("events.fetch"), [{ value: "null" }], "the value is a string");
+      await t.waitForSource("cms.api", (s) => s.rows[0].fetched === 2);
+      t.equal(bookRequests, 2);
+      t.equal(BasisCoreMock.state().log.filter((e) => e.url === "/data/book.json").length, 2);
+    });
+
+    bcTest.test("example: a button re-runs a user-defined component listed in triggers; runAsync receives the source", async (t) => {
+      await t.waitForText("#component-out", "run 1, source: none");
+      t.click("#refresh");
+      await t.waitForText("#component-out", "run 2, source: event.click");
+      t.deepEqual(t.rows("event.click"), [{ value: "0" }]);
+    });
+
+    bcTest.test("example: a textarea publishes its text on keyup and change", async (t) => {
+      t.setValue("#note", "a note", ["keyup"]);
+      await t.waitForText("#note-out", "a note");
+      t.deepEqual(t.rows("note.text"), [{ value: "a note" }]);
+      t.setValue("#note", "changed", ["change"]);
+      await t.waitForText("#note-out", "changed");
+    });
+
+    bcTest.test("example: OnProcessing turns bc-value and the node into a structured row", async (t) => {
+      t.click("#row-2");
+      await t.waitForText("#selected-out", "Selected id 2, label Second");
+      t.deepEqual(t.rows("ui.selected"), [{ id: 2, label: "Second" }]);
+      t.click("#row-1");
+      await t.waitForText("#selected-out", "Selected id 1, label First");
+    });
+
+    bcTest.test("a div without bc-value publishes { value: undefined }: handlers fire but the token shows its default", async (t) => {
+      t.click("#div-plain");
+      const src = await t.waitForSource("val.div");
+      t.equal(src.rows.length, 1);
+      t.ok("value" in src.rows[0] && src.rows[0].value === undefined);
+      await t.waitFor(() => divHandlerCalls, (c) => c.length === 1);
+      t.equal(t.text("#div-plain-out"), "nothing");
+    });
+
+    bcTest.test("<button> publishes \"\" without value or bc-value, and its value attribute (not the caption) when present", async (t) => {
+      t.click("#btn-plain");
+      const plain = await t.waitForSource("val.btnplain");
+      t.deepEqual(plain.rows, [{ value: "" }]);
+      t.click("#btn-value");
+      const withValue = await t.waitForSource("val.btn");
+      t.deepEqual(withValue.rows, [{ value: "attribute" }]);
+    });
+
+    bcTest.test("an element without bc-name/name publishes to the shared cms.unknown source", async (t) => {
+      t.click("#btn-noname");
+      const src = await t.waitForSource("cms.unknown");
+      t.deepEqual(src.rows, [{ value: "shared" }]);
+    });
+
+    bcTest.test("preventDefault(): a link does not navigate and a submit button with bc-triggers=\"click\" does not submit its form", async (t) => {
+      let submitted = 0;
+      t.$("#host-form").addEventListener("submit", (e) => {
+        submitted++;
+        e.preventDefault();
+      });
+      t.click("#link");
+      await t.waitForSource("val.link", (s) => s.rows[0].value === "link");
+      t.equal(location.hash, "");
+      t.click("#in-form");
+      await t.waitForSource("val.inform", (s) => s.rows[0].value === "pressed");
+      await t.sleep(100);
+      t.equal(submitted, 0);
+    });
+
+    bcTest.test("pitfall: <basis core=\"unknown-html\" run=\"atclient\"> receives the <basis> element and publishes undefined", async (t) => {
+      const el = t.$("#basis-unknown");
+      t.equal(el.getAttribute("data-bc-init"), "");
+      t.click(el);
+      const src = await t.waitForSource("odd.basis");
+      t.ok("value" in src.rows[0] && src.rows[0].value === undefined);
+    });
+  </script>
+</body>
+</html>

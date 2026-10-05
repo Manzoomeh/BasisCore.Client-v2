@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>service worker and push - subscription</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // the server endpoint that receives the subscription form data
+    BasisCoreMock.route({ url: "/api/push/subscribe", method: "POST", response: () => ({ ok: true }) });
+  </script>
+  <script>
+    // Test instrumentation, installed before the library. A headless browser has no push service and
+    // cannot show the permission prompt, so three browser objects are scripted:
+    // - Notification.permission starts as "default" and Notification.requestPermission resolves "granted";
+    // - the registration returned by navigator.serviceWorker.register gets a fake pushManager whose
+    //   getSubscription() finds nothing and whose subscribe() returns a subscription with known keys;
+    // - fetch is wrapped to record the request the library sends to host.push.url (the mock answers it).
+    window.__alerts = [];
+    window.alert = function (message) {
+      window.__alerts.push(String(message));
+    };
+    window.__forcedPermission = "default";
+    window.__requestCalls = 0;
+    (function () {
+      const realGetter = Object.getOwnPropertyDescriptor(Notification, "permission").get;
+      Object.defineProperty(Notification, "permission", {
+        configurable: true,
+        get: function () {
+          return window.__forcedPermission ?? realGetter.call(Notification);
+        }
+      });
+      Notification.requestPermission = function () {
+        window.__requestCalls++;
+        window.__forcedPermission = "granted";
+        return Promise.resolve("granted");
+      };
+    })();
+
+    window.__pushManager = {
+      getSubscriptionCalls: 0,
+      subscribeCalls: [],
+      getSubscription() {
+        this.getSubscriptionCalls++;
+        return Promise.resolve(null);
+      },
+      subscribe(options) {
+        this.subscribeCalls.push(options);
+        return Promise.resolve(window.__fakeSubscription);
+      }
+    };
+    window.__fakeSubscription = {
+      endpoint: "https://push.example.test/send/abc123",
+      getKey(name) {
+        if (name === "p256dh") return new Uint8Array([4, 1, 2, 3, 250, 251, 252]).buffer;
+        if (name === "auth") return new Uint8Array([9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 255, 254, 253, 252, 251, 250]).buffer;
+        return null;
+      }
+    };
+    (function () {
+      const realRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+      navigator.serviceWorker.register = function (path, options) {
+        return realRegister(path, options).then((reg) => Object.create(reg, { pushManager: { value: window.__pushManager } }));
+      };
+      const mockedFetch = window.fetch;
+      window.__pushPosts = [];
+      window.fetch = function (input, init) {
+        if (String(input) === "/api/push/subscribe") {
+          window.__pushPosts.push({ url: String(input), init: init });
+        }
+        return mockedFetch.apply(this, arguments);
+      };
+    })();
+  </script>
+  <script>
+    var host = {
+      serviceWorker: "/tests/fixtures/service-worker-and-push/sw.js",
+      push: {
+        applicationServerKey: "BDeRNwAPgVtNfsvZrRrAkm-O4-P36gSDLxDx25gQ-hoXjpdg3MQ8E3_kzZQSEH58ugL5F5Pi-3nKFvtys8R4eys",
+        url: "/api/push/subscribe",
+        params: { client: "qam-1", userId: 42 },
+        permissionDlg: function (show) {
+          document.getElementById("push-dlg").hidden = !show;
+        },
+        permissionSubmit: "#push-ok"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/service-worker-and-push.md">
+  <main>
+    <h1>service worker and push - subscription</h1>
+    <p class="intro">
+      Checks the "Explicit worker path and a function dialog" example and the subscription steps of
+      <code>docs/service-worker-and-push.md</code>: <code>permissionDlg</code> as a function, a granted
+      permission after the click, <code>pushManager.subscribe</code> with <code>userVisibleOnly</code> and the
+      decoded VAPID key, and the <code>POST</code> of <code>params</code>, <code>endpoint</code>,
+      <code>p256dh</code> and <code>auth</code> as form data.
+    </p>
+
+    <section class="case" id="case-subscribe">
+      <h2>Function dialog, granted permission, subscription posted to <code>url</code></h2>
+      <div id="push-dlg" hidden>
+        <p>Receive live updates on this device?</p>
+        <button id="push-ok">Yes</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const EXPECTED_P256DH = "BAECA/r7/A==";
+    const EXPECTED_AUTH = "CQgHBgUEAwIBAP/+/fz7+g==";
+
+    bcTest.test("a function permissionDlg is called with true while permission is 'default'", async (t) => {
+      await t.waitForConsole(/^Service worker from '\/tests\/fixtures\/service-worker-and-push\/sw\.js' register successfully!$/);
+      await t.waitFor(() => t.$("#push-dlg").hidden, (h) => h === false, { message: "permissionDlg(true) was never called" });
+      t.equal(window.__requestCalls, 0);
+      t.equal(window.__pushManager.getSubscriptionCalls, 0, "the push manager is not touched before permission is granted");
+    });
+
+    bcTest.test("after the click the dialog is hidden with permissionDlg(false) and a granted permission starts the subscription", async (t) => {
+      t.click("#push-ok");
+      t.equal(t.$("#push-dlg").hidden, true, "permissionDlg(false) ran before the permission request");
+      await t.waitFor(() => window.__pushManager.subscribeCalls, (c) => c.length === 1);
+      t.equal(window.__requestCalls, 1);
+      t.equal(window.__pushManager.getSubscriptionCalls, 1, "getSubscription() ran first and found nothing");
+      const options = window.__pushManager.subscribeCalls[0];
+      t.equal(options.userVisibleOnly, true);
+      t.ok(options.applicationServerKey instanceof Uint8Array, "the key is handed over as a Uint8Array");
+      t.equal(options.applicationServerKey.length, 65, "an 87-character base64url key decodes to 65 bytes");
+      t.deepEqual(Array.from(options.applicationServerKey.slice(0, 6)), [4, 55, 145, 55, 0, 15]);
+      t.deepEqual(Array.from(options.applicationServerKey.slice(-4)), [196, 120, 123, 43], "- and _ were mapped to + and / before decoding");
+    });
+
+    bcTest.test("the subscription is posted as multipart form data: params first, then endpoint, p256dh and auth in standard base64", async (t) => {
+      await t.waitFor(() => window.__pushPosts, (p) => p.length === 1);
+      const post = window.__pushPosts[0];
+      t.equal(post.url, "/api/push/subscribe");
+      t.equal(post.init.method, "POST");
+      t.equal(post.init.mode, "cors");
+      t.equal(post.init.cache, "no-cache");
+      t.ok(post.init.body instanceof FormData, "the body is a FormData, so the browser sends multipart/form-data");
+      t.equal(post.init.headers, undefined, "no Content-Type header is set by the library");
+      const fields = Array.from(post.init.body.entries());
+      t.deepEqual(fields, [
+        ["client", "qam-1"],
+        ["userId", "42"],
+        ["endpoint", "https://push.example.test/send/abc123"],
+        ["p256dh", EXPECTED_P256DH],
+        ["auth", EXPECTED_AUTH]
+      ]);
+      t.includes(EXPECTED_P256DH, "/", "keys use standard base64 (btoa), not base64url");
+    });
+
+    bcTest.test("a 2xx answer logs 'Push api is activated...' together with the response text and alerts nothing", async (t) => {
+      const lines = await t.waitForConsole(/^Push api is activated\. Subscription data send for server successfully!/);
+      t.equal(lines[0].text, 'Push api is activated. Subscription data send for server successfully! {"ok":true}');
+      const hit = BasisCoreMock.state().log.find((e) => /\/api\/push\/subscribe/.test(e.url));
+      t.ok(hit, "the mock back end saw the POST");
+      t.equal(hit.method, "POST");
+      t.equal(hit.status, 200);
+      t.deepEqual(window.__alerts, []);
+      t.equal(t.errors().length, 0);
+    });
+
+    bcTest.test("the worker is unregistered at the end so repeated runs start clean", async (t) => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      t.equal(regs.length, 1);
+      t.equal(await regs[0].unregister(), true);
+    });
+
+    bcTest.skip("a real push service issues the subscription", "headless browsers have no push service; pushManager is scripted on this page");
+  </script>
+</body>
+</html>

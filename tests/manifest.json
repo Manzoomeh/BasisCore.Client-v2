@@ -1,0 +1,109 @@
+{
+  "tests": [
+    {
+      "file": "foundations/getting-started.html",
+      "doc": "docs/getting-started.md",
+      "title": "getting started"
+    },
+    {
+      "file": "foundations/getting-started-autorender.html",
+      "doc": "docs/getting-started.md",
+      "title": "getting started - autoRender false"
+    },
+    {
+      "file": "commands/print.html",
+      "doc": "docs/commands/print.md",
+      "title": "print"
+    },
+    {
+      "file": "foundations/service-worker-and-push.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push"
+    },
+    {
+      "file": "foundations/service-worker-and-push-default.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - default worker path"
+    },
+    {
+      "file": "foundations/service-worker-and-push-denied.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - permission denied"
+    },
+    {
+      "file": "foundations/service-worker-and-push-dialog.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - permission dialog"
+    },
+    {
+      "file": "foundations/service-worker-and-push-subscribe.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - subscription"
+    },
+    {
+      "file": "foundations/service-worker-and-push-repost.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - existing subscription"
+    },
+    {
+      "file": "foundations/html-element-binding.html",
+      "doc": "docs/html-element-binding.md",
+      "title": "html element binding"
+    },
+    {
+      "file": "commands/input.html",
+      "doc": "docs/commands/input.md",
+      "title": "input"
+    },
+    {
+      "file": "commands/select.html",
+      "doc": "docs/commands/select.md",
+      "title": "select"
+    },
+    {
+      "file": "commands/form.html",
+      "doc": "docs/commands/form.md",
+      "title": "form"
+    },
+    {
+      "file": "commands/form-codeblock.html",
+      "doc": "docs/commands/form.md",
+      "title": "form - code block result"
+    },
+    {
+      "file": "commands/unknown-html.html",
+      "doc": "docs/commands/unknown-html.md",
+      "title": "unknown-html"
+    },
+    {
+      "file": "commands/schemalist.html",
+      "doc": "docs/commands/schemalist.md",
+      "title": "schemalist"
+    },
+    {
+      "file": "commands/schemauploader.html",
+      "doc": "docs/commands/schemauploader.md",
+      "title": "schemauploader"
+    },
+    {
+      "file": "schema/lookup-and-autocomplete.html",
+      "doc": "docs/schema/lookup-and-autocomplete.md",
+      "title": "schema search controls"
+    },
+    {
+      "file": "schema/file-upload.html",
+      "doc": "docs/schema/file-upload.md",
+      "title": "schema file fields"
+    },
+    {
+      "file": "schema/html-field-and-dialogs.html",
+      "doc": "docs/schema/html-field-and-dialogs.md",
+      "title": "schema html field and dialogs"
+    },
+    {
+      "file": "schema/answers-and-submission.html",
+      "doc": "docs/schema/answers-and-submission.md",
+      "title": "schema answers and submission"
+    }
+  ]
+}

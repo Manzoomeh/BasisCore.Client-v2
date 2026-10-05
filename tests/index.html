@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BasisCore Client - functional tests</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <style>
+    .toolbar { display: flex; gap: 12px; align-items: center; margin: 16px 0; flex-wrap: wrap; }
+    button { border: 0; border-radius: 8px; background: #1e3a8a; color: #fff; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+    button[disabled] { opacity: .5; cursor: default; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eef2f8; vertical-align: top; font-size: 14px; }
+    th { background: #f1f5f9; }
+    tr.group td { background: #f8fafc; font-weight: 700; color: #1e3a8a; }
+    td.status { white-space: nowrap; width: 110px; }
+    pre { margin: 4px 0 0; font-size: 12px; white-space: pre-wrap; color: #b91c1c; }
+    #frame { width: 100%; height: 420px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; margin-top: 16px; }
+    .hidden { display: none; }
+    .summary { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>BasisCore Client - functional tests</h1>
+    <p class="intro">
+      One page per documentation page. Open a page to read it and watch it run, or press
+      <strong>Run all</strong> to execute every page in a frame and collect the results here.
+      The same pages are run headless by <code>npm test</code> (<code>node tests/run.js</code>).
+    </p>
+
+    <div class="toolbar">
+      <button id="run-all">Run all</button>
+      <button id="run-failed" disabled>Re-run failures</button>
+      <label><input type="checkbox" id="show-frame" checked /> show the running page</label>
+      <span class="summary" id="summary"></span>
+    </div>
+
+    <table id="results">
+      <thead>
+        <tr><th>Test page</th><th>Documentation</th><th>Status</th><th>Details</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <iframe id="frame" title="running test page"></iframe>
+  </main>
+
+  <script>
+    (async function () {
+      const manifest = await (await fetch("/tests/manifest.json", { cache: "no-store" })).json();
+      const tbody = document.querySelector("#results tbody");
+      const frame = document.getElementById("frame");
+      const summary = document.getElementById("summary");
+      const rows = new Map();
+      let lastGroup = null;
+
+      for (const entry of manifest.tests) {
+        const group = entry.file.split("/")[0];
+        if (group !== lastGroup) {
+          const g = document.createElement("tr");
+          g.className = "group";
+          g.innerHTML = "<td colspan=\"4\">" + group + "</td>";
+          tbody.appendChild(g);
+          lastGroup = group;
+        }
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td><a href=\"/tests/" + entry.file + "\" target=\"_blank\">" + (entry.title || entry.file) + "</a><br /><small>" + entry.file + "</small></td>" +
+          "<td>" + (entry.doc ? "<a href=\"/" + entry.doc + "\" target=\"_blank\">" + entry.doc + "</a>" : "") + "</td>" +
+          "<td class=\"status\">-</td><td class=\"details\"></td>";
+        tbody.appendChild(tr);
+        rows.set(entry.file, { entry, tr });
+      }
+
+      let pending = null;
+      window.addEventListener("message", (ev) => {
+        if (!ev.data || ev.data.type !== "bc-test-result" || !pending) return;
+        pending.resolve(ev.data.result);
+      });
+
+      function runOne(entry) {
+        return new Promise((resolve) => {
+          const timer = setTimeout(() => resolve({ ok: false, status: "timeout", counts: {}, tests: [], uncaughtErrors: ["no result after 30 s"] }), 30000);
+          pending = { resolve: (r) => { clearTimeout(timer); pending = null; resolve(r); } };
+          frame.src = "/tests/" + entry.file + "?t=" + Date.now();
+        });
+      }
+
+      function show(file, result) {
+        const { tr } = rows.get(file);
+        const c = result.counts || {};
+        tr.querySelector(".status").innerHTML =
+          "<span class=\"bc-test-badge\" style=\"background:" + (result.ok ? "#16a34a" : "#dc2626") + "\">" + (result.ok ? "PASS" : "FAIL") + "</span>";
+        let details = (c.passed || 0) + " passed, " + (c.failed || 0) + " failed, " + (c.defect || 0) + " known defect(s), " + (c.skipped || 0) + " skipped";
+        const bad = (result.tests || []).filter((t) => t.status === "failed" || t.status === "fixed");
+        if (bad.length) details += "<pre>" + bad.map((t) => t.name + ": " + t.error).join("\n").replace(/</g, "&lt;") + "</pre>";
+        if (result.uncaughtErrors && result.uncaughtErrors.length) details += "<pre>uncaught: " + result.uncaughtErrors.join(" | ").replace(/</g, "&lt;") + "</pre>";
+        tr.querySelector(".details").innerHTML = details;
+        tr.dataset.ok = result.ok ? "1" : "0";
+      }
+
+      async function runList(list) {
+        document.getElementById("run-all").disabled = true;
+        document.getElementById("run-failed").disabled = true;
+        frame.classList.toggle("hidden", !document.getElementById("show-frame").checked);
+        let ok = 0;
+        for (let i = 0; i < list.length; i++) {
+          summary.textContent = "running " + (i + 1) + "/" + list.length + ": " + list[i].file;
+          const result = await runOne(list[i]);
+          show(list[i].file, result);
+          if (result.ok) ok++;
+        }
+        frame.src = "about:blank";
+        summary.textContent = ok + "/" + list.length + " pages ok";
+        document.getElementById("run-all").disabled = false;
+        document.getElementById("run-failed").disabled = ok === list.length;
+      }
+
+      document.getElementById("run-all").addEventListener("click", () => runList(manifest.tests));
+      document.getElementById("run-failed").addEventListener("click", () =>
+        runList(manifest.tests.filter((e) => rows.get(e.file).tr.dataset.ok === "0"))
+      );
+    })();
+  </script>
+</body>
+</html>

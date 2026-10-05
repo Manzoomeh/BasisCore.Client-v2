@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema field types</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // --- question schemas (docs/schema/schema-json-contract.md) -------------------------------
+    const part = (part, viewType, extra) => Object.assign({ part, viewType }, extra || {});
+    const q = (prpId, title, parts, extra) => Object.assign({ prpId, title, parts }, extra || {});
+    const units = [{ id: 0, value: "none" }, { id: 1, value: "kW" }, { id: 2, value: "HP" }];
+    const volts = [{ id: 4, value: "110" }, { id: 5, value: "220" }, { id: 6, value: "R1", selected: true }];
+    const phases = [{ id: 0, value: "none" }, { id: 1, value: "single" }, { id: 2, value: "three" }];
+
+    const schemas = {
+      // every editable control, new mode
+      "/types": {
+        schemaId: "types", schemaVersion: 1, paramUrl: "/types", lid: 2,
+        questions: [
+          q(1, "Text", [part(1, "text", { placeHolder: "type a name" })]),
+          q(2, "Textarea", [part(1, "textarea", { placeHolder: "more text" })]),
+          q(3, "Password", [part(1, "password")]),
+          q(4, "Time", [part(1, "time")]),
+          q(5, "Color", [part(1, "color")]),
+          q(6, "Select", [part(1, "select", { fixValues: units })]),
+          q(7, "Checklist", [part(1, "checklist", { fixValues: volts })]),
+          q(8, "Radio", [part(1, "radio", { fixValues: phases })]),
+          q(9, "Html", [part(1, "html", { link: "/tests/fixtures/field-types/html-field.html", validations: { required: true } })]),
+          q(10, "Upload", [part(1, "upload", { multiple: true })]),
+          q(11, "Blob", [part(1, "blob", { uploadToken: "tok-1" })]),
+          q(12, "Rating", [part(1, "component.local.RatingField", { options: { max: 10 } })]),
+          q(13, "Autocomplete", [part(1, "autocomplete", { link: "/types/autocomplete?term=${term}" })]),
+          q(14, "Autocomplete multi", [part(1, "autocomplete", { link: "/types/autocomplete?term=${term}" })], { multi: true }),
+          q(15, "Simple autocomplete", [part(1, "simpleautocomplete", { link: "/types/autocomplete?term=${term}" })]),
+          q(16, "Reference", [part(1, "reference", { link: "/types/autocomplete?term=${term}" })]),
+          q(17, "Simple reference", [part(1, "simplereference", { link: "/types/autocomplete?term=${term}" })]),
+          q(18, "Lookup", [part(1, "lookup", { link: "/types/lookup?term=${term}" })])
+        ]
+      },
+      // an unknown viewType blocks the submission of the whole form
+      "/unknown": {
+        schemaId: "unknown", schemaVersion: 1, paramUrl: "/unknown", lid: 2,
+        questions: [q(1, "Text", [part(1, "text")]), q(2, "Fancy", [part(1, "fancy")])]
+      },
+      // a select without an id 0 item and a radio whose selected item has id 0
+      "/noZero": {
+        schemaId: "noZero", schemaVersion: 1, paramUrl: "/noZero", lid: 2,
+        questions: [
+          q(1, "Select", [part(1, "select", { fixValues: [{ id: 1, value: "kW" }, { id: 2, value: "HP" }] })]),
+          q(2, "Radio", [part(1, "radio", { fixValues: [{ id: 0, value: "none", selected: true }, { id: 1, value: "a" }] })])
+        ]
+      },
+      // disabled, readonly and component validation
+      "/flags": {
+        schemaId: "flags", schemaVersion: 1, paramUrl: "/flags", lid: 2,
+        questions: [
+          q(1, "Disabled question", [part(1, "checklist", { fixValues: volts }), part(2, "text")], { disabled: true, multi: true }),
+          q(2, "Readonly parts", [part(1, "checklist", { fixValues: volts, readonly: true }), part(2, "text", { readonly: true }), part(3, "select", { fixValues: units, readonly: true })]),
+          q(3, "Required rating", [part(1, "component.local.RatingField", { validations: { required: true, min: 2 } })])
+        ]
+      },
+      // radio under the template2 skin
+      "/t2radio": {
+        schemaId: "t2", schemaVersion: 1, paramUrl: "/t2radio", lid: 2,
+        questions: [
+          q(1, "Optional", [part(1, "radio", { fixValues: [{ id: 0, value: "none" }, { id: 1, value: "a" }, { id: 2, value: "b", selected: true }] })]),
+          q(2, "Required", [part(1, "radio", { fixValues: [{ id: 1, value: "a" }, { id: 2, value: "b" }], validations: { required: true } })])
+        ]
+      },
+      // change tracking per control, edit mode
+      "/edit": {
+        schemaId: "edit", schemaVersion: 1, paramUrl: "/edit", lid: 2,
+        questions: [
+          q(1, "Pair", [part(1, "text", { caption: "First" }), part(2, "text", { caption: "Second" })]),
+          q(2, "Select", [part(1, "select", { fixValues: units })]),
+          q(3, "Checklist", [part(1, "checklist", { fixValues: volts })]),
+          q(4, "Radio", [part(1, "radio", { fixValues: phases })]),
+          q(5, "Files", [part(1, "upload", { multiple: true })]),
+          q(6, "Rating", [part(1, "component.local.RatingField")]),
+          q(7, "Single", [part(1, "text")])
+        ]
+      },
+      // read-only controls, view mode
+      "/view": {
+        schemaId: "view", schemaVersion: 1, paramUrl: "/view", lid: 2,
+        questions: [
+          q(1, "Text", [part(1, "text")]),
+          q(2, "Textarea", [part(1, "textarea")]),
+          q(3, "Password", [part(1, "password")]),
+          q(4, "Time", [part(1, "time")]),
+          q(5, "Color", [part(1, "color")]),
+          q(6, "Select", [part(1, "select", { fixValues: units })]),
+          q(7, "Checklist", [part(1, "checklist", { fixValues: volts })]),
+          q(8, "Radio", [part(1, "radio", { fixValues: phases })]),
+          q(9, "Html", [part(1, "html", { link: "/tests/fixtures/field-types/html-field.html" })]),
+          q(10, "Upload", [part(1, "upload", { multiple: true })]),
+          q(11, "Timepicker", [part(1, "component.bc.timepicker")]),
+          q(12, "Datepicker", [part(1, "component.calendar.datepicker")]),
+          q(13, "Rating", [part(1, "component.local.RatingField")]),
+          q(14, "Fancy", [part(1, "fancy")]),
+          q(15, "Autocomplete", [part(1, "autocomplete", { link: "/types/autocomplete?term=${term}" })]),
+          q(16, "Lookup", [part(1, "lookup", { link: "/types/lookup?term=${term}" })]),
+          q(17, "Not answered", [part(1, "text")])
+        ]
+      },
+      "/datepicker": {
+        schemaId: "dp", schemaVersion: 1, paramUrl: "/datepicker", lid: 2,
+        questions: [q(1, "Datepicker", [part(1, "component.calendar.datepicker")]), q(2, "After", [part(1, "text")])]
+      }
+    };
+
+    const row = (id, parts) => ({ id, parts });
+    const vals = (partNo, values) => ({ part: partNo, values });
+    const answerEdit = {
+      usedForId: 9, schemaId: "edit", paramUrl: "/edit", schemaVersion: 1, lid: 2,
+      properties: [
+        { prpId: 1, answers: [row(1, [vals(1, [{ id: 11, value: "a" }]), vals(2, [{ id: 12, value: "b" }])])] },
+        { prpId: 2, answers: [row(2, [vals(1, [{ id: 21, value: 1 }])])] },
+        { prpId: 3, answers: [row(3, [vals(1, [{ id: 31, value: 5 }, { id: 32, value: 6 }])])] },
+        { prpId: 4, answers: [row(4, [vals(1, [{ id: 41, value: 1 }])])] },
+        { prpId: 5, answers: [row(5, [vals(1, [
+          { id: 51, value: { name: "readme.txt", url: "files/readme.txt", type: "text/plain" } },
+          { id: 52, value: { name: "sample.jpg", image: "files/sample.jpg", url: "files/sample.jpg", type: "image/jpg" } }
+        ])])] },
+        { prpId: 6, answers: [row(6, [vals(1, [{ id: 61, value: 3 }])])] },
+        { prpId: 7, answers: [row(7, [vals(1, [{ id: 71, value: "x" }])])] }
+      ]
+    };
+    const answerView = {
+      usedForId: 10, schemaId: "view", paramUrl: "/view", schemaVersion: 1, lid: 2,
+      properties: [
+        { prpId: 1, answers: [row(1, [vals(1, [{ id: 11, value: "Hello" }])])] },
+        { prpId: 2, answers: [row(2, [vals(1, [{ id: 21, value: "Line" }])])] },
+        { prpId: 3, answers: [row(3, [vals(1, [{ id: 31, value: "pw" }])])] },
+        { prpId: 4, answers: [row(4, [vals(1, [{ id: 41, value: "10:30" }])])] },
+        { prpId: 5, answers: [row(5, [vals(1, [{ id: 51, value: "#00ff00" }])])] },
+        { prpId: 6, answers: [row(6, [vals(1, [{ id: 61, value: 2 }])])] },
+        { prpId: 7, answers: [row(7, [vals(1, [{ id: 71, value: 5 }, { id: 72, value: 6 }])])] },
+        { prpId: 8, answers: [row(8, [vals(1, [{ id: 81, value: 1 }])])] },
+        { prpId: 9, answers: [row(9, [vals(1, [{ id: 91, value: { a: 1 } }])])] },
+        { prpId: 10, answers: [row(10, [vals(1, [{ id: 101, value: { name: "readme.txt", url: "files/readme.txt", type: "text/plain" } }])])] },
+        { prpId: 11, answers: [row(11, [vals(1, [{ id: 111, value: { time: "02:00", timeid: 120 } }])])] },
+        { prpId: 12, answers: [row(12, [vals(1, [{ id: 121, value: { sstring: "1403/01/01" } }])])] },
+        { prpId: 13, answers: [row(13, [vals(1, [{ id: 131, value: 4 }])])] },
+        { prpId: 14, answers: [row(14, [vals(1, [{ id: 141, value: "raw" }])])] },
+        { prpId: 15, answers: [row(15, [vals(1, [{ id: 151, value: 77 }])])] },
+        { prpId: 16, answers: [row(16, [vals(1, [{ id: 161, value: 78 }])])] }
+      ]
+    };
+    // a datepicker part whose answer row has no value for the part
+    const answerDatepicker = {
+      usedForId: 11, schemaId: "dp", paramUrl: "/datepicker", schemaVersion: 1, lid: 2,
+      properties: [{ prpId: 1, answers: [row(1, [])] }, { prpId: 2, answers: [row(2, [vals(1, [{ id: 21, value: "never rendered" }])])] }]
+    };
+
+    const items = { 77: { id: 77, value: "Iran" }, 78: { id: 78, value: "Tehran" } };
+    BasisCoreMock.route({ url: "/types/autocomplete", method: "GET", response: (ctx) => (ctx.query.fixid ? items[ctx.query.fixid] : Object.values(items)) });
+    BasisCoreMock.route({ url: "/types/lookup", method: "GET", response: (ctx) => (ctx.query.fixid ? items[ctx.query.fixid] : Object.values(items)) });
+  </script>
+  <script>
+    const host = {
+      sources: {
+        "types.edit": [answerEdit],
+        "types.view": [answerView],
+        "types.datepicker": [answerDatepicker]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/field-types.md">
+  <main>
+    <h1>schema field types</h1>
+    <p class="intro">
+      Checks <code>docs/schema/field-types.md</code>: the control generated for every
+      <code>viewType</code> in <code>new</code>, <code>edit</code> and <code>view</code> mode, the
+      part fields each control reads, the value each one produces, user-defined
+      <code>component.*</code> parts and the unknown-type placeholder.
+    </p>
+
+    <section class="case" id="case-types">
+      <h2>Every editable control (new mode)</h2>
+      <button data-btn-types>Save</button>
+      <div id="types-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/types" displayMode="new"
+               button="[data-btn-types]" resultSourceId="types.result" errorResultSourceId="types.error" direction="ltr"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-unknown">
+      <h2>Unknown viewType</h2>
+      <button data-btn-unknown>Save</button>
+      <div id="unknown-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/unknown"
+               button="[data-btn-unknown]" resultSourceId="unknown.result" errorResultSourceId="unknown.error"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-nozero">
+      <h2>Lists without an id 0 item</h2>
+      <button data-btn-nozero>Save</button>
+      <div id="nozero-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/noZero"
+               button="[data-btn-nozero]" resultSourceId="nozero.result"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-flags">
+      <h2>disabled, readonly and component validation</h2>
+      <button data-btn-flags>Save</button>
+      <div id="flags-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/flags"
+               button="[data-btn-flags]" resultSourceId="flags.result" errorResultSourceId="flags.error"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-t2radio">
+      <h2>radio under skin="template2"</h2>
+      <div id="t2radio-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/t2radio" skin="template2" direction="rtl"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Change tracking per control (edit mode)</h2>
+      <button data-btn-edit>Save</button>
+      <div id="edit-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" datamembername="types.edit" displayMode="edit"
+               button="[data-btn-edit]" resultSourceId="edit.result" filesPath="site/"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-view">
+      <h2>Read-only controls (view mode)</h2>
+      <div id="view-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" datamembername="types.view" displayMode="view"
+               filesPath="site/" callback="onReadOnlyValue"></basis>
+      </div>
+      <div id="datepicker-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" datamembername="types.datepicker" displayMode="view"></basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function loadSchema(context, paramUrl) {
+      return schemas[paramUrl];
+    }
+
+    const readOnlyCallbacks = [];
+    function onReadOnlyValue(params) {
+      readOnlyCallbacks.push(params);
+    }
+
+    // Schema field component (docs/user-defined-components.md, "Minimal schema field")
+    class RatingField {
+      constructor(owner) {
+        this.owner = owner;
+        this.value = null;
+      }
+      async initializeAsync() {
+        // the options attribute holds the name of a global created with $bc.util.storeAsGlobal
+        const optionsName = await this.owner.getAttributeValueAsync("options");
+        this.options = (optionsName && window[optionsName]) || { max: 5 };
+        const node = this.owner.toHTMLElement(`<input type="number" min="0" max="${this.options.max}" data-rating="" />`);
+        node.addEventListener("change", () => (this.value = node.valueAsNumber));
+        this.input = node;
+        this.owner.setContent(node);
+      }
+      setValues(values) {
+        this.id = values[0]?.id;
+        this.value = values[0]?.value ?? null;
+        this.input.value = this.value ?? "";
+      }
+      async getValuesForValidateAsync() {
+        return this.value;
+      }
+      async getAddedValuesAsync() {
+        return this.value == null ? null : [{ value: this.value }];
+      }
+      async getEditedValuesAsync(baseValues) {
+        const old = baseValues[0];
+        return old && old.value !== this.value ? [{ id: old.id, value: this.value }] : null;
+      }
+      async getDeletedValuesAsync(baseValues) {
+        return this.value == null && baseValues.length ? [{ id: baseValues[0].id }] : null;
+      }
+      async getValuesAsync() {
+        return this.value == null ? [] : [{ value: this.value }];
+      }
+    }
+  </script>
+
+  <script>
+    const normalize = (v) => JSON.parse(JSON.stringify(v));
+    const question = (rootSel, title) =>
+      Array.from(document.querySelectorAll(rootSel + " [data-bc-question]")).find((e) => e.querySelector("[data-bc-question-title]").textContent.trim() === title);
+    const waitForm = (t, rootSel) => t.waitFor(() => t.$(rootSel + " [data-bc-schema-main-container][data-bc-schema-direction]"));
+    const setFiles = (t, input, files) => {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+      t.fire(input, "change");
+    };
+
+    bcTest.test("mapping table: the editable class of every viewType renders its control", async (t) => {
+      await waitForm(t, "#types-form");
+      await t.waitFor(() => t.$("#types-form input[data-rating]"), { message: "component.local.RatingField rendered" });
+      const ctl = (title, sel) => question("#types-form", title).querySelector(sel);
+      t.equal(ctl("Text", "input[data-bc-text-input]").type, "text");
+      t.equal(ctl("Text", "input").placeholder, "type a name", "placeHolder becomes the placeholder attribute");
+      t.ok(ctl("Textarea", "textarea[data-bc-text-input][data-sys-textarea]"));
+      t.equal(ctl("Textarea", "textarea").placeholder, "more text");
+      t.equal(ctl("Password", "input[data-bc-text-input]").type, "password");
+      t.equal(ctl("Password", "[data-bc-view-pass]").getAttribute("data-bc-view-pass-status"), "hide", "eye toggle starts masked");
+      t.equal(ctl("Time", "input[data-bc-text-input]").type, "time");
+      t.equal(ctl("Color", "input[data-bc-text-input]").type, "color");
+      t.deepEqual(Array.from(ctl("Select", "select[data-sys-select-option]").options).map((o) => [o.value, o.text]), [["0", "none"], ["1", "kW"], ["2", "HP"]]);
+      t.ok(ctl("Select", "select + [data-bc-sm-sub-schema-container]"), "select is followed by the sub-schema container");
+      t.deepEqual(Array.from(question("#types-form", "Checklist").querySelectorAll("[data-bc-part-checkbox] [data-bc-items] input")).map((i) => [i.type, i.value, i.checked]),
+        [["checkbox", "4", false], ["checkbox", "5", false], ["checkbox", "6", true]]);
+      t.equal(question("#types-form", "Checklist").querySelectorAll("[data-bc-items] [data-bc-sm-sub-schema-container]").length, 3, "checklist: one sub-schema container per item");
+      const radios = Array.from(question("#types-form", "Radio").querySelectorAll("[data-bc-part-radio] input"));
+      t.deepEqual(radios.map((i) => [i.type, i.value]), [["radio", "0"], ["radio", "1"], ["radio", "2"]]);
+      t.ok(radios.every((r) => r.name === radios[0].name && /^radio\d+$/.test(r.name)), "radio inputs share a generated name");
+      t.equal(question("#types-form", "Radio").querySelectorAll("[data-bc-items] + [data-bc-sm-sub-schema-container]").length, 1, "radio: a single container after the items");
+      t.ok(ctl("Html", "[data-bc-html-field-row] input[data-bc-text-input][disabled]"), "html renders a disabled text box");
+      t.ok(ctl("Html", "[data-bc-input-overlay]"));
+      t.equal(t.$$("#types-form iframe").length, 0, "no iframe until the part is clicked");
+      t.ok(ctl("Upload", "input[type=file][data-bc-file-input]").hasAttribute("multiple"), "multiple follows part.multiple");
+      t.ok(!ctl("Blob", "input[type=file][data-bc-file-input]").hasAttribute("multiple"));
+      t.equal(ctl("Rating", "input[data-rating]").getAttribute("max"), "10", "part.options reached the component through the options attribute");
+      t.ok(ctl("Autocomplete", "[data-bc-auto-complete-container] [data-bc-auto-complete-single-type-btn][data-bc-btn='add']"));
+      t.ok(ctl("Autocomplete multi", "label[data-bc-add-item][data-bc-auto-complete]"));
+      t.equal(question("#types-form", "Autocomplete multi").querySelector("[data-bc-auto-complete-container]"), null, "multi variant has no single-type container");
+      t.ok(ctl("Simple autocomplete", "[data-bc-fm-simple-autocomplete] input[data-bc-search]"));
+      t.ok(ctl("Reference", "[data-bc-auto-complete-container]"));
+      t.ok(ctl("Simple reference", "[data-bc-fm-simple-autocomplete]"));
+      t.ok(ctl("Lookup", "[data-bc-fm-lookup] [data-bc-lookup-select-value] input[data-bc-text-input]"));
+      t.ok(ctl("Lookup", "[data-bc-lookup-set-value]"));
+      t.equal(t.$$("#types-form [data-bc-schema-unknown-control]").length, 0);
+    });
+
+    bcTest.test("the password eye toggle switches the input type", async (t) => {
+      await waitForm(t, "#types-form");
+      const pw = question("#types-form", "Password");
+      t.click(pw.querySelector("[data-bc-view-pass]"));
+      t.equal(pw.querySelector("input").type, "text");
+      t.equal(pw.querySelector("[data-bc-view-pass]").getAttribute("data-bc-view-pass-status"), "show");
+      t.click(pw.querySelector("[data-bc-view-pass]"));
+      t.equal(pw.querySelector("input").type, "password");
+    });
+
+    bcTest.test("values produced in new mode: strings for text controls, option value string, numbers for lists, files and component arrays", async (t) => {
+      await waitForm(t, "#types-form");
+      await t.waitFor(() => t.$("#types-form input[data-rating]"));
+      const ctl = (title, sel) => question("#types-form", title).querySelector(sel || "[data-bc-text-input]");
+      t.setValue(ctl("Text"), "hello");
+      t.setValue(ctl("Textarea"), "multi\nline");
+      t.setValue(ctl("Password"), "secret");
+      t.setValue(ctl("Time"), "10:30");
+      t.setValue(ctl("Color"), "#ff0000");
+      t.setValue(ctl("Select", "select"), "1", ["change"]);
+      const check4 = question("#types-form", "Checklist").querySelector("input[value='4']");
+      check4.checked = true; t.fire(check4, "change");
+      const radio2 = question("#types-form", "Radio").querySelector("input[value='2']");
+      radio2.checked = true; t.fire(radio2, "change");
+      setFiles(t, ctl("Upload", "input[type=file]"), [new File(["abc"], "a.txt", { type: "text/plain" })]);
+      setFiles(t, ctl("Blob", "input[type=file]"), [new File(["12345"], "b.bin", { type: "application/octet-stream" })]);
+      t.equal(question("#types-form", "Upload").querySelectorAll("[data-bc-upload-file-item]").length, 1, "the chosen file is listed");
+      t.setValue(ctl("Rating", "input[data-rating]"), "7", ["change"]);
+
+      t.click("[data-btn-types]");
+      const src = await t.waitForSource("types.result");
+      const result = src.rows[0];
+      const props = Object.fromEntries(result.properties.map((p) => [p.propId, p]));
+      const added = (id) => props[id].added[0].parts;
+      t.deepEqual(normalize(added(1)), [{ part: 1, values: [{ value: "hello" }] }]);
+      t.deepEqual(normalize(added(2)), [{ part: 1, values: [{ value: "multi\nline" }] }]);
+      t.deepEqual(normalize(added(3)), [{ part: 1, values: [{ value: "secret" }] }]);
+      t.deepEqual(normalize(added(4)), [{ part: 1, values: [{ value: "10:30" }] }]);
+      t.deepEqual(normalize(added(5)), [{ part: 1, values: [{ value: "#ff0000" }] }], "color is always #rrggbb");
+      t.deepEqual(normalize(added(6)), [{ part: 1, values: [{ value: "1" }] }], "select reports the option value string");
+      t.deepEqual(normalize(added(7)), [{ part: 1, values: [{ value: 4 }, { value: 6 }] }], "checklist reports parsed ids");
+      t.deepEqual(normalize(added(8)), [{ part: 1, values: [{ value: 2 }] }]);
+      t.ok(!props[9], "html without a submitted object contributes nothing, and required is ignored");
+      t.deepEqual(normalize(added(10)), [{ part: 1, values: [{ value: { content: "data:text/plain;base64,YWJj", name: "a.txt", size: 3, type: "text/plain" } }] }], "upload produces a data URL");
+      const blob = added(11)[0].values[0].value;
+      t.ok(blob.content instanceof File, "blob keeps the File object");
+      t.equal(blob.name, "b.bin");
+      t.equal(blob.size, 5);
+      t.equal(blob.type, "application/octet-stream");
+      t.equal(blob.uploadToken, "tok-1", "uploadToken is copied from the part");
+      t.deepEqual(normalize(added(12)), [{ part: 1, values: [{ value: 7 }] }], "the array returned by getAddedValuesAsync becomes values");
+      t.deepEqual(Object.keys(props).map(Number).sort((a, b) => a - b), [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12], "empty server-searched controls contribute nothing");
+      t.ok(t.source("types.error") == null, "no validation error was published");
+    });
+
+    bcTest.test("an unknown viewType renders the placeholder label and blocks submission of the whole form", async (t) => {
+      await waitForm(t, "#unknown-form");
+      const label = question("#unknown-form", "Fancy").querySelector("label[data-bc-part-ctl][data-bc-schema-unknown-control]");
+      t.equal(t.text(label), "Unknown-control - fancy");
+      t.setValue(question("#unknown-form", "Text").querySelector("input"), "filled");
+      t.click("[data-btn-unknown]");
+      const err = await t.waitForSource("unknown.error");
+      t.deepEqual(err.rows, [{ value: true }]);
+      await t.sleep(200);
+      t.ok(t.source("unknown.result") == null, "nothing is published to resultSourceId");
+    });
+
+    bcTest.test("a select without an id 0 item always submits its first item; a radio item with id 0 is never reported", async (t) => {
+      await waitForm(t, "#nozero-form");
+      t.ok(question("#nozero-form", "Radio").querySelector("input[value='0']").checked, "the id 0 radio is preselected");
+      t.click("[data-btn-nozero]");
+      const src = await t.waitForSource("nozero.result");
+      t.deepEqual(normalize(src.rows[0].properties), [{ propId: 1, added: [{ parts: [{ part: 1, values: [{ value: "1" }] }] }] }]);
+    });
+
+    bcTest.test("question.disabled disables every control; part.readonly reaches text and select but never checklist items", async (t) => {
+      await waitForm(t, "#flags-form");
+      const dis = question("#flags-form", "Disabled question");
+      t.ok(Array.from(dis.querySelectorAll("input")).every((i) => i.disabled), "checklist items and the text input are disabled");
+      t.equal(dis.querySelector("[data-bc-btn]"), null, "no add button on a disabled multi question");
+      const ro = question("#flags-form", "Readonly parts");
+      t.equal(ro.querySelectorAll("[data-bc-part-checkbox] input[readonly]").length, 0, "readonly never reaches checklist inputs");
+      t.ok(!ro.querySelector("[data-bc-part-checkbox] input").disabled);
+      t.ok(ro.querySelector("input[data-bc-text-input]").hasAttribute("readonly"), "text input gets readonly");
+      t.ok(ro.querySelector("select").hasAttribute("readonly"), "select gets readonly");
+    });
+
+    bcTest.test("a component with getValuesForValidateAsync is validated with the built-in rules", async (t) => {
+      await waitForm(t, "#flags-form");
+      const rating = await t.waitFor(() => question("#flags-form", "Required rating").querySelector("input[data-rating]"));
+      t.click("[data-btn-flags]");
+      await t.waitForSource("flags.error");
+      const partEl = rating.closest("[data-bc-part]");
+      t.ok(partEl.hasAttribute("data-bc-invalid"), "required fails on a null component value");
+      t.equal(t.text(partEl.querySelector("[data-bc-validation-part] li")), "* this field is required.");
+      t.setValue(rating, "1", ["change"]);
+      t.click("[data-btn-flags]");
+      await t.waitFor(() => t.text(partEl.querySelector("[data-bc-validation-part]")), (s) => /range/.test(s));
+      t.equal(t.text(partEl.querySelector("li")), "* the entered number should be in range of 2 and null.", "min applies to the component value");
+      t.setValue(rating, "5", ["change"]);
+      t.click("[data-btn-flags]");
+      const src = await t.waitForSource("flags.result");
+      t.deepEqual(normalize(src.rows[0].properties), [
+        { propId: 1, multi: true, added: [{ parts: [{ part: 1, values: [{ value: 6 }] }] }] },
+        { propId: 2, added: [{ parts: [{ part: 1, values: [{ value: 6 }] }] }] },
+        { propId: 3, added: [{ parts: [{ part: 1, values: [{ value: 5 }] }] }] }
+      ], "the preselected (selected: true) items of the disabled and readonly checklists are reported too");
+      t.ok(!partEl.hasAttribute("data-bc-invalid"));
+    });
+
+    bcTest.test("template2 radio: tab bar, items with id <= 0 dropped, active marker, clear button removed when required", async (t) => {
+      await waitForm(t, "#t2radio-form");
+      const opt = question("#t2radio-form", "Optional");
+      const tabs = Array.from(opt.querySelectorAll("[data-bc-part-radio-tab-container] label[data-bc-part-radio-tab-button]"));
+      t.deepEqual(tabs.map((l) => t.text(l)), ["a", "b"], "the id 0 item is dropped");
+      t.equal(opt.querySelectorAll("[data-bc-item] input[type=radio]").length, 2);
+      t.equal(tabs[1].getAttribute("tab-button-status"), "active");
+      t.equal(tabs[0].getAttribute("tab-button-status"), null);
+      const active = opt.querySelector("[data-bc-part-radio-tab-active]");
+      t.equal(active.style.transform, "translateX(-100%)", "rtl: the marker moves to the second tab");
+      t.ok(opt.querySelector("[data-bc-btn-cross]"), "clear button present when not required");
+
+      t.click(tabs[0]);
+      t.ok(opt.querySelector("input[value='1']").checked, "clicking a tab checks its radio");
+      t.equal(tabs[0].getAttribute("tab-button-status"), "active");
+      t.equal(tabs[1].getAttribute("tab-button-status"), "");
+      t.match(active.style.transform, /translateX\(-?0+%\)/);
+      t.click(opt.querySelector("[data-bc-btn-cross]"));
+      t.equal(opt.querySelectorAll("input:checked").length, 0, "the clear button unchecks the selection");
+      t.equal(tabs[0].getAttribute("tab-button-status"), "");
+      t.equal(active.style.transform, "translateX(-10000%)");
+
+      const req = question("#t2radio-form", "Required");
+      t.equal(req.querySelector("[data-bc-btn-cross]"), null, "clear button removed for a required part");
+      t.equal(req.querySelector("[data-bc-part-radio-tab-active]").style.transform, "translateX(-10000%)", "nothing selected: marker hidden");
+    });
+
+    bcTest.test("edit mode pre-fills every control and reports edited/added/deleted per control", async (t) => {
+      await waitForm(t, "#edit-form");
+      const rating = await t.waitFor(() => question("#edit-form", "Rating").querySelector("input[data-rating]"), (i) => i && i.value === "3", { message: "setValues pushed the saved value into the component" });
+      const pair = question("#edit-form", "Pair").querySelectorAll("input[data-bc-text-input]");
+      t.deepEqual([pair[0].value, pair[1].value], ["a", "b"]);
+      t.setValue(pair[0], "a2");
+      t.setValue(pair[1], "");
+      const select = question("#edit-form", "Select").querySelector("select");
+      t.equal(select.value, "1");
+      t.setValue(select, "2", ["change"]);
+      const checks = question("#edit-form", "Checklist").querySelectorAll("input");
+      t.deepEqual(Array.from(checks).map((c) => c.checked), [false, true, true]);
+      checks[0].checked = true; t.fire(checks[0], "change");
+      checks[2].checked = false; t.fire(checks[2], "change");
+      const radios = question("#edit-form", "Radio").querySelectorAll("input");
+      t.ok(radios[1].checked);
+      radios[2].checked = true; t.fire(radios[2], "change");
+      const files = question("#edit-form", "Files");
+      const fileItems = files.querySelectorAll("[data-bc-upload-file-item]");
+      t.equal(fileItems.length, 2, "one file entry per saved value");
+      t.equal(fileItems[0].querySelector("[data-bc-item-download]").getAttribute("href"), "site/files/readme.txt", "filesPath + url");
+      t.equal(t.text(fileItems[0].querySelector("[data-bc-item-title]")), "readme.txt");
+      t.equal(fileItems[1].querySelector("[data-bc-item-icon]").getAttribute("src"), "/files/sample.jpg", "image thumbnails come from value.image");
+      t.click(fileItems[0].querySelector("[data-bc-item-btn-delete]"));
+      setFiles(t, files.querySelector("input[type=file]"), [new File(["zz"], "new.txt", { type: "text/plain" })]);
+      t.setValue(rating, "8", ["change"]);
+      t.setValue(question("#edit-form", "Single").querySelector("input"), "");
+
+      t.click("[data-btn-edit]");
+      const src = await t.waitForSource("edit.result");
+      t.deepEqual(normalize(src.rows[0].properties), [
+        {
+          propId: 1,
+          edited: [{ id: 1, parts: [{ part: 1, values: [{ id: 11, value: "a2" }] }] }],
+          deleted: [{ id: 1, parts: [{ part: 2, values: [{ id: 12, value: "" }] }] }]
+        },
+        { propId: 2, edited: [{ id: 2, parts: [{ part: 1, values: [{ id: 21, value: "2" }] }] }] },
+        {
+          propId: 3,
+          added: [{ id: 3, parts: [{ part: 1, values: [{ value: 4 }] }] }],
+          deleted: [{ id: 3, parts: [{ part: 1, values: [{ id: 32, value: 6 }] }] }]
+        },
+        {
+          propId: 4,
+          added: [{ id: 4, parts: [{ part: 1, values: [{ value: 2 }] }] }],
+          deleted: [{ id: 4, parts: [{ part: 1, values: [{ id: 41, value: 1 }] }] }]
+        },
+        {
+          propId: 5,
+          edited: [{ id: 5, parts: [{ part: 1, values: [{ value: { content: "data:text/plain;base64,eno=", name: "new.txt", size: 2, type: "text/plain" } }] }] }],
+          deleted: [{ id: 5, parts: [{ part: 1, values: [{ id: 51, value: { name: "readme.txt", type: "text/plain" } }] }] }]
+        },
+        { propId: 6, edited: [{ id: 6, parts: [{ part: 1, values: [{ id: 61, value: 8 }] }] }] },
+        { propId: 7, deleted: [{ id: 7 }] }
+      ]);
+      t.note("a fully cleared single-part row collapses to { id } (property 7)");
+    });
+
+    bcTest.test("view mode: the read-only class of every viewType and the callback per rendered value", async (t) => {
+      await waitForm(t, "#view-form");
+      await t.waitFor(() => question("#view-form", "Autocomplete").querySelector("label[data-bc-add-item]"), (l) => l && l.textContent === "Iran", { message: "autocomplete fetched its label" });
+      await t.waitFor(() => question("#view-form", "Lookup").querySelector("[data-bc-lookup-set-value]"), (s) => s && s.textContent === "78", { message: "lookup fetched its item" });
+      t.equal(question("#view-form", "Not answered"), undefined, "questions without an answer property are skipped");
+      const ctl = (title, sel) => question("#view-form", title).querySelector(sel);
+      t.equal(t.text(ctl("Text", "label[data-bc-text-input][data-sys-input-text]")), "Hello");
+      t.equal(question("#view-form", "Text").querySelector("input"), null, "no input in view mode");
+      const ta = ctl("Textarea", "textarea[data-bc-text-input][disabled][data-sys-input-disabled]");
+      t.equal(ta.value, "Line");
+      t.equal(ctl("Password", "input[type=password][data-bc-text-input]").value, "pw", "password keeps its editable control");
+      t.equal(ctl("Time", "input[type=time]").value, "10:30", "time keeps its editable control");
+      const color = ctl("Color", "input[type=color][disabled]");
+      t.equal(color.value, "#00ff00");
+      t.equal(t.text(ctl("Select", "label[data-bc-text-input]")), "HP", "the selected item text");
+      const checks = Array.from(question("#view-form", "Checklist").querySelectorAll("input"));
+      t.deepEqual(checks.map((c) => [c.type, c.checked, c.disabled]), [["checkbox", true, true], ["checkbox", true, true]]);
+      t.deepEqual(Array.from(question("#view-form", "Checklist").querySelectorAll("[data-bc-part-checkbox] [data-sys-text]")).map((e) => t.text(e)), ["220", "R1"]);
+      t.deepEqual(Array.from(question("#view-form", "Radio").querySelectorAll("input")).map((c) => [c.type, c.checked, c.disabled]), [["radio", true, true]]);
+      t.equal(t.text(question("#view-form", "Radio").querySelector("[data-bc-part-radio] [data-sys-text]")), "single");
+      t.equal(t.text(ctl("Html", "label[data-bc-text-input]")), "[object Object]", "html in view mode prints the object through innerHTML");
+      const upload = question("#view-form", "Upload");
+      t.equal(upload.querySelector("[data-bc-file-input]"), null, "no file input in the read-only control");
+      t.equal(upload.querySelectorAll("[data-bc-upload-file-list] [data-bc-upload-file-item]").length, 1);
+      t.equal(upload.querySelector("[data-bc-item-btn-delete]"), null);
+      t.equal(upload.querySelector("[data-bc-item-download]").getAttribute("href"), "site/files/readme.txt");
+      t.equal(t.text(ctl("Timepicker", "label[data-bc-text-input]")), "02:00", "component.bc.timepicker shows value.time");
+      t.equal(t.text(ctl("Datepicker", "label[data-bc-text-input]")), "1403/01/01", "component.calendar.datepicker shows value.sstring");
+      t.equal(t.text(ctl("Rating", "label[data-bc-text-input]")), "4", "other component.* print the raw value");
+      t.equal(question("#view-form", "Rating").querySelector("input"), null, "no component is loaded in view mode");
+      t.equal(t.text(ctl("Fancy", "label[data-bc-text-input]")), "raw", "unknown viewType falls back to ReadOnlyText");
+      t.equal(t.$$("#view-form [data-bc-schema-unknown-control]").length, 0);
+      t.equal(question("#view-form", "Autocomplete").querySelector("[data-bc-btn]"), null, "single autocomplete removes its button in view mode");
+      t.equal(t.$$("#view-form [data-bc-btn]").length, 0, "no add/remove row buttons in view mode");
+      const pairs = t.$$("#view-form [data-bc-pair-btn-container]").filter((p) => p.closest("[data-bc-question]") !== question("#view-form", "Html"));
+      t.equal(pairs.length, 0, "no paired buttons either (except the html question, see the known defect)");
+
+      const by = (id) => readOnlyCallbacks.filter((p) => p.prpId === id).map((p) => p.value);
+      t.deepEqual(by(1), [{ id: 11, value: "Hello" }], "ReadOnlyText passes the IPartValue");
+      t.deepEqual(by(2), [{ id: 21, value: "Line" }]);
+      t.deepEqual(by(5), [{ id: 51, value: "#00ff00" }]);
+      t.deepEqual(by(6), [{ id: 1, value: "kW" }].length ? [{ id: 2, value: "HP" }] : [], "ReadOnlySelectType passes the matching IFixValue");
+      t.deepEqual(by(7), [{ id: 5, value: "220" }, { id: 6, value: "R1", selected: true }], "once per selected checklist item");
+      t.deepEqual(by(8), [{ id: 1, value: "single" }]);
+      t.deepEqual(by(11), ["02:00"], "ReadOnlyTime passes value.time (the saved value is rewritten to the string)");
+      t.deepEqual(by(12), ["1403/01/01"], "ReadOnlyDate passes value.sstring");
+      t.deepEqual(by(15), [{ id: 77, value: "Iran" }], "the autocomplete family passes the selected IFixValue");
+      t.equal(readOnlyCallbacks.find((p) => p.prpId === 1).typeId, undefined, "typeId is forwarded as declared (absent here)");
+      t.ok(readOnlyCallbacks.every((p) => p.element.hasAttribute("data-bc-part")));
+    });
+
+    bcTest.defect("known defect: in view mode a question whose first part is html keeps a visible remove button", async (t) => {
+      await waitForm(t, "#view-form");
+      const html = question("#view-form", "Html");
+      const pair = html.querySelector("[data-bc-pair-btn-container]");
+      t.ok(pair, "the pair container survives for html questions");
+      t.equal(pair.style.display, "block", "and is displayed because the row has an answer");
+      t.ok(pair.querySelector("button[data-bc-btn-remove]"), "with its remove button");
+      t.equal(pair.querySelector("[data-bc-btn-add]"), null, "the add button was removed");
+    });
+
+    bcTest.allowError(/reading 'values'|reading '0'/);
+    bcTest.defect("known defect: ReadOnlyDate throws while rendering a saved answer whose datepicker part has no value", async (t) => {
+      await t.waitFor(() => t.$("#datepicker-form [data-bc-schema-main-container]"));
+      await t.waitForError(/reading 'values'|reading '0'/);
+      await t.sleep(100);
+      t.equal(t.text("#datepicker-form label[data-bc-text-input]"), "", "the label was created but never filled");
+      t.equal(question("#datepicker-form", "After"), undefined, "rendering stopped: the following question is missing");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>service worker and push - permission dialog</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // the endpoint host.push.url points at; it must never be called when the user denies
+    BasisCoreMock.route({ url: "/api/push/subscribe", method: "POST", response: () => ({ ok: true }) });
+  </script>
+  <script>
+    // Test instrumentation, installed before the library:
+    // - alert() is recorded instead of shown;
+    // - Notification.permission is forced to "default" until the dialog has been shown, so the
+    //   library takes the dialog branch; afterwards the real value is reported again;
+    // - Notification.requestPermission is wrapped to count the calls (the real method still runs;
+    //   without a user gesture a headless browser answers "denied").
+    window.__alerts = [];
+    window.alert = function (message) {
+      window.__alerts.push(String(message));
+    };
+    window.__realPermission = Notification.permission;
+    window.__forcedPermission = "default";
+    (function () {
+      const realGetter = Object.getOwnPropertyDescriptor(Notification, "permission").get;
+      Object.defineProperty(Notification, "permission", {
+        configurable: true,
+        get: function () {
+          return window.__forcedPermission ?? realGetter.call(Notification);
+        }
+      });
+      const realRequest = Notification.requestPermission.bind(Notification);
+      window.__requestResults = [];
+      Notification.requestPermission = function () {
+        return realRequest().then((status) => {
+          window.__requestResults.push(status);
+          return status;
+        });
+      };
+    })();
+  </script>
+  <script>
+    var host = {
+      serviceWorker: "/tests/fixtures/service-worker-and-push/sw.js",
+      push: {
+        applicationServerKey: "BDeRNwAPgVtNfsvZrRrAkm-O4-P36gSDLxDx25gQ-hoXjpdg3MQ8E3_kzZQSEH58ugL5F5Pi-3nKFvtys8R4eys",
+        url: "/api/push/subscribe",
+        params: { client: "qam-1" },
+        permissionDlg: "#push-dlg",
+        permissionSubmit: "#push-ok"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/service-worker-and-push.md">
+  <main>
+    <h1>service worker and push - permission dialog</h1>
+    <p class="intro">
+      Checks step 4 of the notification permission flow in <code>docs/service-worker-and-push.md</code> with
+      a selector-based dialog: while permission is <code>"default"</code> the element named by
+      <code>permissionDlg</code> gets <code>display: block</code>, a click on <code>permissionSubmit</code> is
+      prevented, hides the dialog and calls <code>Notification.requestPermission()</code>; a refusal is logged
+      and alerted, and the click listener stays attached.
+    </p>
+
+    <section class="case" id="case-dialog">
+      <h2>Permission dialog built from the page's own markup</h2>
+      <div id="push-dlg" style="display:none">
+        <p>Receive live updates on this device?</p>
+        <button id="push-ok">Yes</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    bcTest.test("with permission 'default' the dialog is shown with display: block and nothing is requested yet", async (t) => {
+      t.note("real Notification.permission in this browser: " + window.__realPermission + " (forced to default until the dialog is shown)");
+      await t.waitForConsole(/^Service worker from '\/tests\/fixtures\/service-worker-and-push\/sw\.js' register successfully!$/);
+      await t.waitFor(() => t.$("#push-dlg").style.display, (d) => d === "block", { message: "the dialog never got display: block" });
+      t.equal(window.__requestResults.length, 0, "requestPermission is only called after the click");
+      t.equal(BasisCoreMock.state().log.filter((e) => /\/api\/push\/subscribe/.test(e.url)).length, 0);
+      t.deepEqual(window.__alerts, []);
+      window.__forcedPermission = null; // from here on Notification.permission is the browser's real value
+    });
+
+    bcTest.test("clicking the submit element prevents the default, hides the dialog and asks for permission; a refusal is logged and alerted", async (t) => {
+      const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+      t.$("#push-ok").dispatchEvent(event);
+      t.equal(event.defaultPrevented, true, "event.preventDefault() was called");
+      t.equal(t.$("#push-dlg").style.display, "none", "the dialog is hidden right away");
+      await t.waitFor(() => window.__requestResults, (r) => r.length === 1);
+      t.equal(window.__requestResults[0], "denied", "a headless browser refuses without a user gesture");
+      await t.waitForConsole(/^You have blocked notifications\.\(current permission is denied$/);
+      t.deepEqual(window.__alerts, ["You have blocked notifications.(current permission is denied"]);
+      t.equal(BasisCoreMock.state().log.filter((e) => /\/api\/push\/subscribe/.test(e.url)).length, 0, "no subscription is posted");
+    });
+
+    bcTest.test("the click listener is never removed: a second click asks again", async (t) => {
+      t.click("#push-ok");
+      await t.waitFor(() => window.__requestResults, (r) => r.length === 2);
+      await t.waitFor(() => t.consoleMessages(/^You have blocked notifications\./), (l) => l.length === 2);
+      t.equal(window.__alerts.length, 2);
+      t.equal(t.errors().length, 0);
+    });
+
+    bcTest.test("the worker is unregistered at the end so repeated runs start clean", async (t) => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      t.equal(regs.length, 1);
+      t.equal(await regs[0].unregister(), true);
+    });
+
+    bcTest.skip("a click that the user confirms in the browser's prompt grants permission and continues with the subscription", "the native prompt needs a visible browser and a real user gesture; the granted path is proved with a scripted permission in service-worker-and-push-subscribe.html");
+  </script>
+</body>
+</html>

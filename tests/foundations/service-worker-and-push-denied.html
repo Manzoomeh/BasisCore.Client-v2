@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>service worker and push - permission denied</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // the endpoint host.push.url points at; it must never be called when permission is denied
+    BasisCoreMock.route({ url: "/api/push/subscribe", method: "POST", response: () => ({ ok: true }) });
+  </script>
+  <script>
+    // Test instrumentation, installed before the library:
+    // - alert() is recorded instead of shown;
+    // - Notification.permission is forced to "denied" so the page proves the same branch in every
+    //   browser (headless browsers report "denied" on their own; the real value is noted in the report).
+    window.__alerts = [];
+    window.alert = function (message) {
+      window.__alerts.push(String(message));
+    };
+    window.__realPermission = Notification.permission;
+    window.__forcedPermission = "denied";
+    (function () {
+      const realGetter = Object.getOwnPropertyDescriptor(Notification, "permission").get;
+      Object.defineProperty(Notification, "permission", {
+        configurable: true,
+        get: function () {
+          return window.__forcedPermission ?? realGetter.call(Notification);
+        }
+      });
+    })();
+  </script>
+  <script>
+    var host = {
+      serviceWorker: "/tests/fixtures/service-worker-and-push/sw.js",
+      push: {
+        applicationServerKey: "BDeRNwAPgVtNfsvZrRrAkm-O4-P36gSDLxDx25gQ-hoXjpdg3MQ8E3_kzZQSEH58ugL5F5Pi-3nKFvtys8R4eys",
+        url: "/api/push/subscribe",
+        params: { client: "qam-1" },
+        permissionDlg: "#push-dlg",
+        permissionSubmit: "#push-ok"
+      },
+      settings: {
+        "connection.push.simple": "test",
+        "default.dmnid": 2668
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/service-worker-and-push.md">
+  <main>
+    <h1>service worker and push - permission denied</h1>
+    <p class="intro">
+      Checks step 3 of the notification permission flow in <code>docs/service-worker-and-push.md</code>:
+      with <code>host.push</code> set and <code>Notification.permission === "denied"</code> the library logs and
+      alerts <code>You have blocked notifications.(current permission is denied</code>, shows no dialog and
+      never posts to <code>host.push.url</code>. The <code>dbsource</code> still listens to push messages.
+    </p>
+
+    <section class="case" id="case-denied">
+      <h2>Full page with <code>host.push</code> while notifications are blocked</h2>
+      <div id="push-dlg" style="display:none">
+        <p>Receive live updates on this device?</p>
+        <button id="push-ok">Yes</button>
+      </div>
+
+      <basis core="dbsource" source="simple" name="stream" run="atclient">
+        <member name="time" />
+      </basis>
+      <div id="clock">Time is : [##stream.time.hh|(00)##]:[##stream.time.mm|(00)##]:[##stream.time.ss|(00)##]</div>
+    </section>
+  </main>
+
+  <script>
+    bcTest.test("registration succeeds and the denied permission is logged and alerted verbatim", async (t) => {
+      t.note("real Notification.permission in this browser: " + window.__realPermission + " (forced to denied for the test)");
+      await t.waitForConsole(/^Service worker from '\/tests\/fixtures\/service-worker-and-push\/sw\.js' register successfully!$/);
+      await t.waitForConsole(/^You have blocked notifications\.\(current permission is denied$/);
+      t.deepEqual(window.__alerts, ["You have blocked notifications.(current permission is denied"], "the message has no closing parenthesis and is alerted once");
+    });
+
+    bcTest.test("no dialog is shown and the subscription endpoint is never called", async (t) => {
+      await t.sleep(300);
+      t.equal(t.$("#push-dlg").style.display, "none");
+      t.equal(BasisCoreMock.state().log.filter((e) => /\/api\/push\/subscribe/.test(e.url)).length, 0);
+      t.equal(t.consoleMessages(/Push api/).length, 0, "the subscription step never ran");
+      t.equal(t.errors().length, 0);
+    });
+
+    bcTest.test("the push connection still feeds dbsource although the subscription failed", async (t) => {
+      navigator.serviceWorker.dispatchEvent(
+        new MessageEvent("message", {
+          data: { type: "test", message: { sources: [{ options: { tableName: "stream.time" }, data: [{ hh: 9, mm: 30, ss: 1 }] }] } }
+        })
+      );
+      await t.waitForText("#clock", "Time is : 9:30:1");
+    });
+
+    bcTest.test("the worker is unregistered at the end so repeated runs start clean", async (t) => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      t.equal(regs.length, 1);
+      t.equal(await regs[0].unregister(), true);
+    });
+
+    bcTest.skip("the browser's own permission prompt grants notifications", "Notification.requestPermission() needs a user gesture and a visible browser; headless contexts answer denied");
+  </script>
+</body>
+</html>

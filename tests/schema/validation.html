@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema validation</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // --- question schemas (docs/schema/schema-json-contract.md) -------------------------------
+    const part = (part, viewType, extra) => Object.assign({ part, viewType }, extra || {});
+    const q = (prpId, title, parts, extra) => Object.assign({ prpId, title, parts }, extra || {});
+    const textRule = (prpId, title, validations, extra) => q(prpId, title, [part(1, "text", Object.assign({ validations }, extra || {}))]);
+    const mimes = [
+      { mime: "image/jpeg", minSize: 10, maxSize: 10000 },
+      { mime: "image/png", minSize: 10, maxSize: 10000 }
+    ];
+
+    const schemas = {
+      // one question per rule; lid 2 selects the English catalog
+      "/rules": {
+        schemaId: "rules", schemaVersion: 1, paramUrl: "/rules", lid: 2,
+        questions: [
+          textRule(1, "Required", { required: true }),
+          textRule(2, "Int range", { required: true, min: 200, max: 4000, dataType: "int" }, { caption: "Speed (rpm)" }),
+          textRule(3, "Float", { dataType: "float" }),
+          textRule(4, "Regex", { regex: "^https?:\\/\\/.+$" }),
+          textRule(5, "Length", { minLength: 3, maxLength: 5 }),
+          textRule(6, "Max only", { maxLength: 10 }),
+          textRule(7, "Zero limits", { min: 0, maxLength: 0, dataType: "int" }),
+          textRule(8, "Bad regex", { regex: "(" }),
+          q(9, "Checklist length", [part(1, "checklist", { fixValues: [{ id: 4, value: "110" }, { id: 5, value: "220" }, { id: 6, value: "R1" }], validations: { maxLength: 2 } })]),
+          q(10, "Select required", [part(1, "select", { fixValues: [{ id: 0, value: "none" }, { id: 1, value: "kW" }, { id: 2, value: "HP" }], validations: { required: true } })]),
+          q(11, "Html required", [part(1, "html", { link: "/tests/fixtures/validation/none.html", validations: { required: true } })]),
+          q(12, "Upload size", [part(1, "upload", { multiple: true, validations: { size: 1000 } })]),
+          q(13, "Upload mimes", [part(1, "upload", { multiple: true, validations: { mimes } })])
+        ]
+      },
+      // a select whose option 4 opens a nested schema
+      "/sub": {
+        schemaId: "sub", schemaVersion: 1, paramUrl: "/sub", lid: 2,
+        questions: [q(1, "Voltage", [part(1, "select", {
+          fixValues: [{ id: 0, value: "Please choose" }, { id: 4, value: "110", schema: { schemaId: "nested", paramUrl: "/nested", lid: 2, schemaVersion: 1 } }, { id: 5, value: "220" }]
+        })])]
+      },
+      "/nested": {
+        schemaId: "nested", schemaVersion: 1, paramUrl: "/nested", lid: 2,
+        questions: [textRule(55, "Nested required", { required: true })]
+      },
+      // server messages (lid 1 -> fa)
+      "/messages": {
+        schemaId: "messages", schemaVersion: 1, paramUrl: "/messages", lid: 1,
+        questions: [textRule(1, "Required", { required: true }), textRule(2, "Length", { minLength: 3, maxLength: 5 })]
+      },
+      "/strict": { schemaId: "strict", schemaVersion: 1, paramUrl: "/strict", lid: 1, questions: [textRule(1, "Required", { required: true })] },
+      "/nomsg": { schemaId: "nomsg", schemaVersion: 1, paramUrl: "/nomsg", lid: 1, questions: [textRule(1, "Required", { required: true })] },
+      // dependency with required: true
+      "/dep": {
+        schemaId: "dep", schemaVersion: 1, paramUrl: "/dep", lid: 2,
+        questions: [
+          q(100, "Country", [part(1, "text")]),
+          q(200, "City (select)", [part(1, "select", { link: "/val/fix-data/${prpId}/${part}?c=${country}", dependency: [{ prpId: 100, part: 1, name: "country", required: true }] })]),
+          q(300, "City (autocomplete)", [part(1, "autocomplete", { link: "/val/autocomplete?term=${term}&c=${country}", dependency: [{ prpId: 100, part: 1, name: "country", required: true }] })])
+        ]
+      }
+    };
+
+    const validationRequests = [];
+    BasisCoreMock.route({
+      url: "/validation/:culture", method: "POST",
+      response: (ctx) => {
+        validationRequests.push({ culture: ctx.params.culture, body: ctx.bodyJSON });
+        return [
+          { id: 111, title: "از سرور: الزامی" },
+          { id: 444, title: "طول باید بین ${minLength} و ${maxLength} باشد" },
+          { id: 999, title: "nested form is invalid" }
+        ];
+      }
+    });
+    const undefinedRequests = [];
+    BasisCoreMock.route({ url: "*/undefined/:culture", method: "POST", response: (ctx) => { undefinedRequests.push(ctx.params.culture); return []; } });
+    const fixDataRequests = [];
+    BasisCoreMock.route({ url: "/val/fix-data/:prpId/:part", method: "GET", response: (ctx) => { fixDataRequests.push(ctx.query); return [{ id: 0, value: "none" }, { id: 1, value: "Tehran" }]; } });
+    BasisCoreMock.route({ url: "/val/autocomplete", method: "GET", response: () => [{ id: 1, value: "Tehran" }] });
+  </script>
+  <script>
+    const host = {};
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/validation.md">
+  <main>
+    <h1>schema validation</h1>
+    <p class="intro">
+      Checks <code>docs/schema/validation.md</code>: every rule with a failing and a passing
+      value, the DOM markers, the error object, the built-in message catalog, server-side
+      messages through <code>options</code>, <code>errorResultSourceId</code>, sub-schema and
+      dependency errors.
+    </p>
+
+    <section class="case" id="case-rules">
+      <h2>The rules</h2>
+      <button data-btn-rules>Save</button>
+      <div id="rules-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/rules" displayMode="new"
+               button="[data-btn-rules]" resultSourceId="val.result" errorResultSourceId="val.error" direction="ltr"></basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="val.error" method="onInvalid"></basis>
+    </section>
+
+    <section class="case" id="case-sub">
+      <h2>Sub-schema validation</h2>
+      <button data-btn-sub>Save</button>
+      <div id="sub-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/sub" displayMode="new"
+               button="[data-btn-sub]" resultSourceId="sub.result" errorResultSourceId="sub.error"></basis>
+      </div>
+      <button data-btn-sub2>Save (with a sub-schema message)</button>
+      <div id="sub2-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/sub" displayMode="new"
+               button="[data-btn-sub2]" resultSourceId="sub2.result" errorResultSourceId="sub2.error"
+               options="{ validationErrors: { 'sub-schema': 999 }, messagesApi: '/validation' }"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-messages">
+      <h2>Messages from a server: the options attribute</h2>
+      <button data-btn-messages>Save</button>
+      <div id="messages-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/messages" displayMode="new"
+               button="[data-btn-messages]" resultSourceId="msg.result" errorResultSourceId="msg.error"
+               options="optionsConfig"></basis>
+      </div>
+      <button data-btn-strict>Save (string ids)</button>
+      <div id="strict-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/strict" displayMode="new"
+               button="[data-btn-strict]" resultSourceId="strict.result" errorResultSourceId="strict.error"
+               options="{ validationErrors: { required: '111' }, messagesApi: '/validation' }"></basis>
+      </div>
+      <button data-btn-nomsg>Save (no messagesApi)</button>
+      <div id="nomsg-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/nomsg" displayMode="new"
+               button="[data-btn-nomsg]" resultSourceId="nomsg.result" errorResultSourceId="nomsg.error"
+               options="{ validationErrors: { required: 111 } }"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-dep">
+      <h2>Dependency errors</h2>
+      <div id="dep-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/dep" displayMode="new" direction="ltr"></basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function loadSchema(context, paramUrl) {
+      return schemas[paramUrl];
+    }
+    const invalidNotifications = [];
+    function onInvalid(args) {
+      invalidNotifications.push(args.source.rows[0].value);
+      document.querticketSelector = null;
+    }
+    var optionsConfig = {
+      validationErrors: { required: 111, length: 444 },
+      messagesApi: "/validation"
+    };
+  </script>
+
+  <script>
+    const normalize = (v) => JSON.parse(JSON.stringify(v));
+    const question = (rootSel, title) =>
+      Array.from(document.querySelectorAll(rootSel + " [data-bc-question]")).find((e) => e.querySelector("[data-bc-question-title]").textContent.trim() === title);
+    const partOf = (rootSel, title) => question(rootSel, title).querySelector("[data-bc-part]");
+    const messages = (el) => Array.from(el.querySelectorAll("[data-bc-validation-part] li")).map((li) => li.textContent.replace(/\s+/g, " ").trim());
+    const waitForm = (t, rootSel) => t.waitFor(() => t.$(rootSel + " [data-bc-schema-main-container][data-bc-schema-direction]"));
+    const setFiles = (t, input, files) => {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+      t.fire(input, "change");
+    };
+    const bytes = (n) => new Uint8Array(n);
+    const schemaCommand = (paramUrl) => $bc.global.GetCommandListByCore("schema").find((c) => c.node.getAttribute("paramurl") === paramUrl);
+
+    bcTest.test("every rule fails with its documented message; the part gets data-bc-invalid and one <li> per error", async (t) => {
+      await waitForm(t, "#rules-form");
+      const input = (title) => question("#rules-form", title).querySelector("input[data-bc-text-input]");
+      t.setValue(input("Int range"), "12.5");
+      t.setValue(input("Float"), "1e5");
+      t.setValue(input("Regex"), "basiscore.com");
+      t.setValue(input("Length"), "ab");
+      t.setValue(input("Max only"), "this is too long!");
+      t.setValue(input("Zero limits"), "-5");
+      t.setValue(input("Bad regex"), "x");
+      question("#rules-form", "Checklist length").querySelectorAll("input").forEach((c) => { c.checked = true; t.fire(c, "change"); });
+      setFiles(t, question("#rules-form", "Upload size").querySelector("input[type=file]"), [new File([bytes(600)], "a.jpg", { type: "image/jpeg" }), new File([bytes(600)], "b.jpg", { type: "image/jpeg" })]);
+      setFiles(t, question("#rules-form", "Upload mimes").querySelector("input[type=file]"), [new File([bytes(20000)], "big.png", { type: "image/png" }), new File([bytes(100)], "doc.pdf", { type: "application/pdf" })]);
+
+      t.click("[data-btn-rules]");
+      const err = await t.waitForSource("val.error");
+      t.deepEqual(err.rows, [{ value: true }]);
+      t.ok(t.source("val.result") == null, "resultSourceId is untouched on failure");
+      await t.waitFor(() => invalidNotifications, (l) => l.length === 1);
+
+      const check = (title, expected) => {
+        const el = partOf("#rules-form", title);
+        t.ok(el.hasAttribute("data-bc-invalid"), title + " is marked invalid");
+        t.deepEqual(messages(el), expected, title + " messages");
+      };
+      const valid = (title) => {
+        const el = partOf("#rules-form", title);
+        t.ok(!el.hasAttribute("data-bc-invalid"), title + " is valid");
+        t.deepEqual(messages(el), [], title + " has no message");
+      };
+      check("Required", ["* this field is required."]);
+      check("Int range", ["* invalid type of variable.", "* the entered number should be in range of 200 and 4000."]);
+      check("Float", ["* invalid type of variable."]);
+      check("Regex", ["* invalid format"]);
+      check("Length", ["* the length of string should be in range of 3 and 5."]);
+      check("Max only", ["* the length of string should be in range of null and 10."]);
+      valid("Zero limits");
+      valid("Bad regex");
+      t.ok(t.consoleMessages(/Error in apply regex validation/).length >= 1, "an invalid regex is logged and skipped");
+      check("Checklist length", ["* the length of string should be in range of null and 2."]);
+      check("Select required", ["* this field is required."]);
+      valid("Html required");
+      check("Upload size", ["* the file size is more than valid size (1000 Bytes)"]);
+      check("Upload mimes", [
+        "* the file mime is not in valid mimes (image/jpeg,image/png)",
+        "* the file size are not in valid mime size array ( image/jpeg : 10 Bytes - 9.77 KB , image/png : 10 Bytes - 9.77 KB )"
+      ]);
+
+      t.setValue(input("Required"), "now filled");
+      await t.sleep(100);
+      t.ok(partOf("#rules-form", "Required").hasAttribute("data-bc-invalid"), "errors are only recalculated on the next submit");
+    });
+
+    bcTest.test("the error object of a part has part, title (caption) and typed errors with params; getAnswersAsync(true) throws invalid", async (t) => {
+      await waitForm(t, "#rules-form");
+      const cmd = schemaCommand("/rules");
+      t.ok(cmd, "the schema command instance is reachable through GetCommandListByCore");
+      await t.rejects(cmd.getAnswersAsync(true), /^invalid$/, "throwError = true throws Error(\"invalid\")");
+      const speed = cmd._questions.find((c) => c.QuestionSchema.prpId === 2)._questions[0]._parts[0];
+      const error = await speed.getValidationErrorsAsync();
+      t.deepEqual(normalize(error), {
+        part: 1,
+        title: "Speed (rpm)",
+        errors: [
+          { type: "type", description: "invalid type of variable.", params: { dataType: "int" } },
+          { type: "range", description: "the entered number should be in range of 200 and 4000. ", params: { min: 200, max: 4000 } }
+        ]
+      });
+      const before = invalidNotifications.length;
+      await cmd.getAnswersAsync(false);
+      await t.waitFor(() => invalidNotifications, (l) => l.length === before + 1);
+      t.note("getAnswersAsync(false) from script also publishes errorResultSourceId");
+    });
+
+    bcTest.test("every rule passes with a valid value, markers and lists are cleared, the result is published", async (t) => {
+      await waitForm(t, "#rules-form");
+      const input = (title) => question("#rules-form", title).querySelector("input[data-bc-text-input]");
+      t.setValue(input("Required"), "x");
+      t.setValue(input("Int range"), "1500");
+      t.setValue(input("Float"), "12.5");
+      t.setValue(input("Regex"), "http://basiscore.com");
+      t.setValue(input("Length"), "abcd");
+      t.setValue(input("Max only"), "short");
+      const r1 = question("#rules-form", "Checklist length").querySelector("input[value='6']");
+      r1.checked = false; t.fire(r1, "change");
+      t.setValue(question("#rules-form", "Select required").querySelector("select"), "1", ["change"]);
+      // delete the chosen files and choose valid ones; for mimes a too-large first file followed by a valid one passes
+      ["Upload size", "Upload mimes"].forEach((title) => question("#rules-form", title).querySelectorAll("[data-bc-item-btn-delete]").forEach((b) => t.click(b)));
+      setFiles(t, question("#rules-form", "Upload size").querySelector("input[type=file]"), [new File([bytes(600)], "a.jpg", { type: "image/jpeg" })]);
+      setFiles(t, question("#rules-form", "Upload mimes").querySelector("input[type=file]"), [new File([bytes(20000)], "big.png", { type: "image/png" }), new File([bytes(500)], "ok.png", { type: "image/png" })]);
+
+      t.click("[data-btn-rules]");
+      const src = await t.waitForSource("val.result");
+      t.equal(t.$$("#rules-form [data-bc-invalid]").length, 0, "no part is marked invalid");
+      t.ok(t.$$("#rules-form [data-bc-validation-part]").every((ul) => ul.children.length === 0), "message lists are emptied");
+      const ids = src.rows[0].properties.map((p) => p.propId);
+      t.deepEqual(ids, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13], "every filled part is reported; the html part contributes nothing");
+      t.equal(normalize(src.rows[0].properties.find((p) => p.propId === 7).added[0].parts[0].values[0].value), "-5", "min: 0 accepted -5");
+      t.equal(src.rows[0].properties.find((p) => p.propId === 13).added[0].parts[0].values.length, 2, "mime-size only reflects the last matching file");
+    });
+
+    bcTest.test("a failing nested schema rejects the submission; without a sub-schema message the parent part is not marked", async (t) => {
+      await waitForm(t, "#sub-form");
+      const select = question("#sub-form", "Voltage").querySelector("select");
+      t.setValue(select, "4", ["change"]);
+      const nested = await t.waitFor(() => t.$("#sub-form [data-bc-sm-sub-schema-container] input[data-bc-text-input]"));
+      t.click("[data-btn-sub]");
+      const err = await t.waitForSource("sub.error");
+      t.deepEqual(err.rows, [{ value: true }]);
+      await t.sleep(100);
+      t.ok(t.source("sub.result") == null);
+      t.ok(nested.closest("[data-bc-part]").hasAttribute("data-bc-invalid"), "the nested part renders its own error");
+      t.equal(t.text(nested.closest("[data-bc-part]").querySelector("li")), "* this field is required.");
+      t.ok(!select.closest("[data-bc-part]").hasAttribute("data-bc-invalid"), "the parent part gets no marker (no built-in sub-schema text)");
+      t.setValue(nested, "http://ok");
+      t.click("[data-btn-sub]");
+      const src = await t.waitForSource("sub.result");
+      t.deepEqual(normalize(src.rows[0].properties[0].added[0].parts[0].values[0]), {
+        value: "4",
+        answer: { lid: 2, paramUrl: "/nested", schemaId: "nested", schemaVersion: 1, properties: [{ propId: 55, added: [{ parts: [{ part: 1, values: [{ value: "http://ok" }] }] }] }] }
+      });
+    });
+
+    bcTest.test("a sub-schema message supplied through options makes the parent part render the error", async (t) => {
+      await waitForm(t, "#sub2-form");
+      const select = question("#sub2-form", "Voltage").querySelector("select");
+      t.setValue(select, "4", ["change"]);
+      await t.waitFor(() => t.$("#sub2-form [data-bc-sm-sub-schema-container] input[data-bc-text-input]"));
+      t.click("[data-btn-sub2]");
+      await t.waitForSource("sub2.error");
+      const parent = await t.waitFor(() => select.closest("[data-bc-part]"), (p) => p.hasAttribute("data-bc-invalid"));
+      t.deepEqual(messages(parent), ["* nested form is invalid"]);
+      t.ok(validationRequests.some((r) => r.culture === "en" && r.body.sentenceId.length === 1 && r.body.sentenceId[0] === 999), "POST /validation/en with the configured sentence id");
+    });
+
+    bcTest.test("options.messagesApi: one lazy POST per form with the sentence ids, titles replace the built-in texts and keep placeholders", async (t) => {
+      await waitForm(t, "#messages-form");
+      t.setValue(question("#messages-form", "Length").querySelector("input"), "ab");
+      t.click("[data-btn-messages]");
+      await t.waitForSource("msg.error");
+      const req = validationRequests.filter((r) => r.culture === "fa" && r.body.sentenceId.length === 2);
+      t.equal(req.length, 1, "one request to /validation/fa");
+      t.deepEqual(req[0].body, { sentenceId: [111, 444] }, "the body lists Object.values(validationErrors)");
+      t.deepEqual(messages(partOf("#messages-form", "Required")), ["* از سرور: الزامی"]);
+      t.deepEqual(messages(partOf("#messages-form", "Length")), ["* طول باید بین 3 و 5 باشد"], "placeholders of a server title are resolved");
+      t.click("[data-btn-messages]");
+      await t.sleep(200);
+      t.equal(validationRequests.filter((r) => r.culture === "fa" && r.body.sentenceId.length === 2).length, 1, "the promise is cached: no second request");
+    });
+
+    bcTest.test("sentence ids are matched with ===: string ids keep the built-in catalog; without messagesApi a request still goes to undefined/<culture>", async (t) => {
+      await waitForm(t, "#strict-form");
+      t.click("[data-btn-strict]");
+      await t.waitForSource("strict.error");
+      t.deepEqual(messages(partOf("#strict-form", "Required")), ["* پر کردن این فیلد الزامیست"], "\"111\" does not match 111: built-in fa text");
+      t.ok(validationRequests.some((r) => r.culture === "fa" && r.body.sentenceId[0] === "111"), "the request was still sent with the string id");
+
+      await waitForm(t, "#nomsg-form");
+      t.click("[data-btn-nomsg]");
+      await t.waitForSource("nomsg.error");
+      t.deepEqual(messages(partOf("#nomsg-form", "Required")), ["* پر کردن این فیلد الزامیست"]);
+      await t.waitFor(() => undefinedRequests, (l) => l.length === 1);
+      t.equal(undefinedRequests[0], "fa", "a POST to the literal URL undefined/fa was issued");
+    });
+
+    bcTest.allowError(/country is not defined/);
+    bcTest.test("a required dependency on an empty part marks the referenced part and aborts the dependent load", async (t) => {
+      await waitForm(t, "#dep-form");
+      const country = partOf("#dep-form", "Country");
+      await t.waitFor(() => country, (p) => p.hasAttribute("data-bc-invalid"), { message: "Country marked while the select loads" });
+      t.deepEqual(messages(country), ["* this field is required."]);
+      t.equal(question("#dep-form", "City (select)").querySelectorAll("option").length, 0, "the list was never loaded");
+      t.equal(fixDataRequests.length, 0, "no request was sent");
+      await t.waitForError(/country is not defined/);
+      t.note("the aborted load surfaces as ReferenceError: country is not defined (see the documentation change)");
+
+      // the autocomplete loads on demand: the marker is cleared once the referenced part has a value
+      const auto = question("#dep-form", "City (autocomplete)");
+      t.click(auto.querySelector("[data-bc-btn]"));
+      await t.sleep(100);
+      t.equal(t.$("[data-bc-autocomplete-popup-container]"), null, "the popup does not open while the dependency is empty");
+      t.setValue(country.querySelector("input"), "Iran");
+      t.click(auto.querySelector("[data-bc-btn]"));
+      const popup = await t.waitFor(() => t.$("[data-bc-autocomplete-popup-container]"));
+      t.ok(!country.hasAttribute("data-bc-invalid"), "the marker is cleared when the dependent load finds a value");
+      t.deepEqual(messages(country), []);
+      t.click(popup.querySelector("[data-bc-btn-close]"));
+    });
+  </script>
+</body>
+</html>

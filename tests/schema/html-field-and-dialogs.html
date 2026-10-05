@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema html field and dialogs</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: the question schemas (the embedded editor page is a real file under tests/fixtures/) -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    var EDITOR = "/tests/fixtures/html-field-and-dialogs/editor.html";
+    var schema3001 = {
+      schemaId: 3001, paramUrl: "/3001", schemaVersion: "1.0", lid: 2,
+      questions: [
+        {
+          prpId: 51, typeId: 1, title: "Contact", multi: false, help: "Name and e-mail of the contact person",
+          parts: [{ part: 1, viewType: "html", link: EDITOR, validations: { required: true } }]
+        },
+        { prpId: 52, typeId: 1, title: "Password", multi: false, parts: [{ part: 1, viewType: "password" }] },
+        { prpId: 53, typeId: 1, title: "Nickname", multi: false, parts: [{ part: 1, viewType: "text" }] }
+      ]
+    };
+    // a saved answer: the html part holds an object
+    var answerHtml = {
+      usedForId: 5001, schemaId: 3001, paramUrl: "/3001", schemaVersion: "1.0", lid: 2, lastUpdate: "",
+      properties: [
+        { prpId: 51, answers: [{ id: 10, parts: [{ part: 1, values: [{ id: 11, value: { email: "test", name: "test" } }] }] }] },
+        { prpId: 53, answers: [{ id: 20, parts: [{ part: 1, values: [{ id: 21, value: "sam" }] }] }] }
+      ]
+    };
+    BasisCoreMock.route({
+      url: "/schema/questions/:id",
+      method: "GET",
+      response: () => ({ sources: [{ options: { tableName: "schema.data" }, data: [schema3001] }] })
+    });
+  </script>
+  <script>
+    const host = {
+      sources: { "answer.html": [answerHtml] }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/html-field-and-dialogs.md">
+  <main>
+    <h1>schema html field and dialogs</h1>
+    <p class="intro">
+      Checks <code>docs/schema/html-field-and-dialogs.md</code>: the <code>html</code> part and its
+      modal dialog (markup, opening, the <code>postMessage</code> protocol with the embedded page in
+      <code>tests/fixtures/html-field-and-dialogs/editor.html</code>, sizing bounds, every way of
+      closing, the produced values), plus the help tooltip attribute and the password visibility
+      toggle.
+    </p>
+
+    <section class="case" id="case-new">
+      <h2>New form with explicit iframe bounds</h2>
+      <button data-btn-new>Save</button>
+      <div id="new">
+        <Basis core="schema" run="atclient"
+               schemaUrl="/schema/questions/3001" displayMode="new"
+               button="[data-btn-new]" resultSourceId="html.data" errorResultSourceId="html.error"
+               min_width="200" max_width="800" min_height="200" max_height="600"
+               direction="rtl">
+        </Basis>
+      </div>
+      <basis core="callback" run="atclient" triggers="html.data"></basis>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Edit form without bounds (iframe fixed at 450 by 300)</h2>
+      <button data-btn-edit>Save</button>
+      <div id="edit">
+        <Basis core="schema" run="atclient" datamembername="answer.html"
+               schemaUrl="/schema/questions" displayMode="edit"
+               button="[data-btn-edit]" resultSourceId="edit.data">
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-remove">
+      <h2>Edit form: the remove button discards the saved value</h2>
+      <button data-btn-remove>Save</button>
+      <div id="remove">
+        <Basis core="schema" run="atclient" datamembername="answer.html"
+               schemaUrl="/schema/questions" displayMode="edit"
+               button="[data-btn-remove]" resultSourceId="remove.data">
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-view">
+      <h2>View mode</h2>
+      <div id="view">
+        <Basis core="schema" run="atclient" datamembername="answer.html"
+               schemaUrl="/schema/questions" displayMode="view">
+        </Basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* test helpers */
+    const questionOf = (root, prpId) => document.querySelector(`${root} [data-bc-schema-info-prpid="${prpId}"]`).closest("[data-bc-question]");
+    const partOf = (root, prpId) => questionOf(root, prpId).querySelector("[data-bc-part-container] > [data-bc-part]");
+    const dialogOf = (root, prpId) => questionOf(root, prpId).querySelector("[data-bc-html-container]");
+    const ready = (t, root, prpId) => t.waitFor(() => document.querySelector(`${root} [data-bc-schema-info-prpid="${prpId}"]`), { timeout: 10000 });
+    const plain = (v) => JSON.parse(JSON.stringify(v));
+    // opens the dialog of an html part and waits until the embedded page reported isLoaded
+    async function openDialog(t, root, prpId) {
+      const dialog = dialogOf(root, prpId);
+      t.click(partOf(root, prpId));
+      t.equal(dialog.style.display, "block", "the dialog is shown");
+      const iframe = dialog.querySelector("iframe[data-bc-iframe]");
+      t.ok(iframe, "an iframe is appended to the body of the dialog");
+      await t.waitFor(() => iframe.contentWindow && iframe.contentWindow.editorState && iframe.contentWindow.editorState.received.length > 0, (v) => v === true, { timeout: 10000 });
+      await t.waitFor(() => iframe.style.display, (d) => d === "block", { message: "the iframe never became visible after isLoaded" });
+      return { dialog, iframe };
+    }
+
+    // Closing with the X button or the backdrop leaves the message listener registered (see the
+    // closing test): on the next open the stale listener handles isLoaded for an iframe that is
+    // gone and throws this TypeError.
+    bcTest.allowError(/Cannot read properties of null \(reading 'document'\)/);
+
+    bcTest.test("part markup: a disabled text box under an overlay, and a hidden dialog appended to the part container", async (t) => {
+      await ready(t, "#new", 53);
+      const part = partOf("#new", 51);
+      const row = part.querySelector("[data-bc-html-field-row]");
+      t.ok(row, "[data-bc-html-field-row]");
+      const input = row.querySelector("input[data-bc-text-input]");
+      t.ok(input && input.disabled && input.type === "text", "disabled text input");
+      t.equal(input.value, "", "no value yet");
+      t.ok(row.querySelector("[data-bc-input-overlay]"), "overlay div");
+      t.ok(part.querySelector("ul[data-bc-validation-part]"), "validation list");
+
+      const dialog = dialogOf("#new", 51);
+      t.ok(dialog, "the dialog exists as soon as the part renders");
+      t.ok(dialog.parentElement.hasAttribute("data-bc-part-container"), "it is appended to the question's part container");
+      t.equal(getComputedStyle(dialog).display, "none", "hidden until opened");
+      t.ok(dialog.querySelector("[data-bc-html][data-sys-html] > [data-bc-title][data-sys-html-header] > button[data-bc-btn-close]"), "title bar with close button");
+      t.ok(dialog.querySelector("[data-bc-html] > [data-bc-body][data-sys-html-body]"), "body");
+      t.ok(dialog.querySelector("[data-bc-html] > [data-bc-footer][data-sys-html-footer]"), "footer");
+      t.equal(dialog.querySelector("[data-bc-body]").children.length, 0, "the body is empty until the dialog opens");
+      t.equal(dialog.querySelector("[data-bc-footer]").children.length, 0, "the footer stays empty");
+    });
+
+    bcTest.test("validations on an html part are ignored: an empty required html part does not block the submit", async (t) => {
+      t.click("[data-btn-new]");
+      await t.sleep(400);
+      t.ok(!partOf("#new", 51).hasAttribute("data-bc-invalid"), "no invalid marker");
+      t.ok(t.source("html.error") == null, "errorResultSourceId is not published");
+      t.ok(t.source("html.data") == null, "and nothing changed, so no result either");
+    });
+
+    bcTest.test("opening: the iframe loads part.link verbatim, receives { mode: \"new\" }, and is sized within the min/max bounds after isLoaded", async (t) => {
+      const dialog = dialogOf("#new", 51);
+      t.click(partOf("#new", 51));
+      t.equal(dialog.style.display, "block");
+      const iframe = dialog.querySelector("iframe[data-bc-iframe]");
+      t.equal(iframe.getAttribute("src"), EDITOR, "part.link is used as is");
+      const loading = iframe.nextElementSibling;
+      t.equal(t.text(loading), "loading ...", "a loading text follows the iframe");
+      await t.waitFor(() => iframe.contentWindow && iframe.contentWindow.editorState && iframe.contentWindow.editorState.received.length > 0, (v) => v === true, { timeout: 10000 });
+      t.deepEqual(iframe.contentWindow.editorState.received, [{ mode: "new" }], "the host posted the mode on load");
+      await t.waitFor(() => iframe.style.display, (d) => d === "block");
+      t.equal(loading.style.display, "none", "the loading text is hidden once the page reports isLoaded");
+      t.equal(iframe.style.width, "600px", "600 px content, within 200..800");
+      t.equal(iframe.style.height, "400px", "400 px content, within 200..600");
+
+      window.postMessage("not json", "*");
+      await t.sleep(100);
+      t.equal(dialog.style.display, "block", "a message that is not JSON is ignored");
+    });
+
+    bcTest.test("{ isLoaded: false } closes the dialog and leaves the value unchanged", async (t) => {
+      const dialog = dialogOf("#new", 51);
+      window.postMessage(JSON.stringify({ isLoaded: false }), "*");
+      await t.waitFor(() => dialog.style.display, (d) => d === "none");
+      t.equal(partOf("#new", 51).querySelector("input[data-bc-text-input]").value, "", "still no value");
+    });
+
+    bcTest.test("submitting { isSubmited: true, ...fields } stores the fields, closes the dialog, shows the JSON and is reported under added", async (t) => {
+      const { dialog, iframe } = await openDialog(t, "#new", 51);
+      iframe.contentWindow.submitValues({ name: "x", email: "y" });
+      await t.waitFor(() => dialog.style.display, (d) => d === "none");
+      t.equal(partOf("#new", 51).querySelector("input[data-bc-text-input]").value, '{"name":"x","email":"y"}');
+
+      t.click("[data-btn-new]");
+      const src = await t.waitForSource("html.data");
+      t.deepEqual(plain(src.rows[0].properties), [
+        { propId: 51, multi: false, added: [{ parts: [{ part: 1, values: [{ value: { name: "x", email: "y" } }] }] }] }
+      ]);
+    });
+
+    bcTest.test("a submission that carries only isSubmited closes the dialog and keeps the previous value", async (t) => {
+      const { dialog, iframe } = await openDialog(t, "#new", 51);
+      t.deepEqual(iframe.contentWindow.editorState.received, [{ name: "x", email: "y", mode: "edit" }], "the current value is sent with mode edit");
+      iframe.contentWindow.submitValues({});
+      await t.waitFor(() => dialog.style.display, (d) => d === "none");
+      t.equal(partOf("#new", 51).querySelector("input[data-bc-text-input]").value, '{"name":"x","email":"y"}');
+    });
+
+    bcTest.test("closing: the X button, a click on the backdrop and a click on the title bar all close the dialog", async (t) => {
+      let d = await openDialog(t, "#new", 51);
+      t.click(d.dialog.querySelector("[data-bc-btn-close]"));
+      t.equal(d.dialog.style.display, "none", "X button");
+
+      const staleBefore = t.errors(/reading 'document'/).length;
+      d = await openDialog(t, "#new", 51);
+      t.ok(t.errors(/reading 'document'/).length > staleBefore, "pitfall: the listener of the dialog closed with X is still registered and throws for its removed iframe on the next open");
+      t.click(d.dialog);
+      t.equal(d.dialog.style.display, "none", "backdrop");
+
+      d = await openDialog(t, "#new", 51);
+      t.click(d.dialog.querySelector("[data-bc-title]"));
+      t.equal(d.dialog.style.display, "none", "pitfall: the title bar is inside the container, so its click bubbles and closes too");
+      t.equal(partOf("#new", 51).querySelector("input[data-bc-text-input]").value, '{"name":"x","email":"y"}', "closing never changes the value");
+    });
+
+    bcTest.test("edit mode: the saved object is shown as JSON, sent to the page with mode edit, the iframe is 450 by 300 without bounds, and a new object is reported under edited", async (t) => {
+      await ready(t, "#edit", 53);
+      const input = partOf("#edit", 51).querySelector("input[data-bc-text-input]");
+      t.equal(input.value, '{"email":"test","name":"test"}');
+      const { dialog, iframe } = await openDialog(t, "#edit", 51);
+      t.deepEqual(iframe.contentWindow.editorState.received, [{ email: "test", name: "test", mode: "edit" }]);
+      t.equal(iframe.contentWindow.document.getElementById("name").value, "test", "the embedded page filled its inputs from the message");
+      t.equal(iframe.style.width, "450px", "min and max default to 450, so the width is always 450");
+      t.equal(iframe.style.height, "300px", "and the height always 300");
+
+      iframe.contentWindow.submitValues({ name: "x", email: "y" });
+      await t.waitFor(() => dialog.style.display, (d) => d === "none");
+      t.equal(input.value, '{"name":"x","email":"y"}');
+      t.click("[data-btn-edit]");
+      const src = await t.waitForSource("edit.data");
+      t.equal(src.rows[0].usedForId, 5001);
+      t.deepEqual(plain(src.rows[0].properties), [
+        { propId: 51, multi: false, edited: [{ id: 10, parts: [{ part: 1, values: [{ id: 11, value: { name: "x", email: "y" } }] }] }] }
+      ]);
+    });
+
+    bcTest.test("edit mode: a saved html row shows only the remove button of the pair; clicking it reports deleted { id } and shows an empty row", async (t) => {
+      await ready(t, "#remove", 53);
+      const q = questionOf("#remove", 51);
+      const row = q.querySelector("[data-bc-answer]");
+      const pair = row.querySelector("[data-bc-pair-btn-container]");
+      t.equal(pair.style.display, "block", "the pair container is visible for a saved answer");
+      t.ok(!pair.querySelector("[data-bc-btn-add]"), "its add button is removed for html rows");
+      t.ok(!row.querySelector("[data-bc-btn]"), "the single toggling button is removed as well");
+
+      t.click(pair.querySelector("[data-bc-btn-remove]"));
+      await t.waitFor(() => q.querySelectorAll("[data-bc-answer]"), (l) => l.length === 1 && l[0] !== row);
+      t.equal(q.querySelector("[data-bc-answer] input[data-bc-text-input]").value, "", "a fresh empty row replaces the saved one");
+      t.click("[data-btn-remove]");
+      const src = await t.waitForSource("remove.data");
+      t.deepEqual(plain(src.rows[0].properties), [{ propId: 51, multi: false, deleted: [{ id: 10 }] }]);
+    });
+
+    bcTest.test("view mode renders an html value as [object Object]", async (t) => {
+      await ready(t, "#view", 53);
+      t.equal(t.text(partOf("#view", 51).querySelector("[data-bc-text-input]")), "[object Object]");
+      t.ok(!dialogOf("#view", 51), "no dialog in view mode");
+    });
+
+    bcTest.test("help: the icon carries data-bc-help-tooltip with the help text and is removed when the question has no help", async (t) => {
+      await ready(t, "#new", 53);
+      const help = questionOf("#new", 51).querySelector("[data-bc-title-container] a[data-bc-help-btn]");
+      t.ok(help, "help anchor present");
+      t.equal(help.getAttribute("data-bc-help-tooltip"), "Name and e-mail of the contact person");
+      t.ok(help.querySelector("svg"), "icon");
+      t.ok(!questionOf("#new", 53).querySelector("[data-bc-help-btn]"), "removed without help");
+    });
+
+    bcTest.skip("help tooltip text appears on hover", "the tooltip is a CSS :hover pseudo-element; a real pointer hover cannot be produced headless");
+
+    bcTest.test("password: the eye toggle switches data-bc-view-pass-status and the input type between password and text", async (t) => {
+      await ready(t, "#new", 52);
+      const part = partOf("#new", 52);
+      const input = part.querySelector("input[data-bc-text-input]");
+      const toggle = part.querySelector("[data-bc-view-pass]");
+      t.equal(input.type, "password");
+      t.equal(toggle.getAttribute("data-bc-view-pass-status"), "hide");
+      const icon = toggle.innerHTML;
+      t.click(toggle);
+      t.equal(toggle.getAttribute("data-bc-view-pass-status"), "show");
+      t.equal(input.type, "text");
+      t.notEqual(toggle.innerHTML, icon, "the icon is replaced");
+      t.click(toggle);
+      t.equal(toggle.getAttribute("data-bc-view-pass-status"), "hide");
+      t.equal(input.type, "password");
+    });
+  </script>
+</body>
+</html>

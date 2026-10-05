@@ -187,7 +187,7 @@ Adapted from `example/component/html-element/form/root`. New phone rows are stam
   cms.form._root.fname: [##cms.form._root.fname##]<br />
   cms.form._root.phones[0]?.code: [##cms.form._root.phones[0]?.code##]<br />
   cms.form._root.phones[1]?.number: [##cms.form._root.phones[1]?.number##]<br />
-  {{ return JSON.stringify((await $bc.waitToGetSourceAsync("cms.form")).rows[0]); }}
+  {{ return JSON.stringify((await $bc.waitToGetSourceAsync('cms.form')).rows[0]); }}
 </fieldset>
 
 <basis core="callback" run="atclient" triggers="cms.form"></basis>

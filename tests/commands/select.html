@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>select</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      sources: {
+        "demo.list": [
+          { id: 2, name: "b", age: 31 },
+          { id: 1, name: "a", age: 45 },
+          { id: 3, name: "c", age: 27 }
+        ]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/select.md">
+  <main>
+    <h1>select</h1>
+    <p class="intro">
+      Checks <code>docs/commands/select.md</code>: a <code>&lt;select bc-triggers="change"&gt;</code> publishes
+      the value of its selected option as <code>[{ value }]</code>, <code>bc-value</code> and
+      <code>bc-off-value</code> are ignored, tokens in option values are resolved before the user interacts,
+      <code>&lt;select multiple&gt;</code> publishes only the first selected value unless
+      <code>OnProcessing</code> collects <code>selectedOptions</code>, and the documented examples.
+    </p>
+
+    <section class="case" id="case-basic">
+      <h2>Basic dropdown</h2>
+      <select id="cmb" bc-triggers="change" name="cms.cmb">
+        <option value="default"></option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option id="now-option" value="[##cms.cms.time##]">now</option>
+      </select>
+      <span id="cmb-out">[##cms.cmb.value|(not set)##]</span>
+      <basis core="callback" run="atclient" triggers="cms.cmb"></basis>
+    </section>
+
+    <section class="case" id="case-merge">
+      <h2>Choosing the merge mode of another publisher</h2>
+      <label>Merge Type
+        <select id="merge-select" name="form.status" bc-triggers="change">
+          <option value="append">Append</option>
+          <option value="replace">Replace</option>
+        </select>
+      </label>
+      <form id="merge-form" bc-triggers="submit" name="page.form" bc-keyField="id" bc-statusField="status"
+            bc-merge="[##form.status.value|(append)##]">
+        <label>Id : <input id="merge-id" name="id" /></label>
+        <label>Name : <input id="merge-name" name="name" /></label>
+        <label>Status
+          <select id="merge-status" name="status" required>
+            <option value="0">Add</option>
+            <option value="1">Edit</option>
+            <option value="2">Delete</option>
+          </select>
+        </label>
+        <input type="submit" />
+      </form>
+    </section>
+
+    <section class="case" id="case-sort">
+      <h2>Sort key for a <code>print</code> command</h2>
+      <label>Sort by
+        <select id="sort-by" name="demo.sort-by" bc-triggers="change">
+          <option value="id">Id</option>
+          <option value="name">Name</option>
+          <option value="age">Age</option>
+        </select>
+      </label>
+      <ul id="sorted">
+        <basis core="print" datamembername="demo.list" run="atclient" triggers="demo.sort-by" OnProcessing="sortRows">
+          <face>
+            <script type="text/template"><li>@id@ - @name@ (@age@)</li></script>
+          </face>
+        </basis>
+      </ul>
+    </section>
+
+    <section class="case" id="case-multiple">
+      <h2>Multiple selection</h2>
+      <select id="multi-plain" multiple name="filter.plain" bc-triggers="change">
+        <option value="news">News</option>
+        <option value="sport">Sport</option>
+        <option value="tech">Tech</option>
+      </select>
+      <p id="plain-out">First selected: [##filter.plain.value|(none)##]</p>
+      <select id="multi" multiple name="filter.tags" bc-triggers="change" OnProcessing="collectSelected">
+        <option value="news">News</option>
+        <option value="sport">Sport</option>
+        <option value="tech">Tech</option>
+      </select>
+      <p id="tags-out">Tags: [##filter.tags.list|(none)##]</p>
+    </section>
+
+    <section class="case" id="case-pitfalls">
+      <h2>Pitfalls</h2>
+      <select id="bcv" name="sel.bcv" bc-triggers="change" bc-value="ignored" bc-off-value="ignored too">
+        <option value="x">x</option>
+        <option value="y">y</option>
+      </select>
+      <select id="placeholder" name="sel.placeholder" bc-triggers="change">
+        <option value="">choose</option>
+        <option value="k">k</option>
+      </select>
+      <span id="placeholder-out">[##sel.placeholder.value|(default)##]</span>
+    </section>
+  </main>
+
+  <script>
+    function sortRows(args) {
+      const col = args.context.tryToGetSource("demo.sort-by")?.rows[0].value ?? "id";
+      args.source.rows.sort((a, b) => (a[col] > b[col] ? 1 : a[col] < b[col] ? -1 : 0));
+    }
+    function collectSelected(args) {
+      const values = Array.from(args.node.selectedOptions, (o) => o.value);
+      args.value = { list: values.join(", "), values: values };
+    }
+    // Selects an option the way a user would: set the value, then fire change.
+    function choose(selector, value) {
+      const el = document.querySelector(selector);
+      el.value = value;
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    function submitMergeForm(id, name, status) {
+      document.getElementById("merge-id").value = id;
+      document.getElementById("merge-name").value = name;
+      document.getElementById("merge-status").value = String(status);
+      document.getElementById("merge-form").requestSubmit();
+    }
+  </script>
+
+  <script>
+    bcTest.test("nothing is published at page load; an option value token is resolved by the attribute binding before any interaction", async (t) => {
+      const value = await t.waitFor(() => t.$("#now-option").getAttribute("value"), (v) => /^\d{2}:\d{2}$/.test(v));
+      t.match(value, /^\d{2}:\d{2}$/, "[##cms.cms.time##] is HH:MM");
+      t.equal(t.source("cms.cmb"), undefined);
+      t.equal(t.text("#cmb-out"), "not set");
+      t.equal(t.$("#cmb").hasAttribute("data-bc-init"), true);
+    });
+
+    bcTest.test("example: the basic dropdown publishes [{ value }] of the selected option on change", async (t) => {
+      choose("#cmb", "2");
+      await t.waitForText("#cmb-out", "2");
+      t.deepEqual(t.rows("cms.cmb"), [{ value: "2" }], "an <option> without value publishes its text");
+
+      choose("#cmb", t.$("#now-option").value);
+      await t.waitForText("#cmb-out", /^\d{2}:\d{2}$/);
+
+      choose("#cmb", "default");
+      await t.waitForText("#cmb-out", "default");
+      await t.waitForConsole(/"value": "default"/);
+      t.note("the callback command logged the rows to the console");
+    });
+
+    bcTest.test("bc-value and bc-off-value are never read for a <select>; node.value wins", async (t) => {
+      choose("#bcv", "y");
+      const src = await t.waitForSource("sel.bcv");
+      t.deepEqual(src.rows, [{ value: "y" }]);
+    });
+
+    bcTest.test("example: the select's source is read by the form's bc-merge attribute (append, then replace)", async (t) => {
+      submitMergeForm("1", "a", 0);
+      await t.waitForSource("page.form");
+      submitMergeForm("2", "b", 0);
+      await t.waitForSource("page.form", (s) => s.rows.length === 2);
+      t.deepEqual(t.rows("page.form"), [{ id: "1", name: "a", status: "0" }, { id: "2", name: "b", status: "0" }]);
+      t.equal(t.$("#merge-status").hasAttribute("data-bc-init"), false, "the inner status select has no bc-triggers and is a plain form field");
+
+      choose("#merge-select", "replace");
+      await t.waitForSource("form.status", (s) => s.rows[0].value === "replace");
+      submitMergeForm("3", "c", 0);
+      await t.waitForSource("page.form", (s) => s.rows.length === 1 && s.rows[0].id === "3");
+    });
+
+    bcTest.test("example: a select as sort key re-runs the print whose OnProcessing sorts the rows", async (t) => {
+      const items = () => t.$$("#sorted li").map((li) => t.text(li));
+      await t.waitFor(items, (l) => l.length === 3);
+      t.deepEqual(items(), ["1 - a (45)", "2 - b (31)", "3 - c (27)"], "sorted by id before any change (tryToGetSource fallback)");
+      choose("#sort-by", "age");
+      await t.waitFor(items, (l) => l.join() === "3 - c (27),2 - b (31),1 - a (45)");
+      choose("#sort-by", "name");
+      await t.waitFor(items, (l) => l.join() === "1 - a (45),2 - b (31),3 - c (27)");
+      t.deepEqual(t.rows("demo.sort-by"), [{ value: "name" }]);
+    });
+
+    bcTest.test("<select multiple> publishes only the first selected value", async (t) => {
+      const el = t.$("#multi-plain");
+      el.options[0].selected = true;
+      el.options[2].selected = true;
+      t.fire(el, "change");
+      await t.waitForText("#plain-out", "First selected: news");
+      t.deepEqual(t.rows("filter.plain"), [{ value: "news" }]);
+    });
+
+    bcTest.test("example: OnProcessing collects selectedOptions of a <select multiple>", async (t) => {
+      const el = t.$("#multi");
+      el.options[0].selected = true;
+      el.options[2].selected = true;
+      t.fire(el, "change");
+      await t.waitForText("#tags-out", "Tags: news, tech");
+      t.deepEqual(t.rows("filter.tags"), [{ list: "news, tech", values: ["news", "tech"] }]);
+    });
+
+    bcTest.test("pitfall: a placeholder <option value=\"\"> publishes \"\" and the token shows its default", async (t) => {
+      choose("#placeholder", "k");
+      await t.waitForText("#placeholder-out", "k");
+      choose("#placeholder", "");
+      await t.waitForSource("sel.placeholder", (s) => s.rows[0].value === "");
+      await t.waitForText("#placeholder-out", "default");
+    });
+
+    bcTest.test("pitfall: changing the selection programmatically does not publish until change is dispatched", async (t) => {
+      const el = t.$("#placeholder");
+      el.value = "k";
+      await t.sleep(200);
+      t.deepEqual(t.rows("sel.placeholder"), [{ value: "" }], "no event, no publication");
+      el.dispatchEvent(new Event("change"));
+      await t.waitForText("#placeholder-out", "k");
+    });
+  </script>
+</body>
+</html>

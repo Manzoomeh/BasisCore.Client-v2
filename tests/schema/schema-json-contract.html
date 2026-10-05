@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>schema JSON contract</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // --- question schemas, built field by field from docs/schema/schema-json-contract.md -----
+    const text = (part, extra) => Object.assign({ part, viewType: "text" }, extra || {});
+    const schemas = {
+      // header fields, declared-only fields, sections and question/part attributes
+      "/header": {
+        schemaId: "S-1",
+        schemaVersion: "2.0",
+        paramUrl: "/header",
+        lid: 2,
+        direction: "ltr",
+        schemaName: "declared only",
+        baseVocab: "http://schema.site/EN/vo",
+        sections: [
+          { id: 1, title: { value: "Object title", id: 9 }, titleData: { value: "declared only", id: 9 }, description: "Not rendered description" },
+          { id: 2, title: "String title" }
+        ],
+        questions: [
+          {
+            prpId: 10, typeId: 7, ord: 500, vocab: "/x", title: "Second by ord", wordId: 42, multi: false,
+            sectionId: 1, cssClass: "q-ten", help: "Help me", useInList: true,
+            parts: [{ part: 1, viewType: "TEXT", cssClass: "p-one", placeHolder: "type here", method: "POST", formIdContent: "declared only", readonly: true }]
+          },
+          {
+            prpId: 20, ord: 1, title: "First by ord", multi: true, sectionId: 2, disabled: true,
+            parts: [text(1)]
+          },
+          {
+            prpId: 30, title: "Outside", sectionId: 99, multi: true, colSpan: 2,
+            parts: [text(1, { caption: "Left", readonly: true }), text(2, { caption: "Right" })]
+          }
+        ]
+      },
+      // fix values, link and the id 0 convention
+      "/lists": {
+        schemaId: 2, schemaVersion: 1, paramUrl: "/lists", lid: 2,
+        questions: [
+          { prpId: 1, title: "Unit (fixValues)", parts: [{ part: 1, viewType: "select", fixValues: [{ id: 0, value: "none" }, { id: 1, value: "kW" }, { id: 2, value: "HP", selected: true }] }] },
+          { prpId: 2, title: "Unit (link)", parts: [{ part: 1, viewType: "select", method: "POST", link: "/contract/fix-data/${prpId}/${part}" }] },
+          { prpId: 3, title: "Voltage", parts: [{ part: 1, viewType: "checklist", fixValues: [{ id: 4, value: "110" }, { id: 5, value: "220", selected: true }, { id: 6, value: "R1" }] }] },
+          { prpId: 4, title: "Phase", parts: [{ part: 1, viewType: "radio", fixValues: [{ id: 1, value: "single" }, { id: 2, value: "three", selected: true }] }] }
+        ]
+      },
+      // answer matching rules and the fields copied from the answer
+      "/edit": {
+        schemaId: "E", schemaVersion: "1", paramUrl: "/edit", lid: 2,
+        questions: [
+          { prpId: 20, title: "Name", parts: [text(1)] },
+          { prpId: 21, title: "Strict part", parts: [text(1)] },
+          { prpId: 22, title: "Unit", parts: [{ part: 1, viewType: "select", caption: "Unit", fixValues: [{ id: 0, value: "none" }, { id: 1, value: "kW", selected: true }, { id: 2, value: "HP" }] }, text(2, { caption: "Note" })] },
+          { prpId: 23, title: "Time", parts: [{ part: 1, viewType: "time" }] },
+          { prpId: 24, title: "Locked", parts: [text(1, { disabled: true })] },
+          { prpId: 25, title: "Unlocked", parts: [text(1, { disabled: true })] }
+        ]
+      },
+      // dependency placeholders
+      "/dep": {
+        schemaId: 3, schemaVersion: 1, paramUrl: "/dep", lid: 2,
+        questions: [
+          { prpId: 100, title: "Single", parts: [text(1)] },
+          { prpId: 101, title: "Many", multi: true, parts: [text(1)] },
+          {
+            prpId: 200, title: "Dependent",
+            parts: [{
+              part: 1, viewType: "select", link: "/contract/fix-data/${prpId}/${part}?d1=${data1}&d2=${data2}",
+              dependency: [
+                { prpId: 100, part: 1, name: "data1", required: false },
+                { prpId: 101, part: 1, name: "data2", required: false }
+              ]
+            }]
+          }
+        ]
+      }
+    };
+    // one required text per lid, to observe the culture of the message
+    [1, 2, 4, 99].forEach((lid) => {
+      schemas["/lid" + lid] = {
+        schemaId: "L" + lid, schemaVersion: 1, paramUrl: "/lid" + lid, lid,
+        questions: [{ prpId: 1, title: "lid " + lid, parts: [text(1, { validations: { required: true } })] }]
+      };
+    });
+
+    const answerEdit = {
+      usedForId: 777,
+      ownerid: 5,
+      schemaId: "E",
+      paramUrl: "/edit",
+      schemaVersion: "1",
+      lastUpdate: "2024-01-01",
+      lid: 2,
+      properties: [
+        { prpId: "20", answers: [{ id: 1, parts: [{ part: 1, values: [{ id: 11, value: "Ali" }] }] }] },
+        { prpId: 21, answers: [{ id: 2, parts: [{ part: "1", values: [{ id: 12, value: "never shown" }] }] }] },
+        { prpId: 22, answers: [{ id: 3, parts: [{ part: 1, values: [{ id: 13, value: 2 }] }, { part: 2, values: [{ id: 16, value: "n" }] }] }] },
+        { prpId: 23, answers: [{ id: 4, parts: [{ part: 1, values: [{ id: 14, value: { time: "02:00", timeid: 120 } }] }] }] },
+        { prpId: 24, answers: [{ id: 5, parts: [{ part: 1, values: [{ id: 15, value: "keep" }] }] }] },
+        { prpId: 999, answers: [{ id: 6, parts: [{ part: 1, values: [{ id: 17, value: "no question" }] }] }] }
+      ]
+    };
+    const answerDep = {
+      usedForId: 1, schemaId: 3, paramUrl: "/dep", schemaVersion: 1, lid: 2,
+      properties: [
+        { prpId: 100, answers: [{ id: 1, parts: [{ part: 1, values: [{ id: 11, value: "a" }] }] }] },
+        { prpId: 101, answers: [{ id: 2, parts: [{ part: 1, values: [{ id: 12, value: "b" }] }] }, { id: 3, parts: [{ part: 1, values: [{ id: 13, value: "c" }] }] }] }
+      ]
+    };
+
+    const fixDataRequests = [];
+    BasisCoreMock.route({
+      url: "/contract/fix-data/:prpId/:part", method: "GET",
+      response: (ctx) => {
+        fixDataRequests.push({ prpId: ctx.params.prpId, part: ctx.params.part, method: ctx.method, query: ctx.query });
+        return [{ id: 0, value: "please choose" }, { id: 1, value: "from server" }];
+      }
+    });
+    // default loader: the envelope with two sources; only sources[0].data[0] is read
+    BasisCoreMock.route({
+      url: "/contract/questions/env", method: "GET",
+      response: () => ({
+        setting: { keepalive: true },
+        sources: [
+          {
+            options: { tableName: "answer.data", keyFieldName: null, statusFieldName: null, mergeType: 0 },
+            data: [
+              { schemaId: "env", schemaVersion: 1, paramUrl: "/env", lid: 2, questions: [{ prpId: 1, title: "From sources[0].data[0]", parts: [text(1)] }] },
+              { schemaId: "env-2", schemaVersion: 1, paramUrl: "/env", lid: 2, questions: [{ prpId: 2, title: "From data[1]", parts: [text(1)] }] }
+            ]
+          },
+          { options: { tableName: "other" }, data: [{ schemaId: "x", questions: [{ prpId: 3, title: "From sources[1]", parts: [text(1)] }] }] }
+        ]
+      })
+    });
+    // a bare schema without the envelope
+    BasisCoreMock.route({ url: "/contract/questions/bare", method: "GET", response: () => schemas["/lists"] });
+  </script>
+  <script>
+    const host = {
+      sources: {
+        "contract.edit": [answerEdit],
+        "contract.dep": [answerDep]
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/schema-json-contract.md">
+  <main>
+    <h1>schema JSON contract</h1>
+    <p class="intro">
+      Checks <code>docs/schema/schema-json-contract.md</code>: which fields of the question
+      schema and the answer are read, how they appear in the DOM and in the user action result,
+      the matching rules between answers and questions, dependency placeholders, the
+      <code>lid</code> to culture mapping and the server envelope read by the default loader.
+    </p>
+
+    <section class="case" id="case-header">
+      <h2>Header, sections, question and part fields (new mode)</h2>
+      <button data-btn-header>Save</button>
+      <div id="header-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/header"
+               displayMode="new" button="[data-btn-header]" resultSourceId="contract.header" direction="rtl"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-lists">
+      <h2>fixValues, link and the id 0 convention</h2>
+      <button data-btn-lists>Save</button>
+      <div id="lists-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/lists"
+               displayMode="new" button="[data-btn-lists]" resultSourceId="contract.lists"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-edit">
+      <h2>Answer matching and fields copied from the answer (edit mode)</h2>
+      <button data-btn-edit>Save</button>
+      <div id="edit-form">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" datamembername="contract.edit"
+               displayMode="edit" button="[data-btn-edit]" resultSourceId="contract.editresult"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-dep">
+      <h2>Dependency placeholders in a part link</h2>
+      <div id="dep-new">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/dep" displayMode="new"></basis>
+      </div>
+      <div id="dep-edit">
+        <basis core="schema" run="atclient" schemaCallback="loadSchema" datamembername="contract.dep" displayMode="edit"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-lid">
+      <h2>lid selects the culture of validation messages</h2>
+      <button data-btn-lid>Validate all</button>
+      <div id="lid1"><basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/lid1" button="[data-btn-lid]" resultSourceId="contract.lid1"></basis></div>
+      <div id="lid2"><basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/lid2" button="[data-btn-lid]" resultSourceId="contract.lid2"></basis></div>
+      <div id="lid4"><basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/lid4" button="[data-btn-lid]" resultSourceId="contract.lid4"></basis></div>
+      <div id="lid99"><basis core="schema" run="atclient" schemaCallback="loadSchema" paramUrl="/lid99" button="[data-btn-lid]" resultSourceId="contract.lid99"></basis></div>
+    </section>
+
+    <section class="case" id="case-envelope">
+      <h2>Server envelope and the default loader</h2>
+      <div id="env-form">
+        <basis core="schema" run="atclient" schemaUrl="/contract/questions/env" displayMode="new"></basis>
+      </div>
+      <div id="bare-form">
+        <basis core="schema" run="atclient" schemaUrl="/contract/questions/bare" displayMode="new"></basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function loadSchema(context, paramUrl) {
+      return schemas[paramUrl];
+    }
+  </script>
+
+  <script>
+    const normalize = (v) => JSON.parse(JSON.stringify(v));
+    const questionByTitle = (root, title) =>
+      bcTest.state && Array.from(root.querySelectorAll("[data-bc-question]")).find((q) => q.querySelector("[data-bc-question-title]").textContent.trim() === title);
+
+    bcTest.test("header fields are copied into the result, direction is not; declared-only fields have no effect", async (t) => {
+      const root = await t.waitFor(() => t.$("#header-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      t.equal(root.getAttribute("data-bc-schema-direction"), "ltr", "schema.direction beats the attribute");
+      const titles = t.$$("[data-bc-question-title]", root).map((e) => t.text(e));
+      t.deepEqual(titles, ["Second by ord", "First by ord", "Outside"], "questions are rendered in array order, ord is ignored");
+      t.notMatch(root.textContent, /Not rendered description|declared only/, "description, titleData, schemaName are not rendered");
+
+      const input = questionByTitle(root, "Outside").querySelectorAll("input[data-bc-text-input]")[1];
+      t.setValue(input, "value");
+      t.click("[data-btn-header]");
+      const src = await t.waitForSource("contract.header");
+      const result = src.rows[0];
+      t.equal(result.schemaId, "S-1", "schemaId string is copied as is");
+      t.equal(result.schemaVersion, "2.0");
+      t.equal(result.paramUrl, "/header");
+      t.equal(result.lid, 2);
+      t.ok(!("direction" in result), "direction is not part of the result");
+      t.ok("usedForId" in result && result.usedForId === undefined, "usedForId is undefined in new mode");
+      t.ok("ownerid" in result && result.ownerid === undefined);
+      t.deepEqual(normalize(result.properties), [{ propId: 30, multi: true, added: [{ parts: [{ part: 2, values: [{ value: "value" }] }] }] }]);
+    });
+
+    bcTest.test("ISection: string title, object title, missing section id", async (t) => {
+      const root = await t.waitFor(() => t.$("#header-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      const sections = t.$$("[data-bc-section]", root);
+      t.equal(sections.length, 2);
+      t.equal(t.text(sections[0].querySelector("[data-bc-section-title]")), "Object title", "title.value of an object title");
+      t.equal(t.text(sections[1].querySelector("[data-bc-section-title]")), "String title");
+      t.equal(questionByTitle(root, "Outside").closest("[data-bc-section]"), null, "sectionId 99 is not found: rendered outside sections");
+    });
+
+    bcTest.test("IQuestion fields: prpId, typeId, wordId, multi, cssClass, help, disabled, colSpan", async (t) => {
+      const root = await t.waitFor(() => t.$("#header-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      const q10 = questionByTitle(root, "Second by ord");
+      t.equal(q10.querySelector("[data-bc-question-title]").getAttribute("data-bc-schema-info-prpid"), "10");
+      const info = q10.querySelector("[data-bc-answer-container]");
+      t.equal(info.getAttribute("data-bc-schema-info-type"), "7");
+      t.equal(info.getAttribute("data-bc-schema-info-word"), "42");
+      t.equal(info.getAttribute("data-bc-schema-info-multi"), "0");
+      t.equal(info.getAttribute("data-bc-schema-info-part"), "1");
+      t.equal(info.getAttribute("data-bc-schema-info-part-0-type"), "TEXT", "viewType is written verbatim");
+      t.ok(q10.classList.contains("q-ten"), "cssClass on the question block");
+      t.equal(q10.querySelector("[data-bc-help-btn]").getAttribute("data-bc-help-tooltip"), "Help me");
+      t.equal(q10.getAttribute("data-colspan"), "1", "colSpan defaults to 1");
+      t.equal(q10.querySelector("[data-bc-btn]"), null, "a non-multi question has no add button");
+
+      const q20 = questionByTitle(root, "First by ord");
+      const q20info = q20.querySelector("[data-bc-answer-container]");
+      t.equal(q20info.getAttribute("data-bc-schema-info-multi"), "1");
+      t.ok(!q20info.hasAttribute("data-bc-schema-info-type"), "typeId attribute only when present");
+      t.ok(!q20info.hasAttribute("data-bc-schema-info-word"));
+      t.equal(q20.querySelector("[data-bc-help-btn]"), null, "help button removed without help");
+      t.ok(q20.querySelector("input[data-bc-text-input]").hasAttribute("disabled"), "question.disabled disables the controls");
+      t.equal(q20.querySelector("[data-bc-btn]"), null, "and removes the add button of a multi question");
+
+      const q30 = questionByTitle(root, "Outside");
+      t.equal(q30.getAttribute("data-colspan"), "2");
+      t.equal(q30.querySelector("[data-bc-btn]").getAttribute("data-bc-btn"), "add", "multi and not disabled: add button present");
+    });
+
+    bcTest.test("IQuestionPart fields: viewType case, cssClass, placeHolder, caption, readonly only on multi-part questions", async (t) => {
+      const root = await t.waitFor(() => t.$("#header-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      const q10 = questionByTitle(root, "Second by ord");
+      const part = q10.querySelector("[data-bc-part]");
+      t.ok(part.classList.contains("p-one"), "part.cssClass on the [data-bc-part] element");
+      const input = part.querySelector("input");
+      t.equal(input.type, "text", "viewType TEXT is matched case-insensitively");
+      t.equal(input.placeholder, "type here");
+      t.ok(!input.hasAttribute("readonly"), "readonly is ignored on a single-part question");
+      t.equal(q10.querySelector("[data-bc-answer-title-container]"), null, "no caption row for a single part");
+
+      const q30 = questionByTitle(root, "Outside");
+      const inputs = q30.querySelectorAll("input[data-bc-text-input]");
+      t.ok(inputs[0].hasAttribute("readonly"), "readonly honoured when the question has more than one part");
+      t.ok(!inputs[1].hasAttribute("readonly"));
+      t.deepEqual(t.$$("[data-bc-answer-title] span", q30).map((e) => t.text(e)), ["Left", "Right"], "captions become column headers");
+    });
+
+    bcTest.test("fixValues build the list without a request; link is fetched with GET although method says POST", async (t) => {
+      const root = await t.waitFor(() => t.$("#lists-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      const q1 = questionByTitle(root, "Unit (fixValues)");
+      t.deepEqual(t.$$("option", q1).map((o) => [o.value, o.text]), [["0", "none"], ["1", "kW"], ["2", "HP"]], "option.value is id, option.text is value");
+      t.equal(q1.querySelector("select").value, "2", "selected: true preselects the item in new mode");
+      const q2 = questionByTitle(root, "Unit (link)");
+      await t.waitFor(() => t.$$("option", q2), (o) => o.length === 2);
+      const req = fixDataRequests.find((r) => r.prpId === "2");
+      t.equal(req.method, "GET", "every loader uses GET");
+      t.equal(req.part, "1");
+      t.equal(fixDataRequests.filter((r) => r.prpId === "1").length, 0, "no request for a part with fixValues");
+      const checks = t.$$("input", questionByTitle(root, "Voltage"));
+      t.deepEqual(checks.map((c) => [c.type, c.value, c.checked]), [["checkbox", "4", false], ["checkbox", "5", true], ["checkbox", "6", false]]);
+      const radios = t.$$("input", questionByTitle(root, "Phase"));
+      t.deepEqual(radios.map((r) => [r.type, r.value, r.checked]), [["radio", "1", false], ["radio", "2", true]]);
+    });
+
+    bcTest.test("select id 0 is never reported; select values are strings, checklist and radio values are numbers", async (t) => {
+      const root = await t.waitFor(() => t.$("#lists-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      const q2 = questionByTitle(root, "Unit (link)");
+      await t.waitFor(() => t.$$("option", q2), (o) => o.length === 2);
+      t.setValue(questionByTitle(root, "Unit (fixValues)").querySelector("select"), "0", ["change"]);
+      t.setValue(q2.querySelector("select"), "1", ["change"]);
+      const check4 = t.$$("input", questionByTitle(root, "Voltage"))[0];
+      check4.checked = true; t.fire(check4, "change");
+      t.click("[data-btn-lists]");
+      const src = await t.waitForSource("contract.lists");
+      t.deepEqual(normalize(src.rows[0].properties), [
+        { propId: 2, added: [{ parts: [{ part: 1, values: [{ value: "1" }] }] }] },
+        { propId: 3, added: [{ parts: [{ part: 1, values: [{ value: 4 }, { value: 5 }] }] }] },
+        { propId: 4, added: [{ parts: [{ part: 1, values: [{ value: 2 }] }] }] }
+      ], "property 1 (option 0) is absent; multi is undefined and dropped by JSON");
+      t.equal(src.rows[0].schemaId, 2, "numeric schemaId is accepted");
+    });
+
+    bcTest.test("edit mode: prpId matches loosely, part strictly, selected is ignored with an answer, { time } objects pre-fill time inputs", async (t) => {
+      const root = await t.waitFor(() => t.$("#edit-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      t.equal(questionByTitle(root, "Name").querySelector("input").value, "Ali", "prpId \"20\" matches question 20");
+      t.equal(questionByTitle(root, "Strict part").querySelector("input").value, "", "part \"1\" does not match part 1");
+      const unit = questionByTitle(root, "Unit");
+      t.equal(unit.querySelector("select").value, "2", "the answer wins over selected: true");
+      t.equal(unit.querySelectorAll("input")[0].value, "n");
+      const time = questionByTitle(root, "Time").querySelector("input");
+      t.equal(time.type, "time");
+      t.equal(time.value, "02:00", "value.time of a { time, timeid } object");
+      t.ok(questionByTitle(root, "Locked").querySelector("input").hasAttribute("disabled"), "part.disabled with a saved answer");
+      t.equal(questionByTitle(root, "Locked").querySelector("input").value, "keep");
+      t.ok(!questionByTitle(root, "Unlocked").querySelector("input").hasAttribute("disabled"), "part.disabled without an answer has no effect");
+      t.equal(t.$$("[data-bc-question]", root).length, 6, "answer property 999 without a question is ignored");
+    });
+
+    bcTest.test("edit mode result: usedForId and ownerid are copied, changing a select to id 0 reports { id, value: \"0\" }", async (t) => {
+      const root = await t.waitFor(() => t.$("#edit-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      t.setValue(questionByTitle(root, "Unit").querySelector("select"), "0", ["change"]);
+      t.click("[data-btn-edit]");
+      const src = await t.waitForSource("contract.editresult");
+      const result = normalize(src.rows[0]);
+      const { properties, ...header } = result;
+      t.deepEqual(header, { lid: 2, paramUrl: "/edit", schemaId: "E", schemaVersion: "1", usedForId: 777, ownerid: 5 });
+      t.deepEqual(result.properties[0], { propId: 22, deleted: [{ id: 3, parts: [{ part: 1, values: [{ id: 13, value: "0" }] }] }] },
+        "the row keeps its parts because the second part of the question still has its value");
+      t.equal(result.properties.filter((p) => [20, 21, 24, 25].includes(p.propId)).length, 0, "untouched text parts report nothing");
+    });
+
+    bcTest.defect("known defect: a time part pre-filled from a { time, timeid } object is always reported as edited", async (t) => {
+      const result = normalize((await t.waitForSource("contract.editresult")).rows[0]);
+      const time = result.properties.find((p) => p.propId === 23);
+      t.deepEqual(time, { propId: 23, edited: [{ id: 4, parts: [{ part: 1, values: [{ id: 14, value: "02:00" }] }] }] },
+        "TextBaseType compares the input string with the saved object instead of its time property");
+    });
+
+    bcTest.test("IDependency: one value is injected JSON-encoded, several values as a JSON array, an empty part as an empty string", async (t) => {
+      await t.waitFor(() => fixDataRequests.filter((r) => r.prpId === "200"), (l) => l.length === 2);
+      const queries = fixDataRequests.filter((r) => r.prpId === "200").map((r) => r.query);
+      t.ok(queries.some((q) => q.d1 === "" && q.d2 === ""), "new mode: empty referenced parts give empty placeholders");
+      t.ok(queries.some((q) => q.d1 === "\"a\"" && q.d2 === "[\"b\",\"c\"]"), "edit mode: one value JSON-encoded, two rows as an array");
+    });
+
+    bcTest.test("lid maps to a culture: 2 = en, 1 = fa, 4 (fr) falls back to en, unknown becomes fa", async (t) => {
+      await t.waitFor(() => t.$$("#case-lid input[data-bc-text-input]"), (l) => l.length === 4);
+      t.click("[data-btn-lid]");
+      const message = (id) => t.waitFor(() => t.$(`#${id} [data-bc-invalid] [data-bc-validation-part] li`)).then((li) => t.text(li));
+      t.equal(await message("lid2"), "* this field is required.");
+      t.equal(await message("lid4"), "* this field is required.", "no French text: English fallback");
+      t.equal(await message("lid1"), "* پر کردن این فیلد الزامیست");
+      t.equal(await message("lid99"), "* پر کردن این فیلد الزامیست", "lid outside 1..16 becomes fa");
+    });
+
+    bcTest.test("the default loader reads sources[0].data[0] of the envelope and ignores the rest", async (t) => {
+      const root = await t.waitFor(() => t.$("#env-form [data-bc-schema-main-container][data-bc-schema-direction]"));
+      t.deepEqual(t.$$("[data-bc-question-title]", root).map((e) => t.text(e)), ["From sources[0].data[0]"]);
+      t.ok(BasisCoreMock.state().log.some((e) => e.url === "/contract/questions/env" && e.method === "GET"));
+    });
+
+    bcTest.allowError(/sources|reading '0'/);
+    bcTest.test("a bare schema without the envelope fails in the loader and leaves the main container empty", async (t) => {
+      const root = await t.waitFor(() => t.$("#bare-form [data-bc-schema-main-container]"));
+      await t.waitForError(/reading '0'|sources/);
+      t.equal(root.children.length, 0, "nothing is rendered");
+      t.ok(!root.hasAttribute("data-bc-schema-direction"));
+    });
+  </script>
+</body>
+</html>

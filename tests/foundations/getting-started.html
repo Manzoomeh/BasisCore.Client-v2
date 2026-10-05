@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>getting started</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- demo back end: answers the GET that the `shop` connection sends -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    BasisCoreMock.route({
+      url: "/data/products.json",
+      method: "GET",
+      response: () => ({
+        sources: [
+          {
+            options: { tableName: "shop.products" },
+            data: [
+              { id: 1, name: "Notebook", price: 12 },
+              { id: 2, name: "Pen", price: 2 }
+            ]
+          }
+        ]
+      })
+    });
+  </script>
+  <script>
+    var host = {
+      settings: {
+        "connection.web.shop": "/data/products.json",
+        "default.source.verb": "GET"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/getting-started.md">
+  <main>
+    <h1>getting started</h1>
+    <p class="intro">
+      Checks <code>docs/getting-started.md</code>: the two globals, the zero-configuration token,
+      the "first page" (input, token, print, dbsource over a <code>web</code> connection) and two
+      isolated runtimes created with <code>$bc.new()</code>.
+    </p>
+
+    <section class="case" id="case-zero">
+      <h2>Zero configuration</h2>
+      <p>Time is <span id="time">[##cms.cms.time2##]</span></p>
+    </section>
+
+    <section class="case" id="case-first-page">
+      <h2>A first page: token, input, print and dbsource</h2>
+      <label>Your name: <input id="name" name="user.name" bc-triggers="keyup" /></label>
+      <p id="hello">Hello, [##user.name.value|(guest)##]!</p>
+
+      <div id="team">
+        <basis core="print" run="atclient" datamembername="team.members">
+          <layout><ul>@child</ul></layout>
+          <face><li>@name@ - @role@</li></face>
+        </basis>
+      </div>
+
+      <basis core="dbsource" run="atclient" name="shop" source="shop">
+        <member name="products"></member>
+      </basis>
+      <div id="products">
+        <basis core="print" run="atclient" datamembername="shop.products">
+          <layout><script type="text/template"><table>@child</table></script></layout>
+          <face><script type="text/template"><tr><td>@name@</td><td>@price@</td></tr></script></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-multi">
+      <h2>Fragments and several instances</h2>
+      <div id="multi-mount"></div>
+    </section>
+  </main>
+
+  <script>
+    bcTest.test("the bundle defines $bc and basiscore, and basiscore.$bc is $bc", (t) => {
+      t.equal(typeof $bc, "object");
+      t.equal(typeof basiscore, "object");
+      t.ok(basiscore.$bc === $bc);
+      ["BasisCore", "BCWrapperFactory", "HostOptions", "MergeType", "EventManager", "LocalContext", "LocalDataBase", "PrintComponent", "DbSourceComponent"].forEach(
+        (name) => t.ok(typeof basiscore[name] === "function" || typeof basiscore[name] === "object", "basiscore." + name + " is exported")
+      );
+      t.equal(typeof $bc.run, "function");
+      t.equal(typeof $bc.setSource, "function");
+      t.equal(typeof $bc.new, "function");
+      t.equal(typeof $bc.util.source.runSqlAsync, "function");
+    });
+
+    bcTest.test("a token on the built-in cms.cms source is resolved on load (zero configuration)", async (t) => {
+      const text = await t.waitForText("#time", /^\d{6}$/);
+      t.match(text, /^\d{6}$/, "time2 is HHMMSS");
+    });
+
+    bcTest.test("an input with bc-triggers publishes [{ value }] and the token fallback is used before that", async (t) => {
+      await t.waitForText("#hello", "Hello, guest!");
+      t.setValue("#name", "Ali", ["keyup"]);
+      await t.waitForText("#hello", "Hello, Ali!");
+      t.deepEqual(t.rows("user.name"), [{ value: "Ali" }]);
+    });
+
+    bcTest.test("a source published from JavaScript renders through print", async (t) => {
+      $bc.setSource("team.members", [
+        { name: "Sara", role: "Designer" },
+        { name: "Reza", role: "Developer" }
+      ]);
+      const items = await t.waitFor(() => t.$$("#team li"), (l) => l.length === 2);
+      t.equal(t.text(items[0]), "Sara - Designer");
+      t.equal(t.text(items[1]), "Reza - Developer");
+    });
+
+    bcTest.test("dbsource sends command and dmnid to the web connection and publishes name.member", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#products tr"), (l) => l.length === 2);
+      t.deepEqual(t.$$("td", rows[0]).map((td) => t.text(td)), ["Notebook", "12"]);
+      t.deepEqual(t.$$("td", rows[1]).map((td) => t.text(td)), ["Pen", "2"]);
+      t.equal(t.rows("shop.products").length, 2);
+      const call = BasisCoreMock.state().log.find((e) => /products\.json/.test(e.url || e.pathname || ""));
+      t.ok(call, "the mock saw the request");
+      t.match(call.method, /^GET$/, "default.source.verb GET is used");
+    });
+
+    bcTest.test("$bc.new() creates isolated runtimes with their own fragment, options and sources", async (t) => {
+      t.$("#multi-mount").innerHTML =
+        '<div id="section-1">(local) [##data.time.hh|(00)##]:[##data.time.mm|(00)##]</div>' +
+        '<div class="section-2">(utc) {data.time.hh|(00)}:{data.time.mm|(00)}</div>';
+      const bc = $bc.new().addFragment("#section-1").run();
+      const bc2 = $bc
+        .new()
+        .addFragment(".section-2")
+        .setOptions({ settings: { "default.binding.regex": /\{([^\}]*)\}/ } })
+        .run();
+      await t.waitForText("#section-1", "(local) 00:00");
+      await t.waitForText(".section-2", "(utc) 00:00");
+
+      bc.setSource("data.time", { hh: 10, mm: 20 });
+      bc2.setSource("data.time", { hh: 7, mm: 5 });
+      await t.waitForText("#section-1", "(local) 10:20");
+      await t.waitForText(".section-2", "(utc) 7:5");
+      t.ok(t.source("data.time") == null, "the default instance never saw data.time");
+      t.ok($bc.all.includes(bc) && $bc.all.includes(bc2), "$bc.all lists every wrapper");
+    });
+
+    bcTest.test("addFragment and setOptions throw once the instance has run", (t) => {
+      const bc = $bc.new().addFragment("#case-zero").run();
+      t.throws(() => bc.addFragment("#case-zero"), /already builded/);
+      t.throws(() => bc.setOptions({}), /already builded/);
+    });
+  </script>
+</body>
+</html>

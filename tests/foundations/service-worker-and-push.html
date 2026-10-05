@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>service worker and push</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // Test instrumentation, installed before the library:
+    // - alert() is recorded instead of shown (the library alerts on every worker failure);
+    // - navigator.serviceWorker.register is wrapped to record the path the library passes.
+    window.__alerts = [];
+    window.alert = function (message) {
+      window.__alerts.push(String(message));
+    };
+    window.__registerCalls = [];
+    (function () {
+      const realRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+      navigator.serviceWorker.register = function (path, options) {
+        window.__registerCalls.push(String(path));
+        return realRegister(path, options);
+      };
+    })();
+  </script>
+  <script>
+    var host = {
+      // an explicit worker path, served from the repository root by the test runner
+      serviceWorker: "/tests/fixtures/service-worker-and-push/sw.js",
+      settings: {
+        "connection.push.simple": "test",
+        "connection.push.simple1": "test1",
+        "default.dmnid": 2668
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+  <script>
+    // The documented "custom message type" example: the handler is registered right after the
+    // library loads and publishes a source that a print command renders.
+    window.__newsSupported = $bc.util.addMessageHandler("news", function (message) {
+      $bc.setSource("news.items", message.rows);
+    });
+  </script>
+</head>
+<body data-doc="docs/service-worker-and-push.md">
+  <main>
+    <h1>service worker and push</h1>
+    <p class="intro">
+      Checks <code>docs/service-worker-and-push.md</code> without <code>host.push</code>: registration of
+      an explicit worker path through <code>host.serviceWorker</code>, the single-registration rule, message
+      routing with <code>$bc.util.addMessageHandler</code>, and two <code>dbsource</code> commands fed by the
+      <code>push</code> connection provider, both from synthetic <code>message</code> events and from the real
+      worker in <code>/tests/fixtures/service-worker-and-push/sw.js</code>.
+    </p>
+
+    <section class="case" id="case-register">
+      <h2>Registration with <code>host.serviceWorker = "/tests/fixtures/service-worker-and-push/sw.js"</code></h2>
+      <p>The worker is registered by the first wrapper that runs; a second wrapper only warns.</p>
+      <div id="second">second fragment: [##second.flag.value|(unused)##]</div>
+    </section>
+
+    <section class="case" id="case-news">
+      <h2>Handling a custom message type in JavaScript</h2>
+      <ul id="news">
+        <basis core="print" datamembername="news.items" run="atclient">
+          <face><li>@title@</li></face>
+        </basis>
+      </ul>
+    </section>
+
+    <section class="case" id="case-stream">
+      <h2>Two push-driven sources consumed by <code>dbsource</code></h2>
+      <basis core="dbsource" source="simple" name="stream" run="atclient">
+        <member name="time" />
+      </basis>
+      <basis core="dbsource" source="simple1" name="stream1" run="atclient">
+        <member name="time2" />
+      </basis>
+
+      <basis core="callback" run="atclient" triggers="stream.time stream1.time2"></basis>
+      <div id="clock">
+        Update time for 10 seconds only! (remain [##stream.time.remain##])
+        <br />
+        Time is : [##stream.time.hh|(00)##]:[##stream.time.mm|(00)##]:[##stream.time.ss|(00)##]
+      </div>
+      <div id="clock2">second stream: [##stream1.time2.label|(none)##]</div>
+    </section>
+  </main>
+
+  <script>
+    const WORKER_PATH = "/tests/fixtures/service-worker-and-push/sw.js";
+
+    // Dispatches what a service worker's `client.postMessage(data)` produces in the page.
+    function postFromWorker(data) {
+      navigator.serviceWorker.dispatchEvent(new MessageEvent("message", { data: data }));
+    }
+
+    function timeMessage(type, row) {
+      return {
+        type: type,
+        message: {
+          sources: [{ options: { tableName: "stream.time", mergeType: 0 }, data: [row] }]
+        }
+      };
+    }
+
+    async function activeRegistration(t) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      t.equal(regs.length, 1, "exactly one registration exists");
+      await t.waitFor(() => regs[0].active, (sw) => sw != null, { message: "the worker never became active" });
+      return regs[0];
+    }
+
+    bcTest.test("run() registers the worker given as a string and logs the success message", async (t) => {
+      await t.waitForConsole(/^Service worker from '\/tests\/fixtures\/service-worker-and-push\/sw\.js' register successfully!$/);
+      t.deepEqual(window.__registerCalls, [WORKER_PATH], "register() received the string from host.serviceWorker as given");
+      const reg = await activeRegistration(t);
+      t.match(reg.scope, /\/tests\/fixtures\/service-worker-and-push\/$/, "the scope is the worker's own directory");
+      t.equal(navigator.serviceWorker.controller, null, "a worker in another directory does not control this page");
+      t.deepEqual(window.__alerts, [], "no alert: registration succeeded");
+      t.equal(t.consoleMessages(/Push api|Push Notification|blocked notifications/).length, 0, "without host.push the flow ends after registration");
+    });
+
+    bcTest.test("a second wrapper with serviceWorker enabled only warns and registers nothing", async (t) => {
+      $bc.new().addFragment("#second").setOptions({ serviceWorker: "/tests/fixtures/service-worker-and-push/other.js" }).run();
+      await t.waitForConsole(/^Try add service worker more than one\./);
+      await t.waitForText("#second", "second fragment: unused");
+      t.deepEqual(window.__registerCalls, [WORKER_PATH], "register() was not called again");
+      t.equal((await navigator.serviceWorker.getRegistrations()).length, 1);
+    });
+
+    bcTest.test("addMessageHandler returns true and the handler receives only event.data.message of its type", async (t) => {
+      const received = [];
+      const result = $bc.util.addMessageHandler("orders", (message) => received.push(message));
+      t.equal(result, true, "service workers are supported, so the handler was stored");
+      t.equal(window.__newsSupported, true, "the handler registered right after the library loaded was stored too");
+
+      postFromWorker({ type: "orders", message: { id: 7, state: "paid" }, extra: "dropped" });
+      postFromWorker({ type: "orders", message: "plain text" });
+      postFromWorker({ type: "unknown-type", message: { id: 8 } });
+      postFromWorker({ message: { id: 9 } });
+      await t.waitFor(() => received, (r) => r.length === 2);
+      t.deepEqual(received, [{ id: 7, state: "paid" }, "plain text"], "type and other properties are dropped; unknown or missing types are ignored");
+    });
+
+    bcTest.test("handlers of one type form a Set: duplicates are ignored and a throwing handler does not stop the others", async (t) => {
+      let count = 0;
+      const counter = () => count++;
+      const thrower = () => {
+        throw new Error("handler failed on purpose");
+      };
+      t.equal($bc.util.addMessageHandler("mixed", thrower), true);
+      t.equal($bc.util.addMessageHandler("mixed", counter), true);
+      t.equal($bc.util.addMessageHandler("mixed", counter), true, "adding the same function again still returns true");
+      postFromWorker({ type: "mixed", message: 1 });
+      await t.waitForConsole(/handler failed on purpose/);
+      t.equal(count, 1, "the duplicate registration did not run the handler twice");
+      t.equal(t.errors(/handler failed/).length, 0, "the exception was logged with console.error, not thrown");
+    });
+
+    bcTest.test("the news example: a message of type news publishes news.items and print renders it", async (t) => {
+      postFromWorker({ type: "news", message: { rows: [{ title: "First headline" }, { title: "Second headline" }] } });
+      const items = await t.waitFor(() => t.$$("#news li"), (l) => l.length === 2);
+      t.deepEqual(items.map((li) => t.text(li)), ["First headline", "Second headline"]);
+      t.equal(t.rows("news.items").length, 2);
+    });
+
+    bcTest.test("a message of type test is logged and its single sources entry is published as stream.time", async (t) => {
+      postFromWorker(timeMessage("test", { hh: 10, mm: 5, ss: 42, remain: 9 }));
+      await t.waitForConsole(/^push message receive /);
+      await t.waitForText("#clock", "Update time for 10 seconds only! (remain 9) Time is : 10:5:42");
+      const rows = t.rows("stream.time");
+      t.equal(rows.length, 1);
+      t.equal(rows[0].hh, 10);
+      t.equal(rows[0].remain, 9);
+      t.equal(t.rows("stream1.time2"), null, "the second connection did not receive the message");
+      t.equal(t.text("#clock2"), "second stream: none");
+      await t.waitForConsole(/"hh": 10/);
+      t.note("the callback command without a method dumped the rows to the console");
+    });
+
+    bcTest.test("a message of type test1 is routed to the other connection and published as stream1.time2", async (t) => {
+      postFromWorker({
+        type: "test1",
+        message: { sources: [{ options: { tableName: "stream1.time2" }, data: [{ label: "second" }] }] }
+      });
+      await t.waitForText("#clock2", "second stream: second");
+      t.equal(t.rows("stream1.time2").length, 1);
+      t.equal(t.rows("stream.time")[0].hh, 10, "stream.time is untouched");
+    });
+
+    bcTest.test("the real worker forwards a payload to this uncontrolled page and dbsource re-renders", async (t) => {
+      const reg = await activeRegistration(t);
+      reg.active.postMessage({ type: "simulate-push", payload: timeMessage("test", { hh: 11, mm: 6, ss: 43, remain: 8 }) });
+      await t.waitForText("#clock", "Update time for 10 seconds only! (remain 8) Time is : 11:6:43", { timeout: 8000 });
+      t.equal(t.rows("stream.time")[0].remain, 8);
+    });
+
+    bcTest.test("a message whose sources count differs from the members is logged with console.error and ignored", async (t) => {
+      postFromWorker({
+        type: "test",
+        message: {
+          sources: [
+            { options: { tableName: "stream.time" }, data: [{ hh: 1 }] },
+            { options: { tableName: "stream.other" }, data: [{ hh: 2 }] }
+          ]
+        }
+      });
+      await t.waitForConsole(/^Command 'stream' has 1 member\(s\) but 2 result\(s\) returned from source!$/);
+      t.equal(t.rows("stream.time")[0].hh, 11, "stream.time still holds the previous rows");
+      t.equal(t.errors().length, 0, "nothing was thrown to the page");
+      postFromWorker({ type: "test", message: { noSources: true } });
+      // every wrapper on the page owns a connection for the same setting, so the line appears once per wrapper
+      await t.waitFor(() => t.consoleMessages(/^push message receive .*noSources/), (l) => l.length >= 1);
+      t.equal(t.rows("stream.time")[0].hh, 11, "a message without sources is ignored");
+    });
+
+    bcTest.test("loadDataAsync of a push connection resolves at once, ignores parameters and delivers Data objects later", async (t) => {
+      const context = $bc.global.basiscore.context;
+      const connection = context.connections.getConnection("simple");
+      const batches = [];
+      const promise = connection.loadDataAsync(context, "manual", { command: "select 1", dmnid: 1 }, (dataList) => {
+        batches.push(dataList);
+        return false;
+      });
+      t.ok(promise instanceof Promise);
+      await promise;
+      t.equal(batches.length, 0, "nothing is delivered by loadDataAsync itself");
+
+      postFromWorker({ type: "test", message: { sources: [{ data: [{ hh: 12, mm: 0, ss: 0, remain: 7 }] }] } });
+      await t.waitFor(() => batches, (b) => b.length === 1);
+      t.equal(batches[0].length, 1);
+      t.equal(batches[0][0].id, "cms.no-name", "a missing tableName becomes cms.no-name");
+      t.equal(batches[0][0].rows[0].hh, 12);
+      await t.waitForText("#clock", /remain 7/);
+
+      postFromWorker(timeMessage("test", { hh: 13, mm: 0, ss: 0, remain: 6 }));
+      await t.waitFor(() => batches, (b) => b.length === 2);
+      t.equal(batches[1][0].id, "stream.time", "the callback stays registered although it returned false");
+    });
+
+    bcTest.test("a push connection throws on TestConnectionAsync and loadPageAsync", (t) => {
+      const context = $bc.global.basiscore.context;
+      const connection = context.connections.getConnection("simple1");
+      t.throws(() => connection.TestConnectionAsync(context), /^TestConnection not support in PushConnectionOptions\.$/);
+      t.throws(() => connection.loadPageAsync(context, "page", {}), /^loadPage not support in PushConnectionOptions\.$/);
+    });
+
+    bcTest.test("the worker is unregistered at the end so repeated runs start clean", async (t) => {
+      const reg = await activeRegistration(t);
+      t.equal(await reg.unregister(), true);
+      t.equal((await navigator.serviceWorker.getRegistrations()).length, 0);
+    });
+
+    bcTest.skip("addMessageHandler returns false when the browser has no serviceWorker support", "headless Chromium always supports service workers; the false branch needs a browser without navigator.serviceWorker");
+    bcTest.skip("a library injected after the load event never attaches the message listener", "the bundle must be loaded a second time after load, which redefines the globals of this page");
+  </script>
+</body>
+</html>

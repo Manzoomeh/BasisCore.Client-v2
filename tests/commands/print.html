@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>print</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    const host = {
+      dbLibPath: "/node_modules/alasql/dist/alasql.min.js",
+      sources: {
+        "inlineSource.print": [
+          { id: 1, name: "qamsari" },
+          { id: 2, name: "akbari" },
+          { id: 3, name: "amir" },
+          { id: 4, name: "ali" }
+        ],
+        "inlineSource.empty": [],
+        "inlineSource.withKey": {
+          options: { keyFieldName: "id" },
+          data: [
+            { id: 1, name: "qamsari" },
+            { id: 2, name: "akaberi" },
+            { id: 3, name: "amir" }
+          ]
+        },
+        "demo.data": {
+          data: [
+            { id: 1000, name: "amir", age: 31 },
+            { id: 1001, name: "ali", age: 45 },
+            { id: 1002, name: "reza", age: 22 }
+          ],
+          options: { keyFieldName: "id" }
+        }
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/print.md">
+  <main>
+    <h1>print</h1>
+    <p class="intro">
+      Checks the examples of <code>docs/commands/print.md</code>: faces, layout and else-layout,
+      live updates with <code>$bc.setSource</code>, keyed rows that keep their DOM state, sorting in
+      <code>OnProcessing</code> with <code>$bc.util.source.runSqlAsync</code>, and a live face
+      <code>filter</code>.
+    </p>
+
+    <section class="case" id="case-basic">
+      <h2>Faces, layout and else-layout</h2>
+      <div id="basic">
+        <Basis core="print" datamembername="inlineSource.print" run="atclient">
+          <layout>
+            <span data-u="">@child</span>
+            <span>w</span>
+          </layout>
+          <face>
+            <script type="text/Template">
+              <img src="#" alt="" />
+              <span class="row">@id ( name is:@name@ ) </span>
+              <br/>
+            </script>
+          </face>
+          <else-layout>
+            <script type="text/template">
+              <span>no user found!</span>
+            </script>
+          </else-layout>
+        </Basis>
+      </div>
+      <div id="basic-empty">
+        <Basis core="print" datamembername="inlineSource.empty" run="atclient">
+          <face><span class="row">@id</span></face>
+          <else-layout>
+            <script type="text/template">
+              <span class="empty">no user found!</span>
+            </script>
+          </else-layout>
+        </Basis>
+      </div>
+      <div id="basic-filtered">
+        <Basis core="print" datamembername="inlineSource.print" run="atclient">
+          <face filter="1!=1"><span class="row">@id</span></face>
+          <else-layout>
+            <script type="text/template">
+              <span class="empty">no user found!</span>
+            </script>
+          </else-layout>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-live">
+      <h2>Live updates with <code>$bc.setSource</code></h2>
+      <div id="live">
+        <Basis core="print" datamembername="local.print" run="atclient">
+          <layout>
+            <script type="text/template">
+              <ul>@child</ul>
+            </script>
+          </layout>
+          <face>
+            <li><span>@id ( @name ) </span></li>
+          </face>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-keyed">
+      <h2>Keyed rows keep their DOM state</h2>
+      <button id="refresh" bc-value=" " name="event.refresh" bc-triggers="click">Refresh Component</button>
+      <div id="keyed">
+        <Basis core="print" datamembername="inlineSource.withKey" run="atclient" triggers="event.refresh">
+          <face>
+            <script type="text/template">
+              <div class="row" data-id="@id@">
+                <span>@id ( name is:@name@ )</span>
+                <button class="color" onclick="this.style['color'] = 'rgb(255, 0, 0)'">change color</button>
+              </div>
+            </script>
+          </face>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-processing">
+      <h2>Sorting and filtering in <code>OnProcessing</code></h2>
+      <label>name: <input id="filter-name" name="demo.filter-name" bc-triggers="keyup change" /></label>
+      <div id="processing">
+        <Basis core="print" datamembername="demo.data" run="atclient"
+               OnProcessing="manipulation" triggers="demo.sort-by demo.filter-name">
+          <layout>
+            <script type="text/template">
+              <table>
+                <thead>
+                  <tr>
+                    <td id="sort-id" name="demo.sort-by" bc-triggers="click" bc-value="id">Id</td>
+                    <td id="sort-name" name="demo.sort-by" bc-triggers="click" bc-value="name">Name</td>
+                    <td id="sort-age" name="demo.sort-by" bc-triggers="click" bc-value="age">Age</td>
+                  </tr>
+                </thead>
+                <tbody>@child</tbody>
+              </table>
+            </script>
+          </layout>
+          <face>
+            <script type="text/template">
+              <tr><td>@id@</td><td>@name@</td><td>@age@</td></tr>
+            </script>
+          </face>
+        </Basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-face-filter">
+      <h2>Live filter in a face <code>filter</code></h2>
+      <label>name: <input id="face-filter-name" type="text" name="filter.name" bc-triggers="keyup change" /></label>
+      <label>min age: <input id="face-filter-age" type="range" bc-triggers="change input" name="filter.age" min="10" max="90" /></label>
+      <div id="face-filter">
+        <Basis core="print" datamembername="local.filtered" run="atclient" triggers="filter.age filter.name">
+          <layout>
+            <script type="text/template">
+              <table><tbody>@child</tbody></table>
+            </script>
+          </layout>
+          <face filter="name like '%[##filter.name.value##]%' and age >= [##filter.age.value|(10)##]">
+            <script type="text/template">
+              <tr><td>@id@</td><td>@age@</td><td>@name@</td></tr>
+            </script>
+          </face>
+        </Basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let orderPart = "";
+    async function manipulation(args) {
+      const where = args.context.tryToGetSource("demo.filter-name");
+      const wherePart = where?.rows[0].value ? `where name like '%${where.rows[0].value}%'` : "";
+      const sort = args.context.tryToGetSource("demo.sort-by");
+      if (sort) {
+        orderPart = `order by ${sort.rows[0].value}`;
+      }
+      const sql = `select top 10 * from ? ${wherePart} ${orderPart}`;
+      args.source = await $bc.util.source.runSqlAsync(args.source, sql, args.context);
+    }
+  </script>
+
+  <script>
+    bcTest.test("one face per row, inside the layout, with the layout's own markup kept", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#basic span.row"), (l) => l.length === 4);
+      t.equal(t.text(rows[0]), "1 ( name is:qamsari )");
+      t.equal(t.text(rows[3]), "4 ( name is:ali )");
+      t.equal(t.$$("#basic img").length, 4, "the <img> of the face is rendered for every row");
+      t.equal(t.$("#basic span[data-u]").querySelectorAll("span.row").length, 4, "@child is replaced inside the layout span");
+      t.equal(t.text(t.$("#basic span[data-u] + span")), "w", "the rest of the layout survives");
+      t.equal(t.$$("#basic basis").length, 0, "the <basis> element is replaced by the rendered output");
+    });
+
+    bcTest.test("an empty source renders the else-layout", async (t) => {
+      await t.waitForText("#basic-empty", "no user found!");
+      t.equal(t.$$("#basic-empty span.row").length, 0);
+    });
+
+    bcTest.test("a face filter that matches no row renders the else-layout", async (t) => {
+      await t.waitForText("#basic-filtered", "no user found!", { timeout: 10000 });
+      t.equal(t.$$("#basic-filtered span.row").length, 0);
+    });
+
+    bcTest.test("$bc.setSource replaces the rows by default and appends with MergeType.append", async (t) => {
+      $bc.setSource("local.print", { id: 0, name: "btn-t=0" });
+      let items = await t.waitFor(() => t.$$("#live li"), (l) => l.length === 1);
+      t.equal(t.text(items[0]), "0 ( btn-t=0 )");
+
+      $bc.setSource("local.print", { id: 1, name: "btn-t=1" });
+      await t.waitForText("#live ul", "1 ( btn-t=1 )");
+      t.equal(t.$$("#live li").length, 1, "replace keeps a single row");
+
+      $bc.setSource("local.print", { id: 2, name: "btn-t=2" }, { mergeType: basiscore.MergeType.append });
+      items = await t.waitFor(() => t.$$("#live li"), (l) => l.length === 2);
+      t.equal(t.text(items[1]), "2 ( btn-t=2 )");
+      t.equal(basiscore.MergeType.append, 1, "MergeType.append is the number 1");
+      t.equal(basiscore.MergeType.replace, 0, "MergeType.replace is the number 0");
+    });
+
+    bcTest.test("keyed rows are served from the cache on a trigger re-render and keep their DOM state", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#keyed .row"), (l) => l.length === 3);
+      const second = rows[1];
+      t.click(second.querySelector("button.color"));
+      t.equal(second.querySelector("button.color").style.color, "rgb(255, 0, 0)");
+
+      t.click("#refresh");
+      await t.waitForSource("event.refresh");
+      await t.sleep(200);
+      const after = t.$$("#keyed .row");
+      t.equal(after.length, 3);
+      t.ok(after[1] === second, "the same DOM node is reused for the row with id 2");
+      t.equal(after[1].querySelector("button.color").style.color, "rgb(255, 0, 0)", "the colour set by the user survives");
+    });
+
+    bcTest.test("an append with keyFieldName and statusFieldName re-renders only the edited row", async (t) => {
+      const before = t.$$("#keyed .row");
+      $bc.setSource("inlineSource.withKey", [{ id: 2, name: "x", status: 1 }], {
+        keyFieldName: "id",
+        statusFieldName: "status",
+        mergeType: basiscore.MergeType.append
+      });
+      await t.waitForText("#keyed .row[data-id='2'] span", "2 ( name is:x )");
+      const after = t.$$("#keyed .row");
+      t.equal(after.length, 3);
+      t.ok(after[0] === before[0] && after[2] === before[2], "untouched rows keep their nodes");
+      t.ok(after[1] !== before[1], "the edited row is a new node");
+    });
+
+    bcTest.test("OnProcessing can replace the source with the result of runSqlAsync (sort by clicking a header)", async (t) => {
+      const cells = () => t.$$("#processing tbody tr td:first-child").map((td) => t.text(td));
+      await t.waitFor(() => t.$$("#processing tbody tr"), (l) => l.length === 3, { timeout: 10000 });
+      t.deepEqual(cells(), ["1000", "1001", "1002"]);
+
+      t.click("#sort-age");
+      await t.waitFor(cells, (c) => c.join() === "1002,1000,1001", { timeout: 10000 });
+
+      t.click("#sort-name");
+      await t.waitFor(cells, (c) => c.join() === "1001,1000,1002", { timeout: 10000 });
+
+      t.setValue("#filter-name", "am", ["keyup"]);
+      await t.waitFor(cells, (c) => c.join() === "1000", { timeout: 10000 });
+      t.setValue("#filter-name", "", ["keyup"]);
+      await t.waitFor(cells, (c) => c.length === 3, { timeout: 10000 });
+    });
+
+    bcTest.test("a face filter with tokens is re-evaluated when a listed trigger changes", async (t) => {
+      $bc.setSource("filter.name", "");
+      $bc.setSource("filter.age", 10);
+      $bc.setSource("local.filtered", [
+        { id: 1000, age: 31, name: "amir" },
+        { id: 1001, age: 45, name: "ali" }
+      ]);
+      const names = () => t.$$("#face-filter tbody tr td:nth-child(3)").map((td) => t.text(td));
+      await t.waitFor(names, (n) => n.join() === "amir,ali", { timeout: 10000 });
+
+      t.setValue("#face-filter-name", "am", ["keyup"]);
+      await t.waitFor(names, (n) => n.join() === "amir", { timeout: 10000 });
+
+      t.setValue("#face-filter-name", "a", ["keyup"]);
+      t.setValue("#face-filter-age", "40", ["input", "change"]);
+      await t.waitFor(names, (n) => n.join() === "ali", { timeout: 10000 });
+    });
+  </script>
+</body>
+</html>

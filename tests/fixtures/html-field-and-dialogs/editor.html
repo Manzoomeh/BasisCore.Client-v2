@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>embedded editor</title>
+  <style>
+    /* no body margin, so the host measures exactly the 600 x 400 content box */
+    body { margin: 0; font-family: system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div style="height:400px;width:600px;box-sizing:border-box;padding:8px">
+    <label for="name">Name:</label> <input id="name" name="name" /><br /><br />
+    <label for="email">Email:</label> <input id="email" name="email" type="email" /><br /><br />
+    <button onclick="onSubmit()">submit</button>
+  </div>
+  <script>
+    // Minimal implementation of the message protocol described in
+    // docs/schema/html-field-and-dialogs.md. The host sends { mode: "new" } or
+    // { ...value, mode: "edit" } on the iframe load event; the page answers
+    // { isLoaded: true } and later { isSubmited: true, ...fields }.
+    // `editorState` and `submitValues` exist so that the test page can drive it.
+    window.editorState = { received: [] };
+
+    function post(values) {
+      window.parent.postMessage(JSON.stringify(values));
+    }
+    function setValues(values) {
+      Object.keys(values).forEach((k) => {
+        const el = document.getElementById(k);
+        if (el) el.value = values[k];
+      });
+    }
+    function onSubmit() {
+      const values = {};
+      if (document.getElementById("name").value) values.name = document.getElementById("name").value;
+      if (document.getElementById("email").value) values.email = document.getElementById("email").value;
+      post({ ...values, isSubmited: true });
+    }
+    // used by the tests: submit an arbitrary object (an empty object sends only isSubmited)
+    window.submitValues = function (values) {
+      post({ ...values, isSubmited: true });
+    };
+    window.addEventListener("message", (e) => {
+      let answer;
+      try {
+        answer = JSON.parse(e.data);
+      } catch (err) {
+        return;
+      }
+      if (!answer || !answer.mode) return;
+      window.editorState.received.push({ ...answer });
+      const mode = answer.mode;
+      delete answer.mode;
+      if (mode == "edit") setValues(answer);
+      post({ isLoaded: true });
+    });
+  </script>
+</body>
+</html>
