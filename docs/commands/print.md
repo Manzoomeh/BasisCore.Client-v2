@@ -10,10 +10,10 @@
     <ul>@child</ul>
   </layout>
   <face filter="id < 3" rowtype="odd">
-    <li class="odd">@id - @name</li>
+    <li class="odd">@id@ - @name@</li>
   </face>
   <face>
-    <li>@id - @name</li>
+    <li>@id@ - @name@</li>
   </face>
   <else-layout>
     <p>no rows</p>
@@ -143,7 +143,7 @@ Tokens are not substituted while the face is rendered. They stay in the output a
 The text of a `<face>`, `<layout>` or `<else-layout>` is parsed with an XML parser (`application/xml`) after substitution, and the resulting elements are rebuilt as HTML (or SVG, inside an `<svg>`) elements. Consequences:
 
 - Markup must be well formed: `<br/>`, `<img ... />`, quoted attribute values, `&amp;` for a literal ampersand, no `&nbsp;`.
-- Text nodes are trimmed and whitespace-only text nodes are dropped, so `<b>@a</b> <b>@b</b>` renders without the space between the two elements.
+- Text nodes are trimmed and whitespace-only text nodes are dropped, so `<b>@a@</b> <b>@b@</b>` renders without the space between the two elements.
 - A parse error renders the browser's `parsererror` element with the error message instead of the row.
 - SVG markup inside a face is created in the SVG namespace and displays correctly.
 
