@@ -40,7 +40,9 @@ Attribute tables, children and per-command caveats: the reference below.
 
 - `[##source.member.column##]` — a value from a source; a scalar for one row, an array for several.
 - `[##a.b.c|x.y.z|(default)##]` — fallback chain; the first non-empty part wins.
-- `@column@` in `<face>` — a field of the current row. `@child` in `<layout>` — where rows go.
+- `@column@` in `<face>` — a field of the current row; always the closed form, because the open
+  form `@column` runs to the next whitespace and `<li>@name</li>` fails to compile. Faces have no
+  `|(default)`; a fallback is a spaceless expression, `@(mark??'none')@`. `@child` in `<layout>` — where rows go.
 - `{{ return … }}` — JavaScript run as `AsyncFunction("$bc", "$data", …)`.
 - A token without a column (`[##filter.keyword##]`) is an existence check, not the value. Inputs
   publish `[{ value }]`, so read them as `[##filter.keyword.value##]`.
@@ -103,17 +105,33 @@ not something you author. Inventory and host configuration keys: the reference b
 
 ## Known bugs in 2.39.6
 
-Fixed in https://github.com/Manzoomeh/BasisCore.Client-v2/pull/93 (not yet released):
+The first three are fixed in https://github.com/Manzoomeh/BasisCore.Client-v2/pull/93 (not yet
+released). All of them are reproduced by `bcTest.defect` cases under `tests/` in the repository
+and described with their source location in `docs/troubleshooting.md`.
 
 - `cms.cms` `date`/`date2`/`date3` use a zero-based month and the weekday instead of the day.
 - A lower-case verb (`"default.source.verb": "get"`) on a `web` connection sends a GET with a body,
   which the browser rejects. Write verbs in upper case.
 - An unset `default.dmnid` is sent to the server as the text `null`.
+- `view` never renders its level 2 faces; only the group headers appear.
+- A text token re-rendered to an empty value throws a `TypeError`; give text tokens a fallback.
+- `wrapper.setSource()` on a `$bc.new()` wrapper that has not run discards the data.
+- `call` with `GET` sends no parameters; the `rest` connection provider throws on every method.
+- A `{{ }}` block that awaits a source nobody has published stalls every command of its runtime.
+- A column name containing `-` is evaluated as a subtraction in tokens.
+- An `inlinesource` join member without `jointype` throws and blocks rendering.
+- A `group` toggled with `if` brings back dead tokens; re-running a visible group through
+  `triggers` freezes its output.
+- Chart tooltips throw on vertical `stacked` segments and on the fifth donut slice.
+- Schema: `schemauploader noCache="true"` throws; a pre-filled `time` part is always reported as
+  edited; `ReadOnlyDate` throws without a saved value; the `html` dialog throws on its second open.
 
 ## Working rules
 
 - There is no static validator for client markup. Say that output follows the documented rules,
   not that it "passes validation".
+- The repository ships one runnable, self-checking page per documentation page under `tests/`
+  (`npm test`). Copy from them; they are known to run.
 - Never invent ids (`schemaid`, `propertyid`, `dmnid`) or source names. Ask, or leave a clearly
   marked placeholder.
 - Some documented behaviours are unverified in the source (listed in the reference below
