@@ -149,7 +149,7 @@ Uses `group` (segment label) and `y` (segment value); `x` is ignored. The rows a
 
 The bar thickness is computed as `settingThickness || horizontal ? height / 2 : width / 2`, which JavaScript parses as `(settingThickness || horizontal) ? height / 2 : width / 2`. The `thickness` style key therefore does not set the thickness: when it is present the bar is always `height / 2` thick, and when it is absent the bar is `height / 2` for horizontal charts and `width / 2` for vertical ones.
 
-The vertical variant stores `yScale(d.label)` in the `title` attribute, which is `NaN` for string labels, so its tooltip shows `NaN`. The horizontal variant stores the label.
+The vertical variant computes `yScale(d.label)` for the `title` attribute; a linear scale returns `undefined` for a string label, so no `title` attribute is written and, with `hover="true"`, moving the mouse over a segment throws `TypeError: Cannot read properties of undefined (reading 'value')` in the tooltip handler. The horizontal variant stores the label.
 
 ### line
 
@@ -509,9 +509,9 @@ A pie chart is a donut whose `innerRadiusDistance` is at least the radius (`char
 - The palette key is `color`, not `colors`. Several example pages pass `colors: [...]` inside `chartStyle`, which is ignored and the default palette is used.
 - `chartStyle`, `chartContent` and `onLabelClick` are JavaScript, evaluated in global scope every time the chart renders. A misspelled variable name throws and leaves the chart empty. The variables must exist before the first render.
 - Booleans must be the exact string `"true"`; `horizontal="True"` or `legend` without a value are `false`.
-- The donut and half donut `stroke` is `color[d.index]` without `% color.length`, so the fifth and later slices have `stroke="undefined"`, and with `hover="true"` their tooltip color box has no color. Fills do wrap around the palette.
+- The donut and half donut `stroke` is `color[d.index]` without `% color.length`, so the fifth and later slices have no `stroke` attribute (an `undefined` value removes the attribute), and with `hover="true"` moving the mouse over them throws a `TypeError` in the tooltip handler. Fills do wrap around the palette.
 - `funnel` sorts rows by `y` descending; the stage order in the source is not preserved.
-- `stacked`: the `thickness` style key is ineffective (operator precedence), the vertical variant's tooltip shows `NaN`, `grid` and `onLabelClick` are not implemented, and the horizontal `axisLabel` text contains a hard-coded Persian word.
+- `stacked`: the `thickness` style key is ineffective (operator precedence), the vertical variant's segments have no `title` attribute so hovering them throws a `TypeError`, `grid` and `onLabelClick` are not implemented, and the horizontal `axisLabel` text contains a hard-coded Persian word.
 - `donut` / `halfdonut`: `axisLabel="true"` appends text inside `<path>` elements, so no labels appear; use `legend` or `chartContent` instead. Set `innerRadiusDistance` explicitly when using `chartContent`, otherwise the content box is mispositioned.
 - Legend entries are 100px wide, so they overlap when there are more than roughly `width / 100` of them.
 - The `line` y axis starts at the minimum value of `y`, not at zero. Without `isStringLineChart="true"`, string `x` values are passed to a linear scale.

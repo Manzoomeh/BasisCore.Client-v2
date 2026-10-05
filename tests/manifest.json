@@ -239,6 +239,31 @@
       "file": "foundations/client-side-sql-no-dblib.html",
       "doc": "docs/client-side-sql.md",
       "title": "client-side SQL - dbLibPath not configured"
+    },
+    {
+      "file": "commands/chart.html",
+      "doc": "docs/commands/chart.md",
+      "title": "chart"
+    },
+    {
+      "file": "commands/component.html",
+      "doc": "docs/commands/component.md",
+      "title": "component"
+    },
+    {
+      "file": "foundations/user-defined-components.html",
+      "doc": "docs/user-defined-components.md",
+      "title": "user-defined components"
+    },
+    {
+      "file": "foundations/troubleshooting.html",
+      "doc": "docs/troubleshooting.md",
+      "title": "troubleshooting"
+    },
+    {
+      "file": "foundations/troubleshooting-dblibpath.html",
+      "doc": "docs/troubleshooting.md",
+      "title": "troubleshooting - dbLibPath"
     }
   ]
 }

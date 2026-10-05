@@ -36,7 +36,7 @@ Only `<basis>` elements with a `run` attribute equal to `atclient` (compared cas
 
 ```html
 <basis core="print" datamembername="db.list" run="atclient">
-  <face><p>@title</p></face>
+  <face><p>@title@</p></face>
 </basis>
 ```
 
@@ -55,14 +55,14 @@ The browser parses the page before BasisCore runs. Inside `<table>`, elements it
     </layout>
     <face>
       <script type="text/template">
-        <tr><td>@id</td><td>@name</td></tr>
+        <tr><td>@id@</td><td>@name@</td></tr>
       </script>
     </face>
   </basis>
 </table>
 ```
 
-Templates are parsed as XML by `$bc.util.toElement`, so they must be well-formed: `<br />` not `<br>`, closed `<input />`, `&amp;` for `&`. When parsing fails, `toElement` returns the browser's `parsererror` document and its content (the parser's error text) ends up in the output instead of the rendered rows.
+Templates are parsed as XML by `$bc.util.toElement`, so they must be well-formed: `<br />` not `<br>`, closed `<input />`, `&amp;` for `&`. When parsing fails, `toElement` returns the browser's `parsererror` element and its content (the parser's error text) ends up in the output; depending on the XML parser the error element replaces the rendered row or follows the part of it that was read before the error. Close a bare `@column` placeholder with a second `@` (`@id@`) when markup follows it without a space: `@id</td>` is read as the expression `id</td>` and fails to compile.
 
 ## AlaSQL not found
 
@@ -196,8 +196,8 @@ All in `src/component/chart/`:
 
 - Every render with `hover="true"` appends a new `div#tooltip` to `document.body`; old ones are never removed.
 - `style_*` attribute names are lower-cased by the DOM, so only lower-case style keys (`width`, `height`, `opacity`, `thickness`) can be set this way; their values stay strings.
-- `stacked`: the `thickness` style key is ignored (operator precedence in `settingThickness || horizontal ? ... : ...`); vertical bars get the title `NaN`; the horizontal axis labels contain a hard-coded Persian word; `grid` and `onLabelClick` are not implemented.
-- `donut` and `halfdonut`: the slice stroke uses `color[d.index]` without wrapping, so the fifth slice onward has `stroke="undefined"`; `axisLabel="true"` appends text inside `<path>` elements, which browsers do not render; `chartContent` is mispositioned unless `innerRadiusDistance` is set explicitly.
+- `stacked`: the `thickness` style key is ignored (operator precedence in `settingThickness || horizontal ? ... : ...`); vertical segments get no `title` attribute (the linear scale returns `undefined` for a string label), so hovering one with `hover="true"` throws a `TypeError` in the tooltip handler; the horizontal axis labels contain a hard-coded Persian word; `grid` and `onLabelClick` are not implemented.
+- `donut` and `halfdonut`: the slice stroke uses `color[d.index]` without wrapping, so the fifth slice onward has no `stroke` attribute and hovering it with `hover="true"` throws a `TypeError` in the tooltip handler; `axisLabel="true"` appends text inside `<path>` elements, which browsers do not render; `chartContent` is mispositioned unless `innerRadiusDistance` is set explicitly.
 - `line`: `onLabelClick` is bound whenever `axisLabel="true"`, so clicking a tick without that attribute throws; the y domain starts at the data minimum, not at zero.
 - `funnel`: shapes and labels are offset by an extra `marginX`.
 
@@ -250,7 +250,7 @@ All in `src/component/chart/`:
     <basis core="print" datamembername="book.list" run="atclient">
       <face>
         <script type="text/template">
-          <tr><td>@id</td><td>@title</td></tr>
+          <tr><td>@id@</td><td>@title@</td></tr>
         </script>
       </face>
     </basis>
@@ -278,7 +278,7 @@ The server must answer `POST /api/books` with one `sources` entry for the single
 
 ### Reading the console
 
-Expected sequence for the page above: the banner, `cms.request Added... 1 Row(s)`, `cms.cms Added... 1 Row(s)`, `handler Added for book.list...`, `wait for book.list`, then `book.list Added... 1 Row(s)`. If the last line never appears, open the network tab: the request to `/api/books` either failed or returned a shape the member check rejected (look for `Command 'book' has 1 member(s) but ...`).
+Expected lines for the page above: the banner, `cms.request Added... 1 Row(s)`, `cms.cms Added... 1 Row(s)`, then `handler Added for book.list...` and `book.list Added... 1 Row(s)`. The last two can arrive in either order: the `dbsource` (high priority) may receive its answer before the `print` (low priority) registers its handler, and the `print` renders either way. A `wait for book.list` line appears only when a token such as `[##book.list.title##]` reads the source, not for a `print`. If the last line never appears, open the network tab: the request to `/api/books` either failed or returned a shape the member check rejected (look for `Command 'book' has 1 member(s) but ...`).
 
 ## Pitfalls
 

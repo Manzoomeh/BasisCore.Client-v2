@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>chart</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script>
+    // Callbacks referenced from chart attributes. They must exist before the first render.
+    const labelClicks = [];
+    const labelClicked = (event, row) => {
+      labelClicks.push({ type: event.type, row: row });
+    };
+    const chartStyle = {
+      height: 400,
+      width: 800,
+      marginX: 40,
+      marginY: 40,
+      color: ["#004B85", "#FF7A00", "#00A693", "#B40020"],
+      thickness: 4,
+      curveTension: 0.6,
+    };
+    const funnelStyle = {
+      height: 400,
+      width: 800,
+      marginX: 40,
+      marginY: 40,
+      opacity: 0.2,
+      innerPadding: 0.1,
+    };
+    const donutStyle = {
+      height: 400,
+      width: 700,
+      marginX: 40,
+      marginY: 40,
+      cornerRadius: 8,
+      innerRadiusDistance: 70,
+      color: ["#01D6BD", "#E5F6F4"],
+    };
+    const donutContent = `
+      <div class="donut-center" style="display:flex;justify-content:center;align-items:center;flex-direction:column;width:100%;height:100%">
+        <div style="font-size:12px">Remaining days</div>
+        <div style="font-size:30px">172</div>
+      </div>`;
+    const halfDonutStyle = {
+      height: 400,
+      width: 800,
+      marginX: 40,
+      marginY: 40,
+      opacity: 0.2,
+      padAngel: 0.04,
+      innerRadiusDistance: 70,
+    };
+    // OnProcessing hook: chart only the two first rows of the source.
+    async function keepTopTwo(args) {
+      args.source = { id: args.source.id, rows: args.source.rows.slice(0, 2) };
+    }
+
+    const host = {
+      sources: {
+        "chart.grouped": [
+          { x: "Chrome", y: 250, group: "2024-07-06" },
+          { x: "Firefox", y: 195, group: "2024-07-06" },
+          { x: "Android", y: 647, group: "2024-07-06" },
+          { x: "Chrome", y: 377, group: "2024-07-07" },
+          { x: "Firefox", y: 352, group: "2024-07-07" },
+          { x: "Android", y: 647, group: "2024-07-07" },
+        ],
+        "chart.simple": [
+          { column: "january", y: 3 },
+          { column: "february", y: 7 },
+          { column: "march", y: 5 },
+          { column: "april", y: 1 },
+          { column: "may", y: 6 },
+          { column: "june", y: 2 },
+        ],
+        "chart.stacked": [
+          { column: "january", y: "8" },
+          { column: "february", y: "8" },
+          { column: "march", y: "8" },
+          { column: "april", y: "8" },
+        ],
+        "chart.multiline": [
+          { column: "male", x: "0", y: "3" },
+          { column: "male", x: "1", y: "1" },
+          { column: "male", x: "2", y: "8" },
+          { column: "male", x: "3", y: "6" },
+          { column: "male", x: "4", y: "7" },
+          { column: "male", x: "5", y: "4" },
+          { column: "female", x: "0", y: "5" },
+          { column: "female", x: "1", y: "2" },
+          { column: "female", x: "2", y: "2" },
+          { column: "female", x: "3", y: "1" },
+          { column: "female", x: "4", y: "4" },
+          { column: "female", x: "5", y: "6" },
+        ],
+        "chart.single": [
+          { x: 0, y: 3 },
+          { x: 1, y: 1 },
+          { x: 2, y: 8 },
+          { x: 3, y: 6 },
+        ],
+        "chart.days": [
+          { day: "mon", value: 4 },
+          { day: "tue", value: 9 },
+          { day: "wed", value: 2 },
+        ],
+        // deliberately not sorted: funnel sorts by y itself
+        "chart.funnel": [
+          { column: "march", y: "3" },
+          { column: "january", y: "7" },
+          { column: "april", y: "1" },
+          { column: "february", y: "5" },
+        ],
+        "chart.donut": [
+          { column: "used", y: "8" },
+          { column: "remaining", y: "6" },
+        ],
+        "chart.five": [
+          { column: "a", y: 1 },
+          { column: "b", y: 1 },
+          { column: "c", y: 1 },
+          { column: "d", y: 1 },
+          { column: "e", y: 1 },
+        ],
+        "chart.half": [
+          { column: "march", y: "8" },
+          { column: "april", y: "6" },
+          { column: "may", y: "7" },
+          { column: "june", y: "4" },
+        ],
+      },
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/commands/chart.md">
+  <main>
+    <h1>chart</h1>
+    <p class="intro">
+      Checks the examples and claims of <code>docs/commands/chart.md</code>: the six chart types
+      (<code>bar</code>, <code>stacked</code>, <code>line</code>, <code>funnel</code>,
+      <code>donut</code>, <code>halfdonut</code>), the SVG sizing rules, the feature attributes
+      (title, legend, axes, grid, tooltip, label clicks), <code>chartStyle</code> and
+      <code>style_*</code> overrides, re-rendering on source change, the unsupported-type error and
+      the rendering defects listed in <code>docs/troubleshooting.md</code>.
+    </p>
+
+    <section class="case" id="case-grouped">
+      <h2>Grouped bar chart (documentation example)</h2>
+      <basis core="chart" datamembername="chart.grouped" run="atclient"
+        chartType="bar" group="group" x="x" y="y"
+        grid="true" hover="true" legend="true" axisLabel="true"
+        chartTitle="Visits per browser" onLabelClick="labelClicked"
+        style_opacity="0.2">
+      </basis>
+    </section>
+
+    <section class="case" id="case-simple">
+      <h2>Simple bars (<code>group</code> is the category) and the horizontal variant</h2>
+      <div id="simple-vertical">
+        <basis core="chart" datamembername="chart.simple" run="atclient"
+          chartType="bar" group="column" y="y"
+          grid="true" hover="true" legend="true" axisLabel="true"
+          chartTitle="Items per month" onLabelClick="labelClicked">
+        </basis>
+      </div>
+      <div id="simple-horizontal">
+        <basis core="chart" datamembername="chart.simple" run="atclient"
+          chartType="bar" group="column" y="y" horizontal="true" axisLabel="true">
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-stacked">
+      <h2>Stacked chart (documentation example) and the vertical variant</h2>
+      <div id="stacked-horizontal">
+        <basis core="chart" datamembername="chart.stacked" run="atclient"
+          chartType="stacked" group="column" y="y" horizontal="true"
+          hover="true" axisLabel="true" legend="true"
+          chartTitle="Share per month" style_opacity="0.2">
+        </basis>
+      </div>
+      <div id="stacked-vertical">
+        <basis core="chart" datamembername="chart.stacked" run="atclient"
+          chartType="stacked" group="column" y="y" axisLabel="true" hover="true">
+        </basis>
+      </div>
+      <div id="stacked-thickness">
+        <basis core="chart" datamembername="chart.stacked" run="atclient"
+          chartType="stacked" group="column" y="y" horizontal="true"
+          chartStyle="{ thickness: 50 }">
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-line">
+      <h2>Multi-line chart (documentation example), a single line and a string x axis</h2>
+      <div id="multi-line">
+        <basis core="chart" datamembername="chart.multiline" run="atclient"
+          chartType="line" group="column" x="x" y="y"
+          grid="true" hover="true" axisLabel="true" legend="true"
+          chartTitle="chart title" chartStyle="chartStyle">
+        </basis>
+      </div>
+      <div id="single-line">
+        <basis core="chart" datamembername="chart.single" run="atclient"
+          chartType="line" x="x" y="y" hover="true" axisLabel="true">
+        </basis>
+      </div>
+      <div id="string-line">
+        <basis core="chart" datamembername="chart.days" run="atclient"
+          chartType="line" x="day" y="value" isStringLineChart="true"
+          grid="true" axisLabel="true" chartTitle="Visits per day">
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-funnel">
+      <h2>Funnel chart (documentation example)</h2>
+      <basis core="chart" datamembername="chart.funnel" run="atclient"
+        chartType="funnel" group="column" y="y"
+        hover="true" legend="true" axisLabel="true"
+        chartTitle="chart title" chartStyle="funnelStyle">
+      </basis>
+    </section>
+
+    <section class="case" id="case-donut">
+      <h2>Donut with center content (documentation example), five slices, half donut</h2>
+      <div id="donut-content">
+        <basis core="chart" datamembername="chart.donut" run="atclient"
+          chartType="donut" group="column" y="y"
+          hover="true" legend="true"
+          chartTitle="chart title" chartStyle="donutStyle" chartContent="donutContent">
+        </basis>
+      </div>
+      <div id="donut-five">
+        <basis core="chart" datamembername="chart.five" run="atclient"
+          chartType="donut" group="column" y="y" axisLabel="true" hover="true">
+        </basis>
+      </div>
+      <div id="half-donut">
+        <basis core="chart" datamembername="chart.half" run="atclient"
+          chartType="halfdonut" group="column" y="y"
+          hover="true" legend="true"
+          chartTitle="chart title" chartStyle="halfDonutStyle">
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-live">
+      <h2>Re-render on source change; attributes are re-read on every render</h2>
+      <basis core="chart" datamembername="live.data" run="atclient" triggers="live.title"
+        chartType="bar" group="label" y="value" hover="true"
+        chartTitle="[##live.title.value|(Live chart)##]">
+      </basis>
+    </section>
+
+    <section class="case" id="case-processing">
+      <h2><code>OnProcessing</code> can replace the charted source</h2>
+      <basis core="chart" datamembername="chart.simple" run="atclient"
+        chartType="bar" group="column" y="y" OnProcessing="keepTopTwo">
+      </basis>
+    </section>
+
+    <section class="case" id="case-booleans">
+      <h2>Boolean attributes must be exactly <code>"true"</code></h2>
+      <basis core="chart" datamembername="chart.simple" run="atclient"
+        chartType="bar" group="column" y="y" legend="True" horizontal="TRUE">
+      </basis>
+    </section>
+
+    <section class="case" id="case-style">
+      <h2><code>chartStyle</code> object literal and <code>style_*</code> overrides</h2>
+      <basis core="chart" datamembername="chart.simple" run="atclient"
+        chartType="bar" group="column" y="y" chartTitle="Styled"
+        chartStyle="{ opacity: 0.5, color: ['#111111', '#222222'], backgroundColor: '#eeeeee' }"
+        style_width="400" style_marginX="100">
+      </basis>
+    </section>
+
+    <!-- bc-ignore keeps the default runtime away from this section; the test runs it in its own runtime -->
+    <section class="case" id="case-unsupported" bc-ignore>
+      <h2>Unsupported <code>chartType</code> (run in its own runtime by the test)</h2>
+      <div id="isolated-unsupported">
+        <basis core="chart" datamembername="chart.bad" run="atclient"
+          chartType="pie" group="column" y="y">
+        </basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const rgba = (hex, opacity) => {
+      const n = parseInt(hex.slice(1), 16);
+      return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + ", " + opacity + ")";
+    };
+    const legendLabels = (root) => [...root.querySelectorAll("foreignObject .legend text")].map((t) => t.textContent);
+    // The left axis is the only <g> under the chart group without a transform and without the grid class.
+    const leftAxisTicks = (svg) =>
+      [...svg.querySelectorAll(":scope > g > g:not([transform]):not(.grid) .tick text")].map((t) => t.textContent);
+
+    bcTest.allowError(/Chart type pie is not supported/);
+    bcTest.allowError(/onLabelClick is not a function/);
+    bcTest.allowError(/Cannot read properties of undefined \(reading 'value'\)/);
+    const tickNumbers = (texts) => texts.map((x) => parseFloat(x));
+
+    bcTest.test("grouped bars: one <path class=bar> per row inside one <g> per group, SVG sized from the default style plus 20px for the legend", async (t) => {
+      const svg = await t.waitFor(() => t.$("#case-grouped svg"));
+      t.equal(svg.getAttribute("width"), "880", "width + 2 * marginX");
+      t.equal(svg.getAttribute("height"), "500", "height + 2 * marginY + 20 for the legend");
+      t.equal(svg.getAttribute("xmlns:xhtml"), "http://www.w3.org/1999/xhtml");
+      t.equal(svg.style.backgroundColor, "rgb(255, 255, 255)");
+      t.equal(svg.firstElementChild.getAttribute("transform"), "translate(40,40)", "drawing happens in a translated <g>");
+      const bars = t.$$("path.bar", svg);
+      t.equal(bars.length, 6);
+      const groups = t.$$("g > g > g[transform]", svg).filter((g) => g.querySelector("path.bar"));
+      t.equal(groups.length, 2, "one <g> per value of the group column");
+      t.equal(groups[0].querySelectorAll("path.bar").length, 3);
+      t.deepEqual(bars.slice(0, 3).map((b) => b.getAttribute("title")), ["Chrome", "Firefox", "Android"], "the tooltip title of a grouped bar is the x value");
+      t.equal(bars[0].getAttribute("fill"), rgba("#004B85", "0.2"), "style_opacity is concatenated into the rgba fill");
+      t.equal(bars[3].getAttribute("fill"), rgba("#004B85", "0.2"), "bars are colored by their index inside the group");
+      t.equal(bars[0].getAttribute("stroke"), "#004B85", "the stroke keeps the full color");
+      t.equal(t.$$("basis", t.$("#case-grouped")).length, 0, "the <basis> element is replaced by the SVG");
+    });
+
+    bcTest.test("grouped bars: legend has one entry per distinct x value, grid lines carry no text, title and axes are drawn", async (t) => {
+      const svg = await t.waitFor(() => t.$("#case-grouped svg"));
+      const legends = t.$$("foreignObject .legend", svg);
+      t.equal(legends.length, 3);
+      t.deepEqual(legends.map((l) => l.querySelector("text").textContent), ["Chrome", "Firefox", "Android"]);
+      t.equal(legends[0].parentNode.getAttribute("y"), "420", "legend row sits at height + 20");
+      t.equal(legends[0].parentNode.getAttribute("width"), "100");
+      const swatch = legends[0].querySelector("svg rect");
+      t.equal(swatch.getAttribute("fill"), rgba("#004B85", "0.2"));
+      t.equal(swatch.namespaceURI, "http://www.w3.org/2000/svg", "the swatch is a real SVG rect");
+      t.equal(t.$$("g.grid", svg).length, 2);
+      t.equal(t.$$("g.grid text", svg).length, 0, "grid tick texts are removed");
+      t.ok(t.$$("g.grid line", svg).every((l) => l.getAttribute("stroke-dasharray") === "3, 3"));
+      const title = t.$$("text", svg).find((x) => x.textContent === "Visits per browser");
+      t.ok(title, "the title is drawn");
+      t.equal(title.getAttribute("x"), "400");
+      t.equal(title.getAttribute("y"), "-20", "-marginY / 2");
+      t.equal(title.getAttribute("text-anchor"), "middle");
+      t.equal(title.style.fontSize, "16px");
+      t.equal(title.style.color, "rgb(0, 0, 0)", "textColor #000 is applied to every <text>");
+      const ticks = t.$$("g[transform='translate(0,400)'] .tick text", svg).map((x) => x.textContent);
+      t.deepEqual(ticks, ["2024-07-06", "2024-07-07"], "the bottom axis of a vertical grouped chart carries the group labels");
+    });
+
+    bcTest.test("simple bars: one bar per row titled with the group value, legend per row, [0, max] value axis, onLabelClick receives the row", async (t) => {
+      const svg = await t.waitFor(() => t.$("#simple-vertical svg"));
+      const bars = t.$$("path.bar", svg);
+      t.equal(bars.length, 6);
+      t.deepEqual(bars.map((b) => b.getAttribute("title")), ["january", "february", "march", "april", "may", "june"]);
+      t.equal(bars[0].getAttribute("fill"), rgba("#004B85", 1));
+      t.equal(bars[4].getAttribute("fill"), rgba("#004B85", 1), "the palette wraps around after four colors");
+      t.ok(bars[1].getAttribute("d").startsWith("M"), "bars are paths");
+      t.deepEqual(legendLabels(svg), ["january", "february", "march", "april", "may", "june"], "one legend entry per row");
+      const bottomTicks = t.$$("g[transform='translate(0,400)'] .tick", svg);
+      t.equal(bottomTicks.length, 6);
+      const yTicks = tickNumbers(leftAxisTicks(svg));
+      t.equal(yTicks[0], 0, "the value axis starts at 0");
+      t.equal(yTicks[yTicks.length - 1], 7, "and ends at the maximum");
+
+      labelClicks.length = 0;
+      bottomTicks[1].dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+      t.equal(labelClicks.length, 1, "onLabelClick is called on mousedown on a tick");
+      t.equal(labelClicks[0].type, "mousedown");
+      t.deepEqual(labelClicks[0].row, { column: "february", y: 7 }, "the second argument is the row whose group equals the tick value");
+    });
+
+    bcTest.test("horizontal bars start at x = 0 and the bottom axis becomes the value axis", async (t) => {
+      const svg = await t.waitFor(() => t.$("#simple-horizontal svg"));
+      const bars = t.$$("path.bar", svg);
+      t.equal(bars.length, 6);
+      t.ok(bars.every((b) => b.getAttribute("d").startsWith("M0,")), "every horizontal bar starts at x = 0");
+      const bottomTicks = tickNumbers(t.$$("g[transform='translate(0,400)'] .tick text", svg).map((x) => x.textContent));
+      t.equal(bottomTicks[0], 0, "values run along the bottom axis");
+      t.includes(leftAxisTicks(svg), "january", "categories run down the left axis");
+    });
+
+    bcTest.test("hover: a #tooltip div is appended to body and filled on mousemove with the shape's stroke color and title", async (t) => {
+      const svg = await t.waitFor(() => t.$("#simple-vertical svg"));
+      const tooltips = t.$$("body > div#tooltip.tooltip");
+      t.ok(tooltips.length >= 1, "the tooltip div exists in body");
+      const bar = t.$("path.bar[title='march']", svg);
+      bar.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+      t.equal(bar.getAttribute("style"), "opacity:0.7", "mouseover dims the shape");
+      bar.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 50, clientY: 60 }));
+      const filled = t.$$("body > div#tooltip").filter((d) => d.innerHTML.indexOf("march") !== -1);
+      t.equal(filled.length, 1, "exactly one tooltip (the most recently bound one) shows the title");
+      t.match(filled[0].innerHTML, /background-color:#00A693/, "the color box uses the stroke color of the third bar");
+      t.match(filled[0].getAttribute("style"), /opacity:0\.8/);
+      bar.dispatchEvent(new MouseEvent("mouseleave", { bubbles: false }));
+      t.equal(filled[0].getAttribute("style"), "opacity:0.0", "mouseleave hides the tooltip");
+      t.equal(bar.getAttribute("style"), "opacity: 1;", "and restores the shape");
+    });
+
+    bcTest.test("stacked (horizontal): segments of equal value share the bar evenly, percent labels and legend per segment", async (t) => {
+      const svg = await t.waitFor(() => t.$("#stacked-horizontal svg"));
+      const rects = t.$$("g.rect-stacked rect", svg);
+      t.equal(rects.length, 4);
+      t.deepEqual(rects.map((r) => r.getAttribute("x")), ["0", "200", "400", "600"], "x = scale(cumulative) over the total 32");
+      t.ok(rects.every((r) => r.getAttribute("width") === "200"), "width = scale(value)");
+      t.ok(rects.every((r) => r.getAttribute("height") === "200"), "thickness is height / 2 without a thickness key");
+      t.ok(rects.every((r) => r.getAttribute("y") === "100"), "the bar is centered vertically");
+      t.deepEqual(rects.map((r) => r.getAttribute("title")), ["january", "february", "march", "april"], "the horizontal variant stores the label in title");
+      t.deepEqual(legendLabels(svg), ["january", "february", "march", "april"]);
+      const percents = t.$$("text.text-percent", svg).map((x) => x.textContent);
+      t.equal(percents.length, 8, "two texts per segment with axisLabel");
+      t.ok(percents.filter((p) => p === "25 %").length === 4, "percent = value / total * 100");
+      t.ok(t.$$("text", svg).some((x) => x.textContent === "Share per month"));
+    });
+
+    bcTest.defect("known defect: stacked ignores the thickness style key (operator precedence); the vertical variant writes no title (yScale of a string is undefined) so hovering a segment throws", async (t) => {
+      const thick = await t.waitFor(() => t.$("#stacked-thickness svg"));
+      t.ok(t.$$("rect", thick).every((r) => r.getAttribute("height") === "200"), "chartStyle thickness 50 is ignored, the bar is still height / 2");
+      const vertical = await t.waitFor(() => t.$("#stacked-vertical svg"));
+      const rects = t.$$("g.rect-stacked rect", vertical);
+      t.equal(rects.length, 4);
+      t.ok(rects.every((r) => r.getAttribute("width") === "400"), "vertical bar is width / 2 thick");
+      t.deepEqual(rects.map((r) => r.getAttribute("y")), ["0", "100", "200", "300"]);
+      t.ok(rects.every((r) => !r.hasAttribute("title")), "yScale(label) is undefined for a string label, so D3 writes no title attribute");
+      t.equal(t.$$("text.text-percent", vertical).length, 4, "the vertical axisLabel draws one percent text per segment");
+      const before = t.errors(/reading 'value'/).length;
+      rects[0].dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 5, clientY: 5 }));
+      await t.waitFor(() => t.errors(/reading 'value'/), (l) => l.length === before + 1);
+    });
+
+    bcTest.defect("known defect: the horizontal stacked axisLabel text contains a hard-coded Persian word", async (t) => {
+      const svg = await t.waitFor(() => t.$("#stacked-horizontal svg"));
+      const texts = t.$$("text.text-percent", svg).map((x) => x.textContent);
+      t.ok(texts.some((x) => /مورد/.test(x) && /32\/8/.test(x)), "a '<total>/<value> مورد' text is drawn per segment");
+    });
+
+    bcTest.test("multi-line: one <path class=line> per series titled with the series name, legend per series, stroke width and curve from chartStyle", async (t) => {
+      const svg = await t.waitFor(() => t.$("#multi-line svg"));
+      const lines = t.$$("path.line", svg);
+      t.equal(lines.length, 2);
+      t.deepEqual(lines.map((l) => l.getAttribute("title")), ["male", "female"]);
+      t.deepEqual(lines.map((l) => l.getAttribute("stroke")), ["#004B85", "#FF7A00"]);
+      t.ok(lines.every((l) => l.getAttribute("stroke-width") === "4px"), "thickness 4 becomes 4px");
+      t.ok(lines.every((l) => l.getAttribute("fill") === "none"));
+      t.ok(lines[0].getAttribute("d").indexOf("C") !== -1, "curveTension < 1 draws cubic segments");
+      t.deepEqual(legendLabels(svg), ["male", "female"]);
+      t.equal(t.$$("g.grid", svg).length, 2);
+      t.equal(svg.getAttribute("height"), "500");
+      t.ok(t.$$("text", svg).some((x) => x.textContent === "chart title"));
+    });
+
+    bcTest.test("single line: one path without a title attribute, drawn in color[0], with a numeric x axis", async (t) => {
+      const svg = await t.waitFor(() => t.$("#single-line svg"));
+      const lines = t.$$("path.line", svg);
+      t.equal(lines.length, 1);
+      t.equal(lines[0].hasAttribute("title"), false, "the datum is the whole array, so no title is written");
+      t.equal(lines[0].getAttribute("stroke"), "#004B85");
+      t.equal(lines[0].getAttribute("stroke-width"), "2px", "default thickness");
+      const xTicks = tickNumbers(t.$$("g[transform='translate(0,400)'] .tick text", svg).map((x) => x.textContent));
+      t.equal(xTicks[0], 0);
+      t.equal(xTicks[xTicks.length - 1], 3, "linear scale over the extent of x");
+    });
+
+    bcTest.defect("known defect: the line y axis starts at the data minimum, not at zero", async (t) => {
+      const svg = await t.waitFor(() => t.$("#single-line svg"));
+      const yTicks = tickNumbers(leftAxisTicks(svg));
+      t.ok(yTicks.length > 0, "the left axis has ticks");
+      t.equal(yTicks[0], 1, "the first tick is the minimum y value");
+      t.equal(yTicks.indexOf(0), -1, "zero is not on the axis");
+    });
+
+    bcTest.defect("known defect: with axisLabel and no onLabelClick, pressing the mouse on a line chart tick throws a TypeError", async (t) => {
+      const svg = await t.waitFor(() => t.$("#single-line svg"));
+      const tick = t.$("g[transform='translate(0,400)'] .tick", svg);
+      tick.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+      await t.waitForError(/onLabelClick is not a function/);
+    });
+
+    bcTest.test("isStringLineChart: the x axis is a point scale over the x strings in row order", async (t) => {
+      const svg = await t.waitFor(() => t.$("#string-line svg"));
+      t.equal(t.$$("path.line", svg).length, 1);
+      const xTicks = t.$$("g[transform='translate(0,400)'] .tick text", svg).map((x) => x.textContent);
+      t.deepEqual(xTicks, ["mon", "tue", "wed"]);
+      t.ok(t.$$("text", svg).some((x) => x.textContent === "Visits per day"));
+    });
+
+    bcTest.test("funnel: rows are sorted by y descending, one polygon per stage, legend and two labels per stage", async (t) => {
+      const svg = await t.waitFor(() => t.$("#case-funnel svg"));
+      const polygons = t.$$("polygon.polygon", svg);
+      t.equal(polygons.length, 4);
+      t.deepEqual(polygons.map((p) => p.getAttribute("title")), ["january", "february", "march", "april"], "source order is not preserved");
+      t.equal(polygons[0].getAttribute("fill"), rgba("#004B85", "0.2"));
+      t.deepEqual(legendLabels(svg), ["january", "february", "march", "april"]);
+      const labels = t.$$("text", svg).map((x) => x.textContent);
+      ["january", "7", "february", "5", "march", "3", "april", "1"].forEach((l) => t.includes(labels, l));
+      const title = t.$$("text", svg).find((x) => x.textContent === "chart title");
+      t.equal(title.getAttribute("fill"), "#000", "funnel colors its texts with attr fill");
+    });
+
+    bcTest.defect("known defect: funnel shapes and title are shifted by an extra marginX", async (t) => {
+      const svg = await t.waitFor(() => t.$("#case-funnel svg"));
+      const first = t.$("polygon.polygon", svg).getAttribute("points");
+      t.match(first, /^40,0,840,0,/, "the widest stage starts at x = marginX instead of 0 and ends at width + marginX");
+      const title = t.$$("text", svg).find((x) => x.textContent === "chart title");
+      t.equal(title.getAttribute("x"), "440", "width / 2 + marginX");
+    });
+
+    bcTest.test("donut: one <path class=arc> per row in row order, fills from the palette, center content in a foreignObject, legend at y = height", async (t) => {
+      const svg = await t.waitFor(() => t.$("#donut-content svg"));
+      const arcs = t.$$("path.arc", svg);
+      t.equal(arcs.length, 2);
+      t.deepEqual(arcs.map((a) => a.getAttribute("title")), ["used", "remaining"]);
+      t.equal(arcs[0].getAttribute("fill"), rgba("#01D6BD", 1));
+      t.equal(arcs[0].getAttribute("stroke"), "#01D6BD");
+      t.equal(arcs[1].getAttribute("stroke"), "#E5F6F4");
+      t.equal(svg.getAttribute("width"), "780", "700 + 2 * 40");
+      t.equal(svg.getAttribute("height"), "500", "400 + 2 * 40 + 20 for the legend");
+      const ring = t.$("g[transform='translate(350,200)']", svg);
+      t.ok(ring && ring.contains(arcs[0]), "the ring is centered at (width / 2, height / 2)");
+      const center = t.$("foreignObject .donut-center", svg);
+      t.ok(center, "chartContent is placed in a foreignObject");
+      t.match(center.textContent, /Remaining days\s*172/);
+      const legends = t.$$("foreignObject .legend", svg);
+      t.deepEqual(legends.map((l) => l.querySelector("text").textContent), ["used", "remaining"]);
+      t.equal(legends[0].parentNode.getAttribute("y"), "400", "donut legend sits at y = height");
+    });
+
+    bcTest.defect("known defect: donut strokes do not wrap the palette (fifth slice has no stroke, hovering it throws) and axisLabel texts are children of <path>", async (t) => {
+      const svg = await t.waitFor(() => t.$("#donut-five svg"));
+      const arcs = t.$$("path.arc", svg);
+      t.equal(arcs.length, 5);
+      t.equal(arcs[4].getAttribute("fill"), rgba("#004B85", 1), "the fill wraps around");
+      t.equal(arcs[3].getAttribute("stroke"), "#B40020", "the fourth slice has the fourth color");
+      t.equal(arcs[4].hasAttribute("stroke"), false, "color[4] is undefined, so D3 removes the stroke attribute");
+      const before = t.errors(/reading 'value'/).length;
+      arcs[4].dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 5, clientY: 5 }));
+      await t.waitFor(() => t.errors(/reading 'value'/), (l) => l.length === before + 1, { message: "the tooltip handler reads attributes.stroke.value" });
+      const labels = t.$$("path.arc > text", svg);
+      t.equal(labels.length, 5, "axisLabel appends a <text> inside every <path class=arc>, which browsers do not render");
+      t.equal(labels[0].textContent, "a");
+    });
+
+    bcTest.test("halfdonut: arcs centered at (width / 2, height), legend per row, title drawn", async (t) => {
+      const svg = await t.waitFor(() => t.$("#half-donut svg"));
+      const arcs = t.$$("path.arc", svg);
+      t.equal(arcs.length, 4);
+      t.deepEqual(arcs.map((a) => a.getAttribute("title")), ["march", "april", "may", "june"]);
+      t.equal(arcs[0].getAttribute("fill"), rgba("#004B85", "0.2"));
+      const center = t.$("g[transform='translate(400,400)']", svg);
+      t.ok(center && center.contains(arcs[0]), "centered on the bottom edge of the plotting area");
+      t.deepEqual(legendLabels(svg), ["march", "april", "may", "june"]);
+      t.ok(t.$$("text", svg).some((x) => x.textContent === "chart title"));
+      t.equal(svg.getAttribute("height"), "500");
+    });
+
+    bcTest.test("nothing is rendered until the source exists; a new source value redraws the chart and a triggers source re-reads the attributes", async (t) => {
+      const section = t.$("#case-live");
+      await t.sleep(100);
+      t.equal(t.$$("svg", section).length, 0, "no SVG before the source is published");
+      $bc.setSource("live.data", [{ label: "a", value: 1 }, { label: "b", value: 2 }]);
+      let svg = await t.waitFor(() => t.$("svg", section));
+      t.equal(t.$$("path.bar", svg).length, 2);
+      t.ok(t.$$("text", svg).some((x) => x.textContent === "Live chart"), "the token fallback is used as title");
+
+      $bc.setSource("live.data", [{ label: "a", value: 1 }, { label: "b", value: 2 }, { label: "c", value: 3 }]);
+      await t.waitFor(() => t.$$("path.bar", section), (l) => l.length === 3);
+      t.equal(t.$$("svg", section).length, 1, "the previous SVG is replaced, not appended");
+
+      $bc.setSource("live.title", "Updated title");
+      await t.waitFor(() => t.$$("text", section).some((x) => x.textContent === "Updated title"));
+      t.equal(t.$$("path.bar", section).length, 3, "the data is kept while the title attribute is re-evaluated");
+    });
+
+    bcTest.defect("known defect: the SVG is appended to document.body first and every hover render leaves another #tooltip in body", async (t) => {
+      const seenInBody = [];
+      const observer = new MutationObserver((records) => {
+        records.forEach((r) => {
+          if (r.target === document.body) {
+            r.addedNodes.forEach((n) => n.nodeName === "svg" && seenInBody.push(n));
+          }
+        });
+      });
+      observer.observe(document.body, { childList: true });
+      const tooltipsBefore = t.$$("body > div#tooltip").length;
+      $bc.setSource("live.data", [{ label: "x", value: 5 }]);
+      await t.waitFor(() => t.$$("#case-live path.bar"), (l) => l.length === 1);
+      await t.sleep(50);
+      observer.disconnect();
+      t.equal(seenInBody.length, 1, "the new <svg> was briefly a direct child of <body>");
+      t.ok(seenInBody[0].parentNode === t.$("#case-live"), "and was then moved into the command's range");
+      t.equal(t.$$("body > div#tooltip").length, tooltipsBefore + 1, "one more tooltip div per render; old ones are never removed");
+    });
+
+    bcTest.test("OnProcessing can hand a different source to the renderer", async (t) => {
+      const svg = await t.waitFor(() => t.$("#case-processing svg"));
+      t.equal(t.$$("path.bar", svg).length, 2, "only the two rows kept by the hook are charted");
+      t.deepEqual(t.$$("path.bar", svg).map((b) => b.getAttribute("title")), ["january", "february"]);
+    });
+
+    bcTest.test("legend=\"True\" and horizontal=\"TRUE\" are false: no legend, no extra height, vertical bars", async (t) => {
+      const svg = await t.waitFor(() => t.$("#case-booleans svg"));
+      t.equal(svg.getAttribute("height"), "480", "no extra 20px because legend is not exactly \"true\"");
+      t.equal(t.$$(".legend", svg).length, 0);
+      t.ok(t.$$("path.bar", svg).every((b) => /^M[\d.]+,400 v-/.test(b.getAttribute("d"))), "bars rise from the bottom edge (vertical)");
+    });
+
+    bcTest.test("chartStyle object literal is merged over the defaults; style_width works while style_marginX is lowercased by the DOM and ignored", async (t) => {
+      const svg = await t.waitFor(() => t.$("#case-style svg"));
+      t.equal(svg.style.backgroundColor, "rgb(238, 238, 238)", "backgroundColor from chartStyle");
+      const bars = t.$$("path.bar", svg);
+      t.equal(bars[0].getAttribute("fill"), rgba("#111111", 0.5));
+      t.equal(bars[1].getAttribute("fill"), rgba("#222222", 0.5));
+      t.equal(bars[2].getAttribute("fill"), rgba("#111111", 0.5), "a two-color palette wraps");
+      t.equal(svg.getAttribute("width"), "480", "style_width=400 plus 2 * default marginX (style_marginX is not read: it would give 600)");
+      t.equal(svg.firstElementChild.getAttribute("transform"), "translate(40,40)", "marginX stays 40");
+      const title = t.$$("text", svg).find((x) => x.textContent === "Styled");
+      t.equal(title.getAttribute("x"), "200", "title centered on the new width");
+    });
+
+    bcTest.test("an unknown chartType throws 'Chart type <value> is not supported' when the source arrives", async (t) => {
+      const w = $bc.new().addFragment("#isolated-unsupported").run();
+      w.setSource("chart.bad", [{ column: "a", y: 1 }]);
+      const errors = await t.waitForError(/Chart type pie is not supported/);
+      t.match(errors[0].message, /^Chart type pie is not supported$/);
+      t.equal(t.$$("#case-unsupported svg").length, 0, "nothing is rendered");
+    });
+
+    bcTest.test("chart is registered under core 'chart' and the renderer attributes are case-insensitive (chartType, dataMemberName)", async (t) => {
+      await t.waitFor(() => t.$("#case-grouped svg"));
+      const commands = $bc.global.GetCommandListByCore("chart");
+      t.ok(commands.length >= 10, "every <basis core=\"chart\"> in the default runtime is a chart command");
+      t.ok(commands.every((c) => c instanceof basiscore.ChartComponent));
+      t.equal(commands[0].priority, 2, "Priority.low");
+    });
+  </script>
+</body>
+</html>

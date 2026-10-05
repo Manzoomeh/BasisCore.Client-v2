@@ -53,7 +53,7 @@ The owner is the `UserDefineComponent` instance. The table lists every member of
 | `priority` | `Priority` | Always `low` for user-defined components. |
 | `dc` | `DependencyContainer` | The command's own child container (see [The IoC container](#the-ioc-container)). |
 | `toNode(rawHtml)` | `DocumentFragment` | Parses HTML with `createContextualFragment`; scripts inside execute on insertion. |
-| `toHTMLElement(rawXml)` | `HTMLElement` | Parses the string as XML and rebuilds it as HTML elements in the HTML namespace. Whitespace-only text is dropped. A parse error returns the `parsererror` element. |
+| `toHTMLElement(rawXml)` | `HTMLElement` | Parses the string as XML and rebuilds it as HTML elements in the HTML namespace. Whitespace-only text is dropped. A parse error yields the browser's `parsererror` element, as the result itself or, depending on the XML parser, inside the partially rebuilt element. |
 | `setContent(newContent)` | `void` | Replaces the range content with the node or fragment. |
 | `getAttributeValueAsync(name, defaultValue?)` | `Promise<string>` | Attribute as a string token: bindings are resolved and waited for; a single-token attribute returns the bound value as-is (an object stays an object). `defaultValue` (default `null`) is used when the attribute is missing or resolves to `null`. |
 | `getAttributeBooleanValueAsync(name, defaultValue?)` | `Promise<boolean>` | `"true"` (case-insensitive) or a bound value; `defaultValue` defaults to `false`. |
@@ -76,8 +76,9 @@ The owner is the `UserDefineComponent` instance. The table lists every member of
 | `node` | `Element` | The original `<basis>` element (detached from the document). Read your own attributes or inner template from it (`node.innerHTML`, `node.querySelector`). |
 
 The runtime object also has `toElement(rawXml)` (like `toHTMLElement` but keeps the SVG
-namespace for `<svg>` subtrees), `getAttributeObjectValueAsync(name, defaultValue?)` (attribute
-evaluated as a JavaScript expression with `eval`, used by the `options="@options@"` example) and
+namespace for `<svg>` subtrees), `getAttributeObjectValueAsync(name, defaultValue?)` (same
+resolution as `getAttributeValueAsync` through an object token: a plain attribute value is returned
+as text, nothing is evaluated) and
 `context` (the `IContext`), which are inherited from the command base classes but not declared in
 the interface.
 
@@ -187,9 +188,9 @@ How the part control drives the component (`src/component/renderable/schema/part
    `core="<viewType>"` on it (for example `component.bc.datepicker`).
 2. If the part has `options`, the object is stored as a global with a random name
    (`$bc.util.storeAsGlobal(part.options)`) and the name is written to the element as
-   `options="<globalName>"`. Read it with `await owner.getAttributeObjectValueAsync("options")`
-   (evaluates the name and returns the object) or
-   `window[await owner.getAttributeValueAsync("options")]`.
+   `options="<globalName>"`. Read it with
+   `window[await owner.getAttributeValueAsync("options")]`; the attribute holds the global's
+   name, not the object, and no attribute getter evaluates it.
 3. A separate runtime is started for the element: `$bc.new().addFragment(element).run()`. It
    has no `setOptions`, so it uses the global `host` object (and therefore `host.repositories`).
    The command is fetched with `GetCommandListByCore(viewType)[0]`.
@@ -216,7 +217,7 @@ class RatingField {
     this.value = null;
   }
   async initializeAsync() {
-    this.options = (await this.owner.getAttributeObjectValueAsync("options")) ?? { max: 5 };
+    this.options = window[await this.owner.getAttributeValueAsync("options")] ?? { max: 5 };
     const node = this.owner.toHTMLElement(`<input type="number" min="0" max="${this.options.max}" />`);
     node.addEventListener("change", () => (this.value = node.valueAsNumber));
     this.input = node;
@@ -427,7 +428,8 @@ bc.datepicker = DatePicker;` in `basiscore.datepicker.component.js`, add
   it that set sources publish to that context, which is the page context for a top-level
   component but a row context when the component sits inside a `repeater`.
 - `toHTMLElement`/`toElement` parse XML: unclosed tags such as `<br>` or `<input>` and raw `&`
-  produce a `parsererror` element instead of the markup. Use `toNode` for HTML.
+  produce a `parsererror` element instead of (or, depending on the browser, next to) the
+  markup. Use `toNode` for HTML.
 - The schema runtime created for a field component (`$bc.new().run()`) is a separate BasisCore
   instance with its own root context: sources set by the field are not visible to the page's
   main runtime.
