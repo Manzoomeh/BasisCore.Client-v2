@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>html field editor</title>
+</head>
+<body>
+  <!-- Minimal editor page opened by an `html` part (docs/schema/html-field-and-dialogs.md).
+       It tells the opener that it is loaded; the test page closes the dialog itself. -->
+  <p>editor</p>
+  <script>
+    window.addEventListener("message", function (e) {
+      // the opener sends { mode: "new" } or { ...value, mode: "edit" }
+      window.__mode = JSON.parse(e.data).mode;
+    });
+    window.parent.postMessage(JSON.stringify({ isLoaded: true }), "*");
+  </script>
+</body>
+</html>

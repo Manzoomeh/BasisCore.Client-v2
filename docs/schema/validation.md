@@ -47,7 +47,7 @@ A part without a `validations` object passes unless a sub-schema error is being 
 | 8 | `mime` | `validations.mimes` set, array value, at least one file whose `type` equals no `mimes[].mime` | arrays (files) | `${mimesArray}` (array of allowed mimes, joined with `,` when inserted) |
 | 9 | `mime-size` | `validations.mimes` set, array value, the last file that matched a mime entry is outside `[minSize, maxSize]` of that entry | arrays (files) | `${mimeSizeArray}` (text such as `image/jpeg : 10 Bytes - 9.77 KB`) |
 
-Rules 3 to 9 run only when `hasValue` is true: an optional field that is left empty never fails `regex`, `type`, `length` or `range`. To demand both presence and format, set `required: true` together with the other rule; both errors can appear in the same list.
+Rules 3 to 9 run only when `hasValue` is true: an optional field that is left empty never fails `regex`, `type`, `length` or `range`. To demand both presence and format, set `required: true` together with the other rule: an empty value fails `required`, a non-empty malformed value fails the other rule, never both at once. Several of rules 3 to 9 can appear in the same list, for example `type` and `range` for `"12.5"` with `dataType: "int"` and `min: 200`.
 
 Details worth knowing:
 
@@ -106,7 +106,7 @@ Errors are only recalculated on the next submit; they do not clear while the use
 
 ### Dependency errors
 
-A part with `dependency[]` entries that have `required: true` validates the referenced parts when it loads its data (option list or search request), not at submit time: empty referenced parts get a `required` error rendered through the same `updateUIAboutError`, the load is aborted with `Error("Has empty required part!")`, and the markers are cleared the next time the dependent load finds a value. See [lookup-and-autocomplete.md](lookup-and-autocomplete.md).
+A part with `dependency[]` entries that have `required: true` validates the referenced parts when it loads its data (option list or search request), not at submit time: empty referenced parts get a `required` error rendered through the same `updateUIAboutError`, and the markers are cleared the next time the dependent load finds a value. The marker is set asynchronously (the dependency loop awaits the message before recording the error), so the guard that is meant to throw `Error("Has empty required part!")` never fires; instead the placeholder of that dependency stays unset and the link template throws `ReferenceError: <name> is not defined`. For `select`, `checklist` and `radio` this is an unhandled rejection while the form renders and the list stays empty; for the autocomplete family the search popup still opens and the search request fails. See [lookup-and-autocomplete.md](lookup-and-autocomplete.md).
 
 ## Messages and cultures: ValidationHandler
 
@@ -147,7 +147,7 @@ Placeholders of the form `${name}` are replaced with `params[name]`; unknown pla
 </script>
 ```
 
-`options` is evaluated with `eval`, so it may be a global variable name or an inline object literal. The object has two members:
+`options` is evaluated with `eval`, so it may be a global variable name or an inline object literal wrapped in parentheses (`options="({ validationErrors: { required: 111 }, messagesApi: '/validation' })"`; without the parentheses `eval` reads the braces as a block and throws a syntax error, and the form is not rendered). The object has two members:
 
 | Member | Type | Description |
 |---|---|---|

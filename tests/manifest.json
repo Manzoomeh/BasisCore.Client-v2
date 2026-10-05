@@ -159,6 +159,31 @@
       "file": "foundations/internals.html",
       "doc": "docs/internals.md",
       "title": "internals"
+    },
+    {
+      "file": "commands/schema.html",
+      "doc": "docs/commands/schema.md",
+      "title": "schema"
+    },
+    {
+      "file": "schema/schema-json-contract.html",
+      "doc": "docs/schema/schema-json-contract.md",
+      "title": "schema JSON contract"
+    },
+    {
+      "file": "schema/field-types.html",
+      "doc": "docs/schema/field-types.md",
+      "title": "schema field types"
+    },
+    {
+      "file": "schema/validation.html",
+      "doc": "docs/schema/validation.md",
+      "title": "schema validation"
+    },
+    {
+      "file": "schema/dom-markers.html",
+      "doc": "docs/schema/dom-markers.md",
+      "title": "schema DOM markers"
     }
   ]
 }
