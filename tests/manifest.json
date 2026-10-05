@@ -1,7 +1,49 @@
 {
   "tests": [
-    { "file": "foundations/getting-started.html", "doc": "docs/getting-started.md", "title": "getting started" },
-    { "file": "foundations/getting-started-autorender.html", "doc": "docs/getting-started.md", "title": "getting started - autoRender false" },
-    { "file": "commands/print.html", "doc": "docs/commands/print.md", "title": "print" }
+    {
+      "file": "foundations/getting-started.html",
+      "doc": "docs/getting-started.md",
+      "title": "getting started"
+    },
+    {
+      "file": "foundations/getting-started-autorender.html",
+      "doc": "docs/getting-started.md",
+      "title": "getting started - autoRender false"
+    },
+    {
+      "file": "commands/print.html",
+      "doc": "docs/commands/print.md",
+      "title": "print"
+    },
+    {
+      "file": "foundations/service-worker-and-push.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push"
+    },
+    {
+      "file": "foundations/service-worker-and-push-default.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - default worker path"
+    },
+    {
+      "file": "foundations/service-worker-and-push-denied.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - permission denied"
+    },
+    {
+      "file": "foundations/service-worker-and-push-dialog.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - permission dialog"
+    },
+    {
+      "file": "foundations/service-worker-and-push-subscribe.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - subscription"
+    },
+    {
+      "file": "foundations/service-worker-and-push-repost.html",
+      "doc": "docs/service-worker-and-push.md",
+      "title": "service worker and push - existing subscription"
+    }
   ]
 }

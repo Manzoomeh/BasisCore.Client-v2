@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>service worker and push - existing subscription</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // the server endpoint answers with an error on this page
+    BasisCoreMock.route({ url: "/api/push/subscribe", method: "POST", status: 500, response: () => ({ error: "boom" }) });
+  </script>
+  <script>
+    // Test instrumentation, installed before the library. A headless browser has no push service and
+    // cannot grant notification permission, so two browser objects are scripted:
+    // - Notification.permission is forced to "granted" (requestPermission is counted and must not run);
+    // - the registration returned by navigator.serviceWorker.register gets a fake pushManager whose
+    //   getSubscription() already returns a subscription, so subscribe() must not be called.
+    // fetch is wrapped to record the request the library sends to host.push.url (the mock answers it).
+    window.__alerts = [];
+    window.alert = function (message) {
+      window.__alerts.push(String(message));
+    };
+    window.__forcedPermission = "granted";
+    window.__requestCalls = 0;
+    (function () {
+      const realGetter = Object.getOwnPropertyDescriptor(Notification, "permission").get;
+      Object.defineProperty(Notification, "permission", {
+        configurable: true,
+        get: function () {
+          return window.__forcedPermission ?? realGetter.call(Notification);
+        }
+      });
+      Notification.requestPermission = function () {
+        window.__requestCalls++;
+        return Promise.resolve("denied");
+      };
+    })();
+
+    window.__fakeSubscription = {
+      endpoint: "https://push.example.test/send/existing-42",
+      getKey(name) {
+        if (name === "p256dh") return new Uint8Array([4, 1, 2, 3, 250, 251, 252]).buffer;
+        if (name === "auth") return new Uint8Array([9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 255, 254, 253, 252, 251, 250]).buffer;
+        return null;
+      }
+    };
+    window.__pushManager = {
+      getSubscriptionCalls: 0,
+      subscribeCalls: [],
+      getSubscription() {
+        this.getSubscriptionCalls++;
+        return Promise.resolve(window.__fakeSubscription);
+      },
+      subscribe(options) {
+        this.subscribeCalls.push(options);
+        return Promise.reject(new Error("subscribe must not be called when a subscription exists"));
+      }
+    };
+    (function () {
+      const realRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+      navigator.serviceWorker.register = function (path, options) {
+        return realRegister(path, options).then((reg) => Object.create(reg, { pushManager: { value: window.__pushManager } }));
+      };
+      const mockedFetch = window.fetch;
+      window.__pushPosts = [];
+      window.fetch = function (input, init) {
+        if (String(input) === "/api/push/subscribe") {
+          window.__pushPosts.push({ url: String(input), init: init });
+        }
+        return mockedFetch.apply(this, arguments);
+      };
+    })();
+  </script>
+  <script>
+    var host = {
+      serviceWorker: "/tests/fixtures/service-worker-and-push/sw.js",
+      push: {
+        applicationServerKey: "BDeRNwAPgVtNfsvZrRrAkm-O4-P36gSDLxDx25gQ-hoXjpdg3MQ8E3_kzZQSEH58ugL5F5Pi-3nKFvtys8R4eys",
+        url: "/api/push/subscribe",
+        params: { client: "qam-2" },
+        permissionDlg: "#push-dlg",
+        permissionSubmit: "#push-ok"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/service-worker-and-push.md">
+  <main>
+    <h1>service worker and push - existing subscription</h1>
+    <p class="intro">
+      Checks two claims of <code>docs/service-worker-and-push.md</code>: with permission already
+      <code>"granted"</code> no dialog is shown and an existing subscription returned by
+      <code>getSubscription()</code> is re-posted to <code>url</code> on every page load; and a non-2xx answer
+      is logged and alerted as <code>Error in send Push api subscription data for server [status (statusText)].
+      Unable to activate Push Notification!</code>.
+    </p>
+
+    <section class="case" id="case-repost">
+      <h2>Granted permission, existing subscription, server answers 500</h2>
+      <div id="push-dlg" style="display:none">
+        <p>Receive live updates on this device?</p>
+        <button id="push-ok">Yes</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    bcTest.test("with permission 'granted' the subscription step runs at once: no dialog, no permission request", async (t) => {
+      await t.waitForConsole(/^Service worker from '\/tests\/fixtures\/service-worker-and-push\/sw\.js' register successfully!$/);
+      await t.waitFor(() => window.__pushManager.getSubscriptionCalls, (c) => c === 1);
+      t.equal(t.$("#push-dlg").style.display, "none", "the dialog was never shown");
+      t.equal(window.__requestCalls, 0, "Notification.requestPermission() was not called");
+    });
+
+    bcTest.test("an existing subscription is not re-created but re-posted with the configured params", async (t) => {
+      await t.waitFor(() => window.__pushPosts, (p) => p.length === 1);
+      t.equal(window.__pushManager.subscribeCalls.length, 0, "subscribe() is skipped when getSubscription() returns one");
+      const fields = Array.from(window.__pushPosts[0].init.body.entries());
+      t.deepEqual(fields, [
+        ["client", "qam-2"],
+        ["endpoint", "https://push.example.test/send/existing-42"],
+        ["p256dh", "BAECA/r7/A=="],
+        ["auth", "CQgHBgUEAwIBAP/+/fz7+g=="]
+      ]);
+    });
+
+    bcTest.test("a non-2xx answer is logged and alerted with the status in brackets", async (t) => {
+      await t.waitForConsole(/^Error in send Push api subscription data for server \[500 \(\)\]\. Unable to activate Push Notification!$/);
+      t.deepEqual(window.__alerts, ["Error in send Push api subscription data for server [500 ()]. Unable to activate Push Notification!"]);
+      const hit = BasisCoreMock.state().log.find((e) => /\/api\/push\/subscribe/.test(e.url));
+      t.ok(hit, "the mock back end saw the POST");
+      t.equal(hit.status, 500);
+      t.equal(t.consoleMessages(/^Push api is activated/).length, 0);
+      t.equal(t.errors().length, 0, "the failure is reported, not thrown");
+    });
+
+    bcTest.test("the worker is unregistered at the end so repeated runs start clean", async (t) => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      t.equal(regs.length, 1);
+      t.equal(await regs[0].unregister(), true);
+    });
+  </script>
+</body>
+</html>

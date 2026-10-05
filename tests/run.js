@@ -245,7 +245,7 @@ function loadManifest() {
       const full = path.join(dir, name);
       const r = rel ? rel + "/" + name : name;
       if (fs.statSync(full).isDirectory()) {
-        if (name !== "harness") walk(full, r);
+        if (name !== "harness" && name !== "fixtures") walk(full, r);
       } else if (name.endsWith(".html") && r !== "index.html") onDisk.push(r);
     }
   })(testsDir, "");

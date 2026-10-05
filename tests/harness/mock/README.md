@@ -23,10 +23,14 @@ exercised without a server. A test page loads it before the library, registers r
 ```
 
 Routes receive a context (`url`, `pathname`, `method`, `query`, `params`, `body`, `bodyJSON`,
-`headers`) and may return a plain object (serialised as JSON), a `Response` instance (used as
-is, which is how the tests serve HTML fragments and chunked streams), or
-`{ __status, __body }` for an error. Unmatched requests go to the real network. The full
-reference is `runtime/BasisCore_Mock_1.md` in the kit repository.
+`headers`). Whatever the route returns is **always serialised as JSON** with the status given by
+the route's `status` field (default 200); a `Response` instance returned by a route is
+stringified too, so it cannot be used to serve HTML or a chunked stream. Unmatched requests go
+to the real network. The full reference is `runtime/BasisCore_Mock_1.md` in the kit repository
+(its note that a route may return a `Response` as-is does not hold for this version).
+
+For a non-JSON answer (an HTML fragment, a streamed `chunkbased` body) a test page either serves
+a static file from `tests/fixtures/` or wraps `window.fetch` itself before the library loads.
 
 Only `fetch` is intercepted. `XMLHttpRequest` (used by `call` and `web`-connection page loads),
 `WebSocket` and service workers are not; the tests that need those install their own small

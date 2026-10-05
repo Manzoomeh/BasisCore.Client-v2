@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>service worker and push - default worker path</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // the endpoint host.push.url points at; it must never be called on this page
+    BasisCoreMock.route({ url: "/api/push/subscribe", method: "POST", response: () => ({ ok: true }) });
+  </script>
+  <script>
+    // Test instrumentation, installed before the library: alert() is recorded instead of shown and
+    // navigator.serviceWorker.register is wrapped to record the path the library passes.
+    window.__alerts = [];
+    window.alert = function (message) {
+      window.__alerts.push(String(message));
+    };
+    window.__registerCalls = [];
+    (function () {
+      const realRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+      navigator.serviceWorker.register = function (path, options) {
+        window.__registerCalls.push(String(path));
+        return realRegister(path, options);
+      };
+    })();
+  </script>
+  <script>
+    var host = {
+      // `true` registers "basiscore-serviceWorker.js" relative to the page URL. The build never
+      // produces that file and this directory has none, so the registration fails.
+      serviceWorker: true,
+      push: {
+        applicationServerKey: "BDeRNwAPgVtNfsvZrRrAkm-O4-P36gSDLxDx25gQ-hoXjpdg3MQ8E3_kzZQSEH58ugL5F5Pi-3nKFvtys8R4eys",
+        url: "/api/push/subscribe",
+        params: { client: "qam-1" },
+        permissionDlg: "#push-dlg",
+        permissionSubmit: "#push-ok"
+      }
+    };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/service-worker-and-push.md">
+  <main>
+    <h1>service worker and push - default worker path</h1>
+    <p class="intro">
+      Checks the <code>host.serviceWorker = true</code> row of <code>docs/service-worker-and-push.md</code>:
+      the default file name <code>basiscore-serviceWorker.js</code> is resolved by the browser relative to the
+      page, the failure is logged and alerted as <code>Error in register service worker.(…)</code>, and
+      <code>host.push</code> is never read when registration fails.
+    </p>
+
+    <section class="case" id="case-default">
+      <h2><code>serviceWorker: true</code> without a worker file next to the page</h2>
+      <div id="push-dlg" style="display:none">
+        <p>Receive live updates on this device?</p>
+        <button id="push-ok">Yes</button>
+      </div>
+      <p>Time is <span id="time">[##cms.cms.time2|(unknown)##]</span> (the page itself still renders).</p>
+    </section>
+  </main>
+
+  <script>
+    bcTest.test("serviceWorker: true passes the relative name basiscore-serviceWorker.js to register()", async (t) => {
+      await t.waitFor(() => window.__registerCalls, (c) => c.length === 1);
+      t.deepEqual(window.__registerCalls, ["basiscore-serviceWorker.js"]);
+      await t.waitForText("#time", /^\d{6}$/);
+    });
+
+    bcTest.test("a missing worker file is logged and alerted as 'Error in register service worker.(...)' with the page-relative URL", async (t) => {
+      const lines = await t.waitForConsole(/^Error in register service worker\.\(TypeError: /);
+      const line = lines[0].text;
+      const expectedScript = new URL("basiscore-serviceWorker.js", location.href).href;
+      const expectedScope = new URL("./", location.href).href;
+      t.includes(line, "with script ('" + expectedScript + "')", "the browser resolved the default name relative to the page");
+      t.includes(line, "for scope ('" + expectedScope + "')", "the scope would have been the page's directory");
+      t.includes(line, "404", "the file does not exist");
+      t.equal(window.__alerts.length, 1, "the same message is alerted once");
+      t.match(window.__alerts[0], /^Error in register service worker\.\(TypeError: Failed to register a ServiceWorker/);
+      t.equal((await navigator.serviceWorker.getRegistrations()).length, 0, "nothing was registered");
+    });
+
+    bcTest.test("host.push is only read after a successful registration: no dialog, no permission message, no POST", async (t) => {
+      await t.sleep(300);
+      t.equal(t.$("#push-dlg").style.display, "none", "the permission dialog was not shown");
+      t.equal(t.consoleMessages(/blocked notifications|Push api|Push Notifications/).length, 0);
+      t.equal(BasisCoreMock.state().log.filter((e) => /\/api\/push\/subscribe/.test(e.url)).length, 0, "the subscription endpoint was not called");
+      t.equal(t.errors().length, 0, "no uncaught error");
+    });
+  </script>
+</body>
+</html>

@@ -286,7 +286,7 @@ Place the worker shown earlier next to this page as `basiscore-serviceWorker.js`
 </script>
 <ul>
   <basis core="print" datamembername="news.items" run="atclient">
-    <face><li>@title</li></face>
+    <face><li>@title@</li></face>
   </basis>
 </ul>
 ```
