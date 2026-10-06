@@ -284,6 +284,11 @@
       "file": "schema/dom-markers.html",
       "doc": "docs/schema/dom-markers.md",
       "title": "schema DOM markers"
+    },
+    {
+      "file": "schema/displaying-answers.html",
+      "doc": "docs/schema/displaying-answers.md",
+      "title": "displaying saved answers"
     }
   ]
 }

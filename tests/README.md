@@ -183,4 +183,5 @@ written to the console as one `[bc-test] {...}` line (used by `tests/run.js`).
 | [`docs/schema/html-field-and-dialogs.md`](../docs/schema/html-field-and-dialogs.md) | [`schema/html-field-and-dialogs.html`](schema/html-field-and-dialogs.html) | 12 passed, 1 skipped |
 | [`docs/schema/answers-and-submission.md`](../docs/schema/answers-and-submission.md) | [`schema/answers-and-submission.html`](schema/answers-and-submission.html) | 11 passed |
 | [`docs/schema/dom-markers.md`](../docs/schema/dom-markers.md) | [`schema/dom-markers.html`](schema/dom-markers.html) | 14 passed |
+| [`docs/schema/displaying-answers.md`](../docs/schema/displaying-answers.md) | [`schema/displaying-answers.html`](schema/displaying-answers.html) | 4 passed |
 <!-- map:end -->

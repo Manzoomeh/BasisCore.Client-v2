@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>displaying saved answers</title>
+  <link rel="stylesheet" href="/tests/harness/bc-test.css" />
+  <script src="/tests/harness/bc-test.js"></script>
+  <!-- mock back end: one question schema, one saved answer, the list-form schema endpoint -->
+  <script src="/tests/harness/mock/BasisCore_Mock_1.js"></script>
+  <script>
+    // Question schema and saved answer, written from docs/schema/schema-json-contract.md.
+    const schema1161 = {
+      schemaId: 1161, paramUrl: "/1161", schemaVersion: "1.1", lid: 1,
+      questions: [
+        { prpId: 55, typeId: 150, title: "Web site", parts: [{ part: 1, viewType: "text" }] },
+        {
+          prpId: 130601, typeId: 128, title: "Voltage", multi: true,
+          parts: [{ part: 1, viewType: "checklist", fixValues: [{ id: 4, value: "110" }, { id: 5, value: "220" }, { id: 6, value: "R1" }] }]
+        },
+        { prpId: 130605, typeId: 128, title: "Notes", parts: [{ part: 1, viewType: "textarea" }] }
+      ]
+    };
+    const answer1423330 = {
+      usedForId: 1423330, schemaId: 1161, paramUrl: "/1161", schemaVersion: "1.1", lid: 1, lastUpdate: "",
+      properties: [
+        { prpId: 55, answers: [{ id: 12361, parts: [{ part: 1, values: [{ id: 33, value: "http://www.basiscore.com" }] }] }] },
+        { prpId: 130601, answers: [{ id: 8456215, parts: [{ part: 1, values: [{ id: 78854, value: 5 }, { id: 78855, value: 6 }] }] }] }
+      ]
+    };
+    // a second record for schemalist: every question of the schema has a property
+    const answer1423331 = {
+      usedForId: 1423331, schemaId: 1161, paramUrl: "/1161", schemaVersion: "1.1", lid: 1, lastUpdate: "",
+      properties: [
+        { prpId: 55, answers: [{ id: 1, parts: [{ part: 1, values: [{ id: 2, value: "http://example.test" }] }] }] },
+        { prpId: 130601, answers: [{ id: 3, parts: [{ part: 1, values: [{ id: 4, value: 4 }] }] }] },
+        { prpId: 130605, answers: [{ id: 5, parts: [{ part: 1, values: [{ id: 6, value: "none" }] }] }] }
+      ]
+    };
+    const envelope = (data, tableName) => ({
+      sources: [{ options: { tableName, keyFieldName: null, statusFieldName: null, mergeType: 0 }, data: [data] }]
+    });
+    const listRequests = [];
+    // schema command: GET <schemaUrl><paramUrl>
+    BasisCoreMock.route({ url: "/schema/questions/:id", method: "GET", response: () => envelope(schema1161, "schema.data") });
+    // schemalist: GET <schemaUrl>?id=&ver=&lid=
+    BasisCoreMock.route({
+      url: "/schema/questions", method: "GET",
+      response: (ctx) => { listRequests.push(ctx.url.search); return envelope(schema1161, "schema.data"); }
+    });
+    // the record, published under answer.data (the table name the reference server uses)
+    BasisCoreMock.route({ url: "/schema/answers", method: "GET", response: () => envelope(answer1423330, "answer.data") });
+  </script>
+  <script>
+    const host = { sources: { "inline.object": [{ id: 1423330 }] } };
+  </script>
+  <script src="/dist/basiscore.js"></script>
+</head>
+<body data-doc="docs/schema/displaying-answers.md">
+  <main>
+    <h1>displaying saved answers</h1>
+    <p class="intro">
+      Checks <code>docs/schema/displaying-answers.md</code>: the commands that show an object created
+      through a schema form. One <code>api</code> command loads the record; <code>schema</code> in
+      <code>view</code> mode renders it read-only, a <code>callback</code> plus <code>print</code> renders
+      its raw values, tokens read its fields, and <code>schemalist</code> lists the question titles of
+      several records.
+    </p>
+
+    <basis core="api" run="atclient" method="get" url="/schema/answers?id=[##inline.object.id##]"></basis>
+
+    <section class="case" id="case-view">
+      <h2>Detail page: <code>schema</code> in view mode fed by <code>api</code></h2>
+      <div id="view-form">
+        <basis core="schema" run="atclient" datamembername="answer.data"
+               schemaUrl="/schema/questions" displayMode="view"></basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-tokens">
+      <h2>Tokens over the raw record</h2>
+      <p id="record">Object [##answer.data.usedForId##] uses schema [##answer.data.schemaId##]</p>
+    </section>
+
+    <section class="case" id="case-print">
+      <h2>Generic renderer: flatten the values in a callback, render them with <code>print</code></h2>
+      <basis core="callback" run="atclient" triggers="answer.data" method="flattenAnswer"></basis>
+      <div id="values">
+        <basis core="print" run="atclient" datamembername="answer.values">
+          <layout><script type="text/template"><table>@child</table></script></layout>
+          <face><script type="text/template"><tr><td>@prpId@</td><td>@value@</td></tr></script></face>
+        </basis>
+      </div>
+    </section>
+
+    <section class="case" id="case-list">
+      <h2>Titles of several records with <code>schemalist</code></h2>
+      <div id="titles">
+        <basis core="schemalist" run="atclient" datamembername="list.answers" schemaUrl="/schema/questions"></basis>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function flattenAnswer(args) {
+      const rows = [];
+      for (const p of args.source.rows[0].properties)
+        for (const a of p.answers) for (const part of a.parts) for (const v of part.values)
+          rows.push({ prpId: p.prpId, part: part.part, value: v.value });
+      $bc.setSource("answer.values", rows);
+    }
+  </script>
+
+  <script>
+    bcTest.test("view mode renders the answered questions as read-only controls and skips the unanswered one", async (t) => {
+      await t.waitFor(() => t.$$("#view-form [data-bc-question]"), (q) => q.length === 2);
+      t.deepEqual(t.$$("#view-form [data-bc-question-title]").map((e) => t.text(e)), ["Web site", "Voltage"], "Notes has no property and is skipped");
+      t.equal(t.text(t.$("#view-form label[data-bc-text-input]")), "http://www.basiscore.com", "a text part becomes a label");
+      t.equal(t.$$("#view-form input[data-bc-text-input], #view-form textarea").length, 0, "no editable controls");
+      const checks = t.$$("#view-form [data-bc-part-checkbox] input");
+      t.equal(checks.length, 2, "the checklist renders only the selected items");
+      t.ok(checks.every((c) => c.checked && c.disabled), "selected items are checked and disabled");
+      t.deepEqual(t.$$("#view-form [data-bc-part-checkbox] [data-sys-text]").map((e) => t.text(e)), ["220", "R1"], "the item texts come from the schema, not the stored ids");
+      t.equal(t.$$("#view-form [data-bc-btn], #view-form [data-bc-pair-btn-container]").length, 0, "no add or remove buttons in view mode");
+    });
+
+    bcTest.test("tokens read the record's own fields", async (t) => {
+      await t.waitForText("#record", "Object 1423330 uses schema 1161");
+    });
+
+    bcTest.test("a callback can flatten the record into rows that print renders; values are the stored ids", async (t) => {
+      const rows = await t.waitFor(() => t.$$("#values tr"), (l) => l.length === 3);
+      t.deepEqual(rows.map((r) => t.$$("td", r).map((td) => t.text(td))), [["55", "http://www.basiscore.com"], ["130601", "5"], ["130601", "6"]]);
+    });
+
+    bcTest.test("schemalist renders one title per question for every record, asking the schema endpoint with id, ver and lid", async (t) => {
+      $bc.setSource("list.answers", [answer1423331, answer1423331]);
+      const divs = await t.waitFor(() => t.$$("#titles div"), (l) => l.length === 6);
+      t.deepEqual(divs.map((d) => t.text(d)), ["Web site", "Voltage", "Notes", "Web site", "Voltage", "Notes"]);
+      t.equal(listRequests.length, 2, "one schema request per record");
+      t.equal(listRequests[0], "?id=1161&ver=1.1&lid=1");
+    });
+  </script>
+</body>
+</html>

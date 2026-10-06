@@ -87,7 +87,7 @@
             <div>@child</div>
           </layout>
           <face filter="id < 12">
-            <span data-id="@id@" onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16)}`">@id ( @name ) </span>
+            <span data-id="@id@" onclick="this.style['color'] = `#${Math.floor(Math.random()*0xffffff).toString(16).padStart(6, '0')}`">@id ( @name ) </span>
           </face>
           <else-layout> empty </else-layout>
           <divider rowcount="4">
