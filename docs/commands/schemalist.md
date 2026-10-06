@@ -117,6 +117,7 @@ The `<face>` body (including the `@prp[...]`/`@type[...]` notation) and `viewMod
 
 ## Related
 
+- [../schema/displaying-answers.md](../schema/displaying-answers.md) - the other ways to show a saved answer
 - [schema.md](schema.md)
 - [schemauploader.md](schemauploader.md)
 - [api.md](api.md)

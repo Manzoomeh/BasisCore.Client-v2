@@ -385,6 +385,7 @@ In schema `1163` the fix value `{ "id": 4, "value": "110", "schema": { "schemaId
 
 ## Related
 
+- [../schema/displaying-answers.md](../schema/displaying-answers.md) - which commands show a saved answer, and when to use `view` mode
 - [../schema/schema-json-contract.md](../schema/schema-json-contract.md)
 - [../schema/field-types.md](../schema/field-types.md)
 - [../schema/validation.md](../schema/validation.md)

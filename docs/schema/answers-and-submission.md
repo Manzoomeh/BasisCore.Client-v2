@@ -346,6 +346,7 @@ try {
 
 ## Related
 
+- [displaying-answers.md](displaying-answers.md) - showing a saved answer read-only or as a list
 - [../commands/schema.md](../commands/schema.md)
 - [schema-json-contract.md](schema-json-contract.md)
 - [validation.md](validation.md)

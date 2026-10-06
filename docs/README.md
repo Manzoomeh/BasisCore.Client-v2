@@ -52,6 +52,7 @@ Every command is written as `<basis core="…" run="atclient" …>`.
 | [Validation](schema/validation.md) | Rules, error rendering, cultures and the messages API |
 | [Answers and submission](schema/answers-and-submission.md) | Loading answers, added/edited/deleted diffs, publishing results, uploading files |
 | [DOM markers](schema/dom-markers.md) | The `data-bc-*` attributes the form writes, for CSS theming and debugging |
+| [Displaying saved answers](schema/displaying-answers.md) | Which commands show an object created through a form: `schema` in `view`/`edit` mode, `schemalist`, generic renderers over the record |
 
 ## Extending and maintaining
 
@@ -72,6 +73,8 @@ Every command is written as `<basis core="…" run="atclient" …>`.
   strategies) → [tree](commands/tree.md) or [print](commands/print.md) incremental rendering.
 - **Forms:** [schema](commands/schema.md) → Schema JSON contract → Field types → Validation →
   Answers and submission → [schemauploader](commands/schemauploader.md).
+- **Showing a saved object:** [Displaying saved answers](schema/displaying-answers.md) →
+  [schema](commands/schema.md) (`view` mode) → Field types (read-only controls).
 - **Reusable widgets:** User-defined components → [component](commands/component.md) →
   Command attributes and lifecycle.
 
